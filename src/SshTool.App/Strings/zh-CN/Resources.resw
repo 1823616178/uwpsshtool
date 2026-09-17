@@ -27,4 +27,14 @@
   <data name="Error_405" xml:space="preserve"><value>策略性断开（达到服务器限制）</value></data>
   <data name="Error_500" xml:space="preserve"><value>内部错误</value></data>
   <data name="Error_999" xml:space="preserve"><value>未知错误</value></data>
+  <data name="Validation_Required" xml:space="preserve"><value>必填</value></data>
+  <data name="Validation_NameTooLong" xml:space="preserve"><value>名称过长（不超过 255 字）</value></data>
+  <data name="Validation_HostTooLong" xml:space="preserve"><value>地址过长（不超过 1024 字）</value></data>
+  <data name="Validation_PortRange" xml:space="preserve"><value>端口须在 1–65535 之间</value></data>
+  <data name="Validation_KeepaliveRange" xml:space="preserve"><value>Keepalive 须在 0–3600 秒之间</value></data>
+  <data name="Validation_ColorFormat" xml:space="preserve"><value>颜色须为 #RRGGBB 形式</value></data>
+  <data name="Validation_ServerRequired" xml:space="preserve"><value>需要选择所属服务器</value></data>
+  <data name="Validation_DestHostRequired" xml:space="preserve"><value>该转发类型需要目标地址</value></data>
+  <data name="Validation_DestServerRequired" xml:space="preserve"><value>relay 转发需要选择存在的目标主机</value></data>
+  <data name="Validation_SnippetContentRequired" xml:space="preserve"><value>片段内容不能为空</value></data>
 </root>

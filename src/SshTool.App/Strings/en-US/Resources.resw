@@ -27,4 +27,14 @@
   <data name="Error_405" xml:space="preserve"><value>Disconnected by policy (server limit reached).</value></data>
   <data name="Error_500" xml:space="preserve"><value>Internal error.</value></data>
   <data name="Error_999" xml:space="preserve"><value>Unknown error.</value></data>
+  <data name="Validation_Required" xml:space="preserve"><value>Required.</value></data>
+  <data name="Validation_NameTooLong" xml:space="preserve"><value>Name too long (max 255).</value></data>
+  <data name="Validation_HostTooLong" xml:space="preserve"><value>Host too long (max 1024).</value></data>
+  <data name="Validation_PortRange" xml:space="preserve"><value>Port must be between 1 and 65535.</value></data>
+  <data name="Validation_KeepaliveRange" xml:space="preserve"><value>Keepalive must be between 0 and 3600 seconds.</value></data>
+  <data name="Validation_ColorFormat" xml:space="preserve"><value>Color must be in #RRGGBB form.</value></data>
+  <data name="Validation_ServerRequired" xml:space="preserve"><value>A server is required.</value></data>
+  <data name="Validation_DestHostRequired" xml:space="preserve"><value>This tunnel type needs a destination host.</value></data>
+  <data name="Validation_DestServerRequired" xml:space="preserve"><value>Relay tunnels need an existing destination server.</value></data>
+  <data name="Validation_SnippetContentRequired" xml:space="preserve"><value>Snippet content is required.</value></data>
 </root>
