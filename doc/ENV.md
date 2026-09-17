@@ -42,6 +42,22 @@
 
 配对：手机 设置 → 更新和安全 → 开发者选项 → 打开「设备发现」→ 点「配对」获取 PIN。
 
+### 3.1 取回真机报告（设备门户，2026-09-18 打通）
+
+手机 USB 接上后，设备门户会转发到本机 `http://127.0.0.1:10080` / `https://127.0.0.1:10443`（PC 自己的门户在 50080，别搞混）。
+首次需配对：手机 **设置 → 更新和安全 → 针对开发人员 → 设备发现 → 配对**，屏幕给出 6 位 PIN。
+
+```pwsh
+pwsh scripts/phone-portal.ps1 -Pair <6位PIN>       # 一次性；会话存 .phone-portal-session.json（已 gitignore）
+pwsh scripts/phone-portal.ps1 -List                # 列 LocalState\spike-reports
+pwsh scripts/phone-portal.ps1 -Pull                # 全部拉到 artifacts/phone-reports/
+pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
+```
+
+调试页的报告会自动落 `LocalState\spike-reports\`、复制到剪贴板、并写 `logspp.log`（`Views/Debug/DebugReport.cs`）。
+
+---
+
 ## 4. 待真机/人工验证项
 
 - [ ] 📱 空白应用（X02 的 MainPage 即可充当）在 Lumia 950 启动成功
