@@ -1274,5 +1274,5 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 日期 | 任务 | commit | 说明 |
 |---|---|---|---|
 | 2026-09-17 | — | — | 规划文档初版（README、01–04） |
-| 2026-09-17 | X01 | HASHHERE | ⏳ 等待：手机开开发者模式 + WinAppDeployCmd 部署实测（ENV.md §2/§4）。机器侧已盘点入 `doc/ENV.md`；工具链决策：VS2026 构建 C#、VS2017(v141) 构建 Native（VS2026 无 ARM32/v141-UWP），SDK Target 19041；CMake 未安装（X06 前需装）；VS2026 能否部署 W10M 未测 |
-| 2026-09-17 | X02 | HASHHERE | 骨架完成。dotnet test ✓；两段式构建：VS2017 Native ✓ + sln x64 Debug ✓ / ARM Release(.NET Native) ✓。偏差：Tests 不入 sln（sln 级还原会损坏其 assets，见 ENV.md 踩坑）；App 引用 Native 的 winmd 产物而非项目引用；SDK Target 17763→19041（已回写 01-DESIGN §1.2） |
+| 2026-09-17 | X01 | af72863 | ⏳ 等待：手机开开发者模式 + WinAppDeployCmd 部署实测（ENV.md §2/§4）。机器侧已盘点入 `doc/ENV.md`；工具链决策：VS2026 构建 C#、VS2017(v141) 构建 Native（VS2026 无 ARM32/v141-UWP），SDK Target 19041；CMake 未安装（X06 前需装）；VS2026 能否部署 W10M 未测 |
+| 2026-09-17 | X02 | af72863 | 骨架完成。dotnet test ✓；两段式构建：VS2017 Native ✓ + sln x64 Debug ✓ / ARM Release(.NET Native) ✓。偏差：Tests 不入 sln（sln 级还原会损坏其 assets，见 ENV.md 踩坑）；App 引用 Native 的 winmd 产物而非项目引用；SDK Target 17763→19041（已回写 01-DESIGN §1.2） |
