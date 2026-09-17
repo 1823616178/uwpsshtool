@@ -91,6 +91,7 @@
     <Compile Include="Platform\FileLogger.cs" />
     <Compile Include="Platform\AppConfig.cs" />
     <Compile Include="Platform\UwpFileSystem.cs" />
+    <Compile Include="Platform\UwpHttpTransport.cs" />
     <Compile Include="Infrastructure\ServiceRegistry.cs" />
     <Compile Include="Infrastructure\DispatcherHelper.cs" />
     <Compile Include="Infrastructure\IBackHandler.cs" />
