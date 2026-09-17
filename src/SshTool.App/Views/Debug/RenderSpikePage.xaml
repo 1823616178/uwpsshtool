@@ -14,6 +14,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -23,16 +24,24 @@
                        VerticalAlignment="Center" Margin="12,0,0,0" />
         </StackPanel>
 
-        <!-- 网格尺寸 / 负载 / 实例数 -->
+        <!-- 一键跑全矩阵：4 负载 × 2 网格 × 单/双实例，结果自动落盘 + 复制到剪贴板 -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+            <Button x:Name="MatrixButton" Content="跑全矩阵并导出" Click="OnRunMatrixClick" />
+            <Button x:Name="CopyButton" Content="复制报告" Click="OnCopyClick" Margin="8,0,0,0" IsEnabled="False" />
+            <Button x:Name="ViewButton" Content="看/收报告" Click="OnToggleReportClick" Margin="8,0,0,0" IsEnabled="False" />
+        </StackPanel>
+
+        <!-- 手动模式 -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,0">
             <ComboBox x:Name="GridBox" SelectionChanged="OnGridOrLoadChanged" SelectedIndex="0" Width="110">
                 <ComboBoxItem Content="48×30" />
                 <ComboBoxItem Content="88×24" />
             </ComboBox>
-            <ComboBox x:Name="LoadBox" SelectionChanged="OnGridOrLoadChanged" SelectedIndex="0" Width="150" Margin="8,0,0,0">
-                <ComboBoxItem Content="全屏每帧重绘" />
+            <ComboBox x:Name="LoadBox" SelectionChanged="OnGridOrLoadChanged" SelectedIndex="0" Width="170" Margin="8,0,0,0">
+                <ComboBoxItem Content="全屏逐格" />
                 <ComboBoxItem Content="每帧 3 行脏行" />
                 <ComboBoxItem Content="静止" />
+                <ComboBoxItem Content="全屏 run 合并" />
             </ComboBox>
             <ToggleSwitch x:Name="DualSwitch" OnContent="双实例" OffContent="单实例"
                           Toggled="OnDualToggled" Margin="8,0,0,0" />
@@ -40,10 +49,10 @@
                           Toggled="OnRunToggled" Margin="8,0,0,0" />
         </StackPanel>
 
-        <TextBlock x:Name="StatsText" Grid.Row="2" Style="{StaticResource MonoCaptionTextStyle}"
+        <TextBlock x:Name="StatsText" Grid.Row="3" Style="{StaticResource MonoCaptionTextStyle}"
                    TextWrapping="Wrap" Margin="0,8,0,8" Text="未开始" />
 
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="4">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -51,6 +60,12 @@
             <canvas:CanvasControl x:Name="Canvas1" Draw="OnDraw1" CreateResources="OnCreateResources" />
             <canvas:CanvasControl x:Name="Canvas2" Grid.Column="1" Draw="OnDraw2"
                                   Visibility="Collapsed" Margin="8,0,0,0" />
+            <!-- 跑完后盖在上面显示报告全文，可直接选中复制 -->
+            <TextBox x:Name="ReportBox" Grid.ColumnSpan="2" Visibility="Collapsed"
+                     IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                     FontFamily="Consolas" FontSize="11"
+                     ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto" />
         </Grid>
     </Grid>
 </Page>

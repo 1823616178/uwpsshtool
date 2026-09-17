@@ -136,6 +136,7 @@
     <Compile Include="Views\Debug\SpikePage.xaml.cs">
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Debug\DebugReport.cs" />
     <Compile Include="Views\Debug\RenderSpikePage.xaml.cs">
       <DependentUpon>RenderSpikePage.xaml</DependentUpon>
     </Compile>

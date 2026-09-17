@@ -90,6 +90,24 @@
   - Win2D **同样依赖 VCLibs**：若 AppxManifest 缺 `Microsoft.VCLibs.140.00[.Debug]`，它会和 SshTool.Native 一样 0x8007007E（依赖已于本日修复）。
 - 体积：加入 Win2D + 两款字体后 ARM Release 包 3.4 MB → **4.8 MB**（Canvas.dll 1.70 MB，两款 ttf 共 0.53 MB）。
 - 字体：JetBrains Mono v2.304，`scripts/fetch-fonts.ps1` 按固定 URL + SHA256 抓取（OFL.txt 一并入包），引用名 `ms-appx:///Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono`。
-- 📱 待真机：`RenderSpikePage`（MainPage「SP04 Win2D 渲染压测」）跑满 3 负载 × 2 网格 × 单/双实例，记录 FPS 与平均绘制耗时；并记录页面报出的可用中文回退字体名（候选 Microsoft YaHei UI / DengXian / SimSun）。数字回来后回写 `01-DESIGN.md` D5、§7.4。
+- **2026-09-18 真机首轮（Lumia 950，ARM Release/.NET Native）**——逐格绘制版本：
+
+  | 负载 | 网格 | 实例 | tick/s | 平均绘制 | 对 30 fps 预算 |
+  |---|---|---|---|---|---|
+  | 全屏逐格重绘 | 48×30 | 单 | 15.9 | 99–105 ms | ✘ 差 3 倍 |
+  | 全屏逐格重绘 | 88×24 | 单 | 12 | 138–152 ms | ✘ 差 4–5 倍 |
+  | 每帧 3 行脏行 | 48×30 | 单 | 42–53 | — | ✔ |
+  | 每帧 3 行脏行 | 48×30 | 双 | 24–27 | — | ✘ |
+  | 每帧 3 行脏行 | 88×24 | 单 | 30 | 46–50 ms | ⚠ 卡线 |
+  | 每帧 3 行脏行 | 88×24 | 双 | 18 | ~50 ms | ✘ |
+
+  **读数注意**：上表 tick/s 是 `CompositionTarget.Rendering` 回调频率，而 `CanvasControl` 跟不上时会合并 `Invalidate`，
+  所以 tick/s 高于实际重绘次数（88×24 脏行报 30 tick/s 但平均绘制 46–50 ms，实绘只有 ~20 次/秒）。
+  该仪表已修：页面现在同时报 `tick/s` 与 `draw/s`（Draw 实际调用次数），以 `draw/s` 与平均绘制耗时为准。
+- **初步结论**：§7.3 规定的「行内 run 合并 + 行缓存 + 只重绘脏行」不是优化项而是**必需项**——逐格 `FillRectangle`+`DrawText`
+  在 ARM32 上约 50–70 µs/格，48×30 就要 ~100 ms/帧。已给压测页补「全屏 run 合并」负载以量化 §7.3 真实画法的成本。
+- 📱 待真机（第二轮，用页面上的「跑全矩阵并导出」一键完成）：4 负载（逐格/run 合并/3 脏行/静止）× 2 网格 × 单/双实例的
+  `draw/s` 与平均绘制耗时；以及页面报出的可用中文回退字体名。报告自动落 `LocalState\spike-reports\sp04-render-*.txt`、
+  复制到剪贴板、并写入 `logs\app.log`。数字回来后回写 `01-DESIGN.md` D5、§7.4。
 
 ---

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using Microsoft.Graphics.Canvas.UI;
@@ -39,7 +40,7 @@ namespace SshTool.App.Views.Debug
             Color.FromArgb(255, 0x29, 0xB8, 0xDB), Color.FromArgb(255, 0xFF, 0xFF, 0xFF)
         };
 
-        private enum LoadMode { FullRedraw = 0, DirtyRows = 1, Idle = 2 }
+        private enum LoadMode { FullRedraw = 0, DirtyRows = 1, Idle = 2, FullRedrawMerged = 3 }
 
         private readonly Random _rnd = new Random(20260918);
         private readonly Stopwatch _clock = Stopwatch.StartNew();
@@ -62,6 +63,8 @@ namespace SshTool.App.Views.Debug
         private int _drawSamples;
         private double _lastReportMs;
         private string _fontReport = "字体：未检测";
+        private bool _matrixRunning;
+        private string _lastReport;
 
         public RenderSpikePage()
         {
@@ -155,19 +158,23 @@ namespace SshTool.App.Views.Debug
 
         private void Report()
         {
+            if (_matrixRunning) { return; }   // 矩阵跑的时候计数归测量窗口所有
             double now = _clock.Elapsed.TotalMilliseconds;
             double span = now - _lastReportMs;
             if (span < 500) { return; }
 
-            double fps = _frames * 1000.0 / span;
+            // tick/s 是合成帧回调频率；CanvasControl 跟不上时会合并 Invalidate，
+            // 所以必须同时报「实绘/s」（Draw 真正被调用的次数），否则读数偏乐观。
+            double tickPerSec = _frames * 1000.0 / span;
+            double drawPerSec = _drawSamples * 1000.0 / span;
             double avgDraw = _drawSamples > 0 ? _drawMsSum / _drawSamples : 0;
             StatsText.Text = string.Format(
                 CultureInfo.InvariantCulture,
-                "{0}×{1} | {2} | {3} | FPS {4:F1} | 平均绘制 {5:F2} ms | 格 {6:F1}×{7:F1} px\n{8}",
+                "{0}×{1} | {2} | {3}\ntick {4:F1}/s | 实绘 {5:F1}/s | 平均绘制 {6:F2} ms | 格 {7:F1}×{8:F1} px\n{9}",
                 _cols, _rows,
                 ((ComboBoxItem)LoadBox.SelectedItem).Content,
                 DualSwitch.IsOn ? "双实例" : "单实例",
-                fps, avgDraw, _cellW, _cellH, _fontReport);
+                tickPerSec, drawPerSec, avgDraw, _cellW, _cellH, _fontReport);
 
             _frames = 0;
             _drawMsSum = 0;
@@ -212,6 +219,13 @@ namespace SshTool.App.Views.Debug
             {
                 painter.DrawCached(sender, args.DrawingSession, this);
             }
+            else if (Mode == LoadMode.FullRedrawMerged)
+            {
+                for (int r = 0; r < _rows; r++)
+                {
+                    DrawRowMerged(args.DrawingSession, r, 0f, r * _cellH);
+                }
+            }
             else
             {
                 DrawGridDirect(args.DrawingSession, 0f, 0f);
@@ -237,6 +251,35 @@ namespace SshTool.App.Views.Debug
                 float x = x0 + c * _cellW;
                 ds.FillRectangle(x, y0, _cellW, _cellH, Ansi16[_bg[r, c]]);
                 ds.DrawText(_chars[r, c].ToString(), x, y0, Ansi16[_fg[r, c]], _format);
+            }
+        }
+
+        // §7.3 规定的画法：一行内把连续同属性的格并成 run，背景一次 FillRectangle、
+        // 文本一次 DrawText。逐格画是最坏情况，这里量的才是真实渲染器的成本。
+        internal void DrawRowMerged(CanvasDrawingSession ds, int r, float x0, float y0)
+        {
+            int c = 0;
+            while (c < _cols)                       // 背景 run
+            {
+                int start = c;
+                byte bg = _bg[r, c];
+                while (c < _cols && _bg[r, c] == bg) { c++; }
+                ds.FillRectangle(x0 + start * _cellW, y0, (c - start) * _cellW, _cellH, Ansi16[bg]);
+            }
+
+            c = 0;
+            var run = new StringBuilder(_cols);
+            while (c < _cols)                       // 文本 run
+            {
+                int start = c;
+                byte fg = _fg[r, c];
+                run.Length = 0;
+                while (c < _cols && _fg[r, c] == fg)
+                {
+                    run.Append(_chars[r, c]);
+                    c++;
+                }
+                ds.DrawText(run.ToString(), x0 + start * _cellW, y0, Ansi16[fg], _format);
             }
         }
 
@@ -304,6 +347,128 @@ namespace SshTool.App.Views.Debug
             Canvas2.Visibility = DualSwitch.IsOn ? Visibility.Visible : Visibility.Collapsed;
             if (Canvas1 != null) { Canvas1.Invalidate(); }
             if (Canvas2 != null && Canvas2.Visibility == Visibility.Visible) { Canvas2.Invalidate(); }
+        }
+
+
+        // ---------- 一键全矩阵 + 导出 ----------
+
+        private const int WarmupMs = 1200;
+        private const int MeasureMs = 2500;
+        private static readonly string[] LoadTags = { "per-cell", "dirty3", "idle", "run-merged" };
+
+        private async void OnRunMatrixClick(object sender, RoutedEventArgs e)
+        {
+            if (_matrixRunning) { return; }
+            _matrixRunning = true;
+            MatrixButton.IsEnabled = false;
+            ReportBox.Visibility = Visibility.Collapsed;
+            try
+            {
+                await RunMatrixAsync();
+            }
+            catch (Exception ex)
+            {
+                StatsText.Text = "矩阵中断：" + ex.Message;
+            }
+            finally
+            {
+                _matrixRunning = false;
+                MatrixButton.IsEnabled = true;
+            }
+        }
+
+        private async Task RunMatrixAsync()
+        {
+            if (!RunSwitch.IsOn) { RunSwitch.IsOn = true; }
+
+            var sb = new StringBuilder();
+            sb.AppendLine(DebugReport.EnvironmentHeader());
+            sb.AppendLine("SP04 Win2D 渲染压测 | 预热 " + WarmupMs + " ms，测量 " + MeasureMs + " ms");
+            sb.AppendLine("load: per-cell=全屏逐格 dirty3=每帧3行脏行 idle=静止 run-merged=全屏行内run合并");
+            sb.AppendLine("tick/s=CompositionTarget.Rendering 回调频率；draw/s=Draw 实际被调用次数（跟不上时会被合并）");
+            sb.AppendLine();
+            sb.AppendLine("load        grid   inst   tick/s   draw/s   avg-draw-ms");
+
+            int[] loads = { 0, 3, 1, 2 };            // 逐格 → run 合并 → 脏行 → 静止
+            int[] grids = { 0, 1 };
+            bool[] duals = { false, true };
+            int total = loads.Length * grids.Length * duals.Length;
+            int done = 0;
+
+            foreach (int g in grids)
+            {
+                foreach (int l in loads)
+                {
+                    foreach (bool dual in duals)
+                    {
+                        GridBox.SelectedIndex = g;
+                        LoadBox.SelectedIndex = l;
+                        DualSwitch.IsOn = dual;
+
+                        StatsText.Text = string.Format(
+                            CultureInfo.InvariantCulture,
+                            "矩阵 {0}/{1}：{2} {3}×{4} {5}（预热中…）",
+                            done + 1, total, LoadTags[l],
+                            g == 1 ? 88 : 48, g == 1 ? 24 : 30,
+                            dual ? "双实例" : "单实例");
+
+                        await Task.Delay(WarmupMs);
+                        ResetCounters();
+                        await Task.Delay(MeasureMs);
+                        sb.AppendLine(SnapshotRow(LoadTags[l], dual));
+                        done++;
+                    }
+                }
+            }
+
+            sb.AppendLine();
+            sb.AppendLine("cell: " + _cellW.ToString("F1", CultureInfo.InvariantCulture)
+                + "x" + _cellH.ToString("F1", CultureInfo.InvariantCulture) + " px");
+            sb.AppendLine(_fontReport);
+
+            _lastReport = sb.ToString();
+            ReportBox.Text = _lastReport;
+            ReportBox.Visibility = Visibility.Visible;
+            CopyButton.IsEnabled = true;
+            ViewButton.IsEnabled = true;
+            RunSwitch.IsOn = false;
+
+            StatsText.Text = await DebugReport.PublishAsync("sp04-render", "SP04", _lastReport);
+        }
+
+        private void ResetCounters()
+        {
+            _frames = 0;
+            _drawMsSum = 0;
+            _drawSamples = 0;
+            _lastReportMs = _clock.Elapsed.TotalMilliseconds;
+        }
+
+        private string SnapshotRow(string loadTag, bool dual)
+        {
+            double span = _clock.Elapsed.TotalMilliseconds - _lastReportMs;
+            if (span <= 0) { span = 1; }
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "{0,-11} {1,-6} {2,-6} {3,7:F1} {4,8:F1} {5,10:F2}",
+                loadTag,
+                _cols + "x" + _rows,
+                dual ? "dual" : "single",
+                _frames * 1000.0 / span,
+                _drawSamples * 1000.0 / span,
+                _drawSamples > 0 ? _drawMsSum / _drawSamples : 0);
+        }
+
+        private void OnCopyClick(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_lastReport)) { return; }
+            StatsText.Text = DebugReport.CopyToClipboard(_lastReport) ? "已复制到剪贴板" : "复制失败";
+        }
+
+        private void OnToggleReportClick(object sender, RoutedEventArgs e)
+        {
+            ReportBox.Visibility = ReportBox.Visibility == Visibility.Visible
+                ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void OnBackClick(object sender, RoutedEventArgs e)
