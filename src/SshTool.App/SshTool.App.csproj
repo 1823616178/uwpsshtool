@@ -86,6 +86,7 @@
     </Compile>
     <Compile Include="Platform\ThemeService.cs" />
     <Compile Include="Platform\FileLogger.cs" />
+    <Compile Include="Platform\AppConfig.cs" />
     <Compile Include="Views\Debug\SpikePage.xaml.cs">
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
@@ -142,6 +143,13 @@
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\SplashScreen.png" />
     <Content Include="Properties\Default.rd.xml" />
+    <!-- X05：按 Configuration 选配置文件，打包为 Assets/appconfig.json -->
+    <Content Include="Config\appconfig.Debug.json" Condition="'$(Configuration)'=='Debug'">
+      <Link>Assets\appconfig.json</Link>
+    </Content>
+    <Content Include="Config\appconfig.Release.json" Condition="'$(Configuration)'=='Release'">
+      <Link>Assets\appconfig.json</Link>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">

@@ -1,0 +1,5 @@
+{
+  "syncApiBaseUrl": "http://123.161.179.32:46926",
+  "allowHttp": true,
+  "logLevel": "info"
+}

@@ -18,7 +18,7 @@ namespace SshTool.App
             this.Suspending += OnSuspending;
         }
 
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
@@ -30,6 +30,7 @@ namespace SshTool.App
             }
 
             Platform.ThemeService.Initialize();
+            await Platform.AppConfig.LoadAsync();
             Platform.FileLogger.Instance.Log(SshTool.Core.Common.LogLevel.Info, "App", "应用启动");
 
             if (e.PrelaunchActivated == false)
