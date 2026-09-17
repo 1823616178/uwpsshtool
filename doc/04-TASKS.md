@@ -40,7 +40,7 @@
 | M0 | 基座与技术验证 | 13 | 3 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 0 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
-| M3 | 数据层与主机管理 | 12 | 0 | 主机/分组增删改、凭据安全保存 |
+| M3 | 数据层与主机管理 | 12 | 1 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 0 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 0 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 0 | 主题、字体、配色可改可导入 |
@@ -543,14 +543,14 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 
 ## 5. M3 — 数据层与主机管理
 
-- [ ] **D01 核心模型与校验** `M`
+- [x] **D01 核心模型与校验** `M`
   - 依赖：X02
   - 参考：`01-DESIGN.md §8.1`；`03-SYNC-PROTOCOL.md §4.1`（限制值）
   - 产出：`src/SshTool.Core/Models/{Host,HostGroup,Tunnel,TunnelType,AuthType,KeyEntry,Snippet,AppearanceProfile,KnownHost,CursorStyle}.cs`、`src/SshTool.Core/Models/Defaults.cs`、`src/SshTool.Core/Validation/{ValidationResult,HostValidator,GroupValidator,TunnelValidator,SnippetValidator}.cs`、`src/SshTool.Core/Common/IdGenerator.cs`、测试
   - 要点：全部字段按 §8.1；每个实体 `Clone()`；默认值工厂；校验返回「字段名 → 错误资源键」字典；Host：name/host/username 非空与长度、port、keepalive 范围；Group：color 正则；Tunnel：按类型的必填（dynamic 不需要 dest，relay 需要 destServerId）、端口范围；`IdGenerator.NewId()` 生成小写 UUID v4。
   - 验收：
-    - [ ] 每条约束至少一条通过 + 一条失败用例
-    - [ ] Clone 深拷贝（列表/字典不共享）
+    - [x] 每条约束至少一条通过 + 一条失败用例
+    - [x] Clone 深拷贝（列表/字典不共享）
   - 验证：`dotnet test`
 
 - [ ] **D02 JSON 仓库、编解码与迁移** `M`
@@ -1288,3 +1288,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | X05 | 4b241fe | 完成（无 📱 项）。双配置包内 appconfig.json 解包校验分别对应；AppConfigParser 单测 6 条（共 31 ✓）；清单补四方向，能力三项与版本号此前已就位 |
 | 2026-09-17 | X06 | 1354ad1 | 完成（无 📱 项）。verify.ps1 全绿（含 -Arm ⑥ 步）；失败注入退出 1 并指名步骤②；cmake 免装（回退 vcpkg 缓存）；顺带修掉 VS2026 bundle 增量打包 bug（AppxBundle=Never，ENV.md 踩坑） |
 | 2026-09-17 | X07 | 83ffc8e | ⏳ 等待：👤/📱 画廊页控件观感确认。Core Mvvm 四件 + 单测 15（共 46 ✓）；App Infrastructure 六件 + NavigationService 返回链（§4）；Controls 六件全走 Token；verify 全量与 -Arm ✓；任务不勾选 |
+| 2026-09-17 | D01 | 7840be6 | 完成（无 📱 项）。模型 10 + Defaults + IdGenerator + 校验器 4；单测 +48（共 94 ✓）；verify 全绿 |
