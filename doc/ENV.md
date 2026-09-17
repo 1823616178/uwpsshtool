@@ -57,3 +57,9 @@
 - 经典格式 UWP C# csproj：PackageReference 需要 `RuntimeIdentifiers` 含字面 `win10`（旧版 ResolveNuGetPackageAssets 按基础 RID 查询）；每个配置需显式 `PlatformTarget`（否则打包任务 WireUpCoreRuntime 报 MSB4044）；清单必须有 `mp:PhoneIdentity`（否则 APPX1673）。
 - **不要把 net8 测试工程放进 sln**：VS 解决方案级 `-t:Restore` 会用旧框架解析器把 `net8.0` 写成 `.NETFramework,Version=v8.0`，损坏其 project.assets.json。Tests 由 `dotnet test` 驱动（若被损坏：`rm -rf tests/*/obj` 后重跑）。
 - Git Bash 里调用 MSBuild 必须用 `-p:` 短横线开关，`/p:` 会被 MSYS 路径转换吞掉。
+
+## 6. SP01 Spike 结论（进行中）
+
+- 2026-09-17 宿主机：Newtonsoft.Json 12.0.3（netstandard1.4 目标）`JsonSpike.RoundTrip()` 全部 9 项检查通过（固定键序、int/bool/null/数组/嵌套对象、Unicode 往返、ulong 上限、时间格式）——`dotnet test` 覆盖；x64 Debug 与 ARM Release（.NET Native）构建通过。
+- `Microsoft.NETCore.UniversalWindowsPlatform` 维持 **6.2.14** 锁定（`Directory.Build.props`），暂不降 5.4.x。
+- 📱 待真机：ARM Release 包运行 SpikePage，核对报告 9 项全 PASS（重点：ulong 上限、固定键序、Unicode/emoji 往返在 .NET Native 下不丢字）。失败则按 D9 兜底降 5.4.x 重测并在此记录现象。

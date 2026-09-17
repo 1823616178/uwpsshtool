@@ -11,6 +11,14 @@ namespace SshTool.App
             this.InitializeComponent();
             CoreVersionText.Text = "Core: " + CoreInfo.Version;
             NativeVersionText.Text = "Native: " + NativeInfo.Version();
+#if DEBUG
+            SpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
+#endif
+        }
+
+        private void OnSpikeClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(Views.Debug.SpikePage));
         }
     }
 }

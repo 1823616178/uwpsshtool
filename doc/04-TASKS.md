@@ -104,7 +104,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. SpikePage 按钮调用并显示结果；另测 `ulong.Parse("18446744073709551615")`、`DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", InvariantCulture)`。
     3. 先用 `Microsoft.NETCore.UniversalWindowsPlatform 6.2.14`；ARM Release 部署或运行失败则降为 5.4.x 重试，记录现象。
   - 验收：
-    - [ ] Core 单测覆盖 `JsonSpike.RoundTrip()` 通过
+    - [x] Core 单测覆盖 `JsonSpike.RoundTrip()` 通过
     - [ ] 📱 ARM Release 真机报告全部一致
     - [ ] `Directory.Build.props` 锁定最终 UWP 包版本；`01-DESIGN.md` D9 与 §1.2 回写结论
   - 验证：`dotnet test`；真机
@@ -1263,6 +1263,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 > AI 完成任务时把未能验证的 📱 项抄到这里，格式：`- [ ] <任务ID> <验收项原文>`。人工验证后勾选。
 
 - [ ] X01 空白应用在 Lumia 950 启动成功（可直接用 X02 的 ARM 包充当；部署步骤见 `doc/ENV.md` §3）
+- [ ] SP01 ARM Release 真机运行 SpikePage，报告 9 项全 PASS（ulong 上限/固定键序/Unicode/emoji 往返）；失败按 D9 兜底降 UWP 包 5.4.x 重测
 - [ ] X02 应用在 Lumia 上显示两个版本号（产物：`src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/SshTool.App_0.1.0.0_ARM.appx`，未签名，需临时证书或按后续 Q09 流程安装）
 
 ---
@@ -1276,3 +1277,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | — | — | 规划文档初版（README、01–04） |
 | 2026-09-17 | X01 | af72863 | ⏳ 等待：手机开开发者模式 + WinAppDeployCmd 部署实测（ENV.md §2/§4）。机器侧已盘点入 `doc/ENV.md`；工具链决策：VS2026 构建 C#、VS2017(v141) 构建 Native（VS2026 无 ARM32/v141-UWP），SDK Target 19041；CMake 未安装（X06 前需装）；VS2026 能否部署 W10M 未测 |
 | 2026-09-17 | X02 | af72863 | 骨架完成。dotnet test ✓；两段式构建：VS2017 Native ✓ + sln x64 Debug ✓ / ARM Release(.NET Native) ✓。偏差：Tests 不入 sln（sln 级还原会损坏其 assets，见 ENV.md 踩坑）；App 引用 Native 的 winmd 产物而非项目引用；SDK Target 17763→19041（已回写 01-DESIGN §1.2） |
+| 2026-09-17 | SP01 | HASHHERE | ⏳ 等待：📱 真机跑 SpikePage（ARM 包已含入口，MainPage DEBUG 按钮 → SpikePage）。宿主机侧完成：JsonSpike 9 项检查 + 单测 3 条、SpikePage、6.2.14 维持锁定；任务不勾选 |
