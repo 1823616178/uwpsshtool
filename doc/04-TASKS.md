@@ -42,7 +42,7 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 0 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 2 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 0 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 3 | 与桌面端同账号双向同步、冲突可解 |
+| M5 | 云端同步 | 22 | 4 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 0 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
@@ -847,13 +847,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 自检全部通过，记录 Argon2id 解锁耗时
   - 验证：`pwsh scripts/verify.ps1 -Arm`；真机
 
-- [ ] **S06 API 客户端：传输、端点与错误模型** `M`
+- [x] **S06 API 客户端：传输、端点与错误模型** `M`
   - 依赖：S01
   - 参考：`03-SYNC-PROTOCOL.md §2.1–2.3`；桌面端 `src/main/sync/api-client.ts`、`test/api-client.test.ts`
   - 产出：`src/SshTool.Core/Sync/Api/{IHttpTransport,HttpRequestData,HttpResponseData,ApiError,ApiErrorKind,ApiClient,ITokenStore}.cs`、`src/SshTool.Core/Sync/Api/Dtos/*.cs`、`src/SshTool.App/Platform/UwpHttpTransport.cs`、`tests/SshTool.Core.Tests/Fakes/FakeHttpTransport.cs`、测试
   - 要点：Base URL 规范化与 HTTP 许可；统一头；revision ETag 格式化与校验；错误解析（CodeUnknown、Retry-After 秒数/日期、RequestId）；全部端点类型化方法与 DTO 手写解析；`UwpHttpTransport`：关缓存/Cookie/自动重定向、超时取消、HEAD、`TryAppendWithoutValidation`、异常映射 network/timeout。
   - 验收：
-    - [ ] §10.1 ApiClient 1、2、9 + 每个 DTO 解析用例
+    - [x] §10.1 ApiClient 1、2、9 + 每个 DTO 解析用例
   - 验证：`dotnet test`
 
 - [ ] **S07 API 客户端：刷新、重试与 HEAD 回退** `M`
@@ -1293,3 +1293,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | S01 | 964aaea | 完成（无 📱 项）。SyncConstants 与桌面端 crypto-vault.ts 逐项对齐（AAD 域/SPM1/KDF/上限）；文档模型 7 个含 Clone；ServerSecrets null=键不存在；单测 +7（共 145 ✓） |
 | 2026-09-17 | S02 | 17dda97 | 完成（无 📱 项）。Validator/Reader/Writer 严格按 §4.1–4.3（路径化错误、固定键序、序数排序、无 BOM/缩进、2MiB 拒绝、SameContent 忽略 updatedAt）；CanonicalBase64/PrivateKeyFormat 移植；fixtures×2；入站私钥指纹复算（需 native KeyTool）留给 S10；单测 +91（共 236 ✓） |
 | 2026-09-17 | S09 | 6087bf0 | 完成（无 📱 项）。SyncMerge 移植 sync-merge.ts（JObject 通用字段合并 + Reader 转回）；冲突无值化；Merge 1–5 + preferences/secrets 部分键/双删用例；单测 +16（共 252 ✓） |
+| 2026-09-17 | S06 | 338bea0 | 完成（无 📱 项）。IHttpTransport 抽象 + ApiError/ApiErrorKind（§2.3）+ ITokenStore；ApiClient：Base URL 规范化/端点安全检查/统一头/FormatRevisionEtag/错误解析（注入时钟，Retry-After 秒数与 HTTP-date）/超时与网络映射，21 端点（单次发送，重试刷新归 S07）；DTO 手写解析（未知键忽略，revision 全程字符串）；UwpHttpTransport；ApiClient 用例 1/2/9 + 每 DTO 一条；单测 +62（共 314 ✓）；verify 全绿 |
