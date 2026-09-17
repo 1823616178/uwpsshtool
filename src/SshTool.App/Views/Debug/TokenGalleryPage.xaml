@@ -1,0 +1,129 @@
+<Page
+    x:Class="SshTool.App.Views.Debug.TokenGalleryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- 调试页豁免魔法数字检查（scripts/check-magic-numbers.ps1 排除 Views/Debug/） -->
+    <Grid Margin="{StaticResource PagePadding}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Margin="0,8">
+            <Button Content="返回" Click="OnBackClick" />
+            <TextBlock Text="Design Token 画廊" Style="{StaticResource SectionTitleTextStyle}"
+                       VerticalAlignment="Center" Margin="16,0,0,0" />
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="24,0,0,0">
+                <RadioButton Content="深色" Checked="OnThemeDark" Foreground="{ThemeResource AppTextBrush}" />
+                <RadioButton Content="浅色" Checked="OnThemeLight" Foreground="{ThemeResource AppTextBrush}" />
+                <RadioButton Content="跟随系统" IsChecked="True" Checked="OnThemeSystem" Foreground="{ThemeResource AppTextBrush}" />
+            </StackPanel>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel>
+
+                <TextBlock Text="颜色（§2.1）" Style="{StaticResource SectionTitleTextStyle}" Margin="0,8,0,4" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppBgBrush}" BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1" /><TextBlock Text="AppBg" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppSurfaceBrush}" BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1" /><TextBlock Text="AppSurface" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppSurfaceAltBrush}" BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1" /><TextBlock Text="AppSurfaceAlt" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppPressedBrush}" BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1" /><TextBlock Text="AppPressed" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppBorderBrush}" /><TextBlock Text="AppBorder" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppTextBrush}" /><TextBlock Text="AppText" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppTextDimBrush}" /><TextBlock Text="AppTextDim" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppTextFaintBrush}" /><TextBlock Text="AppTextFaint" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppAccentBrush}" /><TextBlock Text="AppAccent" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppOnAccentBrush}" BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1" /><TextBlock Text="AppOnAccent" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppSuccessBrush}" /><TextBlock Text="AppSuccess" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppWarningBrush}" /><TextBlock Text="AppWarning" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppDangerBrush}" /><TextBlock Text="AppDanger" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource AppInfoBrush}" /><TextBlock Text="AppInfo" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource KeyBarBgBrush}" BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1" /><TextBlock Text="KeyBarBg" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource KeyBarKeyBrush}" BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1" /><TextBlock Text="KeyBarKey" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource KeyBarKeyActiveBrush}" /><TextBlock Text="KeyBarKeyActive" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource KeyBarKeyLockedBrush}" /><TextBlock Text="KeyBarKeyLocked" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="120"><Border Height="40" Background="{ThemeResource OverlayScrimBrush}" BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1" /><TextBlock Text="OverlayScrim" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                </StackPanel>
+
+                <TextBlock Text="字号（§2.2 / §2.4）" Style="{StaticResource SectionTitleTextStyle}" Margin="0,16,0,4" />
+                <TextBlock Text="FontCaption 12 — CaptionTextStyle 次要说明文字" Style="{StaticResource CaptionTextStyle}" />
+                <TextBlock Text="FontBody 15 — BodyTextStyle 正文" Style="{StaticResource BodyTextStyle}" />
+                <TextBlock Text="FontSubtitle 18 — SectionTitleTextStyle 小节标题" Style="{StaticResource SectionTitleTextStyle}" />
+                <TextBlock Text="FontTitle 20" FontSize="{StaticResource FontTitle}" Style="{StaticResource BodyTextStyle}" />
+                <TextBlock Text="FontHeader 28 — PageTitleTextStyle 页标题" Style="{StaticResource PageTitleTextStyle}" />
+                <TextBlock Text="MonoCaption: AA:BB:CC:DD:EE 192.168.1.1" Style="{StaticResource MonoCaptionTextStyle}" />
+
+                <TextBlock Text="间距（§2.2）" Style="{StaticResource SectionTitleTextStyle}" Margin="0,16,0,4" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Border Width="{StaticResource SpaceXs}" Height="12" Background="{ThemeResource AppAccentBrush}" /><TextBlock Text=" Xs 4" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Border Width="{StaticResource SpaceSm}" Height="12" Background="{ThemeResource AppAccentBrush}" /><TextBlock Text=" Sm 8" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Border Width="{StaticResource SpaceMd}" Height="12" Background="{ThemeResource AppAccentBrush}" /><TextBlock Text=" Md 12" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Border Width="{StaticResource SpaceLg}" Height="12" Background="{ThemeResource AppAccentBrush}" /><TextBlock Text=" Lg 16" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Border Width="{StaticResource SpaceXl}" Height="12" Background="{ThemeResource AppAccentBrush}" /><TextBlock Text=" Xl 24" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <TextBlock Text="图标（§2.3，Segoe MDL2 Assets）" Style="{StaticResource SectionTitleTextStyle}" Margin="0,16,0,4" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconAdd}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Add" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconSearch}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Search" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconSync}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Sync" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconSyncError}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="SyncError" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconCloudOff}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="CloudOff" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconSettings}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Settings" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconMore}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="More" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconConnect}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Connect" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconDisconnect}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Disconnect" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconTerminal}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Terminal" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconKey}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Key" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconLock}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Lock" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconUnlock}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Unlock" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconEdit}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Edit" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconDelete}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Delete" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconCopy}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Copy" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconPaste}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Paste" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconFolder}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Folder" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconDocument}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Document" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconUpload}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Upload" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconDownload}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Download" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconTunnel}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Tunnel" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconSnippet}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Snippet" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconSplitH}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="SplitH" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconSplitV}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="SplitV" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconKeyboard}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Keyboard" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconWarning}" FontSize="20" Foreground="{ThemeResource AppWarningBrush}" /><TextBlock Text="Warning" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconError}" FontSize="20" Foreground="{ThemeResource AppDangerBrush}" /><TextBlock Text="Error" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconInfo}" FontSize="20" Foreground="{ThemeResource AppInfoBrush}" /><TextBlock Text="Info" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

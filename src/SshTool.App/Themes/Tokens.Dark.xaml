@@ -1,0 +1,26 @@
+<!-- 02-UI-DESIGN.md §2.1 深色主题（ThemeDictionaries 同名键） -->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <SolidColorBrush x:Key="AppBgBrush" Color="#000000" />
+    <SolidColorBrush x:Key="AppSurfaceBrush" Color="#12161F" />
+    <SolidColorBrush x:Key="AppSurfaceAltBrush" Color="#1A2030" />
+    <SolidColorBrush x:Key="AppPressedBrush" Color="#243048" />
+    <SolidColorBrush x:Key="AppBorderBrush" Color="#2A3448" />
+    <SolidColorBrush x:Key="AppTextBrush" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="AppTextDimBrush" Color="#9AA7C0" />
+    <SolidColorBrush x:Key="AppTextFaintBrush" Color="#6B7891" />
+    <!-- 系统强调色回退值；UseSystemAccent 时由 ThemeService 覆盖 -->
+    <SolidColorBrush x:Key="AppAccentBrush" Color="#4D8DFF" />
+    <SolidColorBrush x:Key="AppOnAccentBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppSuccessBrush" Color="#34C77B" />
+    <SolidColorBrush x:Key="AppWarningBrush" Color="#F5A524" />
+    <SolidColorBrush x:Key="AppDangerBrush" Color="#F4605F" />
+    <SolidColorBrush x:Key="AppInfoBrush" Color="#3EC6D9" />
+    <SolidColorBrush x:Key="KeyBarBgBrush" Color="#0B0E14" />
+    <SolidColorBrush x:Key="KeyBarKeyBrush" Color="#1E2636" />
+    <SolidColorBrush x:Key="KeyBarKeyActiveBrush" Color="#4D8DFF" />
+    <SolidColorBrush x:Key="KeyBarKeyLockedBrush" Color="#F5A524" />
+    <SolidColorBrush x:Key="OverlayScrimBrush" Color="#B3000000" />
+</ResourceDictionary>

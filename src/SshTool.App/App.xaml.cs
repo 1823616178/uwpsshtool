@@ -29,6 +29,8 @@ namespace SshTool.App
                 Window.Current.Content = rootFrame;
             }
 
+            Platform.ThemeService.Initialize();
+
             if (e.PrelaunchActivated == false)
             {
                 if (rootFrame.Content == null)

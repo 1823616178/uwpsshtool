@@ -14,12 +14,18 @@ namespace SshTool.App
             OpenSslVersionText.Text = "OpenSSL: " + NativeInfo.OpenSslVersion();
 #if DEBUG
             SpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
+            TokenGalleryButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
 #endif
         }
 
         private void OnSpikeClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             Frame.Navigate(typeof(Views.Debug.SpikePage));
+        }
+
+        private void OnTokenGalleryClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(Views.Debug.TokenGalleryPage));
         }
     }
 }
