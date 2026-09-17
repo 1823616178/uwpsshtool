@@ -1285,3 +1285,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | X03 | 69e4def | ⏳ 等待：👤/📱 运行画廊页确认深浅色切换观感。Token 四字典 + ThemeService（系统强调色覆盖 + ColorValuesChanged）+ 画廊页 + check-magic-numbers.ps1（正负验证 ✓）；x64 Debug / ARM Release 构建 ✓；任务不勾选 |
 | 2026-09-17 | X04 | a0c5eff | ⏳ 等待：👤/📱 运行应用确认 app.log 生成与脱敏。SshErrorCode 全码表 + LogRedactor/LogRotationPlanner + FileLogger + 双语 resw；单测 +22（共 25 ✓）；x64 Debug / ARM Release ✓；PRI257 为固有良性告警；任务不勾选 |
 | 2026-09-17 | X05 | 4b241fe | 完成（无 📱 项）。双配置包内 appconfig.json 解包校验分别对应；AppConfigParser 单测 6 条（共 31 ✓）；清单补四方向，能力三项与版本号此前已就位 |
+| 2026-09-17 | X06 | 1354ad1 | 完成（无 📱 项）。verify.ps1 全绿（含 -Arm ⑥ 步）；失败注入退出 1 并指名步骤②；cmake 免装（回退 vcpkg 缓存）；顺带修掉 VS2026 bundle 增量打包 bug（AppxBundle=Never，ENV.md 踩坑） |
