@@ -189,3 +189,16 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
   8. **兜底不启用**：`TextComposition*` 三件套在 Word Flow 上成对可靠，原「300 ms 静默」降级路径不需要。
 - 读数注意：日志里的时间间隔（每字符约 240 ms）**不可信**——采集页每条事件都整串重设 `LogBox.Text`，是 O(n²) 的自身开销，
   不代表输入延迟。真实延迟待 Q01 用 T09 的成品路径测。
+
+## 10. SP03 Spike 结论（进行中，2026-09-18）
+
+- **libssh2 1.11.1 在 ARM32 UWP 上零补丁编译链接通过**（x64 Debug 与 ARM Release 均实测）。
+  自带 `_WIN32` 分支，不需要 `libssh2_config.h`；后端用 `LIBSSH2_OPENSSL` + SP02 产出的 `libcrypto.lib`。
+  排除 `agent_win.c`（Pageant 窗口消息/命名管道，UWP 禁用）与 `os400qc3.c`。详见 `native/third_party/PATCHES.md`。
+- **链接期未出现 AppContainer 禁用 API 报错**：`socket`/`connect`/`select`/`getaddrinfo` 在 UWP 可链接；
+  能否真正连出去由 📱 验收确认（AppContainer 的网络能力已在清单里：internetClient / internetClientServer / privateNetworkClientServer）。
+- **又踩一次 `/utf-8`**：Native 工程此前没加该开关，MSVC 按 GBK 读 UTF-8 源码，中文注释尾字节吞掉下一行，
+  报出「`AppendMethods` 找不到标识符」「`tv` 未声明」这类完全对不上的错。已在两个配置组加 `/utf-8`（§5 早有此坑记录）。
+- 📱 待真机（需 👤 提供一台可达的 SSH 服务器）：SpikePage 的「SP03 SSH 测试」区填主机/端口/用户/密码/命令 →
+  「连接并执行」；另点「回环 UDP 探测」验证事件循环唤醒方案。报告落 `LocalState\spike-reports\sp03-*.txt`，
+  我用 `phone-portal.ps1 -Pull` 自取。**密码只进内存，不写日志、不落盘、不入报告。**

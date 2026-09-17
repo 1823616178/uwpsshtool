@@ -28,7 +28,34 @@
                    Margin="0,0,0,8" Text="结果会自动存到 LocalFolder\spike-reports 并复制到剪贴板" />
 
         <ScrollViewer Grid.Row="3">
-            <TextBlock x:Name="ReportText" FontFamily="Consolas" TextWrapping="Wrap" Text="尚未运行" />
+            <StackPanel>
+                <!-- SP03：libssh2 真机连接测试。密码只进内存，不写日志、不落盘。 -->
+                <Border Background="{ThemeResource AppSurfaceAltBrush}"
+                        BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1"
+                        Padding="8" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="SP03 SSH 测试（libssh2）" Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock x:Name="Libssh2Text" Style="{StaticResource CaptionTextStyle}"
+                                   Margin="0,4,0,8" Text="libssh2: -" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="HostBox" Header="主机" Width="180" InputScope="Url" />
+                            <TextBox x:Name="PortBox" Header="端口" Width="70" Margin="8,0,0,0"
+                                     InputScope="Number" Text="22" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBox x:Name="UserBox" Header="用户" Width="130" />
+                            <PasswordBox x:Name="PasswordBox" Header="密码" Width="180" Margin="8,0,0,0" />
+                        </StackPanel>
+                        <TextBox x:Name="CommandBox" Header="命令" Text="uname -a" Margin="0,8,0,0" />
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button x:Name="SshRunButton" Content="连接并执行" Click="OnSshRunClick" />
+                            <Button Content="回环 UDP 探测" Click="OnUdpProbeClick" Margin="8,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <TextBlock x:Name="ReportText" FontFamily="Consolas" TextWrapping="Wrap"
+                           IsTextSelectionEnabled="True" Text="尚未运行" />
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </Page>
