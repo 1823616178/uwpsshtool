@@ -149,3 +149,17 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
   5. 中文回退字体 `Microsoft YaHei UI`；cell 9.0×19.0 px（JetBrains Mono 14 px）。
 
 ---
+
+## 9. SP05 Spike 结论（进行中，2026-09-18）
+
+- `InputSpikePage`（MainPage「SP05 输入事件采集」）按 §7.5 搭了哨兵 TextBox 原型（1×1、Opacity 0.01、关拼写检查与联想、哨兵 `"​​"`），
+  按时间顺序记录：`TextBox.KeyDown / TextChanging / TextChanged / SelectionChanged / TextCompositionStarted|Changed|Ended / Got|LostFocus`、
+  `CoreWindow.KeyDown|KeyUp|CharacterReceived`、`CoreDispatcher.AcceleratorKeyActivated`、`InputPane.Showing|Hiding`（含 OccludedRect）。
+  每条事件旁给出**按 §7.5 规则本该发送什么**（`SEND "x"` / `SEND n×DEL(0x7F)` / 组合中不发送），便于直接判定策略是否成立。
+- **`TextBox.BeforeTextChanging` 是 UniversalApiContract 5.0（1709）的成员，15063 上不存在**（WMC0151 门禁当场抓出）。
+  已改为 `ApiInformation.IsEventPresent` 守卫后再订阅——这是本仓库第一处 `ApiInformation` 守卫，符合 CLAUDE.md 硬性约束。
+  真机报告里会打印它是否可用；若为 False，则哨兵差分只能靠 `TextChanged`。
+- 页面内置 7 步操作脚本（英文 `ls -la` → 连按退格 → 回车 → 拼音「你好」选词 → 联想词 → emoji → 切输入法），
+  点「下一步」会往日志插 `---- STEP n ----` 分段标记，导出后能直接对上是哪段操作。
+- 📱 待真机：装 v0.1.0.2 ARM Release 包，按 7 步做完点「导出报告」（落 `LocalState\spike-reports\sp05-input-*.txt`），
+  我用 `phone-portal.ps1 -Pull` 取回后回写 `01-DESIGN.md §7.5`（组合态判定与提交策略，以及 300 ms 静默兜底是否启用）。

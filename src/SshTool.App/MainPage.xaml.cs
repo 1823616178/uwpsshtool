@@ -15,10 +15,21 @@ namespace SshTool.App
             // 手机上分辨「装的是哪一次构建」：包版本 + 配置 + 工具链。
             // 所有构建都叫 0.1.0.0 时同版本号旁加载可能不替换旧包（SP04 为此返工过）。
             BuildText.Text = Views.Debug.DebugReport.BuildTag();
+
+            // 同时写进 app.log：这样真机上「native 是否加载、OpenSSL 是否链上」可以从日志自证，
+            // 不必靠人盯着屏幕念版本号（SP02 的 📱 验收即据此结）。
+            SshTool.Core.Common.ILogger logger;
+            if (Infrastructure.ServiceRegistry.TryGet(out logger))
+            {
+                logger.Log(SshTool.Core.Common.LogLevel.Info, "MainPage",
+                    BuildText.Text + " | " + CoreVersionText.Text + " | "
+                    + NativeVersionText.Text + " | " + OpenSslVersionText.Text);
+            }
 #if DEBUG_PAGES   // Debug 默认开；Release 需 -p:EnableDebugPages=true（见 csproj 注释）
             SpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
             TokenGalleryButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
             RenderSpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
+            InputSpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
 #endif
         }
 
@@ -35,6 +46,11 @@ namespace SshTool.App
         private void OnRenderSpikeClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             Frame.Navigate(typeof(Views.Debug.RenderSpikePage));
+        }
+
+        private void OnInputSpikeClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(Views.Debug.InputSpikePage));
         }
     }
 }

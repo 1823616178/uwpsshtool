@@ -137,6 +137,9 @@
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Debug\DebugReport.cs" />
+    <Compile Include="Views\Debug\InputSpikePage.xaml.cs">
+      <DependentUpon>InputSpikePage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Debug\RenderSpikePage.xaml.cs">
       <DependentUpon>RenderSpikePage.xaml</DependentUpon>
     </Compile>
@@ -155,6 +158,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Debug\SpikePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Debug\InputSpikePage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

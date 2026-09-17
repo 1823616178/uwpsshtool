@@ -35,6 +35,9 @@
             <Button x:Name="RenderSpikeButton" Content="SP04 Win2D 渲染压测"
                     Margin="{StaticResource GapMdTop}"
                     Visibility="Collapsed" Click="OnRenderSpikeClick" />
+            <Button x:Name="InputSpikeButton" Content="SP05 输入事件采集"
+                    Margin="{StaticResource GapMdTop}"
+                    Visibility="Collapsed" Click="OnInputSpikeClick" />
         </StackPanel>
     </Grid>
 </Page>

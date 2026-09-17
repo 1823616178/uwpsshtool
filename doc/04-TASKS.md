@@ -37,7 +37,7 @@
 
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
-| M0 | 基座与技术验证 | 13 | 5 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
+| M0 | 基座与技术验证 | 13 | 6 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 3 | 主机/分组增删改、凭据安全保存 |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **17** | |
+| **合计** | | **111** | **18** | |
 
 ### 1.1 关键路径
 
@@ -202,7 +202,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 检查脚本对故意写入的违规返回非 0，移除后返回 0
   - 验证：msbuild；`pwsh scripts/check-magic-numbers.ps1`
 
-- [ ] **X04 日志、脱敏与错误码基础** `M`
+- [x] **X04 日志、脱敏与错误码基础** `M`
   - 依赖：X02
   - 参考：`01-DESIGN.md §6.3、§12.2`；鸿蒙端 `entry/src/main/ets/common/SshError.ets`、`common/utils/Logger.ets`
   - 产出：`src/SshTool.Core/Common/{ILogger.cs,LogLevel.cs,LogRedactor.cs,LogRotationPlanner.cs,SshErrorCode.cs}`、`src/SshTool.App/Platform/FileLogger.cs`、`src/SshTool.App/Strings/zh-CN/Resources.resw`、`src/SshTool.App/Strings/en-US/Resources.resw`、`tests/SshTool.Core.Tests/Common/*Tests.cs`
@@ -216,7 +216,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] Redactor 单测覆盖上述每种模式（≥12 条）
     - [x] RotationPlanner 单测覆盖未超限/超限/已有 3 个文件
     - [x] 单测读取两个 resw（文件路径相对仓库根）校验每个 `SshErrorCode` 值都有 `Error_<n>` 键
-    - [ ] 应用启动后日志文件生成（代码已接线 App.xaml.cs；需运行 UWP 确认，👤/📱）
+    - [x] 📱 应用启动后日志文件生成：2026-09-18 从真机（v0.1.0.1/ARM Release）经设备门户取回 `LocalState\logspp.log`，91 行，格式逐字符符合 `yyyy-MM-dd HH:mm:ss.fff [LEVEL] [Tag] message`，无敏感词命中
   - 验证：`dotnet test`；msbuild
 
 - [x] **X05 应用配置与清单** `S`
@@ -1271,8 +1271,9 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] SP02 📱 Lumia 上 MainPage 第三行显示 OpenSSL 版本（同一 ARM 包，重部署即可；另：👤 可在 PC 部署 x64 Debug 确认显示）
 - [x] SP04 📱 FPS 矩阵已完成（2026-09-18，ARM Release/.NET Native，28 组）
 - [x] SP04 📱 可用中文回退字体名：**Microsoft YaHei UI**（2026-09-18 真机 CanvasFontSet 枚举，已回写 01-DESIGN §7.4）
+- [ ] SP05 📱 按页面内 7 步脚本做完并导出（英文输入/连按退格/回车/拼音选词/联想词/emoji/切输入法）
 - [ ] X03 📱/👤 画廊页运行并切换深浅色，颜色/字号/间距/图标符合 02-UI-DESIGN §2（MainPage DEBUG 按钮「X03 Token 画廊」）
-- [ ] X04 📱/👤 应用启动后 `LocalFolder/logs/app.log` 生成且格式为 `yyyy-MM-dd HH:mm:ss.fff [LEVEL] [Tag] message`，敏感值已脱敏
+- [x] X04 📱 已完成（2026-09-18，真机 app.log 取回核对）
 - [ ] X07 📱/👤 画廊页控件区展示 StatusDot 五态（连接中/重连中脉动）、Banner 四 Severity、EmptyState、SectionHeader、LoadingOverlay、TransientToast（1.5s 自动消失）
 
 ---
@@ -1313,3 +1314,5 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | SP04 | 5202014 | ⏳ 第一轮真机数字到手（见 ENV.md §8）：**逐格绘制不达标**——48×30 全屏 99–105 ms/帧、88×24 全屏 138–152 ms/帧，对 §15 的 30 fps 预算差 3–5 倍；脏行模式 48×30 单实例 42–53 ✔、88×24 单实例卡线、双实例 18–27 ✘。据此：§7.3 的「行内 run 合并」是必需项而非优化项。本轮改动：① 仪表纠偏——原先只报 CompositionTarget tick/s，而 CanvasControl 跟不上会合并 Invalidate，读数偏乐观，现同时报 draw/s；② 新增「全屏 run 合并」负载，量化 §7.3 真实画法；③ 应用户要求做导出——DebugReport（环境自述行 + 落盘 `LocalState\spike-reports\` + 复制剪贴板 + 写 app.log），SpikePage/RenderSpikePage 共用；④「跑全矩阵并导出」一键跑完 4 负载 × 2 网格 × 单/双实例共 16 组并出报告 |
 | 2026-09-18 | SP04 | 03e404e | 报告已能经设备门户自取（`phone-portal.ps1 -Pull`，配对一次即可）。首份全矩阵报告的环境行显示跑的是 **Arm Debug/CoreCLR**，非 .NET Native，数字待 Release 复测。**抓出我自己的两处测试设计错误并改正**：① run-merged 只比 per-cell 快 4%，因为测试内容是每格随机 16 色、平均 run 长≈1，没东西可合并 → 新增内容分布维度（real 约 85% 默认色成段着色 / rand 最坏情况）；② dirty3 用了每行一张 RT + 每帧 N 次 DrawImage，与 §7.3 的「整视图一张 RT、只重画脏行、一次 DrawImage」不符 → 按设计改写。可直接采信的只有 idle：0 draw/s、60 tick/s。另：中文回退实测 Microsoft YaHei UI，01-DESIGN §7.4 已回写，该验收项勾选 |
 | 2026-09-18 | SP04 | a5a40ec | **完成**。第三轮真机（ARM Release/.NET Native/v0.1.0.1）28 组矩阵：真实内容下 48×30 逐格 107.5 ms → run 合并 20.6 ms → 行缓存+脏行 11.0 ms；88×24 为 148.6 / 29.2 / 11.8 ms；idle 0 draw/s；双窗格每画布仍 ~30 draw/s。**D5 保持不变、无需兜底**，并新增三条硬性纪律（逐格绘制禁用、run 合并必需、每画布上限 ~30 draw/s，T04 按此设计）。中文回退 Microsoft YaHei UI，cell 9.0×19.0 px。另修两处挡路问题：EnableDebugPages 默认只在 Debug 开 → VS 生成的 Release 包没有调试入口（改为默认全开，Q09 关）；所有构建同为 0.1.0.0 导致旁加载不替换且无法分辨 → bump-version.ps1 + MainPage 显示 v0.1.0.x/配置/工具链。报告全程经 `phone-portal.ps1 -Pull` 自取，未再人工抄数 |
+| 2026-09-18 | X04 | （本轮） | **完成**。最后一条 📱 验收用设备门户取回真机 `LocalState\logspp.log` 核对：91 行，格式 `2026-09-18 00:40:07.355 [INFO] [AppConfig] …` 与 §12.2 要求逐字符一致；按 `password|token|key|secret|passphrase` 扫描无命中（当前只有启动与配置两类日志，真正的脱敏路径待 S 系列接入后复查）。顺带印证 X05 的包内 appconfig 生效：syncApiBaseUrl 与 logLevel 都读到了 |
+| 2026-09-18 | SP05 | （本轮） | ⏳ 等待：📱 按页面内 7 步脚本操作并导出。AI 侧完成：InputSpikePage 按 §7.5 搭哨兵原型并全量记录 TextBox/CoreWindow/InputPane 三路事件，每条旁注「按 §7.5 本该发什么」；内置 7 步脚本 + `---- STEP n ----` 分段标记；复用 DebugReport 导出。**WMC0151 门禁当场抓出 `BeforeTextChanging` 是 contract 5.0（1709），15063 没有** → 改 `ApiInformation.IsEventPresent` 守卫（仓库首处 ApiInformation 守卫）。包 bump 到 v0.1.0.2 |
