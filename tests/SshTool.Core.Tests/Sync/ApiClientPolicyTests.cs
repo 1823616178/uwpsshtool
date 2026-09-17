@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using SshTool.Core.Sync.Api;
 using SshTool.Core.Sync.Api.Dtos;
@@ -81,31 +82,48 @@ namespace SshTool.Core.Tests.Sync
         [Fact]
         public async Task Refresh_Concurrent401_SingleFlight()
         {
+            // 确定性时序：后到的初始请求必须等「刷新已发出」才拿到 401，
+            // 刷新完成由测试显式放行 —— 保证第二个请求到达刷新点时单飞任务仍在进行。
+            var refreshStarted = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var proceedRefresh = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
             var transport = new FakeHttpTransport();
             int refreshCount = 0;
+            int initials = 0;
             transport.AsyncHandler = async request =>
             {
-                await Task.Yield(); // 让两个请求真正并发
                 if (request.Url.Contains("auth/refresh"))
                 {
                     refreshCount++;
+                    refreshStarted.TrySetResult(null);
+                    await proceedRefresh.Task.ConfigureAwait(false);
                     return Json(200, RotatedTokensJson);
                 }
                 var authorization = HeaderOf(request, "Authorization");
                 if (authorization == "Bearer access-1")
                 {
+                    if (System.Threading.Interlocked.Increment(ref initials) == 2)
+                    {
+                        await refreshStarted.Task.ConfigureAwait(false);
+                    }
                     return Json(401, null); // 无响应体 → CodeUnknown
                 }
-                Assert.Equal("Bearer a-2", authorization); // 重放必须是新 token
                 return request.Url.Contains("devices")
                     ? Json(200, @"{""items"":[]}")
                     : Json(200, MeJson);
             };
             var client = new ApiClient("https://sync.example.com", FakeTokenStore.SignedIn(), transport);
 
-            await Task.WhenAll(client.GetMeAsync(), client.ListDevicesAsync());
+            var first = client.GetMeAsync();
+            var second = client.ListDevicesAsync();
+            await refreshStarted.Task; // 发起方的刷新已进 handler（单飞槽已占）
+            await Task.Delay(200);     // 让另一方的 401 延续链跑完并 join 同一个刷新任务
+            proceedRefresh.SetResult(null);
+            await Task.WhenAll(first, second);
 
             Assert.Equal(1, refreshCount); // 两个 401 只刷新一次
+            // 初次用旧 token，重放用轮换后的新 token
+            Assert.Equal(2, transport.Requests.Count(r => HeaderOf(r, "Authorization") == "Bearer access-1"));
+            Assert.Equal(2, transport.Requests.Count(r => HeaderOf(r, "Authorization") == "Bearer a-2"));
         }
 
         [Fact]

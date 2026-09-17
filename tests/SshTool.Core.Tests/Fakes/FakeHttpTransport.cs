@@ -31,7 +31,10 @@ namespace SshTool.Core.Tests.Fakes
 
         public Task<HttpResponseData> SendAsync(HttpRequestData request, CancellationToken cancellationToken)
         {
-            Requests.Add(request);
+            lock (Requests)
+            {
+                Requests.Add(request);
+            }
             if (AsyncHandler != null)
             {
                 return AsyncHandler(request);
