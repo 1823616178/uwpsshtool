@@ -81,7 +81,7 @@ Windows 10 Mobile 原生 UWP SSH 终端：**C# / XAML 界面 + C++/CX 原生核�
 | D2 | SSH 内核 | **libssh2 1.11.x + OpenSSL 3.x（C，编进 C++/CX 组件）** | 与鸿蒙端同一内核，可直接移植其 `cpp/ssh`、`cpp/term`、`cpp/crypto` 与 200+ GoogleTest 用例；算法齐（ed25519、curve25519、rsa-sha2-256/512、aes-gcm/ctr）；BSD 许可 | SP02/SP03 失败 → 方案 B：SSH.NET 2020.0.x（netstandard1.3/uap10）+ 托管 VT 解析；代价：无 rsa-sha2 用户认证（OpenSSH ≥8.8 默认禁 ssh-rsa，RSA 密钥登录会失败）、性能与算法覆盖较差 |
 | D3 | 原生组件形态 | **C++/CX Windows Runtime Component**（`SshTool.Native`） | 在 W10M ARM 上久经验证；与 C# 互操作零配置；C++/WinRT 需较新工具链，W10M 真机经验少 | 不需要 |
 | D4 | 终端仿真 | **libvterm 0.3.x（native）** + 鸿蒙端 16 字节单元格网格/脏行位图/revision/回滚环形缓冲 | 移植即用，已有 VT 语料测试 | — |
-| D5 | 终端渲染 | **Win2D（`Win2D.uwp`，版本由 SP04 锁定支持 15063 的最高版）CanvasControl + 行缓存离屏目标 + 单一全局帧调度（`CompositionTarget.Rendering`）** | GPU 绘制文本；只重绘脏行；多窗格共用一条帧循环 | SP04 < 30 fps → 降级：按行 `TextBlock` 虚拟化 + 只更新脏行（放弃逐格背景色合批），或降帧到 30 fps 批量刷新 |
+| D5 | 终端渲染 | **Win2D（`Win2D.uwp` 1.26.0）CanvasControl + 行缓存离屏目标 + 单一全局帧调度（`CompositionTarget.Rendering`）** （SP04 已结，2026-09-18 Lumia 950 / ARM Release / .NET Native 实测：真实内容下 48×30 逐格 107 ms → run 合并 20.6 ms → 行缓存+脏行 11.0 ms；88×24 分别 149 / 29.2 / 11.8 ms。**逐格绘制不可用，run 合并是必需项**；双窗格 dirty3 每画布仍 ~30 draw/s） | GPU 绘制文本；只重绘脏行；多窗格共用一条帧 | 达标，无需兜底（原兜底：降级 TextBlock 网格） |
 | D6 | native → C# 数据通路 | **每帧 `CopyDirtyRows(WriteOnlyArray<uint8>)` 拷贝脏行**，事件只投递轻量通知 | WinRT ABI 做零拷贝需 `IBufferByteAccess` + unsafe，收益小；50×30×16B ≈ 24 KB/帧，拷贝成本可忽略 | — |
 | D7 | 共享逻辑库 | **`SshTool.Core`（netstandard1.4，C# 7.3）**：模型、校验、同步（序列化/合并/协调器/API 客户端）、键位映射、选择模型、窗格树、自动执行命令 | 能在宿主机 `dotnet test` 快速自证，AI 分次编码的主要质量保障 | — |
 | D8 | 本地数据存储 | **JSON 文件仓库**（LocalFolder/`data/*.json`，原子写：写临时文件 → `MoveAndReplaceAsync`），内存缓存 + 变更事件 | 数据量小（主机数百级）；避免 W10M 上 SQLite 原生依赖与 .NET Native 兼容问题；便于同步整份映射 | 若主机 > 2000 出现性能问题再换 SQLite（不预期） |
@@ -402,6 +402,12 @@ public ref class KeyTool sealed {
 - 每个 `TerminalView` 持有一个 `CanvasRenderTarget`（尺寸 = cols×cellW, rows×cellH，DPI 跟随）作为「行缓存」，`CanvasControl.Draw` 时整张绘出 + 叠加光标与选区。
 - 脏行重绘：按行把连续同属性的格合并成 run → 先 `FillRectangle` 背景 run，再 `DrawText` 文本 run（`CanvasTextFormat` 等宽、`WordWrapping.NoWrap`）；宽字符单独按 2 格宽定位居中绘制。
 - 整屏滚动（大量输出）时 90% 行都脏，直接整张重绘即可；不做位块搬移优化（W10M Win2D 自拷贝需双缓冲，收益待 Q01 实测再决定）。
+- **SP04 实测纪律（2026-09-18，硬性）**：
+  1. **绝不逐格 `FillRectangle`+`DrawText`**——ARM32 上约 50–70 µs/格，48×30 就 ~107 ms/帧。run 合并后 20.6 ms（5.2×）。
+     run 合并的收益完全来自真实内容里的长 run；随机每格着色时退化回逐格水平，属预期。
+  2. 整张重绘（run 合并）48×30 20.6 ms / 88×24 29.2 ms，仍 ≥30 fps —— 上面那条「整屏脏就整张重绘」的兜底成立。
+  3. **每画布实际上限约 30 draw/s**：tick 稳定 60/s，但 `CanvasControl` 的 Invalidate→Draw 每两个 vsync 才走一次，
+     单画布 30、双画布各 30（合计 60）。帧调度器（T04）按 30 fps/窗格设计即可，不要指望 60。
 - 设备丢失：处理 `CreateResources` 与 `CanvasDevice.DeviceLost`，重建行缓存并全量重绘。
 - 属性：bold 用粗体字重（字体无粗体则描边加粗），bold-as-bright 可选；underline/strike 画线；dim 降 alpha；reverse 交换前景背景；invisible 不画字。
 

@@ -100,7 +100,7 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
 - 耗时参考：x64-windows-static 7.4 min，uwp 三架构各约 3.4–3.9 min；产物 libcrypto 约 64–90 MB（含调试信息）。
 - 📱 待真机：Lumia 上启动应用确认 MainPage 显示 `OpenSSL: 3.6.3 ...` 字样。
 
-## 8. SP04 Spike 结论（进行中，2026-09-18）
+## 8. SP04 Spike 结论（已结，2026-09-18）
 
 - **Win2D.uwp 1.26.0 可用**：`TargetPlatformMinVersion=15063` 下构建/打包无版本告警；ARM Release 包内 `Microsoft.Graphics.Canvas.dll` 实测为 **ARM32**（dumpbin `1C4 machine (ARM)`，32 bit word machine）。版本锁在 `Directory.Build.props` 的 `Win2DVersion`。
   - 选 1.26.0 而非 1.28.3：1.26.0 原生库在 `runtimes/win10-arm`（UWP 工具链认的 RID），1.27 起改为 `runtimes/win-arm`；两版都有 ARM32 二进制，但新 RID 在 UWP 工程上未验证。
@@ -123,32 +123,29 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
   该仪表已修：页面现在同时报 `tick/s` 与 `draw/s`（Draw 实际调用次数），以 `draw/s` 与平均绘制耗时为准。
 - **初步结论**：§7.3 规定的「行内 run 合并 + 行缓存 + 只重绘脏行」不是优化项而是**必需项**——逐格 `FillRectangle`+`DrawText`
   在 ARM32 上约 50–70 µs/格，48×30 就要 ~100 ms/帧。已给压测页补「全屏 run 合并」负载以量化 §7.3 真实画法的成本。
-- **2026-09-18 第二轮（全矩阵一键导出，报告经设备门户拉回：`artifacts/phone-reports/sp04-render-20260918-014858.txt`）**
-  环境自述行显示跑的是 **`Arm Debug | CoreCLR(IL)`**，不是 .NET Native —— 数字仅供参考，Release 需复测。
+- **第二轮（Arm **Debug**/CoreCLR，报告 `sp04-render-20260918-014858.txt`）**：作废重测。暴露两处测试设计错误——
+  ① 测试内容是每格独立随机 16 色，平均 run 长≈1，`run-merged` 无从合并（只快 4%）；
+  ② `dirty3` 写成每行一张 RT + 每帧 N 次 `DrawImage`，与 §7.3 的「整视图一张 RT、一次 DrawImage」不符。均已改正。
+- **第三轮（Arm **Release** / .NET Native / v0.1.0.1，报告 `sp04-render-20260918-020955.txt`）—— 结论以此为准**：
 
-  | load | grid | inst | tick/s | draw/s | avg-draw-ms |
-  |---|---|---|---|---|---|
-  | per-cell | 48×30 | single | 17.2 | 8.6 | 103.67 |
-  | run-merged | 48×30 | single | 18.2 | 9.1 | 99.50 |
-  | dirty3 | 48×30 | single | 42.8 | 21.4 | 34.27 |
-  | idle | 48×30 | single | 60.0 | 0.0 | 0.00 |
-  | per-cell | 88×24 | single | 11.8 | 5.9 | 152.88 |
-  | run-merged | 88×24 | single | 12.3 | 6.2 | 145.60 |
-  | dirty3 | 88×24 | single | 30.7 | 15.4 | 50.47 |
-  | idle | 88×24 | single | 60.2 | 0.0 | 0.00 |
+  真实内容分布（`real`，约 85% 默认色 + 成段着色）、平均每帧绘制耗时：
 
-  其它：cell 9.0×19.0 px；**中文回退实测为 `Microsoft YaHei UI`**（§7.4 候选第一项可用）；
-  双实例的 draw/s 是两个画布之和（48×30 dirty3 dual 26.1 ≈ 每画布 13）。
+  | 画法 | 48×30 单 | 48×30 双 | 88×24 单 | 88×24 双 |
+  |---|---|---|---|---|
+  | per-cell 逐格 | 107.49 ms | 103.46 ms | 148.57 ms | 143.45 ms |
+  | run-merged 整张 | **20.58 ms** | 16.13 ms | **29.15 ms** | 18.98 ms |
+  | dirty3 行缓存+3 脏行 | **10.95 ms** | 7.77 ms | **11.81 ms** | 9.73 ms |
+  | idle 静止 | 0 draw/s | 0 draw/s | 0 draw/s | 0 draw/s |
 
-  **本轮暴露的两处测试设计错误（均已改，结论作废重测）**：
-  1. `run-merged` 只比 `per-cell` 快 4%——因为测试内容是**每格独立随机 16 色**，平均 run 长度≈1，根本没东西可合并。
-     已加内容分布维度：`real`（约 85% 默认色 + 成段着色，贴近真实终端）/ `rand`（原最坏情况）。
-  2. `dirty3` 的 34–50 ms 里大头是贴图——初版写成**每行一张 `CanvasRenderTarget` + 每帧 N 次 `DrawImage`**，
-     与 §7.3 的「整个视图一张 RT、只重画脏行、一次 `DrawImage` 整张贴出」不符。已按设计改写。
-  - 唯一可直接采信的结论：**`idle` 0 draw/s、60 tick/s** —— 不重绘就真的不画（帧调度退订归 T04）。
+  最坏内容（`rand`，每格随机 16 色）：run-merged 退化到与逐格同级（48×30 100.73 ms / 88×24 143.76 ms），
+  dirty3 仍有效（25.23 / 39.85 ms）。这正好反证 run 合并的收益全来自真实内容的长 run。
 
-- 📱 待第三轮（ARM **Release**/.NET Native，一键「跑全矩阵并导出」，约 28 组 90 秒）：
-  按 `load × content × grid × inst` 取 `draw/s` 与 `avg-draw-ms`，据此回写 `01-DESIGN.md` D5、§7.4 并结 SP04。
-  报告我可用 `pwsh scripts/phone-portal.ps1 -Pull -Path "\LocalState\spike-reports"` 自取。
+  **结论（已回写 01-DESIGN D5、§7.3、§7.4）**：
+  1. **D5 保持不变，不需要兜底**：Win2D + 行缓存 + 脏行 + run 合并，48×30 与 88×24 都远超 §15 的 30 fps 预算。
+  2. **逐格绘制是禁区**（~50–70 µs/格）；run 合并不是优化项，是必需项（5.1–5.2×）。
+  3. 整张重绘（run 合并）20.6 / 29.2 ms，§7.3 的「整屏脏就整张重绘」兜底成立。
+  4. **每画布实际上限约 30 draw/s**：tick 稳定 60/s，但 Invalidate→Draw 每两个 vsync 才走一次；
+     双画布各 30（合计 60），分屏不打折。帧调度器（T04）按 30 fps/窗格设计。
+  5. 中文回退字体 `Microsoft YaHei UI`；cell 9.0×19.0 px（JetBrains Mono 14 px）。
 
 ---

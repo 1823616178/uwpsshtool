@@ -37,7 +37,7 @@
 
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
-| M0 | 基座与技术验证 | 13 | 4 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
+| M0 | 基座与技术验证 | 13 | 5 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 3 | 主机/分组增删改、凭据安全保存 |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **16** | |
+| **合计** | | **111** | **17** | |
 
 ### 1.1 关键路径
 
@@ -142,7 +142,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] `PATCHES.md` 记录全部补丁；`01-DESIGN.md` §6.1 io 行回写唤醒方案结论
   - 验证：真机
 
-- [ ] **SP04 Spike：Win2D 终端渲染帧率** `M` 👤📱
+- [x] **SP04 Spike：Win2D 终端渲染帧率** `M` 👤📱
   - 依赖：X02
   - 参考：`01-DESIGN.md D5、§7.3、§7.4、R3`
   - 产出：`src/SshTool.App/Views/Debug/RenderSpikePage.xaml(.cs)`、`Assets/Fonts/JetBrainsMono-Regular.ttf`、`Assets/Fonts/JetBrainsMono-Bold.ttf`、`Assets/Fonts/OFL.txt`、`doc/ENV.md` 追加结论
@@ -152,10 +152,10 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     3. 帧驱动 `CompositionTarget.Rendering`，叠加 FPS 与帧耗时显示；另一模式同时放两个 CanvasControl。
     4. 字体：`ms-appx:///Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono`；中文回退依次尝试 `Microsoft YaHei UI`、`DengXian`、`SimSun`，显示哪个生效。
   - 验收：
-    - [ ] x64 Debug 页面可运行（已构建通过，观感/运行需 👤）
-    - [ ] 📱 记录三种负载 × 两种尺寸 × 单/双实例 的 FPS
+    - [x] 页面可运行（x64 Debug 构建通过；真机 ARM Release 上完整跑完 28 组矩阵，证据更强）
+    - [x] 📱 记录负载 × 尺寸 × 单/双实例 的 FPS（28 组，报告 sp04-render-20260918-020955.txt，ENV.md §8）
     - [x] 📱 记录可用中文字体名（Microsoft YaHei UI）
-    - [ ] `01-DESIGN.md` D5、§7.4 回写结论（保持方案或启用兜底）
+    - [x] `01-DESIGN.md` D5、§7.3、§7.4 已回写：**保持方案，无需兜底**；新增「逐格绘制是禁区、run 合并必需、每画布上限 ~30 draw/s」三条硬性纪律
   - 验证：真机
 
 - [ ] **SP05 Spike：软键盘、中文输入法与物理键盘事件** `S` 👤📱
@@ -1269,7 +1269,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
   > `src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/`（含 `Dependencies/arm/` 三个依赖包，装机见 `doc/ENV.md` §3）。
 - [ ] X02 应用在 Lumia 上显示两个版本号（产物：`src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/SshTool.App_0.1.0.0_ARM.appx`，未签名，需临时证书或按后续 Q09 流程安装）
 - [ ] SP02 📱 Lumia 上 MainPage 第三行显示 OpenSSL 版本（同一 ARM 包，重部署即可；另：👤 可在 PC 部署 x64 Debug 确认显示）
-- [ ] SP04 📱 记录三种负载（全屏每帧重绘/每帧 3 行脏行/静止）× 两种网格（48×30、88×24）× 单/双实例 的 FPS 与平均绘制耗时
+- [x] SP04 📱 FPS 矩阵已完成（2026-09-18，ARM Release/.NET Native，28 组）
 - [x] SP04 📱 可用中文回退字体名：**Microsoft YaHei UI**（2026-09-18 真机 CanvasFontSet 枚举，已回写 01-DESIGN §7.4）
 - [ ] X03 📱/👤 画廊页运行并切换深浅色，颜色/字号/间距/图标符合 02-UI-DESIGN §2（MainPage DEBUG 按钮「X03 Token 画廊」）
 - [ ] X04 📱/👤 应用启动后 `LocalFolder/logs/app.log` 生成且格式为 `yyyy-MM-dd HH:mm:ss.fff [LEVEL] [Tag] message`，敏感值已脱敏
@@ -1312,3 +1312,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | SP04 | 927c721 | ⏳ 等待：📱 真机跑 RenderSpikePage 记录 FPS 与中文字体名。AI 侧完成：Win2D.uwp **1.26.0** 锁定（min 15063 下构建/打包无告警；ARM Release 包内 Canvas.dll 实测 ARM32 `1C4 machine`；不取 1.28.3 是因 1.27+ 把原生库 RID 从 `win10-arm` 改成 `win-arm`，UWP 工具链未验证）；RenderSpikePage（3 负载 × 2 网格 × 单/双实例，CompositionTarget.Rendering 驱动，脏行模式用逐行 CanvasRenderTarget 局部重绘，CanvasFontSet 枚举中文回退字体，OnNavigatedFrom 里 RemoveFromVisualTree）；scripts/fetch-fonts.ps1 按固定 SHA256 取 JetBrains Mono v2.304；包体 3.4→4.8 MB。另注：Win2D 同样依赖 VCLibs，若无本日修复会同样 0x8007007E |
 | 2026-09-18 | SP04 | 5202014 | ⏳ 第一轮真机数字到手（见 ENV.md §8）：**逐格绘制不达标**——48×30 全屏 99–105 ms/帧、88×24 全屏 138–152 ms/帧，对 §15 的 30 fps 预算差 3–5 倍；脏行模式 48×30 单实例 42–53 ✔、88×24 单实例卡线、双实例 18–27 ✘。据此：§7.3 的「行内 run 合并」是必需项而非优化项。本轮改动：① 仪表纠偏——原先只报 CompositionTarget tick/s，而 CanvasControl 跟不上会合并 Invalidate，读数偏乐观，现同时报 draw/s；② 新增「全屏 run 合并」负载，量化 §7.3 真实画法；③ 应用户要求做导出——DebugReport（环境自述行 + 落盘 `LocalState\spike-reports\` + 复制剪贴板 + 写 app.log），SpikePage/RenderSpikePage 共用；④「跑全矩阵并导出」一键跑完 4 负载 × 2 网格 × 单/双实例共 16 组并出报告 |
 | 2026-09-18 | SP04 | 03e404e | 报告已能经设备门户自取（`phone-portal.ps1 -Pull`，配对一次即可）。首份全矩阵报告的环境行显示跑的是 **Arm Debug/CoreCLR**，非 .NET Native，数字待 Release 复测。**抓出我自己的两处测试设计错误并改正**：① run-merged 只比 per-cell 快 4%，因为测试内容是每格随机 16 色、平均 run 长≈1，没东西可合并 → 新增内容分布维度（real 约 85% 默认色成段着色 / rand 最坏情况）；② dirty3 用了每行一张 RT + 每帧 N 次 DrawImage，与 §7.3 的「整视图一张 RT、只重画脏行、一次 DrawImage」不符 → 按设计改写。可直接采信的只有 idle：0 draw/s、60 tick/s。另：中文回退实测 Microsoft YaHei UI，01-DESIGN §7.4 已回写，该验收项勾选 |
+| 2026-09-18 | SP04 | （本轮） | **完成**。第三轮真机（ARM Release/.NET Native/v0.1.0.1）28 组矩阵：真实内容下 48×30 逐格 107.5 ms → run 合并 20.6 ms → 行缓存+脏行 11.0 ms；88×24 为 148.6 / 29.2 / 11.8 ms；idle 0 draw/s；双窗格每画布仍 ~30 draw/s。**D5 保持不变、无需兜底**，并新增三条硬性纪律（逐格绘制禁用、run 合并必需、每画布上限 ~30 draw/s，T04 按此设计）。中文回退 Microsoft YaHei UI，cell 9.0×19.0 px。另修两处挡路问题：EnableDebugPages 默认只在 Debug 开 → VS 生成的 Release 包没有调试入口（改为默认全开，Q09 关）；所有构建同为 0.1.0.0 导致旁加载不替换且无法分辨 → bump-version.ps1 + MainPage 显示 v0.1.0.x/配置/工具链。报告全程经 `phone-portal.ps1 -Pull` 自取，未再人工抄数 |
