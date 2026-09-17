@@ -40,7 +40,7 @@
 | M0 | 基座与技术验证 | 13 | 3 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
-| M3 | 数据层与主机管理 | 12 | 2 | 主机/分组增删改、凭据安全保存 |
+| M3 | 数据层与主机管理 | 12 | 3 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 0 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 0 | 主题、字体、配色可改可导入 |
@@ -579,13 +579,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 真机写入后用设备门户下载 LocalFolder，`secrets.bin` 中搜索不到测试密码明文
   - 验证：`dotnet test`；真机
 
-- [ ] **D04 设置仓库** `S`
+- [x] **D04 设置仓库** `S`
   - 依赖：X02
   - 参考：`01-DESIGN.md §8.3`；鸿蒙端 `repository/SettingsRepository.ets`
   - 产出：`src/SshTool.Core/Storage/{ISettingsStore,InMemorySettingsStore,SettingDefinitions,SettingsRepository}.cs`、`src/SshTool.App/Platform/LocalSettingsStore.cs`、测试
-  - 要点：定义表驱动默认值与类型；每个键一对强类型访问器；枚举类字符串读到非法值回退默认；`EnsureDefaults()`；`Changed` 事件。T13 用到的临时设置接口在此替换为正式实现。
+  - 要点：定义表驱动默认值与类型；每个键一对强类型访问器；枚举类字符串读到非法值回退默认；`EnsureDefaults()`；`Changed` 事件。T13 用到的临时设置接口在此替换为正式实现（T13 尚未开始，无既有临时接口需替换）。
   - 验收：
-    - [ ] 单测：定义表与访问器完整性（反射只在测试里用）、非法值回退、默认值写入
+    - [x] 单测：定义表与访问器完整性（反射只在测试里用）、非法值回退、默认值写入
   - 验证：`dotnet test`
 
 - [ ] **D05 组合根与启动流程** `S` 📱
@@ -1296,3 +1296,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | S06 | 338bea0 | 完成（无 📱 项）。IHttpTransport 抽象 + ApiError/ApiErrorKind（§2.3）+ ITokenStore；ApiClient：Base URL 规范化/端点安全检查/统一头/FormatRevisionEtag/错误解析（注入时钟，Retry-After 秒数与 HTTP-date）/超时与网络映射，21 端点（单次发送，重试刷新归 S07）；DTO 手写解析（未知键忽略，revision 全程字符串）；UwpHttpTransport；ApiClient 用例 1/2/9 + 每 DTO 一条；单测 +62（共 314 ✓）；verify 全绿 |
 | 2026-09-17 | S07 | 6f23d6e | 完成（无 📱 项）。§2.4 发送策略：可重试判定与退避（注入 sleep）、401 单飞刷新与重放、刷新失败 uncertain、终端鉴权清会话、HEAD 404 CodeUnknown→GET 回退与元数据校验；抓获并修复单飞槽位竞态（同步完成时 finally 先于赋值）；ApiClient 用例 3–8 + 终端鉴权/HEAD 元数据用例；单测 +18（共 332 ✓）；verify 全绿 |
 | 2026-09-17 | T08 | dc9b28a | 完成（无 📱 项）。鸿蒙端仓库不在本机，以 §7.5 为权威并先补文档（~/F 键修饰变体 xterm 惯例）；KeyMap 纯函数（字符键与布局无关、修饰参数、Alt 前缀、Backspace 可配）；StickyModifiers 三态机（OneShot 用后自动释放、Changed 事件）；另修 S07 单飞并发用例的调度竞争（659cbde，确定性时序）；单测 +55（共 387 ✓）；verify 全绿 |
+| 2026-09-17 | D04 | 18e456a | 完成（无 📱 项）。§8.3 全表 24 键定义表 + SettingsRepository（EnsureDefaults/非法回退/Changed/24 对访问器）+ LocalSettingsStore（LocalSettings）；shortcuts/hostGroupCollapsed 默认定为 "{}"；T13 未开始故无临时接口需替换；反射双向对拍；单测 +15（共 402 ✓）；verify 全绿 |
