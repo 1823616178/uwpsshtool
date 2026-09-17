@@ -82,6 +82,20 @@ try {
         Invoke-Step '③ 错误码对拍' {
             & $PSHOME\pwsh.exe -NoProfile -File scripts/check-error-codes.ps1
         }
+        # 2026-09-18 事故：一句 open(p,'w').write(open(p).read()) 把 04-TASKS.md 写成 0 字节并提交了两次。
+        # 文档是本项目的事实来源，空文件/结构被毁必须当场暴露。
+        Invoke-Step '④a 文档完整性' {
+            $docs = Get-ChildItem (Join-Path $RepoRoot 'doc') -Filter *.md
+            foreach ($d in $docs) {
+                $lines = (Get-Content $d.FullName | Measure-Object -Line).Lines
+                if ($lines -lt 20) { throw "$($d.Name) 只有 $lines 行，疑似被写坏" }
+            }
+            $tasks = Join-Path $RepoRoot 'doc\04-TASKS.md'
+            $all = (Select-String -Path $tasks -Pattern '^- \[( |x)\] \*\*[A-Z]+\d+' -AllMatches).Count
+            if ($all -ne 111) { throw "04-TASKS.md 的任务条目数为 $all，应为 111（文件可能被截断或误改）" }
+            Write-Host "OK：doc/*.md 共 $($docs.Count) 份，04-TASKS 任务条目 $all"
+        }
+
         Invoke-Step '④ XAML 魔法数字' {
             & $PSHOME\pwsh.exe -NoProfile -File scripts/check-magic-numbers.ps1
         }
