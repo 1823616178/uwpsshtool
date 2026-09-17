@@ -501,6 +501,7 @@ public ref class KeyTool sealed {
 **Snippet** 🏠：`id`、`name`、`content`、`groupName`（简单文本分组）、`sortOrder`、`sendEnter`（发送后是否追加回车）。
 
 **AppearanceProfile** 🏠：`id`、`name`、`builtIn`、`fontFamily`、`fontSize`(8–28)、`lineHeight`(1.0–1.6)、`fontWeightBold`(bool 用粗体)、`boldAsBright`、`cursorStyle`(block/bar/underline)、`cursorBlink`、`padding`(0–16)、`palette`(16×`#RRGGBB`)、`foreground`、`background`、`cursor`、`selection`。
+> 内置外观由代码定义（A02 `BuiltInThemes`，id 固定 `builtin-<slug>`），只读、**不写入** `appearances.json`；有效外观解析链（A01）：主机 `appearanceId` → 全局 `defaultAppearanceId` → 内置默认。
 
 **KnownHost** 🏠：`id`、`host`、`port`、`keyType`、`fingerprintSha256`、`addedAt`、`lastSeenAt`。
 > 与 Host.hostFingerprint（☁）的关系：连接时优先比对 `KnownHost(host,port)`；无记录但 Host 上有指纹（来自同步）时，以同步指纹做校验并在匹配后写入 KnownHost。
