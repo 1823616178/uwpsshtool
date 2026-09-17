@@ -60,6 +60,7 @@
 - **VS2026 AppxPackage targets 增量构建 bug**：开 bundle（默认）且存在多语言资源分包（`language-en.appx`）时，第二次起的增量 x64 Debug 打包会丢 `PackageLayout\entrypoint\SshTool.App.exe`（MakeAppx 0x80070003 / mapping file line 135）。处置：`AppxBundle=Never`（散装 appx 正是 WinAppDeployCmd 旁加载所需），X06 实测三连构建稳定。首发现场：verify.ps1 门禁。
 - native C/C++ 源码一律 UTF-8（无 BOM）；MSVC 工程必须加 `/utf-8`（已在 native/tests CMakeLists 设置），否则 GBK 区域下报 C4819 且可能吞字符导致诡异编译错误。
 - pwsh 脚本在 Git Bash 里 `| tail` 时退出码被 tail 覆盖，验证脚本退出码需 `set -o pipefail`。
+- **VS 里选中非 `x64 Debug`/`ARM Release` 配置 → CS0234「命名空间 SshTool.Native 不存在」**：winmd 由 VS2017 两段式预建，磁盘上只有这两种组合（`SshTool.Native/bin/{x64/Debug,ARM/Release}`）。解法：VS 切到 `x64 Debug`（日常）或 `ARM Release`（真机打包），或先跑 `scripts/verify.ps1`。App csproj 已加 `RequireNativeWinmd` 目标把 CS0234 换成可操作的中文报错。注意 csproj 里 `$(MSBuildProjectDir)` 在某些加载路径下会求值为空（实测 MSBuild 18.10），路径判断一律用 `$(MSBuildThisFileDirectory)`。
 
 ## 6. SP01 Spike 结论（进行中）
 

@@ -234,4 +234,10 @@
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
+  <!-- 选错配置时给出可操作的报错，而不是 CS0234「命名空间 SshTool.Native 不存在」：
+       winmd 由 VS2017 两段式预先构建，当前只有 x64 Debug 与 ARM Release 两种组合（见 doc/ENV.md §5）。 -->
+  <Target Name="RequireNativeWinmd" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(MSBuildThisFileDirectory)..\SshTool.Native\bin\$(NativePlatform)\$(Configuration)\SshTool.Native.winmd')"
+           Text="缺少 SshTool.Native.winmd（$(NativePlatform)\$(Configuration)）。请切到 x64 Debug（日常开发）或 ARM Release（真机打包），或先运行 scripts/verify.ps1 让 VS2017 预建 Native；其它配置组合不支持。" />
+  </Target>
 </Project>
