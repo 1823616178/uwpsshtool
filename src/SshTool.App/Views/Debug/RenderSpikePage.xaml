@@ -43,6 +43,8 @@
                 <ComboBoxItem Content="静止" />
                 <ComboBoxItem Content="全屏 run 合并" />
             </ComboBox>
+            <ToggleSwitch x:Name="ContentSwitch" OnContent="真实分布" OffContent="随机每格" IsOn="True"
+                          Toggled="OnContentToggled" Margin="8,0,0,0" />
             <ToggleSwitch x:Name="DualSwitch" OnContent="双实例" OffContent="单实例"
                           Toggled="OnDualToggled" Margin="8,0,0,0" />
             <ToggleSwitch x:Name="RunSwitch" OnContent="运行中" OffContent="已停止"

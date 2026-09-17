@@ -63,6 +63,7 @@ namespace SshTool.App.Views.Debug
         private int _drawSamples;
         private double _lastReportMs;
         private string _fontReport = "字体：未检测";
+        private bool _realisticContent = true;
         private bool _matrixRunning;
         private string _lastReport;
 
@@ -96,13 +97,42 @@ namespace SshTool.App.Views.Debug
             }
         }
 
+        // 两种内容分布：
+        //   随机每格 —— 每格独立随机 16 色，平均 run 长度≈1，是 run 合并的最坏情况；
+        //   真实分布 —— 约 85% 的格用默认前景/背景，其余成段着色，贴近真实终端输出。
+        // 初版只有前者，导致 run-merged 与 per-cell 几乎同样慢（没东西可合并），
+        // 量不出 §7.3 的收益（2026-09-18 改正）。
+        private const byte DefaultFg = 7;
+        private const byte DefaultBg = 0;
+
         private void FillRow(int r)
         {
-            for (int c = 0; c < _cols; c++)
+            if (!_realisticContent)
             {
-                _chars[r, c] = (char)('!' + _rnd.Next(0, 94));   // 可见 ASCII
-                _fg[r, c] = (byte)_rnd.Next(0, Ansi16.Length);
-                _bg[r, c] = (byte)_rnd.Next(0, Ansi16.Length);
+                for (int c = 0; c < _cols; c++)
+                {
+                    _chars[r, c] = (char)('!' + _rnd.Next(0, 94));
+                    _fg[r, c] = (byte)_rnd.Next(0, Ansi16.Length);
+                    _bg[r, c] = (byte)_rnd.Next(0, Ansi16.Length);
+                }
+                return;
+            }
+
+            int col = 0;
+            while (col < _cols)
+            {
+                bool plain = _rnd.Next(100) < 85;
+                int len = plain ? _rnd.Next(8, 41) : _rnd.Next(3, 13);
+                byte fg = plain ? DefaultFg : (byte)_rnd.Next(1, Ansi16.Length);
+                byte bg = plain ? DefaultBg : (byte)(_rnd.Next(100) < 25 ? _rnd.Next(1, Ansi16.Length) : DefaultBg);
+                int end = Math.Min(_cols, col + len);
+                for (; col < end; col++)
+                {
+                    // 真实终端里空格占比不低
+                    _chars[r, col] = _rnd.Next(100) < 18 ? ' ' : (char)('!' + _rnd.Next(0, 94));
+                    _fg[r, col] = fg;
+                    _bg[r, col] = bg;
+                }
             }
         }
 
@@ -217,7 +247,7 @@ namespace SshTool.App.Views.Debug
             var sw = Stopwatch.StartNew();
             if (Mode == LoadMode.DirtyRows)
             {
-                painter.DrawCached(sender, args.DrawingSession, this);
+                painter.DrawCached(sender, args.DrawingSession, this, true);   // 脏行按 §7.3：单张 RT + run 合并
             }
             else if (Mode == LoadMode.FullRedrawMerged)
             {
@@ -330,6 +360,16 @@ namespace SshTool.App.Views.Debug
             ApplyConfig();
         }
 
+        private void OnContentToggled(object sender, RoutedEventArgs e)
+        {
+            if (ContentSwitch == null || _matrixRunning) { return; }
+            _realisticContent = ContentSwitch.IsOn;
+            BuildModel();
+            _painter1.Invalidate();
+            _painter2.Invalidate();
+            ApplyConfig();
+        }
+
         private void ApplyConfig()
         {
             if (GridBox == null || LoadBox == null || DualSwitch == null) { return; }
@@ -352,8 +392,8 @@ namespace SshTool.App.Views.Debug
 
         // ---------- 一键全矩阵 + 导出 ----------
 
-        private const int WarmupMs = 1200;
-        private const int MeasureMs = 2500;
+        private const int WarmupMs = 900;
+        private const int MeasureMs = 2000;
         private static readonly string[] LoadTags = { "per-cell", "dirty3", "idle", "run-merged" };
 
         private async void OnRunMatrixClick(object sender, RoutedEventArgs e)
@@ -384,40 +424,37 @@ namespace SshTool.App.Views.Debug
             var sb = new StringBuilder();
             sb.AppendLine(DebugReport.EnvironmentHeader());
             sb.AppendLine("SP04 Win2D 渲染压测 | 预热 " + WarmupMs + " ms，测量 " + MeasureMs + " ms");
-            sb.AppendLine("load: per-cell=全屏逐格 dirty3=每帧3行脏行 idle=静止 run-merged=全屏行内run合并");
-            sb.AppendLine("tick/s=CompositionTarget.Rendering 回调频率；draw/s=Draw 实际被调用次数（跟不上时会被合并）");
+            sb.AppendLine("load: per-cell=全屏逐格 run-merged=全屏行内run合并 dirty3=每帧3行脏行(单张RT+run合并，§7.3 画法) idle=静止");
+            sb.AppendLine("content: real=约85%默认色+成段着色（贴近真实终端） rand=每格独立随机16色（run 合并最坏情况）");
+            sb.AppendLine("tick/s=CompositionTarget.Rendering 回调频率；draw/s=Draw 实际被调用次数（双实例时是两个画布之和）");
             sb.AppendLine();
-            sb.AppendLine("load        grid   inst   tick/s   draw/s   avg-draw-ms");
+            sb.AppendLine("load        content grid   inst   tick/s   draw/s   avg-draw-ms");
 
-            int[] loads = { 0, 3, 1, 2 };            // 逐格 → run 合并 → 脏行 → 静止
             int[] grids = { 0, 1 };
+            int[] drawLoads = { 0, 3, 1 };           // 逐格 → run 合并 → 脏行
             bool[] duals = { false, true };
-            int total = loads.Length * grids.Length * duals.Length;
+            bool[] contents = { true, false };       // 真实分布 → 随机每格
+
+            int total = grids.Length * (drawLoads.Length * duals.Length * contents.Length + duals.Length);
             int done = 0;
 
             foreach (int g in grids)
             {
-                foreach (int l in loads)
+                foreach (bool real in contents)
                 {
-                    foreach (bool dual in duals)
+                    foreach (int l in drawLoads)
                     {
-                        GridBox.SelectedIndex = g;
-                        LoadBox.SelectedIndex = l;
-                        DualSwitch.IsOn = dual;
-
-                        StatsText.Text = string.Format(
-                            CultureInfo.InvariantCulture,
-                            "矩阵 {0}/{1}：{2} {3}×{4} {5}（预热中…）",
-                            done + 1, total, LoadTags[l],
-                            g == 1 ? 88 : 48, g == 1 ? 24 : 30,
-                            dual ? "双实例" : "单实例");
-
-                        await Task.Delay(WarmupMs);
-                        ResetCounters();
-                        await Task.Delay(MeasureMs);
-                        sb.AppendLine(SnapshotRow(LoadTags[l], dual));
-                        done++;
+                        foreach (bool dual in duals)
+                        {
+                            done++;
+                            await MeasureAsync(sb, g, l, dual, real, done, total);
+                        }
                     }
+                }
+                foreach (bool dual in duals)         // idle 与内容无关，只跑一遍
+                {
+                    done++;
+                    await MeasureAsync(sb, g, 2, dual, true, done, total);
                 }
             }
 
@@ -436,6 +473,32 @@ namespace SshTool.App.Views.Debug
             StatsText.Text = await DebugReport.PublishAsync("sp04-render", "SP04", _lastReport);
         }
 
+        private async Task MeasureAsync(StringBuilder sb, int grid, int load, bool dual, bool real, int done, int total)
+        {
+            if (_realisticContent != real)
+            {
+                _realisticContent = real;
+                BuildModel();
+                _painter1.Invalidate();
+                _painter2.Invalidate();
+            }
+            GridBox.SelectedIndex = grid;
+            LoadBox.SelectedIndex = load;
+            DualSwitch.IsOn = dual;
+
+            StatsText.Text = string.Format(
+                CultureInfo.InvariantCulture,
+                "矩阵 {0}/{1}：{2} {3} {4}×{5} {6}（预热中…）",
+                done, total, LoadTags[load], real ? "real" : "rand",
+                grid == 1 ? 88 : 48, grid == 1 ? 24 : 30,
+                dual ? "双实例" : "单实例");
+
+            await Task.Delay(WarmupMs);
+            ResetCounters();
+            await Task.Delay(MeasureMs);
+            sb.AppendLine(SnapshotRow(LoadTags[load], real, dual));
+        }
+
         private void ResetCounters()
         {
             _frames = 0;
@@ -444,14 +507,15 @@ namespace SshTool.App.Views.Debug
             _lastReportMs = _clock.Elapsed.TotalMilliseconds;
         }
 
-        private string SnapshotRow(string loadTag, bool dual)
+        private string SnapshotRow(string loadTag, bool real, bool dual)
         {
             double span = _clock.Elapsed.TotalMilliseconds - _lastReportMs;
             if (span <= 0) { span = 1; }
             return string.Format(
                 CultureInfo.InvariantCulture,
-                "{0,-11} {1,-6} {2,-6} {3,7:F1} {4,8:F1} {5,10:F2}",
+                "{0,-11} {1,-7} {2,-6} {3,-6} {4,7:F1} {5,8:F1} {6,10:F2}",
                 loadTag,
+                real ? "real" : "rand",
                 _cols + "x" + _rows,
                 dual ? "dual" : "single",
                 _frames * 1000.0 / span,
@@ -480,10 +544,18 @@ namespace SshTool.App.Views.Debug
         /// 脏行模式的行缓存：每行一张 CanvasRenderTarget，只有被标脏的行重画，
         /// 每帧把所有行 DrawImage 贴回来（01-DESIGN §7.3 的局部重绘思路）。
         /// </summary>
+        /// <summary>
+        /// §7.3 的画法：整个视图**一张** CanvasRenderTarget（cols×cellW, rows×cellH），
+        /// 只把脏行重画进去，然后一次 DrawImage 整张贴出。
+        /// （初版误写成每行一张 RT + 每帧 N 次 DrawImage，34 ms 里大头是那些贴图，
+        ///   与设计不符也测不出真实成本，2026-09-18 改正。）
+        /// </summary>
         private sealed class GridPainter : IDisposable
         {
-            private CanvasRenderTarget[] _rows;
+            private CanvasRenderTarget _surface;
             private bool[] _dirty;
+            private int _cols;
+            private int _rows;
 
             public void MarkDirty(int row)
             {
@@ -495,47 +567,51 @@ namespace SshTool.App.Views.Debug
                 Dispose();
             }
 
-            public void DrawCached(CanvasControl sender, CanvasDrawingSession ds, RenderSpikePage page)
+            public void DrawCached(CanvasControl sender, CanvasDrawingSession ds, RenderSpikePage page, bool merged)
             {
-                EnsureRows(sender, page);
-                for (int r = 0; r < _rows.Length; r++)
+                EnsureSurface(sender, page);
+
+                bool any = false;
+                for (int r = 0; r < _dirty.Length; r++)
                 {
-                    if (_dirty[r])
-                    {
-                        using (var rowDs = _rows[r].CreateDrawingSession())
-                        {
-                            rowDs.Clear(Colors.Black);
-                            page.DrawRow(rowDs, r, 0f, 0f);
-                        }
-                        _dirty[r] = false;
-                    }
-                    ds.DrawImage(_rows[r], 0f, r * page.CellHeight);
+                    if (_dirty[r]) { any = true; break; }
                 }
+                if (any)
+                {
+                    using (var rt = _surface.CreateDrawingSession())
+                    {
+                        for (int r = 0; r < _dirty.Length; r++)
+                        {
+                            if (!_dirty[r]) { continue; }
+                            float y = r * page.CellHeight;
+                            // 只清这一行的矩形，其余像素保留（这正是行缓存的意义）
+                            rt.FillRectangle(0f, y, _cols * page.CellWidth, page.CellHeight, Colors.Black);
+                            if (merged) { page.DrawRowMerged(rt, r, 0f, y); }
+                            else { page.DrawRow(rt, r, 0f, y); }
+                            _dirty[r] = false;
+                        }
+                    }
+                }
+                ds.DrawImage(_surface, 0f, 0f);
             }
 
-            private void EnsureRows(CanvasControl sender, RenderSpikePage page)
+            private void EnsureSurface(CanvasControl sender, RenderSpikePage page)
             {
-                if (_rows != null && _rows.Length == page.RowCount) { return; }
+                if (_surface != null && _cols == page.ColCount && _rows == page.RowCount) { return; }
                 Dispose();
-                _rows = new CanvasRenderTarget[page.RowCount];
-                _dirty = new bool[page.RowCount];
-                float w = page.ColCount * page.CellWidth;
-                for (int r = 0; r < _rows.Length; r++)
-                {
-                    _rows[r] = new CanvasRenderTarget(sender, w, page.CellHeight);
-                    _dirty[r] = true;
-                }
+                _cols = page.ColCount;
+                _rows = page.RowCount;
+                _surface = new CanvasRenderTarget(sender, _cols * page.CellWidth, _rows * page.CellHeight);
+                _dirty = new bool[_rows];
+                for (int r = 0; r < _rows; r++) { _dirty[r] = true; }
             }
 
             public void Dispose()
             {
-                if (_rows == null) { return; }
-                foreach (var rt in _rows)
-                {
-                    if (rt != null) { rt.Dispose(); }
-                }
-                _rows = null;
+                if (_surface != null) { _surface.Dispose(); _surface = null; }
                 _dirty = null;
+                _cols = 0;
+                _rows = 0;
             }
         }
     }

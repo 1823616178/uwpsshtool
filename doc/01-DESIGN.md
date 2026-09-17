@@ -408,7 +408,7 @@ public ref class KeyTool sealed {
 ### 7.4 字体与度量
 
 - 随包 JetBrains Mono Regular/Bold（`ms-appx:///Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono`）。
-- CJK：W10M 中文系统字体（`Microsoft YaHei UI` / `DengXian`，SP04 确认可用字体名）作为回退；宽字符强制按 2×cellW 定位，字形超宽时缩放到格内。
+- CJK：W10M 中文系统字体回退——**SP04 真机实测 `Microsoft YaHei UI` 可用**（2026-09-18，Lumia 950 / 10.0.15254.603，经 `CanvasFontSet` 枚举确认）；宽字符强制按 2×cellW 定位，字形超宽时缩放到格内。
 - 度量：用 `CanvasTextLayout` 测 `"M"` 宽与行高 → `cellW = ceil(advance)`、`cellH = ceil(lineHeight × lineHeightFactor)`，字号或 DPI 变化时重测。
 - `cols = floor((viewWidth - 2×padding) / cellW)`，`rows = floor((viewHeight - 2×padding - keyBarHeight(若覆盖)) / cellH)`；变化后 **防抖 100 ms** 调 `SshSession.Resize`。
 - 字号范围 8–28 epx，默认 12（竖屏约 48 列、横屏约 88 列）。

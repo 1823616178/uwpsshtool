@@ -122,8 +122,32 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
   该仪表已修：页面现在同时报 `tick/s` 与 `draw/s`（Draw 实际调用次数），以 `draw/s` 与平均绘制耗时为准。
 - **初步结论**：§7.3 规定的「行内 run 合并 + 行缓存 + 只重绘脏行」不是优化项而是**必需项**——逐格 `FillRectangle`+`DrawText`
   在 ARM32 上约 50–70 µs/格，48×30 就要 ~100 ms/帧。已给压测页补「全屏 run 合并」负载以量化 §7.3 真实画法的成本。
-- 📱 待真机（第二轮，用页面上的「跑全矩阵并导出」一键完成）：4 负载（逐格/run 合并/3 脏行/静止）× 2 网格 × 单/双实例的
-  `draw/s` 与平均绘制耗时；以及页面报出的可用中文回退字体名。报告自动落 `LocalState\spike-reports\sp04-render-*.txt`、
-  复制到剪贴板、并写入 `logs\app.log`。数字回来后回写 `01-DESIGN.md` D5、§7.4。
+- **2026-09-18 第二轮（全矩阵一键导出，报告经设备门户拉回：`artifacts/phone-reports/sp04-render-20260918-014858.txt`）**
+  环境自述行显示跑的是 **`Arm Debug | CoreCLR(IL)`**，不是 .NET Native —— 数字仅供参考，Release 需复测。
+
+  | load | grid | inst | tick/s | draw/s | avg-draw-ms |
+  |---|---|---|---|---|---|
+  | per-cell | 48×30 | single | 17.2 | 8.6 | 103.67 |
+  | run-merged | 48×30 | single | 18.2 | 9.1 | 99.50 |
+  | dirty3 | 48×30 | single | 42.8 | 21.4 | 34.27 |
+  | idle | 48×30 | single | 60.0 | 0.0 | 0.00 |
+  | per-cell | 88×24 | single | 11.8 | 5.9 | 152.88 |
+  | run-merged | 88×24 | single | 12.3 | 6.2 | 145.60 |
+  | dirty3 | 88×24 | single | 30.7 | 15.4 | 50.47 |
+  | idle | 88×24 | single | 60.2 | 0.0 | 0.00 |
+
+  其它：cell 9.0×19.0 px；**中文回退实测为 `Microsoft YaHei UI`**（§7.4 候选第一项可用）；
+  双实例的 draw/s 是两个画布之和（48×30 dirty3 dual 26.1 ≈ 每画布 13）。
+
+  **本轮暴露的两处测试设计错误（均已改，结论作废重测）**：
+  1. `run-merged` 只比 `per-cell` 快 4%——因为测试内容是**每格独立随机 16 色**，平均 run 长度≈1，根本没东西可合并。
+     已加内容分布维度：`real`（约 85% 默认色 + 成段着色，贴近真实终端）/ `rand`（原最坏情况）。
+  2. `dirty3` 的 34–50 ms 里大头是贴图——初版写成**每行一张 `CanvasRenderTarget` + 每帧 N 次 `DrawImage`**，
+     与 §7.3 的「整个视图一张 RT、只重画脏行、一次 `DrawImage` 整张贴出」不符。已按设计改写。
+  - 唯一可直接采信的结论：**`idle` 0 draw/s、60 tick/s** —— 不重绘就真的不画（帧调度退订归 T04）。
+
+- 📱 待第三轮（ARM **Release**/.NET Native，一键「跑全矩阵并导出」，约 28 组 90 秒）：
+  按 `load × content × grid × inst` 取 `draw/s` 与 `avg-draw-ms`，据此回写 `01-DESIGN.md` D5、§7.4 并结 SP04。
+  报告我可用 `pwsh scripts/phone-portal.ps1 -Pull -Path "\LocalState\spike-reports"` 自取。
 
 ---
