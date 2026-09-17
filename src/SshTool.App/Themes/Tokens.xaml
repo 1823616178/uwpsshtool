@@ -24,6 +24,9 @@
     <!-- 发丝描边（Banner 底线、Toast 边框）；不写字面量 1。 -->
     <Thickness x:Key="BorderThin">1</Thickness>
     <Thickness x:Key="BorderThinBottom">0,0,0,1</Thickness>
+    <!-- 均匀内边距：Padding/Margin 要 Thickness，不能绑 Space*（x:Double），否则
+         XamlParseException（Double 赋给 Thickness）。SpaceMd 仍给 Width/Height 用。 -->
+    <Thickness x:Key="PadMd">12</Thickness>
     <Thickness x:Key="PagePadding">12,0,12,0</Thickness>
     <Thickness x:Key="PagePaddingWide">24,0,24,0</Thickness>
     <CornerRadius x:Key="RadiusSm">4</CornerRadius>

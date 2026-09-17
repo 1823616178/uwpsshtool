@@ -1,6 +1,8 @@
 # X03：扫描 src/SshTool.App 下**全部** *.xaml 中的魔法数字（原先只扫 Views/Controls/Dialogs，
 # 根目录的 MainPage.xaml 逃过了检查）。命中以下模式即报错并以非 0 退出（Themes/ 与 Views/Debug/ 豁免）：
 #   十六进制颜色 #[0-9A-Fa-f]{6,8}、FontSize/Margin/Padding/Width/BorderThickness 的数字字面量
+#   Padding/Margin/BorderThickness 绑到 Space*（x:Double）——UWP 不会把 Double 转成 Thickness，
+#   运行时 XamlParseException（Token 画廊首例：TransientToast Padding=SpaceMd）
 # 用法：pwsh scripts/check-magic-numbers.ps1
 [CmdletBinding()]
 param()
@@ -13,7 +15,8 @@ $patterns = @(
     'Margin="\d',
     'Padding="\d',
     'Width="\d',
-    'BorderThickness="\d'
+    'BorderThickness="\d',
+    '(Padding|Margin|BorderThickness)="\{StaticResource Space(Xs|Sm|Md|Lg|Xl)\}'
 )
 
 $appDir = Join-Path $RepoRoot 'src\SshTool.App'

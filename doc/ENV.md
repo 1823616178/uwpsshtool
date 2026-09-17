@@ -82,3 +82,14 @@
 - Native 组件（v141）链接验证：`libcrypto.lib` 需配 `crypt32.lib`（`CertOpenSystemStoreW`）。`NativeInfo::OpenSslVersion()` 已加，MainPage 第三行显示。x64 Debug 与 ARM Release（.NET Native 打包）全链路构建通过。
 - 耗时参考：x64-windows-static 7.4 min，uwp 三架构各约 3.4–3.9 min；产物 libcrypto 约 64–90 MB（含调试信息）。
 - 📱 待真机：Lumia 上启动应用确认 MainPage 显示 `OpenSSL: 3.6.3 ...` 字样。
+
+## 8. SP04 Spike 结论（进行中，2026-09-18）
+
+- **Win2D.uwp 1.26.0 可用**：`TargetPlatformMinVersion=15063` 下构建/打包无版本告警；ARM Release 包内 `Microsoft.Graphics.Canvas.dll` 实测为 **ARM32**（dumpbin `1C4 machine (ARM)`，32 bit word machine）。版本锁在 `Directory.Build.props` 的 `Win2DVersion`。
+  - 选 1.26.0 而非 1.28.3：1.26.0 原生库在 `runtimes/win10-arm`（UWP 工具链认的 RID），1.27 起改为 `runtimes/win-arm`；两版都有 ARM32 二进制，但新 RID 在 UWP 工程上未验证。
+  - Win2D **同样依赖 VCLibs**：若 AppxManifest 缺 `Microsoft.VCLibs.140.00[.Debug]`，它会和 SshTool.Native 一样 0x8007007E（依赖已于本日修复）。
+- 体积：加入 Win2D + 两款字体后 ARM Release 包 3.4 MB → **4.8 MB**（Canvas.dll 1.70 MB，两款 ttf 共 0.53 MB）。
+- 字体：JetBrains Mono v2.304，`scripts/fetch-fonts.ps1` 按固定 URL + SHA256 抓取（OFL.txt 一并入包），引用名 `ms-appx:///Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono`。
+- 📱 待真机：`RenderSpikePage`（MainPage「SP04 Win2D 渲染压测」）跑满 3 负载 × 2 网格 × 单/双实例，记录 FPS 与平均绘制耗时；并记录页面报出的可用中文回退字体名（候选 Microsoft YaHei UI / DengXian / SimSun）。数字回来后回写 `01-DESIGN.md` D5、§7.4。
+
+---

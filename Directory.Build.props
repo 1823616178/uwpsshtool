@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project>
   <!-- 统一语言与 NuGet 版本管理（X02）。C++/CX 工程会忽略不适用的属性。 -->
   <PropertyGroup>
@@ -10,7 +10,8 @@
   <PropertyGroup Label="NuGet Versions">
     <NetCoreUwpVersion>6.2.14</NetCoreUwpVersion>
     <NewtonsoftJsonVersion>12.0.3</NewtonsoftJsonVersion>
-    <!-- Win2D 版本由 SP04 试装后锁定 -->
-    <Win2DVersion></Win2DVersion>
+    <!-- SP04：Win2D.uwp 1.26.0 —— 1.26.0 的原生库放在 runtimes/win10-arm（UWP 工具链认的 RID），
+         1.27+ 改成 runtimes/win-arm；ARM32 二进制两版都有。最终版本以真机帧率结论为准。 -->
+    <Win2DVersion>1.26.0</Win2DVersion>
   </PropertyGroup>
 </Project>

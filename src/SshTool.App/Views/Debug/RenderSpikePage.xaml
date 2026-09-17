@@ -1,0 +1,56 @@
+<Page
+    x:Class="SshTool.App.Views.Debug.RenderSpikePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    mc:Ignorable="d"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- SP04：Win2D 终端渲染帧率压测（调试页豁免魔法数字检查） -->
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal">
+            <Button Content="返回" Click="OnBackClick" />
+            <TextBlock Text="SP04 Win2D 渲染压测" Style="{StaticResource SectionTitleTextStyle}"
+                       VerticalAlignment="Center" Margin="12,0,0,0" />
+        </StackPanel>
+
+        <!-- 网格尺寸 / 负载 / 实例数 -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8,0,0">
+            <ComboBox x:Name="GridBox" SelectionChanged="OnGridOrLoadChanged" SelectedIndex="0" Width="110">
+                <ComboBoxItem Content="48×30" />
+                <ComboBoxItem Content="88×24" />
+            </ComboBox>
+            <ComboBox x:Name="LoadBox" SelectionChanged="OnGridOrLoadChanged" SelectedIndex="0" Width="150" Margin="8,0,0,0">
+                <ComboBoxItem Content="全屏每帧重绘" />
+                <ComboBoxItem Content="每帧 3 行脏行" />
+                <ComboBoxItem Content="静止" />
+            </ComboBox>
+            <ToggleSwitch x:Name="DualSwitch" OnContent="双实例" OffContent="单实例"
+                          Toggled="OnDualToggled" Margin="8,0,0,0" />
+            <ToggleSwitch x:Name="RunSwitch" OnContent="运行中" OffContent="已停止"
+                          Toggled="OnRunToggled" Margin="8,0,0,0" />
+        </StackPanel>
+
+        <TextBlock x:Name="StatsText" Grid.Row="2" Style="{StaticResource MonoCaptionTextStyle}"
+                   TextWrapping="Wrap" Margin="0,8,0,8" Text="未开始" />
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <canvas:CanvasControl x:Name="Canvas1" Draw="OnDraw1" CreateResources="OnCreateResources" />
+            <canvas:CanvasControl x:Name="Canvas2" Grid.Column="1" Draw="OnDraw2"
+                                  Visibility="Collapsed" Margin="8,0,0,0" />
+        </Grid>
+    </Grid>
+</Page>

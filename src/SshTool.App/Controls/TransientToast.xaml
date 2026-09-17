@@ -9,7 +9,7 @@
             BorderBrush="{ThemeResource AppBorderBrush}"
             BorderThickness="{StaticResource BorderThin}"
             CornerRadius="{StaticResource RadiusSm}"
-            Padding="{StaticResource SpaceMd}"
+            Padding="{StaticResource PadMd}"
             HorizontalAlignment="Center"
             VerticalAlignment="Bottom"
             Margin="{StaticResource PagePadding}"

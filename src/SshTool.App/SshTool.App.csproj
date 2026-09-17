@@ -136,6 +136,9 @@
     <Compile Include="Views\Debug\SpikePage.xaml.cs">
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Debug\RenderSpikePage.xaml.cs">
+      <DependentUpon>RenderSpikePage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Debug\TokenGalleryPage.xaml.cs">
       <DependentUpon>TokenGalleryPage.xaml</DependentUpon>
     </Compile>
@@ -151,6 +154,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Debug\SpikePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Debug\RenderSpikePage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -212,6 +219,10 @@
     <Content Include="Assets\Wide310x150Logo.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\SplashScreen.png" />
+    <!-- SP04：终端等宽字体（SIL OFL 1.1；由 scripts/fetch-fonts.ps1 按固定 SHA256 抓取） -->
+    <Content Include="Assets\Fonts\JetBrainsMono-Regular.ttf" />
+    <Content Include="Assets\Fonts\JetBrainsMono-Bold.ttf" />
+    <Content Include="Assets\Fonts\OFL.txt" />
     <Content Include="Properties\Default.rd.xml" />
     <!-- X05：按 Configuration 选配置文件，打包为 Assets/appconfig.json -->
     <Content Include="Config\appconfig.Debug.json" Condition="'$(Configuration)'=='Debug'">
@@ -227,6 +238,10 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>$(NewtonsoftJsonVersion)</Version>
+    </PackageReference>
+    <!-- SP04：终端渲染（01-DESIGN §7.3） -->
+    <PackageReference Include="Win2D.uwp">
+      <Version>$(Win2DVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

@@ -29,6 +29,9 @@
             <Button x:Name="TokenGalleryButton" Content="X03 Token 画廊"
                     Margin="{StaticResource GapMdTop}"
                     Visibility="Collapsed" Click="OnTokenGalleryClick" />
+            <Button x:Name="RenderSpikeButton" Content="SP04 Win2D 渲染压测"
+                    Margin="{StaticResource GapMdTop}"
+                    Visibility="Collapsed" Click="OnRenderSpikeClick" />
         </StackPanel>
     </Grid>
 </Page>

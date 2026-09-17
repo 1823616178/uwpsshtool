@@ -152,7 +152,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     3. 帧驱动 `CompositionTarget.Rendering`，叠加 FPS 与帧耗时显示；另一模式同时放两个 CanvasControl。
     4. 字体：`ms-appx:///Assets/Fonts/JetBrainsMono-Regular.ttf#JetBrains Mono`；中文回退依次尝试 `Microsoft YaHei UI`、`DengXian`、`SimSun`，显示哪个生效。
   - 验收：
-    - [ ] x64 Debug 页面可运行
+    - [ ] x64 Debug 页面可运行（已构建通过，观感/运行需 👤）
     - [ ] 📱 记录三种负载 × 两种尺寸 × 单/双实例 的 FPS
     - [ ] 📱 记录可用中文字体名
     - [ ] `01-DESIGN.md` D5、§7.4 回写结论（保持方案或启用兜底）
@@ -1269,6 +1269,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
   > `src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/`（含 `Dependencies/arm/` 三个依赖包，装机见 `doc/ENV.md` §3）。
 - [ ] X02 应用在 Lumia 上显示两个版本号（产物：`src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/SshTool.App_0.1.0.0_ARM.appx`，未签名，需临时证书或按后续 Q09 流程安装）
 - [ ] SP02 📱 Lumia 上 MainPage 第三行显示 OpenSSL 版本（同一 ARM 包，重部署即可；另：👤 可在 PC 部署 x64 Debug 确认显示）
+- [ ] SP04 📱 记录三种负载（全屏每帧重绘/每帧 3 行脏行/静止）× 两种网格（48×30、88×24）× 单/双实例 的 FPS 与平均绘制耗时
+- [ ] SP04 📱 记录 RenderSpikePage 报出的可用中文回退字体名（候选 Microsoft YaHei UI / DengXian / SimSun）
 - [ ] X03 📱/👤 画廊页运行并切换深浅色，颜色/字号/间距/图标符合 02-UI-DESIGN §2（MainPage DEBUG 按钮「X03 Token 画廊」）
 - [ ] X04 📱/👤 应用启动后 `LocalFolder/logs/app.log` 生成且格式为 `yyyy-MM-dd HH:mm:ss.fff [LEVEL] [Tag] message`，敏感值已脱敏
 - [ ] X07 📱/👤 画廊页控件区展示 StatusDot 五态（连接中/重连中脉动）、Banner 四 Severity、EmptyState、SectionHeader、LoadingOverlay、TransientToast（1.5s 自动消失）
@@ -1307,3 +1309,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | — | bcec66b | 顺文档全量代码审计。对拍全部通过：§2.1 颜色 19 项、§2.2/2.3 Token 全键、§3.1 SyncConstants 全项、§8.3 设置键 24 项与默认值、PRI 内 ZH-CN/EN-US 实测存在（PRI257 确认良性）。修掉 App 层 5 处：`Window.Current` 线程静态导致的后台线程 NRE（DispatcherHelper、ThemeService.ColorValuesChanged）、激活前阻塞读配置、挂起不刷日志队列、OnLaunched 重入重复注册服务/重复订阅 BackRequested。魔法数字门禁原先只扫 Views/Controls/Dialogs，MainPage.xaml 逃检（已扩为全 App 树，补 Gap*/BorderThin* Token） |
 | 2026-09-18 | SP01 | bcec66b | ⏳ 仍等：📱 ARM Release(.NET Native) 真机跑 SpikePage。👤 已在 **PC x64 Debug** 复核 9/9 全 PASS（keyOrder/int/unicode+emoji/bool/null/int 数组/嵌套对象/ulong 上限 18446744073709551615/时间格式）——但该配置 `UseDotNetNativeToolchain=false`，走 CoreCLR，**验不到 SP01 的核心风险（Newtonsoft 在 .NET Native 下的行为，D9）**，故不勾选。并修掉一处使该验收根本无法执行的问题：调试页入口原为 `#if DEBUG`，Release 包里按钮不显示；改为 `DEBUG_PAGES` + csproj `EnableDebugPages` 开关（Debug 默认开，Release 显式传参），已出带入口的 ARM Release 包 |
 | 2026-09-18 | SP01 | bcec66b | **完成**。📱 ARM Release(.NET Native) 真机 9/9 全 PASS（用户回报），与 PC x64 Debug(CoreCLR) 逐项一致 → D9 成立：Newtonsoft 12.0.3 只用 JsonTextReader/Writer/JObject 在 .NET Native 下键序、Unicode+emoji、ulong 上限、时间格式均无偏差，`NetCoreUwpVersion` 维持 6.2.14，不降 5.4.x。D9/§1.2/ENV.md §6 已回写。过程中修两处挡路问题：调试页入口 `#if DEBUG` 导致 Release 包进不去（改 `EnableDebugPages` 开关）、SpikePage 报告新增环境行（DeviceFamily/OS build/架构+配置/工具链），避免再出现「这结果跑在哪」的歧义 |
+| 2026-09-18 | SP04 | （本次提交） | ⏳ 等待：📱 真机跑 RenderSpikePage 记录 FPS 与中文字体名。AI 侧完成：Win2D.uwp **1.26.0** 锁定（min 15063 下构建/打包无告警；ARM Release 包内 Canvas.dll 实测 ARM32 `1C4 machine`；不取 1.28.3 是因 1.27+ 把原生库 RID 从 `win10-arm` 改成 `win-arm`，UWP 工具链未验证）；RenderSpikePage（3 负载 × 2 网格 × 单/双实例，CompositionTarget.Rendering 驱动，脏行模式用逐行 CanvasRenderTarget 局部重绘，CanvasFontSet 枚举中文回退字体，OnNavigatedFrom 里 RemoveFromVisualTree）；scripts/fetch-fonts.ps1 按固定 SHA256 取 JetBrains Mono v2.304；包体 3.4→4.8 MB。另注：Win2D 同样依赖 VCLibs，若无本日修复会同样 0x8007007E |

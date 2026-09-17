@@ -52,6 +52,7 @@
 | `SpaceXs` / `SpaceSm` / `SpaceMd` / `SpaceLg` / `SpaceXl` | 4 / 8 / 12 / 16 / 24 | 间距 |
 | `GapSmLeft` / `GapSmBottom` / `GapLgBottom` / `GapMdTop` / `GapXlTop` | `8,0,0,0` / `0,0,0,8` / `0,0,0,16` / `0,12,0,0` / `0,24,0,0` | 间距：**W10M 15063 既无 `Grid.ColumnSpacing`/`RowSpacing` 也无 `StackPanel.Spacing`（均需 1709）**，一律用子元素 Margin 让出 |
 | `BorderThin` / `BorderThinBottom` | `1` / `0,0,0,1` | 发丝描边（Toast 边框、Banner 底线） |
+| `PadMd` | `12` | 均匀内边距（Toast 等）。**`Padding`/`Margin`/`BorderThickness` 必须绑 Thickness token，不能绑 `Space*`（`x:Double`），否则运行时 XamlParseException** |
 | `PagePadding` | `12,0,12,0` | 页面左右留白（手机） |
 | `PagePaddingWide` | `24,0,24,0` | 宽屏 |
 | `RadiusSm` / `RadiusMd` | 4 / 8 | W10M 风格偏直角，圆角克制 |

@@ -15,6 +15,7 @@ namespace SshTool.App
 #if DEBUG_PAGES   // Debug 默认开；Release 需 -p:EnableDebugPages=true（见 csproj 注释）
             SpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
             TokenGalleryButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
+            RenderSpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
 #endif
         }
 
@@ -26,6 +27,11 @@ namespace SshTool.App
         private void OnTokenGalleryClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             Frame.Navigate(typeof(Views.Debug.TokenGalleryPage));
+        }
+
+        private void OnRenderSpikeClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(Views.Debug.RenderSpikePage));
         }
     }
 }
