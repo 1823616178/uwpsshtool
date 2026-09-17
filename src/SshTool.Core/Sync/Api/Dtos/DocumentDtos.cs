@@ -76,6 +76,15 @@ namespace SshTool.Core.Sync.Api.Dtos
         }
     }
 
+    // HEAD sync/document 的结果（§2.4.7：只取响应头；404 CodeUnknown 时由 GET 回退构造）
+    public sealed class SyncDocumentHead
+    {
+        public string Revision { get; set; }
+        public int KeyVersion { get; set; }
+        public string Etag { get; set; }
+        public string LastModified { get; set; }
+    }
+
     public sealed class RevisionDeviceDto
     {
         public string Id { get; set; }

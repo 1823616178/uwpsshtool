@@ -23,7 +23,13 @@ namespace SshTool.Core.Sync.Api
         private readonly ITokenStore _tokens;
         private readonly IHttpTransport _transport;
         private readonly int _timeoutMs;
+        private readonly int _retryLimit;
+        private readonly Func<long, Task> _sleep;
         private readonly Func<DateTimeOffset> _clock;
+
+        // 401 刷新单飞：并发请求共用同一个刷新任务
+        private readonly object _refreshLock = new object();
+        private Task _refreshTask;
 
         public ApiClient(
             string baseUrl,
@@ -31,6 +37,8 @@ namespace SshTool.Core.Sync.Api
             IHttpTransport transport,
             bool allowHttp = false,
             int timeoutMs = 15000,
+            int retryLimit = 2,
+            Func<long, Task> sleep = null,
             Func<DateTimeOffset> clock = null)
         {
             if (tokenStore == null) throw new ArgumentNullException(nameof(tokenStore));
@@ -39,6 +47,8 @@ namespace SshTool.Core.Sync.Api
             _tokens = tokenStore;
             _transport = transport;
             _timeoutMs = timeoutMs;
+            _retryLimit = Math.Max(0, retryLimit);
+            _sleep = sleep ?? (ms => Task.Delay((int)Math.Min(ms, (long)int.MaxValue)));
             _clock = clock ?? (() => DateTimeOffset.UtcNow);
         }
 
@@ -215,6 +225,71 @@ namespace SshTool.Core.Sync.Api
                 SyncDocumentResponse.Parse, cancellationToken);
         }
 
+        // HEAD sync/document：只关心响应头。404 且 CodeUnknown（HEAD 无响应体）时
+        // 按 §2.4.7 回退 GET 拿权威 data.code；GET 成功则以 GET 内容作为 head。
+        public async Task<SyncDocumentHead> HeadSyncDocumentAsync(
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            HttpResponseData response;
+            try
+            {
+                response = await RequestWithPolicyAsync("sync/document", "HEAD", null, true,
+                    null, null, cancellationToken).ConfigureAwait(false);
+            }
+            catch (ApiError error) when (error.Status == 404 && error.CodeUnknown)
+            {
+                return await SyncDocumentHeadViaGetAsync(cancellationToken).ConfigureAwait(false);
+            }
+            var revision = ParseRevisionHeader(response.Header("x-sync-revision"));
+            int keyVersion;
+            if (!int.TryParse(response.Header("x-key-version"), NumberStyles.None,
+                    CultureInfo.InvariantCulture, out keyVersion)
+                || keyVersion < 1
+                || string.IsNullOrEmpty(response.Header("etag")))
+            {
+                throw new ApiError(ApiErrorKind.Protocol, ApiError.CodeSyncMetadataInvalid,
+                    "服务器返回了无效的同步元数据",
+                    status: response.StatusCode, requestId: response.Header("x-request-id"));
+            }
+            return new SyncDocumentHead
+            {
+                Revision = revision,
+                KeyVersion = keyVersion,
+                Etag = response.Header("etag"),
+                LastModified = response.Header("last-modified")
+            };
+        }
+
+        // 用 GET 代替 HEAD 得到同步元数据；文档/保险库不存在时抛出带准确 data.code 的错误
+        private async Task<SyncDocumentHead> SyncDocumentHeadViaGetAsync(
+            CancellationToken cancellationToken)
+        {
+            var document = await GetSyncDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var revision = ParseRevisionHeader(document.Revision);
+            if (document.KeyVersion < 1)
+            {
+                throw new ApiError(ApiErrorKind.Protocol, ApiError.CodeSyncMetadataInvalid,
+                    "服务器返回了无效的同步元数据");
+            }
+            return new SyncDocumentHead
+            {
+                Revision = revision,
+                KeyVersion = document.KeyVersion,
+                Etag = FormatRevisionEtag(revision),
+                LastModified = null
+            };
+        }
+
+        private static string ParseRevisionHeader(string value)
+        {
+            if (value == null || !Regex.IsMatch(value, @"^(0|[1-9]\d*)$"))
+            {
+                throw new ApiError(ApiErrorKind.Protocol, ApiError.CodeSyncRevisionInvalid,
+                    "服务器返回了无效的同步 revision");
+            }
+            return value;
+        }
+
         public Task<SyncWriteResponse> PutSyncDocumentAsync(
             EncryptedDocumentData document, string baseRevision, string idempotencyKey,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -251,12 +326,79 @@ namespace SshTool.Core.Sync.Api
                 idempotencyKey, baseRevision, RestoreRevisionResponse.Parse, cancellationToken);
         }
 
-        // ---------- 核心请求管线 ----------
+        // ---------- 核心请求管线（§2.4 发送策略） ----------
 
         private async Task<T> RequestAsync<T>(
             string path, string method, JObject body, bool auth,
             string idempotencyKey, string ifMatchRevision,
             Func<JObject, T> parse, CancellationToken cancellationToken)
+        {
+            var response = await RequestWithPolicyAsync(path, method, body, auth,
+                idempotencyKey, ifMatchRevision, cancellationToken).ConfigureAwait(false);
+            return ReadSuccess(response, parse);
+        }
+
+        // 完整的鉴权重试策略：401 单飞刷新后重放；终端鉴权错误清 token
+        private async Task<HttpResponseData> RequestWithPolicyAsync(
+            string path, string method, JObject body, bool auth,
+            string idempotencyKey, string ifMatchRevision, CancellationToken cancellationToken)
+        {
+            var first = await SendWithPolicyAsync(path, method, body, auth,
+                idempotencyKey, ifMatchRevision, cancellationToken).ConfigureAwait(false);
+            if (auth && first.Error != null && ShouldRefresh(first.Error))
+            {
+                await RefreshTokensAsync().ConfigureAwait(false);
+                var retried = await SendWithPolicyAsync(path, method, body, auth,
+                    idempotencyKey, ifMatchRevision, cancellationToken).ConfigureAwait(false);
+                if (retried.Error != null)
+                {
+                    ClearForTerminalAuthError(retried.Error);
+                    throw retried.Error;
+                }
+                return retried.Response;
+            }
+            if (first.Error != null)
+            {
+                ClearForTerminalAuthError(first.Error);
+                throw first.Error;
+            }
+            return first.Response;
+        }
+
+        // §2.4.1/2：可重试请求（GET/HEAD/带幂等键）最多 retryLimit+1 次；
+        // 可重试错误（network/timeout/429/≥500）按 RetryAfterMs 或 250×2^attempt（封顶 4000）退避
+        private async Task<SendResult> SendWithPolicyAsync(
+            string path, string method, JObject body, bool auth,
+            string idempotencyKey, string ifMatchRevision, CancellationToken cancellationToken)
+        {
+            bool retryable = method == "GET" || method == "HEAD" || idempotencyKey != null;
+            int attempts = retryable ? _retryLimit + 1 : 1;
+            ApiError lastError = null;
+            for (int attempt = 0; attempt < attempts; attempt++)
+            {
+                var result = await SendOnceAsync(path, method, body, auth,
+                    idempotencyKey, ifMatchRevision, cancellationToken).ConfigureAwait(false);
+                if (result.Error == null
+                    && result.Response.StatusCode >= 200 && result.Response.StatusCode <= 299)
+                {
+                    return result;
+                }
+                var error = result.Error ?? ErrorFromResponse(result.Response);
+                if (!IsRetriable(error) || attempt + 1 >= attempts)
+                {
+                    return SendResult.Failed(error);
+                }
+                lastError = error;
+                long delay = error.RetryAfterMs ?? Math.Min(4000L, 250L * (1L << attempt));
+                await _sleep(delay).ConfigureAwait(false);
+            }
+            return SendResult.Failed(lastError);
+        }
+
+        // 单次发送：只映射传输层异常与「未登录」；HTTP 非 2xx 由调用方按策略处理
+        private async Task<SendResult> SendOnceAsync(
+            string path, string method, JObject body, bool auth,
+            string idempotencyKey, string ifMatchRevision, CancellationToken cancellationToken)
         {
             var url = Endpoint(path);
             var headers = new List<KeyValuePair<string, string>>
@@ -284,16 +426,17 @@ namespace SshTool.Core.Sync.Api
                 var accessToken = tokens != null ? tokens.AccessToken : null;
                 if (string.IsNullOrEmpty(accessToken))
                 {
-                    throw new ApiError(ApiErrorKind.Authentication, ApiError.CodeAuthRequired, "尚未登录");
+                    return SendResult.Failed(new ApiError(
+                        ApiErrorKind.Authentication, ApiError.CodeAuthRequired, "尚未登录"));
                 }
                 headers.Add(new KeyValuePair<string, string>("Authorization", "Bearer " + accessToken));
             }
 
             var request = new HttpRequestData(method, url, headers, serialized, _timeoutMs);
-            HttpResponseData response;
             try
             {
-                response = await _transport.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                return SendResult.Ok(
+                    await _transport.SendAsync(request, cancellationToken).ConfigureAwait(false));
             }
             catch (OperationCanceledException)
             {
@@ -301,20 +444,130 @@ namespace SshTool.Core.Sync.Api
             }
             catch (TimeoutException ex)
             {
-                throw new ApiError(ApiErrorKind.Timeout, ApiError.CodeRequestTimeout, "服务器请求超时",
-                    ambiguous: method != "GET" && method != "HEAD", inner: ex);
+                return SendResult.Failed(new ApiError(
+                    ApiErrorKind.Timeout, ApiError.CodeRequestTimeout, "服务器请求超时",
+                    ambiguous: method != "GET" && method != "HEAD", inner: ex));
             }
             catch (Exception ex)
             {
-                throw new ApiError(ApiErrorKind.Network, ApiError.CodeNetworkError, "无法连接同步服务器",
-                    ambiguous: method != "GET" && method != "HEAD", inner: ex);
+                return SendResult.Failed(new ApiError(
+                    ApiErrorKind.Network, ApiError.CodeNetworkError, "无法连接同步服务器",
+                    ambiguous: method != "GET" && method != "HEAD", inner: ex));
+            }
+        }
+
+        private static bool IsRetriable(ApiError error)
+        {
+            return error.Kind == ApiErrorKind.Network
+                || error.Kind == ApiErrorKind.Timeout
+                || error.Status == 429
+                || (error.Status != null && error.Status.Value >= 500);
+        }
+
+        // HEAD 请求拿不到响应体，401 时读不出 AUTH_TOKEN_EXPIRED；带着有效 token 收到 401
+        // 本身就说明 accessToken 已失效，此时按 §2.4.4 直接刷新重试
+        private static bool ShouldRefresh(ApiError error)
+        {
+            return error.Status == 401
+                && (error.Code == "AUTH_TOKEN_EXPIRED" || error.CodeUnknown);
+        }
+
+        // §2.4.6 终端鉴权错误 → 清空本地会话
+        private void ClearForTerminalAuthError(ApiError error)
+        {
+            if (error.Code == "AUTH_DEVICE_REVOKED"
+                || error.Code == "AUTH_TOKEN_REUSED"
+                || (error.Code == "AUTH_TOKEN_EXPIRED" && error.Status == 401))
+            {
+                _tokens.Clear();
+            }
+        }
+
+        // ---------- 401 刷新（§2.4.5，单飞） ----------
+
+        private Task RefreshTokensAsync()
+        {
+            lock (_refreshLock)
+            {
+                if (_refreshTask != null)
+                {
+                    return _refreshTask;
+                }
+                var task = PerformRefreshAsync();
+                _refreshTask = task;
+                // 完成后清槽。注意不能用「执行体 finally 清槽」：同步完成时 finally 先于
+                // 上面的赋值执行，会把故障任务留在槽里（S07 测试抓获）。
+                var _ = ClearRefreshSlotWhenDoneAsync(task);
+                return task;
+            }
+        }
+
+        private async Task ClearRefreshSlotWhenDoneAsync(Task task)
+        {
+            try
+            {
+                await task.ConfigureAwait(false);
+            }
+            catch (Exception)
+            {
+                // 刷新失败由等待方处理，这里只负责清槽
+            }
+            lock (_refreshLock)
+            {
+                if (ReferenceEquals(_refreshTask, task))
+                {
+                    _refreshTask = null;
+                }
+            }
+        }
+
+        // 刷新只发一次，绝不重试（§2.4.5）
+        private async Task PerformRefreshAsync()
+        {
+            var tokens = _tokens.GetTokens();
+            if (tokens == null || !_tokens.CanRefresh)
+            {
+                _tokens.Clear();
+                throw new ApiError(ApiErrorKind.Authentication, ApiError.CodeAuthRefreshUnavailable,
+                    "登录已失效，请重新登录");
+            }
+            var result = await SendOnceAsync("auth/refresh", "POST",
+                new JObject { ["refreshToken"] = tokens.RefreshToken }, false, null, null,
+                CancellationToken.None).ConfigureAwait(false);
+            if (result.Error != null)
+            {
+                // 网络/超时：refreshToken 可能已被服务端消耗，下次不能再用
+                _tokens.MarkRefreshUncertain();
+                var error = result.Error;
+                throw new ApiError(error.Kind, error.Code, error.Message,
+                    status: error.Status, requestId: error.RequestId,
+                    retryAfterMs: error.RetryAfterMs, ambiguous: true, inner: error);
+            }
+            if (result.Response.StatusCode < 200 || result.Response.StatusCode > 299)
+            {
+                var error = ErrorFromResponse(result.Response);
+                ClearForTerminalAuthError(error);
+                throw error;
+            }
+            var refreshed = ReadSuccess(result.Response,
+                new Func<JObject, AuthTokenResponse>(AuthTokenResponse.Parse));
+            _tokens.Save(refreshed);
+        }
+
+        private sealed class SendResult
+        {
+            public HttpResponseData Response;
+            public ApiError Error;
+
+            public static SendResult Ok(HttpResponseData response)
+            {
+                return new SendResult { Response = response };
             }
 
-            if (response.StatusCode < 200 || response.StatusCode > 299)
+            public static SendResult Failed(ApiError error)
             {
-                throw ErrorFromResponse(response);
+                return new SendResult { Error = error };
             }
-            return ReadSuccess(response, parse);
         }
 
         private ApiError ErrorFromResponse(HttpResponseData response)

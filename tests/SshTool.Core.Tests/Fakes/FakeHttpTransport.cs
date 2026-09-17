@@ -16,6 +16,9 @@ namespace SshTool.Core.Tests.Fakes
 
         public Func<HttpRequestData, HttpResponseData> Handler { get; set; }
 
+        // 异步处理器（如用 Task.Yield 制造真并发），优先级高于 Handler 与队列
+        public Func<HttpRequestData, Task<HttpResponseData>> AsyncHandler { get; set; }
+
         public void Enqueue(HttpResponseData response)
         {
             _queue.Enqueue(response);
@@ -29,6 +32,10 @@ namespace SshTool.Core.Tests.Fakes
         public Task<HttpResponseData> SendAsync(HttpRequestData request, CancellationToken cancellationToken)
         {
             Requests.Add(request);
+            if (AsyncHandler != null)
+            {
+                return AsyncHandler(request);
+            }
             if (Handler != null)
             {
                 return Task.FromResult(Handler(request));

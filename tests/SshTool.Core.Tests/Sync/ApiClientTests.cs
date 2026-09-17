@@ -14,51 +14,19 @@ namespace SshTool.Core.Tests.Sync
     {
         private const string Base = "https://sync.example.com";
 
-        private sealed class FakeTokenStore : ITokenStore
-        {
-            public TokenPair Tokens;
-            public AuthTokenResponse Saved;
-            public bool Cleared;
-            public bool Uncertain;
-
-            public TokenPair GetTokens()
-            {
-                return Tokens;
-            }
-
-            public void Save(AuthTokenResponse tokens)
-            {
-                Saved = tokens;
-                Tokens = new TokenPair(tokens.AccessToken, tokens.RefreshToken);
-            }
-
-            public void Clear()
-            {
-                Tokens = null;
-                Cleared = true;
-            }
-
-            public bool CanRefresh
-            {
-                get { return !Uncertain; }
-            }
-
-            public void MarkRefreshUncertain()
-            {
-                Uncertain = true;
-            }
-        }
-
         private static ApiClient NewClient(
             FakeHttpTransport transport, FakeTokenStore tokens,
-            bool allowHttp = false, string baseUrl = Base, Func<DateTimeOffset> clock = null)
+            bool allowHttp = false, string baseUrl = Base, Func<DateTimeOffset> clock = null,
+            int retryLimit = 0, Func<long, Task> sleep = null)
         {
-            return new ApiClient(baseUrl, tokens, transport, allowHttp: allowHttp, clock: clock);
+            // retryLimit 默认 0：本类用例只测「单次发送的错误映射」，重试策略在 ApiClientPolicyTests
+            return new ApiClient(baseUrl, tokens, transport,
+                allowHttp: allowHttp, retryLimit: retryLimit, sleep: sleep, clock: clock);
         }
 
         private static FakeTokenStore SignedIn()
         {
-            return new FakeTokenStore { Tokens = new TokenPair("access-1", "refresh-1") };
+            return FakeTokenStore.SignedIn();
         }
 
         private static HttpResponseData Json(
@@ -214,16 +182,17 @@ namespace SshTool.Core.Tests.Sync
         public async Task Error_401_MapsAuthenticationWithServerCode()
         {
             var transport = new FakeHttpTransport();
+            // 用 AUTH_DEVICE_REVOKED：AUTH_TOKEN_EXPIRED 会触发 S07 的刷新流程（策略测试覆盖）
             transport.Enqueue(Json(401,
-                @"{""statusCode"":401,""statusMessage"":""Unauthorized"",""data"":{""code"":""AUTH_TOKEN_EXPIRED"",""message"":""token 已过期""}}",
+                @"{""statusCode"":401,""statusMessage"":""Unauthorized"",""data"":{""code"":""AUTH_DEVICE_REVOKED"",""message"":""设备已撤销""}}",
                 new Dictionary<string, string> { ["x-request-id"] = "req-9" }));
             var client = NewClient(transport, SignedIn());
 
             var error = await Assert.ThrowsAsync<ApiError>(() => client.GetMeAsync());
 
             Assert.Equal(ApiErrorKind.Authentication, error.Kind);
-            Assert.Equal("AUTH_TOKEN_EXPIRED", error.Code);
-            Assert.Equal("token 已过期", error.Message);
+            Assert.Equal("AUTH_DEVICE_REVOKED", error.Code);
+            Assert.Equal("设备已撤销", error.Message);
             Assert.Equal(401, error.Status);
             Assert.Equal("req-9", error.RequestId);
             Assert.False(error.CodeUnknown);
