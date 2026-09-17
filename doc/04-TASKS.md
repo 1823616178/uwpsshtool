@@ -37,7 +37,7 @@
 
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
-| M0 | 基座与技术验证 | 13 | 1 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
+| M0 | 基座与技术验证 | 13 | 2 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 0 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 0 | 主机/分组增删改、凭据安全保存 |
@@ -219,7 +219,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 应用启动后日志文件生成（代码已接线 App.xaml.cs；需运行 UWP 确认，👤/📱）
   - 验证：`dotnet test`；msbuild
 
-- [ ] **X05 应用配置与清单** `S`
+- [x] **X05 应用配置与清单** `S`
   - 依赖：X02
   - 参考：`01-DESIGN.md §1.1、§12.3`
   - 产出：`src/SshTool.App/Config/{appconfig.Debug.json,appconfig.Release.json}`、`src/SshTool.App/Platform/AppConfig.cs`、`Package.appxmanifest` 更新
@@ -228,8 +228,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. `AppConfig.LoadAsync()` 读包内文件（`Windows.ApplicationModel.Package.Current.InstalledLocation`），手写 JObject 解析，缺字段用默认值并记警告。
     3. 清单：方向全部支持；能力三项；应用版本 `0.1.0.0`；不包含任何服务端密钥。
   - 验收：
-    - [ ] Debug/Release 构建后包内 `appconfig.json` 分别对应
-    - [ ] Core 或 App 层解析逻辑有单测（解析函数放 Core：`AppConfigParser`）
+    - [x] Debug/Release 构建后包内 `appconfig.json` 分别对应
+    - [x] Core 或 App 层解析逻辑有单测（解析函数放 Core：`AppConfigParser`）
   - 验证：`dotnet test`；msbuild 两种配置
 
 - [ ] **X06 测试与门禁脚本** `M`
@@ -1284,3 +1284,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | SP02 | 16da4f3 | ⏳ 等待：📱 真机显示 OpenSSL 版本（👤 也可 PC 部署 x64 Debug 确认）。方案 A 成功：vcpkg 3.6.3 四 triplet ✓（ARM 需 triplet 内 8.3 短路径 /LIBPATH 补 19041 um/arm+ucrt/arm）；Native 链 libcrypto+crypt32，`OpenSslVersion()` 上屏；x64 Debug / ARM Release 全链路构建 ✓；D16/R1、ENV.md §7、NATIVE-BUILD §4 已回写；任务不勾选 |
 | 2026-09-17 | X03 | 69e4def | ⏳ 等待：👤/📱 运行画廊页确认深浅色切换观感。Token 四字典 + ThemeService（系统强调色覆盖 + ColorValuesChanged）+ 画廊页 + check-magic-numbers.ps1（正负验证 ✓）；x64 Debug / ARM Release 构建 ✓；任务不勾选 |
 | 2026-09-17 | X04 | a0c5eff | ⏳ 等待：👤/📱 运行应用确认 app.log 生成与脱敏。SshErrorCode 全码表 + LogRedactor/LogRotationPlanner + FileLogger + 双语 resw；单测 +22（共 25 ✓）；x64 Debug / ARM Release ✓；PRI257 为固有良性告警；任务不勾选 |
+| 2026-09-17 | X05 | 4b241fe | 完成（无 📱 项）。双配置包内 appconfig.json 解包校验分别对应；AppConfigParser 单测 6 条（共 31 ✓）；清单补四方向，能力三项与版本号此前已就位 |
