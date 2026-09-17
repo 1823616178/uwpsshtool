@@ -22,11 +22,21 @@
 - **C++/CX 原生组件（SshTool.Native）**：必须产出 **ARM32**，而 VS2026 的 v142/v145 均无 ARM32 编译器 → 使用 **v141 工具集**（来自并存的 VS2017 15.9，含 ARM + UWP VC 支持），即 `PlatformToolset=v141`。若 VS2026 MSBuild 不能解析并存 VS2017 的 v141，则回退为用 VS2017 MSBuild（`C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe`）单独构建 Native。
 - 该决策已回写 `01-DESIGN.md §1.2`；若日后补装 VS2019 16.11 + SDK 17763，可回到原方案。
 
-## 2. 手机侧（👤 待回填）
+## 2. 手机侧（2026-09-18 实测回填）
 
-- [ ] 手机型号 / OS build（设置 → 关于，预期 10.0.15254.x）：____
-- [ ] 已开启：开发人员模式 ☐  设备发现 ☐  设备门户 ☐
-- [ ] 手机 IP / 配对 PIN 获取方式已验证：____
+| 项 | 值 | 来源 |
+|---|---|---|
+| 设备 | Lumia 950（`Windows.Mobile`） | `AnalyticsInfo.VersionInfo.DeviceFamily` |
+| OS build | **10.0.15254.603**（Creators Update，contract 4.0） | 调试页报告首行 |
+| 架构 / 工具链 | ARM32；Release 包走 .NET Native，Debug 走 CoreCLR | 同上 |
+| 开发人员模式 / 设备发现 / 设备门户 | 均已开启并实测可用 | 设备门户配对成功 |
+| 包全名 | `SshTool.LumiaSsh_<版本>_arm__f1yd6nwvtjrr4` | `/api/app/packagemanager/packages` |
+| 设备门户（USB 转发到本机） | `http://127.0.0.1:10080`、`https://127.0.0.1:10443` | §3.1 |
+| 配对 | 手机上按出 6 位 PIN → `phone-portal.ps1 -Pair <PIN>`，会话可长期复用 | §3.1 |
+| 应用安装方式 | 旁加载 ARM Release appx（含 `Dependencies\arm\` 三个依赖包）；设备门户亦有安装 API（`phone-portal.ps1 -Install`） | §3、§3.1 |
+
+> 实测：ARM Release（.NET Native）与 ARM Debug（CoreCLR）包都能在该机安装并运行；
+> 同版本号旁加载可能不替换旧包，每出一次真机包先跑 `scripts/bump-version.ps1`（见 §5）。
 
 ## 3. 部署命令（参考）
 

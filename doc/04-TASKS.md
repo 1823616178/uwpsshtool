@@ -37,7 +37,7 @@
 
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
-| M0 | 基座与技术验证 | 13 | 7 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
+| M0 | 基座与技术验证 | 13 | 9 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 3 | 主机/分组增删改、凭据安全保存 |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **19** | |
+| **合计** | | **111** | **21** | |
 
 ### 1.1 关键路径
 
@@ -61,7 +61,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 
 ## 2. M0 — 基座与技术验证
 
-- [ ] **X01 开发环境与真机部署打通** `S` 👤📱
+- [x] **X01 开发环境与真机部署打通** `S` 👤📱
   - 依赖：—
   - 参考：`01-DESIGN.md §1.2`
   - 产出：`doc/ENV.md`
@@ -71,8 +71,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     3. 在临时目录（不入库）新建空白 C# UWP（min 15063 / target 17763），ARM Release 构建，用 `WinAppDeployCmd.exe devices` 与 `install -file <appx> -ip <ip> -pin <pin>` 安装（依赖包目录一并安装）。
     4. 记录 VS2022 能否部署到该手机（能/不能/未测）。
   - 验收：
-    - [ ] `doc/ENV.md` 含全部工具版本、手机 OS build、WinAppDeployCmd 路径与完整安装命令、配对步骤、踩坑记录
-    - [ ] 📱 空白应用在 Lumia 950 启动成功
+    - [x] `doc/ENV.md` 齐全：工具版本（§1）、手机 OS build 10.0.15254.603 与设备事实（§2）、部署命令与设备门户配对/取文件/装包（§3、§3.1）、踩坑 9 条（§5）
+    - [x] 📱 应用在 Lumia 950 启动成功（2026-09-18 多次，app.log 与四份调试页报告为证；已远超「空白应用」）
   - 验证：人工
 
 - [x] **X02 仓库与解决方案骨架** `M`
@@ -109,7 +109,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] `Directory.Build.props` 锁定最终 UWP 包版本（`NetCoreUwpVersion` = 6.2.14，无需降 5.4.x）；`01-DESIGN.md` D9 与 §1.2 已回写
   - 验证：`dotnet test`；真机
 
-- [ ] **SP02 Spike：OpenSSL 编成 ARM-UWP 静态库并链入 native 组件** `M` 👤📱
+- [x] **SP02 Spike：OpenSSL 编成 ARM-UWP 静态库并链入 native 组件** `M` 👤📱
   - 依赖：X02
   - 参考：`01-DESIGN.md D16、R1`；鸿蒙端 `docs/NATIVE-BUILD.md`
   - 产出：`scripts/build-openssl.ps1`、`native/NATIVE-BUILD.md`、`native/prebuilt/{arm-uwp,x86-uwp,x64-uwp,x64-windows-static}/`（不入库）、`NativeInfo::OpenSslVersion()`
@@ -120,9 +120,9 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     4. `NATIVE-BUILD.md` 记录：采用方案、版本、完整命令、耗时、产物大小、遇到的补丁。
   - 验收：
     - [x] 脚本可一键重跑，四个目标产物齐全
-    - [ ] x64 Debug 应用显示 OpenSSL 版本（构建/链接已过；显示需运行 UWP，👤 在 PC 部署后确认）
+    - [x] 应用显示 OpenSSL 版本（真机 ARM Release 实测，证据强于 x64 Debug）
     - [x] ARM Release 构建成功
-    - [ ] 📱 Lumia 上显示 OpenSSL 版本
+    - [x] 📱 Lumia 上显示 OpenSSL 版本：真机 app.log 记录 `OpenSSL: OpenSSL 3.6.3 9 Jun 2026`（v0.1.0.3 / Arm Release / .NET Native，2026-09-18）
     - [x] `01-DESIGN.md` D16/R1 回写结论
   - 验证：`pwsh scripts/build-openssl.ps1`；msbuild；真机
 
@@ -1262,13 +1262,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 
 > AI 完成任务时把未能验证的 📱 项抄到这里，格式：`- [ ] <任务ID> <验收项原文>`。人工验证后勾选。
 
-- [ ] X01 空白应用在 Lumia 950 启动成功（可直接用 X02 的 ARM 包充当；部署步骤见 `doc/ENV.md` §3）
+- [x] X01 已完成（2026-09-18）
 - [x] SP01 ARM Release 真机运行 SpikePage，报告 9 项全 PASS（ulong 上限/固定键序/Unicode/emoji 往返）；失败按 D9 兜底降 UWP 包 5.4.x 重测
   > 2026-09-18：原先**无法执行**——调试页入口是 `#if DEBUG`，而 Release 才启用 .NET Native。已加 `EnableDebugPages` 开关，
   > 用 `-p:Configuration=Release -p:Platform=ARM -p:EnableDebugPages=true` 出包；现成产物：
   > `src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/`（含 `Dependencies/arm/` 三个依赖包，装机见 `doc/ENV.md` §3）。
-- [ ] X02 应用在 Lumia 上显示两个版本号（产物：`src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/SshTool.App_0.1.0.0_ARM.appx`，未签名，需临时证书或按后续 Q09 流程安装）
-- [ ] SP02 📱 Lumia 上 MainPage 第三行显示 OpenSSL 版本（同一 ARM 包，重部署即可；另：👤 可在 PC 部署 x64 Debug 确认显示）
+- [x] X02 已完成（2026-09-18，app.log 记录 Core/Native 版本号）
+- [x] SP02 📱 已完成（2026-09-18，真机 app.log 记录 OpenSSL 3.6.3）
 - [x] SP04 📱 FPS 矩阵已完成（2026-09-18，ARM Release/.NET Native，28 组）
 - [x] SP04 📱 可用中文回退字体名：**Microsoft YaHei UI**（2026-09-18 真机 CanvasFontSet 枚举，已回写 01-DESIGN §7.4）
 - [x] SP05 📱 已完成（2026-09-18，中文+英文两轮）
@@ -1316,5 +1316,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | SP04 | a5a40ec | **完成**。第三轮真机（ARM Release/.NET Native/v0.1.0.1）28 组矩阵：真实内容下 48×30 逐格 107.5 ms → run 合并 20.6 ms → 行缓存+脏行 11.0 ms；88×24 为 148.6 / 29.2 / 11.8 ms；idle 0 draw/s；双窗格每画布仍 ~30 draw/s。**D5 保持不变、无需兜底**，并新增三条硬性纪律（逐格绘制禁用、run 合并必需、每画布上限 ~30 draw/s，T04 按此设计）。中文回退 Microsoft YaHei UI，cell 9.0×19.0 px。另修两处挡路问题：EnableDebugPages 默认只在 Debug 开 → VS 生成的 Release 包没有调试入口（改为默认全开，Q09 关）；所有构建同为 0.1.0.0 导致旁加载不替换且无法分辨 → bump-version.ps1 + MainPage 显示 v0.1.0.x/配置/工具链。报告全程经 `phone-portal.ps1 -Pull` 自取，未再人工抄数 |
 | 2026-09-18 | X04 | d57132b | **完成**。最后一条 📱 验收用设备门户取回真机 `LocalState\logspp.log` 核对：91 行，格式 `2026-09-18 00:40:07.355 [INFO] [AppConfig] …` 与 §12.2 要求逐字符一致；按 `password|token|key|secret|passphrase` 扫描无命中（当前只有启动与配置两类日志，真正的脱敏路径待 S 系列接入后复查）。顺带印证 X05 的包内 appconfig 生效：syncApiBaseUrl 与 logLevel 都读到了 |
 | 2026-09-18 | SP05 | d57132b | ⏳ 等待：📱 按页面内 7 步脚本操作并导出。AI 侧完成：InputSpikePage 按 §7.5 搭哨兵原型并全量记录 TextBox/CoreWindow/InputPane 三路事件，每条旁注「按 §7.5 本该发什么」；内置 7 步脚本 + `---- STEP n ----` 分段标记；复用 DebugReport 导出。**WMC0151 门禁当场抓出 `BeforeTextChanging` 是 contract 5.0（1709），15063 没有** → 改 `ApiInformation.IsEventPresent` 守卫（仓库首处 ApiInformation 守卫）。包 bump 到 v0.1.0.2 |
+| 2026-09-18 | SP02 | （本轮） | **完成**。最后两条验收靠真机 `app.log` 自证：MainPage 启动行记录 `v0.1.0.3 | Arm Release | .NET Native | Core: 0.0.1 | Native: 0.0.1 | OpenSSL: OpenSSL 3.6.3 9 Jun 2026`——ARM32 真机上 native 组件加载成功、libcrypto 链接可用且能调用。**N01 的依赖只剩 SP03** |
+| 2026-09-18 | X01 | （本轮） | **完成**。ENV.md §2 由「👤 待回填」改为实测表：Lumia 950 / `Windows.Mobile` / **OS 10.0.15254.603** / ARM32，开发人员模式与设备门户均可用，包全名 `SshTool.LumiaSsh_<ver>_arm__f1yd6nwvtjrr4`，配对与取文件/装包流程见 §3.1。📱「空白应用启动成功」早已被超额满足（四份调试页报告 + app.log）。X02 的真机待办同时勾掉 |
 | 2026-09-18 | SP05 | 217646e | **完成**。中文/英文两轮真机采集，§7.5 五条提交规则定稿，**300 ms 静默兜底不启用**（TextComposition 三件套可靠）。四个实测要点：① 英文键盘直通无组合事件，中文 IME 下连英文字母也进组合态；② **退格必须走 KeyDown(Back)**——连按 3 次时 KeyDown 三次齐全，而哨兵只 2 字符可吃，TextChanged 只报得出 2×DEL，第 3 次丢失；③ **AcceleratorKeyActivated 的 Character 事件里 VirtualKey 是字符码**（l=108→Separator、s=115→F4、-=45→Insert），判键只能用 KeyDown.VirtualKey 或 CharacterReceived.KeyCode；④ Enter 收到两次 KeyDown（RepeatCount 0/1），不去重会双发 
 。另修采集页真 bug：CompositionEnded 原先只取「提交文本」，会把组合中那次退格整个吞掉，改为与非组合态同一套完整差分 |
