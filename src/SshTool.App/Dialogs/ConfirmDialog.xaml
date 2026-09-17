@@ -1,0 +1,9 @@
+<ContentDialog
+    x:Class="SshTool.App.Dialogs.ConfirmDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    MaxWidth="{StaticResource DialogMaxWidth}">
+
+    <!-- 02-UI-DESIGN.md §5.8 通用确认框（覆盖 ConfirmDelete 等场景；Title/按钮/危险色由 .cs 参数化） -->
+    <TextBlock x:Name="MessageText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+</ContentDialog>

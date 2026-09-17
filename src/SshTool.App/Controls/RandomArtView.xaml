@@ -1,0 +1,14 @@
+<UserControl
+    x:Class="SshTool.App.Controls.RandomArtView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls">
+
+    <!-- 02-UI-DESIGN.md §5.8/§6：randomart 等宽框（9 行），用 MonoText 渲染 -->
+    <Border Background="{ThemeResource AppSurfaceBrush}"
+            BorderBrush="{ThemeResource AppBorderBrush}"
+            BorderThickness="{StaticResource BorderThin}"
+            Padding="{StaticResource PadMd}">
+        <controls:MonoText x:Name="ArtText" Compact="True" />
+    </Border>
+</UserControl>

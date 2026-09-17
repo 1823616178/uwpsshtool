@@ -160,6 +160,22 @@
                     <controls:TransientToast x:Name="DemoToast" />
                 </Grid>
 
+                <TextBlock Text="对话框（U05，02-UI-DESIGN §5.8，结果脱敏显示）" Style="{StaticResource SectionTitleTextStyle}" Margin="0,16,0,4" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Button Content="HostKey" Click="OnHostKeyDemo" />
+                    <Button Content="密钥不匹配" Click="OnMismatchDemo" Margin="8,0,0,0" />
+                    <Button Content="密码" Click="OnCredentialDemo" Margin="8,0,0,0" />
+                    <Button Content="短语" Click="OnPassphraseDemo" Margin="8,0,0,0" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Button Content="键盘交互" Click="OnKbdDemo" />
+                    <Button Content="确认删除" Click="OnConfirmDemo" Margin="8,0,0,0" />
+                    <Button Content="退出确认" Click="OnExitDemo" Margin="8,0,0,0" />
+                    <Button Content="连发两个" Click="OnQueueDemo" Margin="8,0,0,0" />
+                </StackPanel>
+                <TextBlock x:Name="DialogResultText" Style="{StaticResource MonoCaptionTextStyle}"
+                           TextWrapping="Wrap" Margin="0,4,0,16" Text="对话框结果将显示在这里" />
+
             </StackPanel>
         </ScrollViewer>
     </Grid>

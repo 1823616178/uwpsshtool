@@ -1,0 +1,18 @@
+<ContentDialog
+    x:Class="SshTool.App.Dialogs.HostKeyDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    MaxWidth="{StaticResource DialogMaxWidth}"
+    Title="主机密钥确认"
+    PrimaryButtonText="信任并连接"
+    SecondaryButtonText="取消">
+
+    <!-- 02-UI-DESIGN.md §5.8 HostKeyDialog（首次）：主机、密钥类型、SHA256 指纹（等宽可复制）、randomart -->
+    <StackPanel>
+        <TextBlock x:Name="HostText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+        <TextBlock x:Name="KeyTypeText" Style="{StaticResource CaptionTextStyle}" Margin="{StaticResource GapMdTop}" />
+        <controls:MonoText x:Name="FingerprintText" Margin="{StaticResource GapXsTop}" />
+        <controls:RandomArtView x:Name="ArtView" Margin="{StaticResource GapMdTop}" />
+    </StackPanel>
+</ContentDialog>

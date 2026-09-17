@@ -1,0 +1,8 @@
+<UserControl
+    x:Class="SshTool.App.Controls.MonoText"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 02-UI-DESIGN.md §6：等宽、可选中复制的文本（指纹、公钥） -->
+    <TextBlock x:Name="InnerText" Style="{StaticResource MonoTextStyle}" IsTextSelectionEnabled="True" />
+</UserControl>

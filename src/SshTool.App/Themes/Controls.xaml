@@ -22,8 +22,14 @@
         <Setter Property="Foreground" Value="{ThemeResource AppTextDimBrush}" />
     </Style>
     <Style x:Key="MonoCaptionTextStyle" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="Consolas" />
+        <Setter Property="FontFamily" Value="{StaticResource AppMonoFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontCaption}" />
         <Setter Property="Foreground" Value="{ThemeResource AppTextDimBrush}" />
+    </Style>
+    <!-- U05 §6 MonoText：等宽正文字号（指纹、公钥） -->
+    <Style x:Key="MonoTextStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource AppMonoFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
     </Style>
 </ResourceDictionary>

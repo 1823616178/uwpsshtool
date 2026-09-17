@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -133,6 +133,33 @@
     <Compile Include="Controls\TransientToast.xaml.cs">
       <DependentUpon>TransientToast.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\MonoText.xaml.cs">
+      <DependentUpon>MonoText.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\RandomArtView.xaml.cs">
+      <DependentUpon>RandomArtView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\HostKeyDialog.xaml.cs">
+      <DependentUpon>HostKeyDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\HostKeyMismatchDialog.xaml.cs">
+      <DependentUpon>HostKeyMismatchDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\CredentialDialog.xaml.cs">
+      <DependentUpon>CredentialDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\PassphraseDialog.xaml.cs">
+      <DependentUpon>PassphraseDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\KbdInteractiveDialog.xaml.cs">
+      <DependentUpon>KbdInteractiveDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ConfirmDialog.xaml.cs">
+      <DependentUpon>ConfirmDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ExitWithSessionsDialog.xaml.cs">
+      <DependentUpon>ExitWithSessionsDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Debug\SpikePage.xaml.cs">
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
@@ -210,6 +237,42 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\TransientToast.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\MonoText.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\RandomArtView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\HostKeyDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\HostKeyMismatchDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\CredentialDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\PassphraseDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\KbdInteractiveDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\ConfirmDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\ExitWithSessionsDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

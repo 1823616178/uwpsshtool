@@ -1,0 +1,12 @@
+<ContentDialog
+    x:Class="SshTool.App.Dialogs.ExitWithSessionsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    MaxWidth="{StaticResource DialogMaxWidth}"
+    Title="退出应用"
+    PrimaryButtonText="退出"
+    SecondaryButtonText="取消">
+
+    <!-- 02-UI-DESIGN.md §5.8 ExitWithSessionsDialog：「有 N 个会话正在连接，退出将全部断开」 -->
+    <TextBlock x:Name="MessageText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+</ContentDialog>

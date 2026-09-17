@@ -1,0 +1,31 @@
+<ContentDialog
+    x:Class="SshTool.App.Dialogs.HostKeyMismatchDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    MaxWidth="{StaticResource DialogMaxWidth}"
+    Title="主机密钥已改变"
+    PrimaryButtonText="取消"
+    SecondaryButtonText="移除旧记录并重试…">
+
+    <!-- 02-UI-DESIGN.md §5.8 HostKeyMismatchDialog：红色警告 + 指纹对比 + 输入主机名确认移除 -->
+    <StackPanel>
+        <StackPanel Orientation="Horizontal">
+            <FontIcon Glyph="{StaticResource IconWarning}" FontSize="{StaticResource FontSubtitle}"
+                      Foreground="{ThemeResource AppDangerBrush}" VerticalAlignment="Top" />
+            <TextBlock Text="主机密钥已改变，可能存在中间人攻击。" Style="{StaticResource BodyTextStyle}"
+                       Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
+                       Margin="{StaticResource GapSmLeft}" />
+        </StackPanel>
+        <TextBlock Text="已记录指纹" Style="{StaticResource CaptionTextStyle}" Margin="{StaticResource GapMdTop}" />
+        <controls:MonoText x:Name="OldFingerprintText" Margin="{StaticResource GapXsTop}" />
+        <TextBlock Text="当前指纹" Style="{StaticResource CaptionTextStyle}" Margin="{StaticResource GapMdTop}" />
+        <controls:MonoText x:Name="NewFingerprintText" Margin="{StaticResource GapXsTop}" />
+        <TextBlock x:Name="ConfirmHintText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
+                   Margin="{StaticResource GapMdTop}" />
+        <TextBox x:Name="ConfirmBox" Margin="{StaticResource GapXsTop}" />
+        <TextBlock x:Name="ConfirmErrorText" Style="{StaticResource CaptionTextStyle}"
+                   Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
+                   Visibility="Collapsed" Margin="{StaticResource GapXsTop}" />
+    </StackPanel>
+</ContentDialog>
