@@ -280,7 +280,9 @@ namespace SshTool.App.Views.Debug
             StepText.Text = Steps[_step];
             StepButton.Content = _step >= Steps.Length - 1 ? "完成" : "下一步";
             Append("---- STEP", Steps[_step] + " ----");
-            if (_step == 0) { FocusSentinel(); }
+            // AllowFocusOnInteraction=False 已经保住了焦点；这里再兜一道，
+            // 避免某些输入法切换后焦点被系统收走导致后续步骤敲不进字。
+            if (Sentinel.FocusState == FocusState.Unfocused) { FocusSentinel(); }
         }
 
         private void OnFocusClick(object sender, RoutedEventArgs e)

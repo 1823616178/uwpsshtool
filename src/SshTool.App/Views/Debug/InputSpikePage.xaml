@@ -18,7 +18,7 @@
         </Grid.RowDefinitions>
 
         <StackPanel Orientation="Horizontal">
-            <Button Content="返回" Click="OnBackClick" />
+            <Button Content="返回" Click="OnBackClick" AllowFocusOnInteraction="False" />
             <TextBlock Text="SP05 输入事件采集" Style="{StaticResource SectionTitleTextStyle}"
                        VerticalAlignment="Center" Margin="12,0,0,0" />
         </StackPanel>
@@ -30,11 +30,16 @@
             <StackPanel>
                 <TextBlock x:Name="StepText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
                            Text="按「开始/下一步」逐项做，做完点「导出报告」" />
+                <!-- AllowFocusOnInteraction=False：点按钮不抢焦点，软键盘不会收起
+                     （contract 3.0 / 1607，低于本工程 min 15063，可直接用）。 -->
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <Button x:Name="StepButton" Content="开始" Click="OnNextStepClick" />
+                    <Button x:Name="StepButton" Content="开始" Click="OnNextStepClick"
+                            AllowFocusOnInteraction="False" />
                     <Button Content="聚焦哨兵（弹软键盘）" Click="OnFocusClick" Margin="8,0,0,0" />
-                    <Button Content="导出报告" Click="OnExportClick" Margin="8,0,0,0" />
-                    <Button Content="清空" Click="OnClearClick" Margin="8,0,0,0" />
+                    <Button Content="导出报告" Click="OnExportClick" Margin="8,0,0,0"
+                            AllowFocusOnInteraction="False" />
+                    <Button Content="清空" Click="OnClearClick" Margin="8,0,0,0"
+                            AllowFocusOnInteraction="False" />
                 </StackPanel>
             </StackPanel>
         </Border>
@@ -58,6 +63,7 @@
                    TextWrapping="Wrap" Margin="0,4,0,8" Text="哨兵未聚焦" />
 
         <TextBox x:Name="LogBox" Grid.Row="4" IsReadOnly="True" AcceptsReturn="True"
+                 IsTabStop="False" AllowFocusOnInteraction="False"
                  TextWrapping="NoWrap" FontFamily="Consolas" FontSize="11"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Auto" />

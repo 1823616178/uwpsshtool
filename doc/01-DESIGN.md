@@ -430,6 +430,8 @@ public ref class KeyTool sealed {
 - `InputPane.Showing/Hiding`：取 `OccludedRect.Height`，终端可视高度减去遮挡与键条高度并 `EnsuredFocusedElementInView = true` 阻止页面整体上推。
 
 **键条（KeyBar）**：见 UI §5.6；按键产生 `KeyChord`（键 + 修饰），经 `StickyModifiers`：单击 Ctrl → 下一个键带 Ctrl 后自动释放；双击或长按 → 锁定直到再次点击。
+- **键条与终端页上所有可点控件必须设 `AllowFocusOnInteraction="False"`**（contract 3.0，15063 可用）：
+  否则点一下按钮就把焦点从哨兵 TextBox 抢走，软键盘随即收起（SP05 实测踩坑，2026-09-18）。
 
 **物理键盘（HardwareKeyboardInput，Continuum/蓝牙键盘）**
 - `CoreWindow.KeyDown`（非字符键：方向、F1–F12、Home/End/PgUp/PgDn/Insert/Delete、Esc、Tab、Enter、Backspace）

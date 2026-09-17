@@ -161,5 +161,9 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
   真机报告里会打印它是否可用；若为 False，则哨兵差分只能靠 `TextChanged`。
 - 页面内置 7 步操作脚本（英文 `ls -la` → 连按退格 → 回车 → 拼音「你好」选词 → 联想词 → emoji → 切输入法），
   点「下一步」会往日志插 `---- STEP n ----` 分段标记，导出后能直接对上是哪段操作。
-- 📱 待真机：装 v0.1.0.2 ARM Release 包，按 7 步做完点「导出报告」（落 `LocalState\spike-reports\sp05-input-*.txt`），
+- **踩坑：点页面上的按钮会收起软键盘**——按钮取走焦点，哨兵 TextBox 一失焦 SIP 就关。
+  解法：`AllowFocusOnInteraction="False"`（`FrameworkElement`，contract 3.0 / 1607，低于本工程 min 15063，可直接用），
+  已加在步骤/导出/清空/返回按钮与只读日志框上；另在「下一步」里兜一道 `Focus(Programmatic)`。
+  **终端页（U07）的键条按钮必须照此办理**，否则每按一次功能键软键盘就掉。
+- 📱 待真机：装 v0.1.0.3 ARM Release 包，按 7 步做完点「导出报告」- 📱 待真机：装 v0.1.0.3 ARM Release 包，按 7 步做完点「导出报告」（落 `LocalState\spike-reports\sp05-input-*.txt`），
   我用 `phone-portal.ps1 -Pull` 取回后回写 `01-DESIGN.md §7.5`（组合态判定与提交策略，以及 300 ms 静默兜底是否启用）。
