@@ -256,9 +256,9 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     3. `NavigationService`：`Navigate<TPage>(param)`、`GoBack()`；订阅 `SystemNavigationManager.BackRequested`，按 `02-UI-DESIGN.md §4` 优先级依次询问注册的 `IBackHandler`（弹层 → 页面 → Frame）。
     4. 控件依赖属性与视觉按 UI §6；全部使用 Token。
   - 验收：
-    - [ ] Core 单测：SetProperty 通知、RelayCommand CanExecute、AsyncCommand 并发防重入与异常、DialogQueue 顺序与取消（≥10 条）
-    - [ ] 画廊页展示 6 个控件的各状态
-    - [ ] `check-magic-numbers.ps1` 通过
+    - [x] Core 单测：SetProperty 通知、RelayCommand CanExecute、AsyncCommand 并发防重入与异常、DialogQueue 顺序与取消（≥10 条）
+    - [ ] 画廊页展示 6 个控件的各状态（XAML 已就绪、构建过；观感需运行 UWP，👤/📱）
+    - [x] `check-magic-numbers.ps1` 通过
   - 验证：`pwsh scripts/verify.ps1`
 
 ---
@@ -1268,6 +1268,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] SP02 📱 Lumia 上 MainPage 第三行显示 OpenSSL 版本（同一 ARM 包，重部署即可；另：👤 可在 PC 部署 x64 Debug 确认显示）
 - [ ] X03 📱/👤 画廊页运行并切换深浅色，颜色/字号/间距/图标符合 02-UI-DESIGN §2（MainPage DEBUG 按钮「X03 Token 画廊」）
 - [ ] X04 📱/👤 应用启动后 `LocalFolder/logs/app.log` 生成且格式为 `yyyy-MM-dd HH:mm:ss.fff [LEVEL] [Tag] message`，敏感值已脱敏
+- [ ] X07 📱/👤 画廊页控件区展示 StatusDot 五态（连接中/重连中脉动）、Banner 四 Severity、EmptyState、SectionHeader、LoadingOverlay、TransientToast（1.5s 自动消失）
 
 ---
 
@@ -1286,3 +1287,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | X04 | a0c5eff | ⏳ 等待：👤/📱 运行应用确认 app.log 生成与脱敏。SshErrorCode 全码表 + LogRedactor/LogRotationPlanner + FileLogger + 双语 resw；单测 +22（共 25 ✓）；x64 Debug / ARM Release ✓；PRI257 为固有良性告警；任务不勾选 |
 | 2026-09-17 | X05 | 4b241fe | 完成（无 📱 项）。双配置包内 appconfig.json 解包校验分别对应；AppConfigParser 单测 6 条（共 31 ✓）；清单补四方向，能力三项与版本号此前已就位 |
 | 2026-09-17 | X06 | 1354ad1 | 完成（无 📱 项）。verify.ps1 全绿（含 -Arm ⑥ 步）；失败注入退出 1 并指名步骤②；cmake 免装（回退 vcpkg 缓存）；顺带修掉 VS2026 bundle 增量打包 bug（AppxBundle=Never，ENV.md 踩坑） |
+| 2026-09-17 | X07 | 83ffc8e | ⏳ 等待：👤/📱 画廊页控件观感确认。Core Mvvm 四件 + 单测 15（共 46 ✓）；App Infrastructure 六件 + NavigationService 返回链（§4）；Controls 六件全走 Token；verify 全量与 -Arm ✓；任务不勾选 |
