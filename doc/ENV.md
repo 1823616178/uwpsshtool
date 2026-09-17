@@ -63,3 +63,11 @@
 - 2026-09-17 宿主机：Newtonsoft.Json 12.0.3（netstandard1.4 目标）`JsonSpike.RoundTrip()` 全部 9 项检查通过（固定键序、int/bool/null/数组/嵌套对象、Unicode 往返、ulong 上限、时间格式）——`dotnet test` 覆盖；x64 Debug 与 ARM Release（.NET Native）构建通过。
 - `Microsoft.NETCore.UniversalWindowsPlatform` 维持 **6.2.14** 锁定（`Directory.Build.props`），暂不降 5.4.x。
 - 📱 待真机：ARM Release 包运行 SpikePage，核对报告 9 项全 PASS（重点：ulong 上限、固定键序、Unicode/emoji 往返在 .NET Native 下不丢字）。失败则按 D9 兜底降 5.4.x 重测并在此记录现象。
+
+## 7. SP02 Spike 结论（2026-09-17）
+
+- **方案 A（vcpkg）成功**：OpenSSL **3.6.3**（vcpkg ref `2026.07.29`）四个 triplet 全部编成静态库 → `native/prebuilt/{x64-windows-static,x86-uwp,x64-uwp,arm-uwp}/`（各含 libcrypto.lib + libssl.lib + include + VERSION.txt，不入库）。一键脚本 `scripts/build-openssl.ps1`（幂等，已重跑多次验证）。方案 B（perl Configure + nmake）未启用。
+- UWP 三架构走 overlay triplets `native/triplets/*-uwp-v141.cmake`（v141 + 动态 CRT + 静态库）。**ARM 独有补丁**：SDK ≥ 22621 删除 `um/arm`/`ucrt/arm`，vcpkg 注入的 LIB 取自最新 SDK（26100）导致探测链接 LNK1104；triplet 内用 `VCPKG_LINKER_FLAGS` 以 **8.3 短路径**补 19041 库目录（带空格长路径的引号会被 -D 传递剥掉）。8.3 名按机器生成，换机需重查（`native/NATIVE-BUILD.md` §4 踩坑 2）。
+- Native 组件（v141）链接验证：`libcrypto.lib` 需配 `crypt32.lib`（`CertOpenSystemStoreW`）。`NativeInfo::OpenSslVersion()` 已加，MainPage 第三行显示。x64 Debug 与 ARM Release（.NET Native 打包）全链路构建通过。
+- 耗时参考：x64-windows-static 7.4 min，uwp 三架构各约 3.4–3.9 min；产物 libcrypto 约 64–90 MB（含调试信息）。
+- 📱 待真机：Lumia 上启动应用确认 MainPage 显示 `OpenSSL: 3.6.3 ...` 字样。

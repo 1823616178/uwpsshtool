@@ -12,3 +12,4 @@ native/prebuilt/
 native/tests/build/
 native/third_party/*/
 !native/third_party/PATCHES.md
+tools/vcpkg/

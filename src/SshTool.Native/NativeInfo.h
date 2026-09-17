@@ -8,6 +8,7 @@ namespace SshTool
         {
         public:
             static Platform::String^ Version();
+            static Platform::String^ OpenSslVersion();
         };
     }
 }

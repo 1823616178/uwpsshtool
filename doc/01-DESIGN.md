@@ -92,7 +92,7 @@ Windows 10 Mobile 原生 UWP SSH 终端：**C# / XAML 界面 + C++/CX 原生核�
 | D13 | 保险库密码学位置 | **native（OpenSSL + libargon2），移植鸿蒙端 `crypto/vault.cpp`，但 KDF 参数改为读信封** | Argon2id 64 MiB/3 轮在 Lumia 上约数秒，必须原生且离开 UI 线程；鸿蒙端黄金向量可复用 | — |
 | D14 | 帧调度 | **全应用唯一 `CompositionTarget.Rendering` 订阅**，遍历可见窗格按 revision 决定重绘，无脏数据时退订以省电 | 与鸿蒙端 D14 同理 | — |
 | D15 | MVVM | 自写轻量基础设施（`ObservableObject`、`RelayCommand`、`AsyncCommand`、`NavigationService`、`DialogService`、简单服务定位器） | Windows Community Toolkit 新版本需 min 16299；自写代码量小可控 | — |
-| D16 | 依赖构建 | OpenSSL：vcpkg `arm-uwp` / `x86-uwp` / `x64-uwp` 三元组（失败则 `perl Configure VC-WIN32-ARM-UWP` + nmake）；libssh2 / libvterm / argon2：**源码直接编进 native 组件项目**（vendored 到 `native/third_party`） | 减少三方构建系统适配；源码编译便于打 UWP 小补丁 | — |
+| D16 | 依赖构建 | OpenSSL：vcpkg overlay triplets `native/triplets/*-uwp-v141`（v141 工具集；失败则 `perl Configure VC-WIN32-ARM-UWP` + nmake）；libssh2 / libvterm / argon2：**源码直接编进 native 组件项目**（vendored 到 `native/third_party`） | 减少三方构建系统适配；源码编译便于打 UWP 小补丁 | SP02 已验证：3.6.3 四 triplet 全过（ARM 需 /LIBPATH 短路径补丁，见 `native/NATIVE-BUILD.md` §4） |
 | D17 | 原生单测 | 纯 C++ 核心（`native/core`）同时编成宿主机 x64 静态库跑 GoogleTest；bridge 层不进单测 | 复用鸿蒙端 `cpp/tests` | — |
 | D18 | 私钥同步 | 首版先同步密码/短语；私钥同步（base64 + format + SHA256 公钥指纹，与桌面端 ssh2 结果一致）作为 S10 独立任务 | 指纹必须与桌面端逐字节一致，单独验证 | — |
 
@@ -100,7 +100,7 @@ Windows 10 Mobile 原生 UWP SSH 终端：**C# / XAML 界面 + C++/CX 原生核�
 
 | 库 | 版本 | 许可 | 接入方式 |
 |---|---|---|---|
-| OpenSSL | 3.0 LTS 或 3.5 LTS（以 SP02 能编过 ARM-UWP 的版本为准） | Apache-2.0 | 预编译静态库 `native/prebuilt/<arch>/`，不入库，脚本生成 |
+| OpenSSL | **3.6.3**（SP02 实测编过 ARM/x86/x64-UWP 与宿主机；vcpkg `2026.07.29` port） | Apache-2.0 | 预编译静态库 `native/prebuilt/<arch>/`，不入库，`scripts/build-openssl.ps1` 生成 |
 | libssh2 | 1.11.1 | BSD-3 | vendored 源码 |
 | libvterm | 0.3.3 | MIT | vendored 源码 |
 | phc-winner-argon2 | 20190702 | CC0 / Apache-2.0 | vendored 源码 |
@@ -679,7 +679,7 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
 
 | # | 风险 | 概率 | 影响 | 应对 / 触发的 Spike |
 |---|---|---|---|---|
-| R1 | OpenSSL 3.x 无法编成 ARM32 UWP 静态库或链接报 UWP 禁用 API | 中 | SSH/保险库原生方案受阻 | SP02 第一周验证；兜底：OpenSSL 1.1.1w（官方支持 `VC-WIN32-ARM-UWP`）；再兜底方案 B（SSH.NET + 托管 Argon2 `Konscious`，性能与算法受限） |
+| R1 | ~~OpenSSL 3.x 无法编成 ARM32 UWP 静态库或链接报 UWP 禁用 API~~（SP02 已排除：3.6.3 编成并链接成功，2026-09-17） | ~~中~~ 已排除 | — | libssh2 链接 UWP 禁用 API 的风险由 SP03 继续验证；原兜底（1.1.1w / 方案 B SSH.NET）保留至 SP03 结论 |
 | R2 | libssh2 在 UWP 中调用了被禁 API（如 `GetUserName`、非 UWP 注册表函数） | 中 | 编译或 WACK 失败 | SP03 编进组件跑一次真实连接；以宏打补丁记录在 `native/third_party/PATCHES.md` |
 | R3 | Win2D 在 Lumia 上终端帧率不足 | 中 | 体验差 | SP04 实测；兜底见 D5 |
 | R4 | Word Flow 中文输入法组合事件不可用，导致中文输入重复/丢字 | 中 | 中文用户体验差 | SP05；兜底：延迟提交 + 「输入框模式」（弹出单行编辑框整句发送） |

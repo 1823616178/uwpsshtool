@@ -11,6 +11,7 @@ namespace SshTool.App
             this.InitializeComponent();
             CoreVersionText.Text = "Core: " + CoreInfo.Version;
             NativeVersionText.Text = "Native: " + NativeInfo.Version();
+            OpenSslVersionText.Text = "OpenSSL: " + NativeInfo.OpenSslVersion();
 #if DEBUG
             SpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
 #endif
