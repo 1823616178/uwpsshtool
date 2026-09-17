@@ -1290,3 +1290,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | X07 | 83ffc8e | ⏳ 等待：👤/📱 画廊页控件观感确认。Core Mvvm 四件 + 单测 15（共 46 ✓）；App Infrastructure 六件 + NavigationService 返回链（§4）；Controls 六件全走 Token；verify 全量与 -Arm ✓；任务不勾选 |
 | 2026-09-17 | D01 | 7840be6 | 完成（无 📱 项）。模型 10 + Defaults + IdGenerator + 校验器 4；单测 +48（共 94 ✓）；verify 全绿 |
 | 2026-09-17 | D02 | 9973bd9 | 完成（无 📱 项）。IFileSystem/JsonStore（原子写/损坏备份/迁移链/LoadWarnings）+ 7 Codec（Extra 往返）+ Repository（ChangeOrigin 事件）+ ConfigService 级联 + UwpFileSystem；ISecretStore/SecretKeys 提前自 D03；踩坑：Newtonsoft 默认 DateParseHandling 把 ISO 字符串变 Date 破往返，统一走 JsonText.ParseObject 禁用；单测 +44（共 138 ✓）；verify 全绿 |
+| 2026-09-17 | S01 | 964aaea | 完成（无 📱 项）。SyncConstants 与桌面端 crypto-vault.ts 逐项对齐（AAD 域/SPM1/KDF/上限）；文档模型 7 个含 Clone；ServerSecrets null=键不存在；单测 +7（共 145 ✓） |
