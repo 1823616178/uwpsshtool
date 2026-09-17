@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "groups": [
+    { "color": "#a1B2c3", "name": "生产", "id": "grp-2" },
+    { "id": "grp-1", "name": "默认", "color": "#4F8CFF" }
+  ],
+  "tunnels": [
+    {
+      "id": "tun-2", "serverId": "srv-2", "type": "relay", "name": "中转",
+      "groupId": "grp-2", "listenHost": "0.0.0.0", "listenPort": 7000,
+      "destHost": "", "destPort": 0, "destServerId": "srv-1",
+      "autoReconnect": false, "enabled": true
+    },
+    {
+      "enabled": false, "autoReconnect": true, "destServerId": "", "destPort": 80,
+      "destHost": "10.0.0.5", "listenPort": 8080, "listenHost": "127.0.0.1",
+      "type": "local", "groupId": null, "serverId": "srv-1", "name": "Web", "id": "tun-1"
+    }
+  ],
+  "servers": [
+    {
+      "profile": {
+        "keepalive": 30, "hostFingerprint": "", "authType": "key", "username": "deploy",
+        "port": 2222, "host": "prod.internal", "name": "生产机", "id": "srv-2"
+      },
+      "secrets": { "passphrase": "短语🔑", "password": "p@ss" }
+    },
+    {
+      "profile": {
+        "id": "srv-1", "name": "跳板", "host": "jump.example.com", "port": 22,
+        "username": "jump", "authType": "agent", "hostFingerprint": "SHA256:abcdef", "keepalive": 0
+      }
+    }
+  ],
+  "preferences": { "syncPrivateKeys": true, "syncPasswords": true },
+  "updatedAt": "2026-09-17T08:00:00.000Z"
+}

@@ -42,7 +42,7 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 0 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 2 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 0 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 1 | 与桌面端同账号双向同步、冲突可解 |
+| M5 | 云端同步 | 22 | 2 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 0 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
@@ -803,14 +803,14 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 常量单测（写死期望值，含 AAD 域字符串与 SPM1）
   - 验证：`dotnet test`
 
-- [ ] **S02 文档严格校验与读写器** `M`
+- [x] **S02 文档严格校验与读写器** `M`
   - 依赖：S01
   - 参考：`03-SYNC-PROTOCOL.md §4`；桌面端 `src/shared/sync-schemas.ts`、`src/shared/sync-private-key.ts`、`test/sync-serializer.test.ts`
   - 产出：`src/SshTool.Core/Sync/Protocol/{SyncDocumentValidator,SyncDocumentReader,SyncDocumentWriter,SyncDocumentInvalidException,CanonicalBase64,PrivateKeyFormat}.cs`、`tests/SshTool.Core.Tests/Sync/SyncDocumentTests.cs`、`tests/fixtures/sync/*.json`
   - 要点：严格按 §4.1 校验每个约束（错误带 JSON 路径）；Reader 拒绝未知/缺失键与类型不符（整数必须是整数 token）；Writer 固定键序、序数排序、UTF-8 无 BOM、无缩进、>2 MiB 拒绝；`SameContent`（忽略 updatedAt）。
   - 验收：
-    - [ ] §10.1 Serializer 1–4 全部用例，§4.1 每条约束至少一条失败用例
-    - [ ] 同一文档两次写出字节相同
+    - [x] §10.1 Serializer 1–4 全部用例，§4.1 每条约束至少一条失败用例
+    - [x] 同一文档两次写出字节相同
   - 验证：`dotnet test`
 
 - [ ] **S03 原生保险库密码学** `M`
