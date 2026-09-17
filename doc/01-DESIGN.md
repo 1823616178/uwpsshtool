@@ -421,13 +421,49 @@ public ref class KeyTool sealed {
 
 ### 7.5 输入
 
-**软键盘（SoftKeyboardInput）**
-- 页面内放一个 1×1、Opacity=0.01 的 `TextBox`（`IsSpellCheckEnabled=false`、`IsTextPredictionEnabled=false`、`InputScope=Default`/可设为 `Url` 减少自动大写）；点终端区域 → `Focus(Programmatic)` 弹出 SIP。
-- **哨兵文本法**：TextBox 始终保留哨兵字符串 `"\u200B\u200B"`，光标在末尾；
-  `TextChanged` 时与哨兵比较：多出的字符 → 发送；少了 → 按少掉的个数发 `DEL(0x7F)`；然后复位为哨兵。
-- **组合态**：`TextCompositionStarted` → 标记组合中，期间 `TextChanged` 不发送；`TextCompositionEnded` → 取最终提交文本发送并复位。（SP05 验证 Word Flow 拼音是否触发这些事件；不触发则用「文本含未确认下划线段」无法判定 → 退化为「延迟 300 ms 未再变化才发送」。）
-- 回车：`KeyDown(VirtualKey.Enter)` → 发 `\r`，`e.Handled = true`。
-- `InputPane.Showing/Hiding`：取 `OccludedRect.Height`，终端可视高度减去遮挡与键条高度并 `EnsuredFocusedElementInView = true` 阻止页面整体上推。
+**软键盘（SoftKeyboardInput）** —— 规则由 SP05 真机实测确定（2026-09-18，Lumia 950 / 10.0.15254.603 / Word Flow）
+
+- 页面内放一个 1×1、Opacity=0.01 的 `TextBox`（`IsSpellCheckEnabled=false`、`IsTextPredictionEnabled=false`）；点终端区域 → `Focus(Programmatic)` 弹出 SIP。
+- **哨兵文本法**：TextBox 始终保留哨兵 `"\u200B\u200B"`，光标在末尾。
+- **`TextBox.BeforeTextChanging` 在 15063 上不存在**（UniversalApiContract 5.0 / 1709，SP05 实测 `IsEventPresent=False`），差分只能挂在 `TextChanged` 上。
+- 实测事件顺序：`TextChanging` → `SelectionChanged` → `TextChanged` → `CompositionChanged`（**`CompositionChanged` 晚于 `TextChanged`**，
+  所以 `TextChanged` 里用「`CompositionStarted` 置位的标志」判断组合态是可靠的）。
+
+**提交规则（五条，互斥且完备）**
+
+1. **焦点在哨兵时只走 TextBox 这一路**。同一次软键盘按键会同时产生 `TextBox.KeyDown`、`CoreWindow.KeyDown` 与
+   `CharacterReceived`（退格 `0x08`、回车 `\r`）——三路都接就是三重发送。`CoreWindow`/`CharacterReceived` 那路
+   只在焦点不在哨兵（物理键盘模式）时启用。
+2. **非组合态**：`TextChanged` 里与哨兵做完整差分——多出的字符按 UTF-8 发送；随后复位哨兵。
+   - **英文键盘模式全程无组合事件**（SP05 第二轮实测）：每个字符走 `KeyDown → TextChanging → CharacterReceived → TextChanged`，逐字直通、无延迟。
+   - 联想词、短语与 emoji 也走这条（均不触发组合事件）；**一次 `TextChanged` 可能带多个字符**——
+     快速连打实测合并成 `"la"`，输入法插短语实测一次给 `"击查看"`，emoji 的代理对完整到达。差分必须按「多出的整串」处理，不能假定单字符。
+3. **组合态**（`CompositionStarted` 到 `CompositionEnded` 之间）：`TextChanged` 一律不发送（中途文本含 IME 自插的分隔符，
+   如拼音 `ni'h`、英文 `l's`，发出去就是乱码）。**`CompositionEnded` 时执行与第 2 条完全相同的差分**，而不是只取「提交文本」——
+   因为组合中按退格会吃掉哨兵字符（实测 `CompositionEnded text="<ZWSP>"`），只看提交文本会把这次退格整个丢掉。
+4. **Enter**：`TextBox.KeyDown(VirtualKey.Enter)` 发 `\r` 并 `e.Handled = true`（`AcceptsReturn=false` 时不产生任何文本事件）。
+   注意 Enter 会来**两次 `KeyDown`**（`RepeatCount` 先 0 后 1；普通字符键只来一次且 `RepeatCount=1`），
+   必须按「同一 VirtualKey 在其 `KeyUp` 之前只处理一次」去重，否则每次回车发两个 `\r`。
+5. **Backspace 必须走 `KeyDown` 路，不能靠哨兵差分**。哨兵只有 2 个字符可供「吃掉」，
+   SP05 实测连按 3 次退格时 `TextBox.KeyDown(Back)` 三次齐全，而 `TextChanged` 只能报出 2×`DEL`——**第 3 次凭空丢失**。
+   规则：非组合态由 `KeyDown(Back)` 发 `0x7F`（可配 `0x08`）并 `Handled=true`；组合态交给 IME，由第 3 条收尾。
+   （即便如此仍建议哨兵留 2 字符：它是「文本被改动」的探针，不承担计数职责。）
+
+**兜底不启用**：Word Flow 的 `TextCompositionStarted/Changed/Ended` 在 W10M 上确实成对触发且状态可靠，
+原方案里「延迟 300 ms 未再变化才发送」的降级路径**不需要**（SP05 实测，2026-09-18）。
+
+**其它实测事实**
+
+- **英文键盘模式：直通**（无组合事件，逐字回显）。**中文 IME 模式：连敲英文字母也进组合态**（实测 `l` → `l's`，撇号是拼音分隔符），
+  因此中文模式下打英文命令会「憋」到组合结束才回显——这是 Word Flow 行为，无法绕开；终端页应在状态栏提示用户切英文键盘。
+- **`CoreDispatcher.AcceleratorKeyActivated` 的 `Character` 事件里 `VirtualKey` 字段填的是字符码，不是虚拟键**：
+  实测 `l`(108) 显示为 `Separator`、`s`(115) 为 `F4`、`-`(45) 为 `Insert`、`a`(97) 为 `NumberPad1`、`g`(103) 为 `NumberPad7`。
+  物理键盘路径判键只能用 `KeyDown` 事件的 `VirtualKey` 或 `CharacterReceived.KeyCode`，**绝不能用 Character 事件的 VirtualKey**。
+- `InputPane.Showing` 的 `OccludedRect` **随输入法而变**（Lumia 950 竖屏实测：中文 `360×266 @ (0,326)`、英文 `360×246.25 @ (0,345.75)`、
+  另一次 `360×242.25 @ (0,349.75)`），**必须每次事件重新读取，不能写死**：可视区高度 = 屏高 − 遮挡高度，
+  终端可视高度需减去遮挡与键条高度，并 `EnsuredFocusedElementInView = true` 阻止页面整体上推。
+- **页面上所有可点控件必须 `AllowFocusOnInteraction="False"`**（contract 3.0，15063 可用），否则点一下按钮就把
+  焦点从哨兵抢走、软键盘随即收起（SP05 踩坑）。
 
 **键条（KeyBar）**：见 UI §5.6；按键产生 `KeyChord`（键 + 修饰），经 `StickyModifiers`：单击 Ctrl → 下一个键带 Ctrl 后自动释放；双击或长按 → 锁定直到再次点击。
 - **键条与终端页上所有可点控件必须设 `AllowFocusOnInteraction="False"`**（contract 3.0，15063 可用）：

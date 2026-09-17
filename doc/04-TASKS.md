@@ -37,7 +37,7 @@
 
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
-| M0 | 基座与技术验证 | 13 | 6 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
+| M0 | 基座与技术验证 | 13 | 7 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 3 | 主机/分组增删改、凭据安全保存 |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **18** | |
+| **合计** | | **111** | **19** | |
 
 ### 1.1 关键路径
 
@@ -158,7 +158,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] `01-DESIGN.md` D5、§7.3、§7.4 已回写：**保持方案，无需兜底**；新增「逐格绘制是禁区、run 合并必需、每画布上限 ~30 draw/s」三条硬性纪律
   - 验证：真机
 
-- [ ] **SP05 Spike：软键盘、中文输入法与物理键盘事件** `S` 👤📱
+- [x] **SP05 Spike：软键盘、中文输入法与物理键盘事件** `S` 👤📱
   - 依赖：X02
   - 参考：`01-DESIGN.md §7.5、R4`
   - 产出：`src/SshTool.App/Views/Debug/InputSpikePage.xaml(.cs)`、`doc/ENV.md` 追加事件序列记录
@@ -167,8 +167,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. `InputPane.Showing/Hiding` 记录 `OccludedRect`；`CoreWindow.KeyDown/CharacterReceived`、`AcceleratorKeyActivated` 记录（蓝牙键盘或 Continuum 键盘）。
     3. 👤 在手机上依次操作：英文输入 `ls -la`、在哨兵上连按退格、回车、拼音输入「你好」并选词、点联想词、输入 emoji、切换输入法。
   - 验收：
-    - [ ] 📱 各操作的事件序列已记录
-    - [ ] 确定组合态判定与提交策略，回写 `01-DESIGN.md §7.5`（含兜底是否启用）
+    - [x] 📱 各操作的事件序列已记录（中文/英文两轮，报告 sp05-input-20260918-022625 与 -023117）
+    - [x] 组合态判定与提交策略五条已定稿回写 `01-DESIGN.md §7.5`；**300 ms 静默兜底不启用**
   - 验证：真机
 
 - [ ] **SP06 Spike：后台保活、常亮、DPAPI 与明文 HTTP** `S` 👤📱
@@ -1271,7 +1271,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] SP02 📱 Lumia 上 MainPage 第三行显示 OpenSSL 版本（同一 ARM 包，重部署即可；另：👤 可在 PC 部署 x64 Debug 确认显示）
 - [x] SP04 📱 FPS 矩阵已完成（2026-09-18，ARM Release/.NET Native，28 组）
 - [x] SP04 📱 可用中文回退字体名：**Microsoft YaHei UI**（2026-09-18 真机 CanvasFontSet 枚举，已回写 01-DESIGN §7.4）
-- [ ] SP05 📱 按页面内 7 步脚本做完并导出（英文输入/连按退格/回车/拼音选词/联想词/emoji/切输入法）
+- [x] SP05 📱 已完成（2026-09-18，中文+英文两轮）
 - [ ] X03 📱/👤 画廊页运行并切换深浅色，颜色/字号/间距/图标符合 02-UI-DESIGN §2（MainPage DEBUG 按钮「X03 Token 画廊」）
 - [x] X04 📱 已完成（2026-09-18，真机 app.log 取回核对）
 - [ ] X07 📱/👤 画廊页控件区展示 StatusDot 五态（连接中/重连中脉动）、Banner 四 Severity、EmptyState、SectionHeader、LoadingOverlay、TransientToast（1.5s 自动消失）
@@ -1316,3 +1316,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | SP04 | a5a40ec | **完成**。第三轮真机（ARM Release/.NET Native/v0.1.0.1）28 组矩阵：真实内容下 48×30 逐格 107.5 ms → run 合并 20.6 ms → 行缓存+脏行 11.0 ms；88×24 为 148.6 / 29.2 / 11.8 ms；idle 0 draw/s；双窗格每画布仍 ~30 draw/s。**D5 保持不变、无需兜底**，并新增三条硬性纪律（逐格绘制禁用、run 合并必需、每画布上限 ~30 draw/s，T04 按此设计）。中文回退 Microsoft YaHei UI，cell 9.0×19.0 px。另修两处挡路问题：EnableDebugPages 默认只在 Debug 开 → VS 生成的 Release 包没有调试入口（改为默认全开，Q09 关）；所有构建同为 0.1.0.0 导致旁加载不替换且无法分辨 → bump-version.ps1 + MainPage 显示 v0.1.0.x/配置/工具链。报告全程经 `phone-portal.ps1 -Pull` 自取，未再人工抄数 |
 | 2026-09-18 | X04 | d57132b | **完成**。最后一条 📱 验收用设备门户取回真机 `LocalState\logspp.log` 核对：91 行，格式 `2026-09-18 00:40:07.355 [INFO] [AppConfig] …` 与 §12.2 要求逐字符一致；按 `password|token|key|secret|passphrase` 扫描无命中（当前只有启动与配置两类日志，真正的脱敏路径待 S 系列接入后复查）。顺带印证 X05 的包内 appconfig 生效：syncApiBaseUrl 与 logLevel 都读到了 |
 | 2026-09-18 | SP05 | d57132b | ⏳ 等待：📱 按页面内 7 步脚本操作并导出。AI 侧完成：InputSpikePage 按 §7.5 搭哨兵原型并全量记录 TextBox/CoreWindow/InputPane 三路事件，每条旁注「按 §7.5 本该发什么」；内置 7 步脚本 + `---- STEP n ----` 分段标记；复用 DebugReport 导出。**WMC0151 门禁当场抓出 `BeforeTextChanging` 是 contract 5.0（1709），15063 没有** → 改 `ApiInformation.IsEventPresent` 守卫（仓库首处 ApiInformation 守卫）。包 bump 到 v0.1.0.2 |
+| 2026-09-18 | SP05 | （本轮） | **完成**。中文/英文两轮真机采集，§7.5 五条提交规则定稿，**300 ms 静默兜底不启用**（TextComposition 三件套可靠）。四个实测要点：① 英文键盘直通无组合事件，中文 IME 下连英文字母也进组合态；② **退格必须走 KeyDown(Back)**——连按 3 次时 KeyDown 三次齐全，而哨兵只 2 字符可吃，TextChanged 只报得出 2×DEL，第 3 次丢失；③ **AcceleratorKeyActivated 的 Character 事件里 VirtualKey 是字符码**（l=108→Separator、s=115→F4、-=45→Insert），判键只能用 KeyDown.VirtualKey 或 CharacterReceived.KeyCode；④ Enter 收到两次 KeyDown（RepeatCount 0/1），不去重会双发 。另修采集页真 bug：CompositionEnded 原先只取「提交文本」，会把组合中那次退格整个吞掉，改为与非组合态同一套完整差分 |

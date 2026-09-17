@@ -161,24 +161,28 @@ namespace SshTool.App.Views.Debug
 
             if (_composing) { UpdateStatus(); return; }
 
-            // §7.5 哨兵差分：多出的字符 → 发送；少掉的个数 → 发等量 DEL(0x7F)
-            string decision;
-            if (current.Length > SentinelText.Length)
-            {
-                string added = current.Replace("\u200B", string.Empty);
-                decision = "SEND " + Escape(added);
-            }
-            else if (current.Length < SentinelText.Length)
-            {
-                decision = "SEND " + (SentinelText.Length - current.Length) + "×DEL(0x7F)";
-            }
-            else
-            {
-                decision = "（与哨兵等长，不发送）";
-            }
-            Append("  →判定", decision);
+            Append("  →判定", DiffAgainstSentinel(current));
             ResetSentinel();
             UpdateStatus();
+        }
+
+        // §7.5 第 2/3 条：与哨兵做完整差分——多出的字符发送；少掉 n 个发 n×DEL(0x7F)。
+        // 组合结束时也走这里，而不是只取「提交文本」：组合中按退格会吃掉哨兵字符
+        // （SP05 实测 CompositionEnded text="<ZWSP>"），只看提交文本会把这次退格整个丢掉。
+        private static string DiffAgainstSentinel(string current)
+        {
+            string added = current.Replace("\u200B", string.Empty);
+            int sentinelLeft = current.Length - added.Length;
+            int missing = SentinelText.Length - sentinelLeft;
+
+            var sb = new StringBuilder();
+            if (added.Length > 0) { sb.Append("SEND ").Append(Escape(added)); }
+            if (missing > 0)
+            {
+                if (sb.Length > 0) { sb.Append(" + "); }
+                sb.Append("SEND ").Append(missing).Append("×DEL(0x7F)");
+            }
+            return sb.Length > 0 ? sb.ToString() : "（与哨兵一致，不发送）";
         }
 
         private void ResetSentinel()
@@ -212,8 +216,7 @@ namespace SshTool.App.Views.Debug
             _composing = false;
             string current = sender.Text;
             Append("CompositionEnded", "text=" + Escape(current));
-            string committed = current.Replace("\u200B", string.Empty);
-            Append("  →判定", committed.Length > 0 ? "SEND " + Escape(committed) : "（无提交文本）");
+            Append("  →判定", DiffAgainstSentinel(current));
             ResetSentinel();
             UpdateStatus();
         }

@@ -150,7 +150,7 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
 
 ---
 
-## 9. SP05 Spike 结论（进行中，2026-09-18）
+## 9. SP05 Spike 结论（已结，2026-09-18）
 
 - `InputSpikePage`（MainPage「SP05 输入事件采集」）按 §7.5 搭了哨兵 TextBox 原型（1×1、Opacity 0.01、关拼写检查与联想、哨兵 `"​​"`），
   按时间顺序记录：`TextBox.KeyDown / TextChanging / TextChanged / SelectionChanged / TextCompositionStarted|Changed|Ended / Got|LostFocus`、
@@ -165,5 +165,17 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
   解法：`AllowFocusOnInteraction="False"`（`FrameworkElement`，contract 3.0 / 1607，低于本工程 min 15063，可直接用），
   已加在步骤/导出/清空/返回按钮与只读日志框上；另在「下一步」里兜一道 `Focus(Programmatic)`。
   **终端页（U07）的键条按钮必须照此办理**，否则每按一次功能键软键盘就掉。
-- 📱 待真机：装 v0.1.0.3 ARM Release 包，按 7 步做完点「导出报告」- 📱 待真机：装 v0.1.0.3 ARM Release 包，按 7 步做完点「导出报告」（落 `LocalState\spike-reports\sp05-input-*.txt`），
-  我用 `phone-portal.ps1 -Pull` 取回后回写 `01-DESIGN.md §7.5`（组合态判定与提交策略，以及 300 ms 静默兜底是否启用）。
+- **真机两轮完成（Lumia 950 / 10.0.15254.603 / ARM Release / .NET Native）**，报告：
+  `artifacts/phone-reports/sp05-input-20260918-022625.txt`（中文键盘）与 `…-023117.txt`（英文键盘）。结论已回写 `01-DESIGN.md §7.5`：
+  1. `TextBox.BeforeTextChanging` 实测 `IsEventPresent=False`（contract 5.0 / 1709），差分只能挂 `TextChanged`。
+  2. **英文键盘直通**（无组合事件，逐字 `KeyDown → TextChanging → CharacterReceived → TextChanged`）；
+     **中文 IME 下连敲英文字母也进组合态**（`l` → `l's`，撇号是拼音分隔符）。
+  3. **退格必须走 `KeyDown(Back)`**：连按 3 次时 `KeyDown` 三次齐全，而哨兵只有 2 字符可吃，`TextChanged` 只报得出 2×DEL，第 3 次丢失。
+  4. **`AcceleratorKeyActivated` 的 `Character` 事件里 `VirtualKey` 是字符码**（`l`=108 显示成 `Separator`、`s`=115 成 `F4`、
+     `-`=45 成 `Insert`、`a`=97 成 `NumberPad1`），判键只能用 `KeyDown.VirtualKey` 或 `CharacterReceived.KeyCode`。
+  5. Enter 收到**两次** `KeyDown`（RepeatCount 0 与 1），普通字符键只一次；不去重就会双发 `\r`。
+  6. 一次 `TextChanged` 可能带多字符（连打合并成 `"la"`、输入法插短语 `"击查看"`、emoji 代理对完整到达）。
+  7. `OccludedRect` 随输入法变化（266 / 246.25 / 242.25），必须每次读取。
+  8. **兜底不启用**：`TextComposition*` 三件套在 Word Flow 上成对可靠，原「300 ms 静默」降级路径不需要。
+- 读数注意：日志里的时间间隔（每字符约 240 ms）**不可信**——采集页每条事件都整串重设 `LogBox.Text`，是 O(n²) 的自身开销，
+  不代表输入延迟。真实延迟待 Q01 用 T09 的成品路径测。
