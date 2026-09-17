@@ -54,7 +54,7 @@ pwsh scripts/phone-portal.ps1 -Pull                # 全部拉到 artifacts/phon
 pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
 ```
 
-调试页的报告会自动落 `LocalState\spike-reports\`、复制到剪贴板、并写 `logspp.log`（`Views/Debug/DebugReport.cs`）。
+调试页的报告会自动落 `LocalState\spike-reports\`、复制到剪贴板、并写 `logs\app.log`（`Views/Debug/DebugReport.cs`）。
 
 ---
 
