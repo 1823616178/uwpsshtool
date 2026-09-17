@@ -42,7 +42,7 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 0 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 2 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 0 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 0 | 与桌面端同账号双向同步、冲突可解 |
+| M5 | 云端同步 | 22 | 1 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 0 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
@@ -794,13 +794,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 
 > 开工前必读 `03-SYNC-PROTOCOL.md` 全文。单测名称尽量与其 `§10.1` 列表一致，便于对照桌面端用例。
 
-- [ ] **S01 同步常量与文档模型** `S`
+- [x] **S01 同步常量与文档模型** `S`
   - 依赖：D01
   - 参考：`03-SYNC-PROTOCOL.md §3.1、§4.1`；桌面端 `src/shared/sync-types.ts`
   - 产出：`src/SshTool.Core/Sync/Protocol/{SyncConstants,SyncDocumentV1,PortableServerProfile,ServerSecrets,ServerRecord,TunnelRecord,GroupRecord,SyncPreferencesV1}.cs`、测试
   - 要点：常量逐项对齐；模型提供 `Clone`；`ServerSecrets` 字段为 null 表示「键不存在」。
   - 验收：
-    - [ ] 常量单测（写死期望值，含 AAD 域字符串与 SPM1）
+    - [x] 常量单测（写死期望值，含 AAD 域字符串与 SPM1）
   - 验证：`dotnet test`
 
 - [ ] **S02 文档严格校验与读写器** `M`
