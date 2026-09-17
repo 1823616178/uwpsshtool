@@ -198,8 +198,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     3. 画廊页展示所有颜色块、字号、间距、图标字形，带深浅色切换。
     4. `check-magic-numbers.ps1`：扫描 `src/SshTool.App/{Views,Controls,Dialogs}/**/*.xaml`，发现 `#[0-9A-Fa-f]{6,8}`、`FontSize="\d`、`Margin="\d`、`Padding="\d`、`Width="\d`（`Width="*"`/`Auto` 除外）即报错，`Themes/` 与 `Views/Debug/` 豁免。
   - 验收：
-    - [ ] x64 Debug 构建通过，画廊页深浅色切换正确
-    - [ ] 检查脚本对故意写入的违规返回非 0，移除后返回 0
+    - [ ] x64 Debug 构建通过，画廊页深浅色切换正确（构建已过；切换观感需运行 UWP，👤 PC 部署或 📱 确认）
+    - [x] 检查脚本对故意写入的违规返回非 0，移除后返回 0
   - 验证：msbuild；`pwsh scripts/check-magic-numbers.ps1`
 
 - [ ] **X04 日志、脱敏与错误码基础** `M`
@@ -1266,6 +1266,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] SP01 ARM Release 真机运行 SpikePage，报告 9 项全 PASS（ulong 上限/固定键序/Unicode/emoji 往返）；失败按 D9 兜底降 UWP 包 5.4.x 重测
 - [ ] X02 应用在 Lumia 上显示两个版本号（产物：`src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/SshTool.App_0.1.0.0_ARM.appx`，未签名，需临时证书或按后续 Q09 流程安装）
 - [ ] SP02 📱 Lumia 上 MainPage 第三行显示 OpenSSL 版本（同一 ARM 包，重部署即可；另：👤 可在 PC 部署 x64 Debug 确认显示）
+- [ ] X03 📱/👤 画廊页运行并切换深浅色，颜色/字号/间距/图标符合 02-UI-DESIGN §2（MainPage DEBUG 按钮「X03 Token 画廊」）
 
 ---
 
@@ -1280,3 +1281,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | X02 | af72863 | 骨架完成。dotnet test ✓；两段式构建：VS2017 Native ✓ + sln x64 Debug ✓ / ARM Release(.NET Native) ✓。偏差：Tests 不入 sln（sln 级还原会损坏其 assets，见 ENV.md 踩坑）；App 引用 Native 的 winmd 产物而非项目引用；SDK Target 17763→19041（已回写 01-DESIGN §1.2） |
 | 2026-09-17 | SP01 | 1351374 | ⏳ 等待：📱 真机跑 SpikePage（ARM 包已含入口，MainPage DEBUG 按钮 → SpikePage）。宿主机侧完成：JsonSpike 9 项检查 + 单测 3 条、SpikePage、6.2.14 维持锁定；任务不勾选 |
 | 2026-09-17 | SP02 | 16da4f3 | ⏳ 等待：📱 真机显示 OpenSSL 版本（👤 也可 PC 部署 x64 Debug 确认）。方案 A 成功：vcpkg 3.6.3 四 triplet ✓（ARM 需 triplet 内 8.3 短路径 /LIBPATH 补 19041 um/arm+ucrt/arm）；Native 链 libcrypto+crypt32，`OpenSslVersion()` 上屏；x64 Debug / ARM Release 全链路构建 ✓；D16/R1、ENV.md §7、NATIVE-BUILD §4 已回写；任务不勾选 |
+| 2026-09-17 | X03 | 69e4def | ⏳ 等待：👤/📱 运行画廊页确认深浅色切换观感。Token 四字典 + ThemeService（系统强调色覆盖 + ColorValuesChanged）+ 画廊页 + check-magic-numbers.ps1（正负验证 ✓）；x64 Debug / ARM Release 构建 ✓；任务不勾选 |
