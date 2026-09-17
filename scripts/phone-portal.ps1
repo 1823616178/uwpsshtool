@@ -1,4 +1,4 @@
-# 通过 Windows Device Portal（USB 转发到本机 10080/10443）操作 Lumia：配对、列目录、拉文件。
+﻿# 通过 Windows Device Portal（USB 转发到本机 10080/10443）操作 Lumia：配对、列目录、拉文件。
 # 目的：📱 验收产生的报告（LocalState\spike-reports\*.txt、logs\app.log）能直接取回 PC，
 #       不用人对着手机屏幕抄数字。
 #
@@ -7,6 +7,7 @@
 #   pwsh scripts/phone-portal.ps1 -List -Path "\"    # 列 LocalState 根
 #   pwsh scripts/phone-portal.ps1 -Pull              # 把 spike-reports 全部拉到 artifacts/phone-reports/
 #   pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
+#   pwsh scripts/phone-portal.ps1 -Install src\SshTool.App\AppPackages\...\SshTool.App_0.1.0.1_ARM.appx
 #
 # 会话 cookie 存在 .phone-portal-session.json（已 gitignore），配对一次后长期可用。
 [CmdletBinding()]
@@ -15,6 +16,7 @@ param(
     [switch]$List,
     [switch]$Pull,
     [string]$Get,
+    [string]$Install,
     [string]$Path = '\spike-reports',
     [string]$BaseUrl = 'https://127.0.0.1:10443',
     [string]$PackageFamily = 'SshTool.LumiaSsh'
@@ -63,6 +65,34 @@ if ($Pair) {
 }
 
 $session = New-PortalSession
+
+# ---- 安装应用包（含同目录 Dependencies\arm\*.appx）----
+if ($Install) {
+    $appx = Get-Item $Install
+    $form = @{ ($appx.Name) = $appx }
+    $depDir = Join-Path $appx.Directory.FullName 'Dependencies\arm'
+    if (Test-Path $depDir) {
+        foreach ($d in Get-ChildItem $depDir -Filter *.appx) { $form[$d.Name] = $d }
+    }
+    Write-Host ("上传 {0} 与 {1} 个依赖包…" -f $appx.Name, ($form.Count - 1))
+    $r = Invoke-WebRequest -Uri "$BaseUrl/api/app/packagemanager/package?package=$([Uri]::EscapeDataString($appx.Name))" `
+        -Method Post -Form $form -WebSession $session -SkipCertificateCheck -TimeoutSec 600 -UseBasicParsing
+    Write-Host "上传返回 HTTP $($r.StatusCode)，等待安装完成…"
+    for ($i = 0; $i -lt 60; $i++) {
+        Start-Sleep -Seconds 3
+        try {
+            $st = Invoke-WebRequest "$BaseUrl/api/app/packagemanager/state" -WebSession $session -SkipCertificateCheck -UseBasicParsing -TimeoutSec 30
+            if ($st.StatusCode -eq 200) { Write-Host "安装完成：$($st.Content)"; exit 0 }
+        }
+        catch {
+            $resp = $_.Exception.Response
+            if ($resp -and [int]$resp.StatusCode -eq 204) { Write-Host '安装中…' }
+            else { Write-Host "状态：$($_.Exception.Message.Split([char]10)[0])" }
+        }
+    }
+    Write-Host '等待超时，请在手机上确认'
+    exit 1
+}
 
 # ---- 找到应用的 PackageFullName ----
 $packages = (Invoke-Portal '/api/app/packagemanager/packages' $session).Content | ConvertFrom-Json

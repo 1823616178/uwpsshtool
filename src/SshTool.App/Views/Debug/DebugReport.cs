@@ -17,6 +17,27 @@ namespace SshTool.App.Views.Debug
     {
         public const string FolderName = "spike-reports";
 
+        /// <summary>包版本 + 配置 + 工具链，MainPage 上直接显示，用来分辨手机上装的是哪次构建。</summary>
+        public static string BuildTag()
+        {
+#if NET_NATIVE
+            const string toolchain = ".NET Native";
+#else
+            const string toolchain = "CoreCLR";
+#endif
+#if DEBUG
+            const string config = "Debug";
+#else
+            const string config = "Release";
+#endif
+            var id = Package.Current.Id;
+            var v = id.Version;
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "v{0}.{1}.{2}.{3} | {4} {5} | {6}",
+                v.Major, v.Minor, v.Build, v.Revision, id.Architecture, config, toolchain);
+        }
+
         /// <summary>报告首行：回答「跑在哪台机器、哪条工具链」。</summary>
         public static string EnvironmentHeader()
         {

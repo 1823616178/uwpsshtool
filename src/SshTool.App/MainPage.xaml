@@ -22,7 +22,10 @@
                        Style="{StaticResource BodyTextStyle}"
                        Margin="{StaticResource GapSmBottom}" />
             <TextBlock x:Name="OpenSslVersionText"
-                       Style="{StaticResource BodyTextStyle}" />
+                       Style="{StaticResource BodyTextStyle}"
+                       Margin="{StaticResource GapSmBottom}" />
+            <TextBlock x:Name="BuildText"
+                       Style="{StaticResource CaptionTextStyle}" />
             <Button x:Name="SpikeButton" Content="SP01 JSON Spike"
                     Margin="{StaticResource GapXlTop}"
                     Visibility="Collapsed" Click="OnSpikeClick" />

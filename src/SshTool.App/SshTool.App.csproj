@@ -84,13 +84,13 @@
     <DebugType>pdbonly</DebugType>
     <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
-  <!-- 调试页入口（SpikePage / TokenGalleryPage）的编译开关。
-       默认只有 Debug 配置带入口；但 SP01/X03 的 📱 验收要求在 **Release** 包里跑——
-       Release 才启用 .NET Native（UseDotNetNativeToolchain=true），而 SP01 要验的正是
-       Newtonsoft 在 .NET Native 下的行为，Debug 包跑通说明不了问题。
-       用法：msbuild ... -p:Configuration=Release -p:Platform=ARM -p:EnableDebugPages=true -->
+  <!-- 调试页入口（SpikePage / RenderSpikePage / TokenGalleryPage）的编译开关。
+       **当前默认全配置开启**：项目还在 Spike 阶段，SP01/SP04/X03… 的 📱 验收都必须在
+       Release 包里做（只有 Release 启用 .NET Native），而在 VS 里点生成不会传命令行参数，
+       默认关掉会出一个「按钮不见了」的包。Q09 打正式发布包时用 -p:EnableDebugPages=false 关掉。
+       （2026-09-18：默认值从「仅 Debug」改为「全开」，原因见上。） -->
   <PropertyGroup>
-    <EnableDebugPages Condition="'$(EnableDebugPages)'=='' and '$(Configuration)'=='Debug'">true</EnableDebugPages>
+    <EnableDebugPages Condition="'$(EnableDebugPages)'==''">true</EnableDebugPages>
     <DefineConstants Condition="'$(EnableDebugPages)'=='true'">$(DefineConstants);DEBUG_PAGES</DefineConstants>
     <!-- 让调试页能报出自己跑在哪条工具链上：.NET Native 只在 Release 启用，
          而 SP01 之类的 Spike 结论只在 .NET Native 下才算数（见 doc/ENV.md §5）。 -->
