@@ -1289,3 +1289,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | X06 | 1354ad1 | 完成（无 📱 项）。verify.ps1 全绿（含 -Arm ⑥ 步）；失败注入退出 1 并指名步骤②；cmake 免装（回退 vcpkg 缓存）；顺带修掉 VS2026 bundle 增量打包 bug（AppxBundle=Never，ENV.md 踩坑） |
 | 2026-09-17 | X07 | 83ffc8e | ⏳ 等待：👤/📱 画廊页控件观感确认。Core Mvvm 四件 + 单测 15（共 46 ✓）；App Infrastructure 六件 + NavigationService 返回链（§4）；Controls 六件全走 Token；verify 全量与 -Arm ✓；任务不勾选 |
 | 2026-09-17 | D01 | 7840be6 | 完成（无 📱 项）。模型 10 + Defaults + IdGenerator + 校验器 4；单测 +48（共 94 ✓）；verify 全绿 |
+| 2026-09-17 | D02 | 9973bd9 | 完成（无 📱 项）。IFileSystem/JsonStore（原子写/损坏备份/迁移链/LoadWarnings）+ 7 Codec（Extra 往返）+ Repository（ChangeOrigin 事件）+ ConfigService 级联 + UwpFileSystem；ISecretStore/SecretKeys 提前自 D03；踩坑：Newtonsoft 默认 DateParseHandling 把 ISO 字符串变 Date 破往返，统一走 JsonText.ParseObject 禁用；单测 +44（共 138 ✓）；verify 全绿 |
