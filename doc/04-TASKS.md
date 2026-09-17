@@ -43,7 +43,7 @@
 | M3 | 数据层与主机管理 | 12 | 3 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
-| M6 | 外观系统 | 5 | 1 | 主题、字体、配色可改可导入 |
+| M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
 | **合计** | | **111** | **0** | |
@@ -1019,13 +1019,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 单测：解析优先级、删除回退、内置只读
   - 验证：`dotnet test`
 
-- [ ] **A02 内置主题** `S`
+- [x] **A02 内置主题** `S`
   - 依赖：A01
   - 参考：鸿蒙端 `common/model/models.ets` 的 `HARMONY_DARK_PALETTE`；各主题官方配色
   - 产出：`src/SshTool.Core/Appearance/BuiltInThemes.cs`、测试
   - 要点：Harmony Dark（默认）、Harmony Light、One Dark、Dracula、Nord、Solarized Dark、Solarized Light、Tokyo Night、GitHub Light；每套 16 色 + 前景/背景/光标/选区；id 固定 `builtin-<slug>`；注释注明配色来源。
   - 验收：
-    - [ ] 单测：9 套、每套 20 个色位合法 `#RRGGBB`、id 唯一
+    - [x] 单测：9 套、每套 20 个色位合法 `#RRGGBB`、id 唯一（鸿蒙端仓库不在本机，Harmony 两套按 02-UI-DESIGN §3 Token 族推导并在注释注明）
   - 验证：`dotnet test`
 
 - [ ] **A03 外观列表、编辑页与实时预览** `M` 📱
@@ -1299,3 +1299,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | D04 | 18e456a | 完成（无 📱 项）。§8.3 全表 24 键定义表 + SettingsRepository（EnsureDefaults/非法回退/Changed/24 对访问器）+ LocalSettingsStore（LocalSettings）；shortcuts/hostGroupCollapsed 默认定为 "{}"；T13 未开始故无临时接口需替换；反射双向对拍；单测 +15（共 402 ✓）；verify 全绿 |
 | 2026-09-17 | U11 | 3c2cd4d | 完成（无 📱 项）。鸿蒙端 PaneTree.ets 不在本机：按任务要点等价覆盖（结构 16 + 布局/导航 10 + TabSet 12）；PaneTree Split/Close 上提/方向导航/布局/序列化，TabSet 活动标签与快照；抓获 Split 自环 bug（须先取父节点再建分支）；单测 +41（共 443 ✓）；verify 全绿 |
 | 2026-09-17 | A01 | 22a16f5 | 完成（无 📱 项）。AppearanceResolver 三级解析链（主机 → 全局默认 → 内置默认，01-DESIGN §8.1 已先补「内置外观代码定义、不写入 appearances.json」注记）；AppearanceService：内置只读、删除回退引用主机为 null、Changed 带受影响主机集合、SetDefaultAsync；单测 +16（共 459 ✓）；verify 全绿 |
+| 2026-09-17 | A02 | 7892a27 | 完成（无 📱 项）。BuiltInThemes 9 套（id builtin-<slug>、每次返回克隆、逐套注释配色来源）；鸿蒙端仓库不在本机，Harmony Dark/Light 按 02-UI-DESIGN §3 Token 族推导；D01 Defaults.DefaultAppearance 工厂保留（codec/clone 测试在用）；单测 +6（共 465 ✓）；verify 全绿 |
