@@ -85,6 +85,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Platform\ThemeService.cs" />
+    <Compile Include="Platform\FileLogger.cs" />
     <Compile Include="Views\Debug\SpikePage.xaml.cs">
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
@@ -126,6 +127,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <PRIResource Include="Strings\zh-CN\Resources.resw" />
+    <PRIResource Include="Strings\en-US\Resources.resw" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">

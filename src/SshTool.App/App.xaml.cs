@@ -30,6 +30,7 @@ namespace SshTool.App
             }
 
             Platform.ThemeService.Initialize();
+            Platform.FileLogger.Instance.Log(SshTool.Core.Common.LogLevel.Info, "App", "应用启动");
 
             if (e.PrelaunchActivated == false)
             {

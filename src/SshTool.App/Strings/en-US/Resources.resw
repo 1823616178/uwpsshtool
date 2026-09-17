@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error_0" xml:space="preserve"><value>No error</value></data>
+  <data name="Error_101" xml:space="preserve"><value>DNS resolution failed. Check the host name.</value></data>
+  <data name="Error_102" xml:space="preserve"><value>Connection timed out.</value></data>
+  <data name="Error_103" xml:space="preserve"><value>Connection refused. Check the port and SSH service.</value></data>
+  <data name="Error_104" xml:space="preserve"><value>Network unreachable.</value></data>
+  <data name="Error_201" xml:space="preserve"><value>Password authentication failed.</value></data>
+  <data name="Error_202" xml:space="preserve"><value>Public key authentication failed.</value></data>
+  <data name="Error_203" xml:space="preserve"><value>Keyboard-interactive authentication failed.</value></data>
+  <data name="Error_204" xml:space="preserve"><value>Failed to load the private key (wrong passphrase or unsupported format).</value></data>
+  <data name="Error_205" xml:space="preserve"><value>Authentication timed out.</value></data>
+  <data name="Error_206" xml:space="preserve"><value>No local credential. Unlock the vault first.</value></data>
+  <data name="Error_301" xml:space="preserve"><value>Algorithm negotiation failed.</value></data>
+  <data name="Error_302" xml:space="preserve"><value>Unknown host key. Verify the fingerprint before trusting.</value></data>
+  <data name="Error_303" xml:space="preserve"><value>Host key mismatch. Possible man-in-the-middle attack.</value></data>
+  <data name="Error_304" xml:space="preserve"><value>SSH handshake failed.</value></data>
+  <data name="Error_305" xml:space="preserve"><value>SSH handshake timed out.</value></data>
+  <data name="Error_401" xml:space="preserve"><value>Remote host closed the connection.</value></data>
+  <data name="Error_402" xml:space="preserve"><value>Session timed out.</value></data>
+  <data name="Error_403" xml:space="preserve"><value>Socket error.</value></data>
+  <data name="Error_404" xml:space="preserve"><value>Keepalive timed out. Connection lost.</value></data>
+  <data name="Error_405" xml:space="preserve"><value>Disconnected by policy (server limit reached).</value></data>
+  <data name="Error_500" xml:space="preserve"><value>Internal error.</value></data>
+  <data name="Error_999" xml:space="preserve"><value>Unknown error.</value></data>
+</root>

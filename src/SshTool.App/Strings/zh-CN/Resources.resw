@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error_0" xml:space="preserve"><value>无错误</value></data>
+  <data name="Error_101" xml:space="preserve"><value>DNS 解析失败，请检查主机名是否正确</value></data>
+  <data name="Error_102" xml:space="preserve"><value>连接超时</value></data>
+  <data name="Error_103" xml:space="preserve"><value>连接被拒绝，请确认端口与 SSH 服务</value></data>
+  <data name="Error_104" xml:space="preserve"><value>网络不可达</value></data>
+  <data name="Error_201" xml:space="preserve"><value>密码认证失败</value></data>
+  <data name="Error_202" xml:space="preserve"><value>公钥认证失败</value></data>
+  <data name="Error_203" xml:space="preserve"><value>键盘交互认证失败</value></data>
+  <data name="Error_204" xml:space="preserve"><value>私钥加载失败（短语错误或格式不支持）</value></data>
+  <data name="Error_205" xml:space="preserve"><value>认证超时</value></data>
+  <data name="Error_206" xml:space="preserve"><value>本机没有可用凭据，请先在保险库中解锁</value></data>
+  <data name="Error_301" xml:space="preserve"><value>加密算法协商失败</value></data>
+  <data name="Error_302" xml:space="preserve"><value>未知主机密钥，请确认指纹后信任</value></data>
+  <data name="Error_303" xml:space="preserve"><value>主机密钥与记录不匹配，可能存在中间人攻击</value></data>
+  <data name="Error_304" xml:space="preserve"><value>SSH 握手失败</value></data>
+  <data name="Error_305" xml:space="preserve"><value>SSH 握手超时</value></data>
+  <data name="Error_401" xml:space="preserve"><value>远端主机关闭了连接</value></data>
+  <data name="Error_402" xml:space="preserve"><value>会话超时</value></data>
+  <data name="Error_403" xml:space="preserve"><value>网络连接错误</value></data>
+  <data name="Error_404" xml:space="preserve"><value>Keepalive 超时，连接已断开</value></data>
+  <data name="Error_405" xml:space="preserve"><value>策略性断开（达到服务器限制）</value></data>
+  <data name="Error_500" xml:space="preserve"><value>内部错误</value></data>
+  <data name="Error_999" xml:space="preserve"><value>未知错误</value></data>
+</root>
