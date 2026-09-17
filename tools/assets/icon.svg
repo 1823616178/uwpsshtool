@@ -1,0 +1,12 @@
+<!-- Lumia SSH 应用图标（Q07）。
+     语义：终端提示符 ">_"。W10M 磁贴由系统上强调色底，所以主图形是**透明底上的白色字形**，
+     深浅开始屏幕都清晰。带底板的变体见 icon-plated.svg（StoreLogo 等会落在白底上的场合）。
+     视图框固定 48×48，generate.ps1 按目标尺寸等比缩放并居中。 -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- 提示符箭头 -->
+  <path d="M11 14 L22 24 L11 34"
+        fill="none" stroke="#FFFFFF" stroke-width="5"
+        stroke-linecap="round" stroke-linejoin="round" />
+  <!-- 光标下划线 -->
+  <rect x="26" y="29.5" width="13" height="5" rx="2.5" fill="#FFFFFF" />
+</svg>

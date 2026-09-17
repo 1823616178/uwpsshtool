@@ -222,11 +222,8 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <Content Include="Assets\Square44x44Logo.png" />
-    <Content Include="Assets\Square150x150Logo.png" />
-    <Content Include="Assets\Wide310x150Logo.png" />
-    <Content Include="Assets\StoreLogo.png" />
-    <Content Include="Assets\SplashScreen.png" />
+    <!-- Q07：磁贴/图标/启动画面共 52 个 PNG，由 tools/assets/generate.ps1 从 icon.svg 生成，用通配符收 -->
+    <Content Include="Assets\*.png" />
     <!-- SP04：终端等宽字体（SIL OFL 1.1；由 scripts/fetch-fonts.ps1 按固定 SHA256 抓取） -->
     <Content Include="Assets\Fonts\JetBrainsMono-Regular.ttf" />
     <Content Include="Assets\Fonts\JetBrainsMono-Bold.ttf" />
