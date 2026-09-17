@@ -1292,3 +1292,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | D02 | 9973bd9 | 完成（无 📱 项）。IFileSystem/JsonStore（原子写/损坏备份/迁移链/LoadWarnings）+ 7 Codec（Extra 往返）+ Repository（ChangeOrigin 事件）+ ConfigService 级联 + UwpFileSystem；ISecretStore/SecretKeys 提前自 D03；踩坑：Newtonsoft 默认 DateParseHandling 把 ISO 字符串变 Date 破往返，统一走 JsonText.ParseObject 禁用；单测 +44（共 138 ✓）；verify 全绿 |
 | 2026-09-17 | S01 | 964aaea | 完成（无 📱 项）。SyncConstants 与桌面端 crypto-vault.ts 逐项对齐（AAD 域/SPM1/KDF/上限）；文档模型 7 个含 Clone；ServerSecrets null=键不存在；单测 +7（共 145 ✓） |
 | 2026-09-17 | S02 | 17dda97 | 完成（无 📱 项）。Validator/Reader/Writer 严格按 §4.1–4.3（路径化错误、固定键序、序数排序、无 BOM/缩进、2MiB 拒绝、SameContent 忽略 updatedAt）；CanonicalBase64/PrivateKeyFormat 移植；fixtures×2；入站私钥指纹复算（需 native KeyTool）留给 S10；单测 +91（共 236 ✓） |
+| 2026-09-17 | S09 | 6087bf0 | 完成（无 📱 项）。SyncMerge 移植 sync-merge.ts（JObject 通用字段合并 + Reader 转回）；冲突无值化；Merge 1–5 + preferences/secrets 部分键/双删用例；单测 +16（共 252 ✓） |
