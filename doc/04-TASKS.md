@@ -42,7 +42,7 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 0 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 2 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 0 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 2 | 与桌面端同账号双向同步、冲突可解 |
+| M5 | 云端同步 | 22 | 3 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 0 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
@@ -874,13 +874,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 单测：持久化往返、uncertain 规则、重复登录保护、撤销本机被拒、改密后清本地
   - 验证：`dotnet test`
 
-- [ ] **S09 三方合并** `M`
+- [x] **S09 三方合并** `M`
   - 依赖：S02
   - 参考：`03-SYNC-PROTOCOL.md §8`；桌面端 `src/main/sync/sync-merge.ts`、`test/sync-merge.test.ts`
   - 产出：`src/SshTool.Core/Sync/{SyncMerge,SyncMergeConflict,SyncMergeResult}.cs`、测试
   - 要点：字段级合并（实体转 JObject 做通用字段合并，结果经 Reader 校验转回类型）；冲突记录 entity/id/field/sensitive/kind，不含值；updatedAt 取较大者。
   - 验收：
-    - [ ] §10.1 Merge 1–5，另加：preferences 冲突、secrets 部分键新增、两边删除同一实体
+    - [x] §10.1 Merge 1–5，另加：preferences 冲突、secrets 部分键新增、两边删除同一实体
   - 验证：`dotnet test`
 
 - [ ] **S10 本地适配器（文档 ↔ 仓库）** `M`
