@@ -47,7 +47,7 @@ Windows 10 Mobile 原生 UWP SSH 终端：**C# / XAML 界面 + C++/CX 原生核�
 |---|---|---|
 | IDE | **VS2026 18.10 Professional**（构建 C#，2026-09-17 X01 实测回填；原方案 VS2019 16.11 本机未安装） | 含「通用 Windows 平台开发」工作负载；能否直接部署/调试 W10M 待真机实测，默认走 WinAppDeployCmd。并存 VS2017 15.9 提供 v141 工具集（Native 的 ARM32 编译器来源，因 VS2026 的 v142/v145 均无 ARM32） |
 | Windows SDK | **10.0.19041**（Target，X01 回填：本机无 17763）+ Min 固定 10.0.15063 | Windows 11 SDK 22621 起不再支持 ARM32，禁止升级到 ≥22621；本机 26100 仅作存在记录，不使用 |
-| UWP 包 | `Microsoft.NETCore.UniversalWindowsPlatform` **6.2.14**（SP01 已锁定；构建通过，真机运行待验，失败退 5.4.x） | 版本号写入 `Directory.Build.props` 统一管理 |
+| UWP 包 | `Microsoft.NETCore.UniversalWindowsPlatform` **6.2.14**（SP01 已结：真机 .NET Native 运行通过，**无需退 5.4.x**） | 版本号写入 `Directory.Build.props` 统一管理 |
 | 部署 | 手机开「开发人员模式」→ USB 或 Wi-Fi；`WinAppDeployCmd.exe install -file x.appx -ip <phone> -pin <pin>` | 依赖包（VCLibs、.NET Native Runtime/Framework ARM）一并安装 |
 | 测试 | `dotnet test`（Core 纯逻辑，宿主机 net8）；CMake + GoogleTest（native 纯 C++，宿主机 x64 MSVC）；真机手工验收清单 | 让绝大部分逻辑不依赖真机就能自证 |
 | 同步测试服务器 | `http://123.161.179.32:46926`（客户端自动拼 `/api/v1`） | 与鸿蒙端一致；明文 HTTP 风险见 §12.3 |
@@ -85,7 +85,7 @@ Windows 10 Mobile 原生 UWP SSH 终端：**C# / XAML 界面 + C++/CX 原生核�
 | D6 | native → C# 数据通路 | **每帧 `CopyDirtyRows(WriteOnlyArray<uint8>)` 拷贝脏行**，事件只投递轻量通知 | WinRT ABI 做零拷贝需 `IBufferByteAccess` + unsafe，收益小；50×30×16B ≈ 24 KB/帧，拷贝成本可忽略 | — |
 | D7 | 共享逻辑库 | **`SshTool.Core`（netstandard1.4，C# 7.3）**：模型、校验、同步（序列化/合并/协调器/API 客户端）、键位映射、选择模型、窗格树、自动执行命令 | 能在宿主机 `dotnet test` 快速自证，AI 分次编码的主要质量保障 | — |
 | D8 | 本地数据存储 | **JSON 文件仓库**（LocalFolder/`data/*.json`，原子写：写临时文件 → `MoveAndReplaceAsync`），内存缓存 + 变更事件 | 数据量小（主机数百级）；避免 W10M 上 SQLite 原生依赖与 .NET Native 兼容问题；便于同步整份映射 | 若主机 > 2000 出现性能问题再换 SQLite（不预期） |
-| D9 | JSON 库 | **Newtonsoft.Json 12.0.3（netstandard1.0/1.3 目标）仅用 `JsonTextReader/JsonTextWriter/JObject`**，禁止反射式 `SerializeObject<T>`（SP01 回填：宿主机单测与 x64/ARM 构建通过，真机运行待验） | .NET Native 下反射序列化需要 rd.xml 且易静默丢字段；同步文档需要严格键序与严格校验 | 若包在 W10M 有问题 → `Windows.Data.Json`（仅 App 层可用） |
+| D9 | JSON 库 | **Newtonsoft.Json 12.0.3（netstandard1.0/1.3 目标）仅用 `JsonTextReader/JsonTextWriter/JObject`**，禁止反射式 `SerializeObject<T>`（SP01 已结：2026-09-18 Lumia 950 上 ARM Release/.NET Native 包 9/9 全 PASS，键序、Unicode+emoji、ulong 上限、时间格式均无偏差） | .NET Native 下反射序列化需要 rd.xml 且易静默丢字段；同步文档需要严格键序与严格校验 | 若包在 W10M 有问题 → `Windows.Data.Json`（仅 App 层可用） |
 | D10 | 凭据存储 | **`DataProtectionProvider("LOCAL=user")` 加密的 `secure/secrets.bin`**（键值表） | `PasswordVault` 会随微软账号漫游且条目数有限；DPAPI-NG 绑定本机用户 | SP06 验证不可用 → `PasswordVault`（关闭漫游不可控，需文案提示） |
 | D11 | HTTP | **`Windows.Web.Http.HttpClient` + `HttpBaseProtocolFilter`（关缓存、关 Cookie、关自动重定向）** | 支持 HEAD、自定义 If-Match；**默认会缓存 GET，必须关**（§12 坑表） | — |
 | D12 | 同步协议 | **与桌面端 SyncDocumentV1 完全互通**；同步算法按桌面端 `sync-coordinator.ts` 移植（比鸿蒙端实现更完整：pendingUpload 重放、pendingVaultSetup、首次导入确认、远端删除确认、keyVersion 检查、revision 回退保护） | 同一账号三端共用；桌面端有完整测试 | — |
@@ -157,6 +157,9 @@ Windows 10 Mobile 原生 UWP SSH 终端：**C# / XAML 界面 + C++/CX 原生核�
 | .NET 线程池（`Task.Run`） | 同步协调器、JSON 序列化、文件读写 | 直接改 ViewModel 绑定属性（需回 Dispatcher） |
 
 native → C# 事件经 WinRT event 在 I/O 线程触发，C# 侧统一由 `DispatcherQueue`（15063 无 `DispatcherQueue`，用 `CoreDispatcher.RunAsync`）封送。
+> 实现纪律（2026-09-18 踩坑）：封送一律走 `Infrastructure.DispatcherHelper`。**`Window.Current` 是线程静态的，后台线程上恒为 `null`**，
+> 后台回调里取 `Window.Current.Dispatcher` 必然 NRE；`DispatcherHelper` 在 `OnLaunched` 缓存 UI 线程的 `CoreDispatcher`，
+> 兜底用可跨线程访问的 `CoreApplication.MainView.CoreWindow.Dispatcher`。同理 `UISettings.ColorValuesChanged` 在后台线程触发。
 **终端字节流不走事件**：I/O 线程只把 `ContentDirty(sessionId)` 合并投递（同一帧内多次只投一次）。
 
 ### 4.3 关键数据通路

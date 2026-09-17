@@ -7,7 +7,7 @@
     <Border x:Name="Toast"
             Background="{ThemeResource AppSurfaceAltBrush}"
             BorderBrush="{ThemeResource AppBorderBrush}"
-            BorderThickness="1"
+            BorderThickness="{StaticResource BorderThin}"
             CornerRadius="{StaticResource RadiusSm}"
             Padding="{StaticResource SpaceMd}"
             HorizontalAlignment="Center"

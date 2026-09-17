@@ -37,7 +37,7 @@
 
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
-| M0 | 基座与技术验证 | 13 | 3 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
+| M0 | 基座与技术验证 | 13 | 4 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 3 | 主机/分组增删改、凭据安全保存 |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **0** | |
+| **合计** | | **111** | **16** | |
 
 ### 1.1 关键路径
 
@@ -95,7 +95,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 应用在 Lumia 上显示两个版本号
   - 验证：上述命令
 
-- [ ] **SP01 Spike：.NET Native + netstandard1.4 + Newtonsoft 真机可用性** `S` 👤📱
+- [x] **SP01 Spike：.NET Native + netstandard1.4 + Newtonsoft 真机可用性** `S` 👤📱
   - 依赖：X02
   - 参考：`01-DESIGN.md D7、D9、R7`
   - 产出：`src/SshTool.Core/Spikes/JsonSpike.cs`、`src/SshTool.App/Views/Debug/SpikePage.xaml(.cs)`（Debug 构建入口）、`doc/ENV.md` 追加结论
@@ -105,8 +105,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     3. 先用 `Microsoft.NETCore.UniversalWindowsPlatform 6.2.14`；ARM Release 部署或运行失败则降为 5.4.x 重试，记录现象。
   - 验收：
     - [x] Core 单测覆盖 `JsonSpike.RoundTrip()` 通过
-    - [ ] 📱 ARM Release 真机报告全部一致
-    - [ ] `Directory.Build.props` 锁定最终 UWP 包版本；`01-DESIGN.md` D9 与 §1.2 回写结论
+    - [x] 📱 ARM Release 真机报告全部一致（2026-09-18 用户回报：.NET Native/ARM Release 包 9/9 全 PASS，与宿主机 x64 Debug 逐项一致）
+    - [x] `Directory.Build.props` 锁定最终 UWP 包版本（`NetCoreUwpVersion` = 6.2.14，无需降 5.4.x）；`01-DESIGN.md` D9 与 §1.2 已回写
   - 验证：`dotnet test`；真机
 
 - [ ] **SP02 Spike：OpenSSL 编成 ARM-UWP 静态库并链入 native 组件** `M` 👤📱
@@ -1263,7 +1263,10 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 > AI 完成任务时把未能验证的 📱 项抄到这里，格式：`- [ ] <任务ID> <验收项原文>`。人工验证后勾选。
 
 - [ ] X01 空白应用在 Lumia 950 启动成功（可直接用 X02 的 ARM 包充当；部署步骤见 `doc/ENV.md` §3）
-- [ ] SP01 ARM Release 真机运行 SpikePage，报告 9 项全 PASS（ulong 上限/固定键序/Unicode/emoji 往返）；失败按 D9 兜底降 UWP 包 5.4.x 重测
+- [x] SP01 ARM Release 真机运行 SpikePage，报告 9 项全 PASS（ulong 上限/固定键序/Unicode/emoji 往返）；失败按 D9 兜底降 UWP 包 5.4.x 重测
+  > 2026-09-18：原先**无法执行**——调试页入口是 `#if DEBUG`，而 Release 才启用 .NET Native。已加 `EnableDebugPages` 开关，
+  > 用 `-p:Configuration=Release -p:Platform=ARM -p:EnableDebugPages=true` 出包；现成产物：
+  > `src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/`（含 `Dependencies/arm/` 三个依赖包，装机见 `doc/ENV.md` §3）。
 - [ ] X02 应用在 Lumia 上显示两个版本号（产物：`src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/SshTool.App_0.1.0.0_ARM.appx`，未签名，需临时证书或按后续 Q09 流程安装）
 - [ ] SP02 📱 Lumia 上 MainPage 第三行显示 OpenSSL 版本（同一 ARM 包，重部署即可；另：👤 可在 PC 部署 x64 Debug 确认显示）
 - [ ] X03 📱/👤 画廊页运行并切换深浅色，颜色/字号/间距/图标符合 02-UI-DESIGN §2（MainPage DEBUG 按钮「X03 Token 画廊」）
@@ -1300,3 +1303,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | U11 | 3c2cd4d | 完成（无 📱 项）。鸿蒙端 PaneTree.ets 不在本机：按任务要点等价覆盖（结构 16 + 布局/导航 10 + TabSet 12）；PaneTree Split/Close 上提/方向导航/布局/序列化，TabSet 活动标签与快照；抓获 Split 自环 bug（须先取父节点再建分支）；单测 +41（共 443 ✓）；verify 全绿 |
 | 2026-09-17 | A01 | 22a16f5 | 完成（无 📱 项）。AppearanceResolver 三级解析链（主机 → 全局默认 → 内置默认，01-DESIGN §8.1 已先补「内置外观代码定义、不写入 appearances.json」注记）；AppearanceService：内置只读、删除回退引用主机为 null、Changed 带受影响主机集合、SetDefaultAsync；单测 +16（共 459 ✓）；verify 全绿 |
 | 2026-09-17 | A02 | 7892a27 | 完成（无 📱 项）。BuiltInThemes 9 套（id builtin-<slug>、每次返回克隆、逐套注释配色来源）；鸿蒙端仓库不在本机，Harmony Dark/Light 按 02-UI-DESIGN §3 Token 族推导；D01 Defaults.DefaultAppearance 工厂保留（codec/clone 测试在用）；单测 +6（共 465 ✓）；verify 全绿 |
+| 2026-09-18 | — | 5afa79a | 修真机两处启动/加载失败：① App 以裸 winmd 引 Native，manifest 缺 `Microsoft.VCLibs.140.00[.Debug]` → 激活 Native 时 0x8007007E（三配置全中，ARM Release 亦然）；② `Grid.ColumnSpacing` 需 contract 5.0 → 15063 真机 XamlParseException 0x802B000A。修法见 ENV.md §5；verify.ps1 步骤⑤ 新增 WMC0151 门禁（注入 `ColumnSpacing` 实测能拦） |
+| 2026-09-18 | — | 5afa79a | 顺文档全量代码审计。对拍全部通过：§2.1 颜色 19 项、§2.2/2.3 Token 全键、§3.1 SyncConstants 全项、§8.3 设置键 24 项与默认值、PRI 内 ZH-CN/EN-US 实测存在（PRI257 确认良性）。修掉 App 层 5 处：`Window.Current` 线程静态导致的后台线程 NRE（DispatcherHelper、ThemeService.ColorValuesChanged）、激活前阻塞读配置、挂起不刷日志队列、OnLaunched 重入重复注册服务/重复订阅 BackRequested。魔法数字门禁原先只扫 Views/Controls/Dialogs，MainPage.xaml 逃检（已扩为全 App 树，补 Gap*/BorderThin* Token） |
+| 2026-09-18 | SP01 | 5afa79a | ⏳ 仍等：📱 ARM Release(.NET Native) 真机跑 SpikePage。👤 已在 **PC x64 Debug** 复核 9/9 全 PASS（keyOrder/int/unicode+emoji/bool/null/int 数组/嵌套对象/ulong 上限 18446744073709551615/时间格式）——但该配置 `UseDotNetNativeToolchain=false`，走 CoreCLR，**验不到 SP01 的核心风险（Newtonsoft 在 .NET Native 下的行为，D9）**，故不勾选。并修掉一处使该验收根本无法执行的问题：调试页入口原为 `#if DEBUG`，Release 包里按钮不显示；改为 `DEBUG_PAGES` + csproj `EnableDebugPages` 开关（Debug 默认开，Release 显式传参），已出带入口的 ARM Release 包 |
+| 2026-09-18 | SP01 | 5afa79a | **完成**。📱 ARM Release(.NET Native) 真机 9/9 全 PASS（用户回报），与 PC x64 Debug(CoreCLR) 逐项一致 → D9 成立：Newtonsoft 12.0.3 只用 JsonTextReader/Writer/JObject 在 .NET Native 下键序、Unicode+emoji、ulong 上限、时间格式均无偏差，`NetCoreUwpVersion` 维持 6.2.14，不降 5.4.x。D9/§1.2/ENV.md §6 已回写。过程中修两处挡路问题：调试页入口 `#if DEBUG` 导致 Release 包进不去（改 `EnableDebugPages` 开关）、SpikePage 报告新增环境行（DeviceFamily/OS build/架构+配置/工具链），避免再出现「这结果跑在哪」的歧义 |

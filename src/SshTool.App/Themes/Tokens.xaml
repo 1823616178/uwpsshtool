@@ -14,6 +14,16 @@
     <x:Double x:Key="SpaceMd">12</x:Double>
     <x:Double x:Key="SpaceLg">16</x:Double>
     <x:Double x:Key="SpaceXl">24</x:Double>
+    <!-- Gap 系列：W10M 15063（contract 4.0）既无 Grid.ColumnSpacing/RowSpacing 也无 StackPanel.Spacing
+         （均需 1709），间距一律由子元素 Margin 让出；数值取自上面的 Space* 刻度。 -->
+    <Thickness x:Key="GapSmLeft">8,0,0,0</Thickness>
+    <Thickness x:Key="GapSmBottom">0,0,0,8</Thickness>
+    <Thickness x:Key="GapLgBottom">0,0,0,16</Thickness>
+    <Thickness x:Key="GapMdTop">0,12,0,0</Thickness>
+    <Thickness x:Key="GapXlTop">0,24,0,0</Thickness>
+    <!-- 发丝描边（Banner 底线、Toast 边框）；不写字面量 1。 -->
+    <Thickness x:Key="BorderThin">1</Thickness>
+    <Thickness x:Key="BorderThinBottom">0,0,0,1</Thickness>
     <Thickness x:Key="PagePadding">12,0,12,0</Thickness>
     <Thickness x:Key="PagePaddingWide">24,0,24,0</Thickness>
     <CornerRadius x:Key="RadiusSm">4</CornerRadius>

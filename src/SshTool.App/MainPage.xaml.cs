@@ -12,7 +12,7 @@ namespace SshTool.App
             CoreVersionText.Text = "Core: " + CoreInfo.Version;
             NativeVersionText.Text = "Native: " + NativeInfo.Version();
             OpenSslVersionText.Text = "OpenSSL: " + NativeInfo.OpenSslVersion();
-#if DEBUG
+#if DEBUG_PAGES   // Debug 默认开；Release 需 -p:EnableDebugPages=true（见 csproj 注释）
             SpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
             TokenGalleryButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
 #endif

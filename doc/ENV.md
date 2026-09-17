@@ -57,16 +57,23 @@
 - 经典格式 UWP C# csproj：PackageReference 需要 `RuntimeIdentifiers` 含字面 `win10`（旧版 ResolveNuGetPackageAssets 按基础 RID 查询）；每个配置需显式 `PlatformTarget`（否则打包任务 WireUpCoreRuntime 报 MSB4044）；清单必须有 `mp:PhoneIdentity`（否则 APPX1673）。
 - **不要把 net8 测试工程放进 sln**：VS 解决方案级 `-t:Restore` 会用旧框架解析器把 `net8.0` 写成 `.NETFramework,Version=v8.0`，损坏其 project.assets.json。Tests 由 `dotnet test` 驱动（若被损坏：`rm -rf tests/*/obj` 后重跑）。
 - Git Bash 里调用 MSBuild 必须用 `-p:` 短横线开关，`/p:` 会被 MSYS 路径转换吞掉。
-- **VS2026 AppxPackage targets 增量构建 bug**：开 bundle（默认）且存在多语言资源分包（`language-en.appx`）时，第二次起的增量 x64 Debug 打包会丢 `PackageLayout\entrypoint\SshTool.App.exe`（MakeAppx 0x80070003 / mapping file line 135）。处置：`AppxBundle=Never`（散装 appx 正是 WinAppDeployCmd 旁加载所需），X06 实测三连构建稳定。首发现场：verify.ps1 门禁。
+- **VS2026 AppxPackage targets 增量构建 bug**：开 bundle（默认）且存在多语言资源分包（`language-en.appx`）时，第二次起的增量 x64 Debug 打包会丢 `PackageLayout\entrypoint\SshTool.App.exe`（MakeAppx 0x80070003 / mapping file line 135；2026-09-18 又见一次紧跟 `-t:Rebuild` 之后的 0x80070002，重跑即过，mapping 里 139 项源文件实际都在）。处置：`AppxBundle=Never`（散装 appx 正是 WinAppDeployCmd 旁加载所需），X06 实测三连构建稳定。首发现场：verify.ps1 门禁。
 - native C/C++ 源码一律 UTF-8（无 BOM）；MSVC 工程必须加 `/utf-8`（已在 native/tests CMakeLists 设置），否则 GBK 区域下报 C4819 且可能吞字符导致诡异编译错误。
 - pwsh 脚本在 Git Bash 里 `| tail` 时退出码被 tail 覆盖，验证脚本退出码需 `set -o pipefail`。
-- **VS 里选中非 `x64 Debug`/`ARM Release` 配置 → CS0234「命名空间 SshTool.Native 不存在」**：winmd 由 VS2017 两段式预建，磁盘上只有这两种组合（`SshTool.Native/bin/{x64/Debug,ARM/Release}`）。解法：VS 切到 `x64 Debug`（日常）或 `ARM Release`（真机打包），或先跑 `scripts/verify.ps1`。App csproj 已加 `RequireNativeWinmd` 目标把 CS0234 换成可操作的中文报错。注意 csproj 里 `$(MSBuildProjectDir)` 在某些加载路径下会求值为空（实测 MSBuild 18.10），路径判断一律用 `$(MSBuildThisFileDirectory)`。
+- **VS 里构建报 `ilc.exe 未能运行……ilclog.csv 正由另一进程使用`（LoggerBasedExecTask）**：命令行构建与 VS 撞同一配置。MSBuild 默认 **node reuse**，命令行构建结束后仍留常驻 `MSBuild.exe` 节点攥着 `obj\<Plat>\Release\ilc\` 下的文件，VS 再构建同一配置即被占用（.NET Native 的 ilc 尤其明显）。处置：命令行一律加 `-nr:false`（`scripts/verify.ps1` 已全部加上，2026-09-18）；已中招则 `Get-Process MSBuild | Stop-Process -Force`（别杀 devenv）+ 删 `obj\<Plat>\Release\ilc` 后重建。另：同一配置不要 VS 与命令行同时构建。
+- **Release 包里进不去调试页（SpikePage / TokenGalleryPage）**：入口编译开关是 `DEBUG_PAGES`，由 csproj 的 `EnableDebugPages` 决定（Debug 默认开）。SP01/X03 的 📱 验收必须在 Release 包上做——**只有 Release 才 `UseDotNetNativeToolchain=true`**，Debug（含 ARM Debug）走 CoreCLR，验不到 .NET Native 相关风险。出包：`-p:Configuration=Release -p:Platform=ARM -p:EnableDebugPages=true`（2026-09-18 加入）。
+- **真机加载某个 XAML 时 `XamlParseException 0x802B000A`（Failed to assign to property …）**：该属性的 API 契约高于 `TargetPlatformMinVersion=15063`（contract 4.0）。首例：`Controls/Banner.xaml` 的 `Grid.ColumnSpacing`（需 contract 5.0 / 1709）。XAML 里无法用 `ApiInformation` 守卫，只能换等价写法——列/行间距改用子元素 `Margin`（token `GapSmLeft`）。编译期其实有 `WMC0151` 警告，但只是警告，且桌面 x64 （19041）跑起来不崩，只在 W10M 真机上炸，所以 `scripts/verify.ps1` 步骤⑤ 已把 WMC0151 升级为门禁失败（2026-09-18 加入，并用临时改回 `ColumnSpacing` 实测能拦住）。
+- **运行到激活 `SshTool.Native` 时 `FileNotFoundException 0x8007007E`（找不到指定的模块）**：不是 winmd/DLL 缺失（`SshTool.Native.dll` 一直在包里），而是缺 C++ 运行时框架依赖。Native 以裸 `<Reference>` 引 winmd（非 ProjectReference），MSBuild 不会自动注入 VCLibs，三个配置的 AppxManifest 都没有 `Microsoft.VCLibs.140.00[.Debug]` 依赖（Debug 侧 DLL 导入 `vccorlib140d_app.dll`/`MSVCP140D_APP.dll`/`VCRUNTIME140D_APP.dll`/`ucrtbased.dll`，Release 侧同名非 d 版）。修法（2026-09-18，App csproj 两处）：① 显式 `<SDKReference Include="Microsoft.VCLibs, Version=14.0" />`；② `<AppxExcludeArmFrameworkSdkPackagesFromLayout>false</...>`——VS2026 该属性默认 `true`（ARM32 已被其放弃），会把 ARM 框架包排除出 `_Test\Dependencies\`，真机旁加载时装不上 VCLibs。实测三配置的 manifest 依赖与 `Dependencies\arm\` 均已补齐（ARM Release 之前同样缺，真机装了也会崩）。
+- **VS 里选中未预建过的配置 → `RequireNativeWinmd` 报「缺少 SshTool.Native.winmd」（此前是 CS0234「命名空间 SshTool.Native 不存在」）**：winmd 只能由 VS2017(v141) 两段式预建，`SshTool.Native/bin/<Platform>/<Configuration>/` 里有哪组就只能构建哪组。`bin/` 不入库，换机/清理后需重建。本机当前已建 `x64/Debug`（日常）、`ARM/Release`（真机打包）、`ARM/Debug`（真机调试，2026-09-18 补建，C# 侧 ARM Debug 打包实测通过，无 .NET Native 编译，比 ARM Release 快得多）。缺别的组合时照报错里的命令用 VS2017 MSBuild 单独构建该 vcxproj 即可，或跑 `scripts/verify.ps1`（只覆盖 x64 Debug，`-Arm` 追加 ARM Release）。注意 csproj 里 `$(MSBuildProjectDir)` 在某些加载路径下会求值为空（实测 MSBuild 18.10），路径判断一律用 `$(MSBuildThisFileDirectory)`。
 
-## 6. SP01 Spike 结论（进行中）
+## 6. SP01 Spike 结论（已结，2026-09-18）
 
 - 2026-09-17 宿主机：Newtonsoft.Json 12.0.3（netstandard1.4 目标）`JsonSpike.RoundTrip()` 全部 9 项检查通过（固定键序、int/bool/null/数组/嵌套对象、Unicode 往返、ulong 上限、时间格式）——`dotnet test` 覆盖；x64 Debug 与 ARM Release（.NET Native）构建通过。
-- `Microsoft.NETCore.UniversalWindowsPlatform` 维持 **6.2.14** 锁定（`Directory.Build.props`），暂不降 5.4.x。
-- 📱 待真机：ARM Release 包运行 SpikePage，核对报告 9 项全 PASS（重点：ulong 上限、固定键序、Unicode/emoji 往返在 .NET Native 下不丢字）。失败则按 D9 兜底降 5.4.x 重测并在此记录现象。
+- 2026-09-18 **真机（Lumia 950，ARM Release / .NET Native 包）：9 项全 PASS**，与宿主机结果逐项一致。
+  → D9 成立：`JsonTextReader`/`JsonTextWriter`/`JObject` 这条路子在 .NET Native 下安全；反射式 `SerializeObject<T>` 仍然禁止（未验且需 rd.xml）。
+- `Microsoft.NETCore.UniversalWindowsPlatform` 维持 **6.2.14** 锁定（`Directory.Build.props`），**无需降 5.4.x**。
+- 复验方法：`-p:Configuration=Release -p:Platform=ARM -p:EnableDebugPages=true` 出包 → MainPage「SP01 JSON Spike」→ 报告首行会自报 DeviceFamily/OS/架构/工具链。
+- ~~📱 待真机~~ → 已于 2026-09-18 完成，见上一条。
 
 ## 7. SP02 Spike 结论（2026-09-17）
 

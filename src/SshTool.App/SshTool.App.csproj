@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -22,6 +22,10 @@
     <!-- 旁加载散装 appx（WinAppDeployCmd），不打 bundle；同时规避 VS2026 AppxPackage targets
          在 bundle 资源分包（language-en）下增量构建丢 PackageLayout\entrypoint 的问题（X06 实测） -->
     <AppxBundle>Never</AppxBundle>
+    <!-- VS2026 的 AppxPackage targets 默认 true（ARM32 已被其放弃），会把 ARM 框架依赖包
+         （VCLibs 等）排除出 _Test 旁加载布局，导致 Dependencies\arm\ 整个缺失、装到真机后
+         激活 Native 时 0x8007007E。本工程必须保留 ARM32 依赖。 -->
+    <AppxExcludeArmFrameworkSdkPackagesFromLayout>false</AppxExcludeArmFrameworkSdkPackagesFromLayout>
     <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
     <NativePlatform>$(Platform)</NativePlatform>
     <NativePlatform Condition="'$(Platform)'=='x86'">Win32</NativePlatform>
@@ -79,6 +83,18 @@
     <NoWarn>;2008</NoWarn>
     <DebugType>pdbonly</DebugType>
     <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+  </PropertyGroup>
+  <!-- 调试页入口（SpikePage / TokenGalleryPage）的编译开关。
+       默认只有 Debug 配置带入口；但 SP01/X03 的 📱 验收要求在 **Release** 包里跑——
+       Release 才启用 .NET Native（UseDotNetNativeToolchain=true），而 SP01 要验的正是
+       Newtonsoft 在 .NET Native 下的行为，Debug 包跑通说明不了问题。
+       用法：msbuild ... -p:Configuration=Release -p:Platform=ARM -p:EnableDebugPages=true -->
+  <PropertyGroup>
+    <EnableDebugPages Condition="'$(EnableDebugPages)'=='' and '$(Configuration)'=='Debug'">true</EnableDebugPages>
+    <DefineConstants Condition="'$(EnableDebugPages)'=='true'">$(DefineConstants);DEBUG_PAGES</DefineConstants>
+    <!-- 让调试页能报出自己跑在哪条工具链上：.NET Native 只在 Release 启用，
+         而 SP01 之类的 Spike 结论只在 .NET Native 下才算数（见 doc/ENV.md §5）。 -->
+    <DefineConstants Condition="'$(UseDotNetNativeToolchain)'=='true'">$(DefineConstants);NET_NATIVE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="App.xaml.cs">
@@ -229,15 +245,21 @@
     <SDKReference Include="WindowsMobile, Version=10.0.19041.0">
       <Name>Windows Mobile Extensions for the UWP</Name>
     </SDKReference>
+    <!-- Native 是裸 winmd 引用（非 ProjectReference），MSBuild 不会自动注入 C++ 运行时框架依赖，
+         导致 AppxManifest 缺 Microsoft.VCLibs.140.00[.Debug]，运行到激活 SshTool.Native 时
+         0x8007007E（找不到 vccorlib140[d]_app.dll 等）。显式引用 VCLibs 扩展 SDK 补回。 -->
+    <SDKReference Include="Microsoft.VCLibs, Version=14.0">
+      <Name>Visual C++ 2015 Runtime for Universal Windows Platform Apps</Name>
+    </SDKReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
   <!-- 选错配置时给出可操作的报错，而不是 CS0234「命名空间 SshTool.Native 不存在」：
-       winmd 由 VS2017 两段式预先构建，当前只有 x64 Debug 与 ARM Release 两种组合（见 doc/ENV.md §5）。 -->
+       winmd 由 VS2017(v141) 两段式预先构建，仓库里已预建 x64 Debug / ARM Release / ARM Debug（见 doc/ENV.md §5）。 -->
   <Target Name="RequireNativeWinmd" BeforeTargets="ResolveAssemblyReferences">
     <Error Condition="!Exists('$(MSBuildThisFileDirectory)..\SshTool.Native\bin\$(NativePlatform)\$(Configuration)\SshTool.Native.winmd')"
-           Text="缺少 SshTool.Native.winmd（$(NativePlatform)\$(Configuration)）。请切到 x64 Debug（日常开发）或 ARM Release（真机打包），或先运行 scripts/verify.ps1 让 VS2017 预建 Native；其它配置组合不支持。" />
+           Text="缺少 SshTool.Native.winmd（$(NativePlatform)\$(Configuration)）。Native 只能由 VS2017(v141) 构建，请先执行： &amp; 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe' src\SshTool.Native\SshTool.Native.vcxproj -p:Configuration=$(Configuration) -p:Platform=$(NativePlatform) ；或切到已预建的 x64 Debug（日常开发）/ ARM Debug（真机调试）/ ARM Release（真机打包）。" />
   </Target>
 </Project>

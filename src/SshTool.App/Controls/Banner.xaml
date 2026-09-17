@@ -7,9 +7,11 @@
     <Border x:Name="Root"
             Background="{ThemeResource AppSurfaceAltBrush}"
             BorderBrush="{ThemeResource AppBorderBrush}"
-            BorderThickness="0,0,0,1"
+            BorderThickness="{StaticResource BorderThinBottom}"
             Padding="{StaticResource PagePadding}">
-        <Grid ColumnSpacing="{StaticResource SpaceSm}">
+        <!-- 列间距用子元素 Margin 让出：Grid.ColumnSpacing 需 contract 5.0（1709），
+             W10M 15063 上会抛 XamlParseException 0x802B000A。 -->
+        <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -19,13 +21,16 @@
 
             <FontIcon x:Name="SeverityIcon" FontSize="{StaticResource FontSubtitle}"
                       VerticalAlignment="Center" />
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+            <StackPanel Grid.Column="1" VerticalAlignment="Center"
+                        Margin="{StaticResource GapSmLeft}">
                 <TextBlock x:Name="TitleText" Style="{StaticResource BodyTextStyle}" FontWeight="SemiBold" />
                 <TextBlock x:Name="MessageText" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
             </StackPanel>
             <HyperlinkButton x:Name="ActionButton" Grid.Column="2"
+                             Margin="{StaticResource GapSmLeft}"
                              VerticalAlignment="Center" Click="OnActionClick" />
             <FontIcon x:Name="CloseButton" Grid.Column="3" Glyph="&#xE894;"
+                      Margin="{StaticResource GapSmLeft}"
                       FontSize="{StaticResource FontCaption}" VerticalAlignment="Center"
                       Foreground="{ThemeResource AppTextDimBrush}" Tapped="OnCloseTapped" />
         </Grid>

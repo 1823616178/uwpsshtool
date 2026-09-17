@@ -1,5 +1,5 @@
-# X06：质量门禁（01-DESIGN.md §13）。
-#   pwsh scripts/verify.ps1           全量：① dotnet test ② native ctest ③ 错误码对拍 ④ 魔法数字 ⑤ App x64 Debug
+﻿# X06：质量门禁（01-DESIGN.md §13）。
+#   pwsh scripts/verify.ps1           全量：① dotnet test ② native ctest ③ 错误码对拍 ④ 魔法数字 ⑤ App x64 Debug（含 WMC0151 契约检查）
 #   pwsh scripts/verify.ps1 -Quick    只跑 ①②
 #   pwsh scripts/verify.ps1 -Arm      追加 ARM Release（.NET Native）构建
 # 每步计时；某步失败即打印汇总并指出该步骤，以非 0 退出。
@@ -87,20 +87,30 @@ try {
         }
 
         # 两段式构建：VS2017(v141) 构建 Native，VS2026 构建 sln（见 doc/ENV.md §5）
+        # -nr:false：不留 MSBuild 常驻节点。节点会攥住 obj\ARM\Release\ilc\ilclog.csv 等文件，
+        # 之后在 VS 里构建同一配置会报「ilc.exe 未能运行……正由另一进程使用」。
         $msbuildNative = Find-MsBuild '[15.0,16.0)'
         $msbuildSln = Find-MsBuild '[17.0,)'
         Invoke-Step '⑤ App x64 Debug（两段式）' {
-            & $msbuildNative src/SshTool.Native/SshTool.Native.vcxproj -p:Configuration=Debug -p:Platform=x64 -v:m -nologo
+            & $msbuildNative src/SshTool.Native/SshTool.Native.vcxproj -p:Configuration=Debug -p:Platform=x64 -v:m -nologo -nr:false
             Assert-ExitOk 'Native x64 Debug'
-            & $msbuildSln SshTool.sln -p:Configuration=Debug -p:Platform=x64 -v:m -nologo
+            & $msbuildSln SshTool.sln -p:Configuration=Debug -p:Platform=x64 -v:m -nologo -nr:false |
+                Tee-Object -Variable slnLog
             Assert-ExitOk 'sln x64 Debug'
+            # WMC0151：XAML 用了高于 TargetPlatformMinVersion(15063) 的 API。编译器只警告，
+            # 桌面 x64 不崩，但 W10M 真机加载该 XAML 时抛 XamlParseException 0x802B000A。
+            $overContract = $slnLog | Select-String 'WMC0151'
+            if ($overContract) {
+                throw ("XAML 越过 15063 契约（WMC0151），W10M 真机会抛 XamlParseException：`n" +
+                       (($overContract | ForEach-Object { $_.Line.Trim() }) -join "`n"))
+            }
         }
 
         if ($Arm) {
             Invoke-Step '⑥ ARM Release（.NET Native，两段式）' {
-                & $msbuildNative src/SshTool.Native/SshTool.Native.vcxproj -p:Configuration=Release -p:Platform=ARM -v:m -nologo
+                & $msbuildNative src/SshTool.Native/SshTool.Native.vcxproj -p:Configuration=Release -p:Platform=ARM -v:m -nologo -nr:false
                 Assert-ExitOk 'Native ARM Release'
-                & $msbuildSln SshTool.sln -p:Configuration=Release -p:Platform=ARM -v:m -nologo
+                & $msbuildSln SshTool.sln -p:Configuration=Release -p:Platform=ARM -v:m -nologo -nr:false
                 Assert-ExitOk 'sln ARM Release'
             }
         }

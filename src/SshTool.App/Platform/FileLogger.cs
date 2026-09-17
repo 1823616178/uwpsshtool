@@ -17,6 +17,7 @@ namespace SshTool.App.Platform
         private readonly Queue<string> _pending = new Queue<string>();
         private bool _flushing;
         private bool _initialized;
+        private TaskCompletionSource<bool> _idle;
 
         private FileLogger()
         {
@@ -51,11 +52,29 @@ namespace SshTool.App.Platform
                     return;
                 }
                 _flushing = true;
+                // RunContinuationsAsynchronously：SignalIdle 在锁内完成，避免续体同步跑进锁里
+                _idle = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             }
-            Task.Run(FlushAsync).Forget();
+            Task.Run(PumpAsync).Forget();
         }
 
-        private async Task FlushAsync()
+        // 挂起前把队列写完（W10M 挂起频繁；app.log 是真机唯一诊断手段）。
+        // 最多等 timeoutMs，超时就放弃，绝不拖住 SuspendingDeferral。
+        public async Task FlushAsync(int timeoutMs = 2000)
+        {
+            Task idle;
+            lock (_gate)
+            {
+                if (!_flushing || _idle == null)
+                {
+                    return;
+                }
+                idle = _idle.Task;
+            }
+            await Task.WhenAny(idle, Task.Delay(timeoutMs)).ConfigureAwait(false);
+        }
+
+        private async Task PumpAsync()
         {
             try
             {
@@ -76,6 +95,7 @@ namespace SshTool.App.Platform
                         if (line == null)
                         {
                             _flushing = false;
+                            SignalIdle();
                             return;
                         }
                     }
@@ -89,7 +109,19 @@ namespace SshTool.App.Platform
                 {
                     _flushing = false;
                     _pending.Clear();
+                    SignalIdle();
                 }
+            }
+        }
+
+        // 调用方已持有 _gate
+        private void SignalIdle()
+        {
+            var idle = _idle;
+            _idle = null;
+            if (idle != null)
+            {
+                idle.TrySetResult(true);
             }
         }
 

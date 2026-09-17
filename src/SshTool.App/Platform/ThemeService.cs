@@ -45,7 +45,8 @@ namespace SshTool.App.Platform
         public static void Apply(AppThemeMode mode)
         {
             Initialize();
-            var root = Window.Current.Content as FrameworkElement;
+            var window = Window.Current;                        // 仅 UI 线程调用
+            var root = window != null ? window.Content as FrameworkElement : null;
             if (root == null)
             {
                 return;
@@ -64,19 +65,16 @@ namespace SshTool.App.Platform
             }
         }
 
-        private static async void OnColorValuesChanged(UISettings sender, object args)
+        // 注意：ColorValuesChanged 在后台线程触发，而 Window.Current 是线程静态的（后台线程恒为 null），
+        // 这里必须用 DispatcherHelper 缓存的 UI 线程 CoreDispatcher 封送，否则改系统强调色即崩。
+        private static void OnColorValuesChanged(UISettings sender, object args)
         {
-            var dispatcher = Window.Current.Dispatcher;
-            if (dispatcher == null)
-            {
-                return;
-            }
-            await dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, ApplyAccent);
+            Infrastructure.DispatcherHelper.Post(ApplyAccent);
         }
 
         private static void ApplyAccent()
         {
-            if (!_useSystemAccent)
+            if (!_useSystemAccent || Application.Current == null)
             {
                 return;
             }

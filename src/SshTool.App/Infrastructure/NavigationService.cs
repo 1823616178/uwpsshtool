@@ -14,8 +14,16 @@ namespace SshTool.App.Infrastructure
 
         public void Initialize(Frame frame)
         {
-            _frame = frame ?? throw new ArgumentNullException(nameof(frame));
-            SystemNavigationManager.GetForCurrentView().BackRequested += OnBackRequested;
+            if (frame == null)
+            {
+                throw new ArgumentNullException(nameof(frame));
+            }
+            // 幂等：重复 Initialize（如 OnLaunched 再次进入）不能重复订阅，否则一次返回被处理两次
+            if (_frame == null)
+            {
+                SystemNavigationManager.GetForCurrentView().BackRequested += OnBackRequested;
+            }
+            _frame = frame;
         }
 
         public bool Navigate<TPage>(object parameter = null)

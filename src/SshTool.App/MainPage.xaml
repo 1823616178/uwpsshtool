@@ -7,15 +7,27 @@
     mc:Ignorable="d"
     Background="{ThemeResource AppBgBrush}">
 
+    <!-- X02 骨架页：U01 将替换为 02-UI-DESIGN.md §5.1 的主机 Pivot。
+         间距一律走 Gap* Token（W10M 无 StackPanel.Spacing）。 -->
     <Grid>
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock Text="Lumia SSH" FontSize="24" Margin="0,0,0,16" HorizontalAlignment="Center" />
-            <TextBlock x:Name="CoreVersionText" FontSize="16" Margin="0,0,0,8" />
-            <TextBlock x:Name="NativeVersionText" FontSize="16" Margin="0,0,0,8" />
-            <TextBlock x:Name="OpenSslVersionText" FontSize="16" />
-            <Button x:Name="SpikeButton" Content="SP01 JSON Spike" Margin="0,24,0,0"
+            <TextBlock Text="Lumia SSH"
+                       Style="{StaticResource PageTitleTextStyle}"
+                       Margin="{StaticResource GapLgBottom}"
+                       HorizontalAlignment="Center" />
+            <TextBlock x:Name="CoreVersionText"
+                       Style="{StaticResource BodyTextStyle}"
+                       Margin="{StaticResource GapSmBottom}" />
+            <TextBlock x:Name="NativeVersionText"
+                       Style="{StaticResource BodyTextStyle}"
+                       Margin="{StaticResource GapSmBottom}" />
+            <TextBlock x:Name="OpenSslVersionText"
+                       Style="{StaticResource BodyTextStyle}" />
+            <Button x:Name="SpikeButton" Content="SP01 JSON Spike"
+                    Margin="{StaticResource GapXlTop}"
                     Visibility="Collapsed" Click="OnSpikeClick" />
-            <Button x:Name="TokenGalleryButton" Content="X03 Token 画廊" Margin="0,12,0,0"
+            <Button x:Name="TokenGalleryButton" Content="X03 Token 画廊"
+                    Margin="{StaticResource GapMdTop}"
                     Visibility="Collapsed" Click="OnTokenGalleryClick" />
         </StackPanel>
     </Grid>
