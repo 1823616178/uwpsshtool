@@ -10,7 +10,7 @@
 | Windows SDK（UAP 平台） | Target 10.0.17763 | 已装 UAP 平台：10.0.16299 / **10.0.19041** / 10.0.26100；**无 17763** | ⚠️ Target 改用 **10.0.19041**（仍支持 ARM32；26100 起 UWP 不支持 ARM32，禁用） |
 | Windows Mobile Extensions for the UWP | 需要 | 已装 10.0.16299 / 10.0.19041 | ✅ 用 10.0.19041 |
 | .NET SDK | 8.x（Core 测试） | 10.0.401（`C:\Program Files\dotnet`） | ✅ net8.0 目标经 NuGet 目标包可用 |
-| CMake | ≥3.25（X06 起需要） | **未安装** | ⚠️ X06 前需人工安装 |
+| CMake | ≥3.25（X06 起需要） | **未安装**（verify.ps1 回退用 `tools/vcpkg/downloads/tools/cmake-4.4.0`，免装） | ✅ X06 已解决 |
 | Git | 需要 | 2.54.0.windows.1 | ✅ |
 | Perl | OpenSSL 备用构建 | cygwin perl 5.42.2 | ⚠️ OpenSSL 官方推荐 Strawberry Perl，SP02 时验证 |
 | Node | 20+（S04 sync-vectors） | v24.15.0 | ✅ |
@@ -57,6 +57,9 @@
 - 经典格式 UWP C# csproj：PackageReference 需要 `RuntimeIdentifiers` 含字面 `win10`（旧版 ResolveNuGetPackageAssets 按基础 RID 查询）；每个配置需显式 `PlatformTarget`（否则打包任务 WireUpCoreRuntime 报 MSB4044）；清单必须有 `mp:PhoneIdentity`（否则 APPX1673）。
 - **不要把 net8 测试工程放进 sln**：VS 解决方案级 `-t:Restore` 会用旧框架解析器把 `net8.0` 写成 `.NETFramework,Version=v8.0`，损坏其 project.assets.json。Tests 由 `dotnet test` 驱动（若被损坏：`rm -rf tests/*/obj` 后重跑）。
 - Git Bash 里调用 MSBuild 必须用 `-p:` 短横线开关，`/p:` 会被 MSYS 路径转换吞掉。
+- **VS2026 AppxPackage targets 增量构建 bug**：开 bundle（默认）且存在多语言资源分包（`language-en.appx`）时，第二次起的增量 x64 Debug 打包会丢 `PackageLayout\entrypoint\SshTool.App.exe`（MakeAppx 0x80070003 / mapping file line 135）。处置：`AppxBundle=Never`（散装 appx 正是 WinAppDeployCmd 旁加载所需），X06 实测三连构建稳定。首发现场：verify.ps1 门禁。
+- native C/C++ 源码一律 UTF-8（无 BOM）；MSVC 工程必须加 `/utf-8`（已在 native/tests CMakeLists 设置），否则 GBK 区域下报 C4819 且可能吞字符导致诡异编译错误。
+- pwsh 脚本在 Git Bash 里 `| tail` 时退出码被 tail 覆盖，验证脚本退出码需 `set -o pipefail`。
 
 ## 6. SP01 Spike 结论（进行中）
 

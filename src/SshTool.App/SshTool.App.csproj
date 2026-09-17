@@ -19,6 +19,9 @@
     <WindowsXamlEnableOverview>true</WindowsXamlEnableOverview>
     <RuntimeIdentifiers>win10;win10-arm;win10-arm-aot;win10-x86;win10-x86-aot;win10-x64;win10-x64-aot</RuntimeIdentifiers>
     <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
+    <!-- 旁加载散装 appx（WinAppDeployCmd），不打 bundle；同时规避 VS2026 AppxPackage targets
+         在 bundle 资源分包（language-en）下增量构建丢 PackageLayout\entrypoint 的问题（X06 实测） -->
+    <AppxBundle>Never</AppxBundle>
     <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
     <NativePlatform>$(Platform)</NativePlatform>
     <NativePlatform Condition="'$(Platform)'=='x86'">Win32</NativePlatform>

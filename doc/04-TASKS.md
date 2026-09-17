@@ -37,7 +37,7 @@
 
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
-| M0 | 基座与技术验证 | 13 | 2 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
+| M0 | 基座与技术验证 | 13 | 3 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 0 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 0 | 主机/分组增删改、凭据安全保存 |
@@ -232,7 +232,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] Core 或 App 层解析逻辑有单测（解析函数放 Core：`AppConfigParser`）
   - 验证：`dotnet test`；msbuild 两种配置
 
-- [ ] **X06 测试与门禁脚本** `M`
+- [x] **X06 测试与门禁脚本** `M`
   - 依赖：X03、X04
   - 参考：`01-DESIGN.md §13`
   - 产出：`scripts/verify.ps1`、`native/tests/CMakeLists.txt`、`native/tests/smoke_test.cpp`、`native/core/core_info.{h,cpp}`、`scripts/check-error-codes.ps1`（先做成：C++ 头不存在时跳过并提示）
@@ -242,8 +242,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     3. 每步计时，最后打印汇总表；任何一步失败返回非 0。
     4. 自动查找 msbuild（`vswhere`）。
   - 验收：
-    - [ ] `pwsh scripts/verify.ps1` 全绿
-    - [ ] 人为让一个测试失败时脚本返回非 0 并指出失败步骤
+    - [x] `pwsh scripts/verify.ps1` 全绿
+    - [x] 人为让一个测试失败时脚本返回非 0 并指出失败步骤
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **X07 MVVM 与应用基础设施** `M`
