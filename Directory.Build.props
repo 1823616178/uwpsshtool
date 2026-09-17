@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!-- 统一语言与 NuGet 版本管理（X02）。C++/CX 工程会忽略不适用的属性。 -->
+  <PropertyGroup>
+    <LangVersion>7.3</LangVersion>
+    <!-- NU1903：Newtonsoft.Json 固定 12.0.3 是设计决策（01-DESIGN §3.2，真机可用性由 SP01 验证），豁免审计告警。
+         NETSDK1215：netstandard1.4 是 W10M 兼容的硬性约束（doc/README.md），豁免弃用告警。 -->
+    <NoWarn>$(NoWarn);NU1903;NETSDK1215</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Label="NuGet Versions">
+    <NetCoreUwpVersion>6.2.14</NetCoreUwpVersion>
+    <NewtonsoftJsonVersion>12.0.3</NewtonsoftJsonVersion>
+    <!-- Win2D 版本由 SP04 试装后锁定 -->
+    <Win2DVersion></Win2DVersion>
+  </PropertyGroup>
+</Project>

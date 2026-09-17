@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  .NET Native 运行时指令。默认保留应用内全部元数据，避免反射/序列化被裁剪；
+  后续若有体积压力再按类型细化（Q01 性能任务时评估）。
+-->
+<Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
+  <Application>
+    <Assembly Name="*Application*" Dynamic="Required All" />
+  </Application>
+</Directives>
