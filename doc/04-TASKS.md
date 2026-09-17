@@ -213,10 +213,10 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     4. `FileLogger`：后台队列写 `LocalFolder/logs/app.log`，格式 `yyyy-MM-dd HH:mm:ss.fff [LEVEL] [Tag] message`，写前必过 Redactor。
     5. resw：每个错误码 `Error_<数值>` 中英文文案（参考鸿蒙端 `SshError.ets` 的中文）。
   - 验收：
-    - [ ] Redactor 单测覆盖上述每种模式（≥12 条）
-    - [ ] RotationPlanner 单测覆盖未超限/超限/已有 3 个文件
-    - [ ] 单测读取两个 resw（文件路径相对仓库根）校验每个 `SshErrorCode` 值都有 `Error_<n>` 键
-    - [ ] 应用启动后日志文件生成
+    - [x] Redactor 单测覆盖上述每种模式（≥12 条）
+    - [x] RotationPlanner 单测覆盖未超限/超限/已有 3 个文件
+    - [x] 单测读取两个 resw（文件路径相对仓库根）校验每个 `SshErrorCode` 值都有 `Error_<n>` 键
+    - [ ] 应用启动后日志文件生成（代码已接线 App.xaml.cs；需运行 UWP 确认，👤/📱）
   - 验证：`dotnet test`；msbuild
 
 - [ ] **X05 应用配置与清单** `S`
@@ -1267,6 +1267,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] X02 应用在 Lumia 上显示两个版本号（产物：`src/SshTool.App/AppPackages/SshTool.App_0.1.0.0_ARM_Test/SshTool.App_0.1.0.0_ARM.appx`，未签名，需临时证书或按后续 Q09 流程安装）
 - [ ] SP02 📱 Lumia 上 MainPage 第三行显示 OpenSSL 版本（同一 ARM 包，重部署即可；另：👤 可在 PC 部署 x64 Debug 确认显示）
 - [ ] X03 📱/👤 画廊页运行并切换深浅色，颜色/字号/间距/图标符合 02-UI-DESIGN §2（MainPage DEBUG 按钮「X03 Token 画廊」）
+- [ ] X04 📱/👤 应用启动后 `LocalFolder/logs/app.log` 生成且格式为 `yyyy-MM-dd HH:mm:ss.fff [LEVEL] [Tag] message`，敏感值已脱敏
 
 ---
 
@@ -1282,3 +1283,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-17 | SP01 | 1351374 | ⏳ 等待：📱 真机跑 SpikePage（ARM 包已含入口，MainPage DEBUG 按钮 → SpikePage）。宿主机侧完成：JsonSpike 9 项检查 + 单测 3 条、SpikePage、6.2.14 维持锁定；任务不勾选 |
 | 2026-09-17 | SP02 | 16da4f3 | ⏳ 等待：📱 真机显示 OpenSSL 版本（👤 也可 PC 部署 x64 Debug 确认）。方案 A 成功：vcpkg 3.6.3 四 triplet ✓（ARM 需 triplet 内 8.3 短路径 /LIBPATH 补 19041 um/arm+ucrt/arm）；Native 链 libcrypto+crypt32，`OpenSslVersion()` 上屏；x64 Debug / ARM Release 全链路构建 ✓；D16/R1、ENV.md §7、NATIVE-BUILD §4 已回写；任务不勾选 |
 | 2026-09-17 | X03 | 69e4def | ⏳ 等待：👤/📱 运行画廊页确认深浅色切换观感。Token 四字典 + ThemeService（系统强调色覆盖 + ColorValuesChanged）+ 画廊页 + check-magic-numbers.ps1（正负验证 ✓）；x64 Debug / ARM Release 构建 ✓；任务不勾选 |
+| 2026-09-17 | X04 | a0c5eff | ⏳ 等待：👤/📱 运行应用确认 app.log 生成与脱敏。SshErrorCode 全码表 + LogRedactor/LogRotationPlanner + FileLogger + 双语 resw；单测 +22（共 25 ✓）；x64 Debug / ARM Release ✓；PRI257 为固有良性告警；任务不勾选 |
