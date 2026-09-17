@@ -1,0 +1,20 @@
+<UserControl
+    x:Class="SshTool.App.Controls.LoadingOverlay"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Name="Root">
+
+    <!-- 02-UI-DESIGN.md §6：半透明遮罩 + ProgressRing + 文案，可见时阻止交互 -->
+    <Grid x:Name="Overlay"
+          Background="{ThemeResource OverlayScrimBrush}"
+          Visibility="Collapsed">
+        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+            <ProgressRing x:Name="Ring" IsActive="False"
+                          Width="{StaticResource TouchTargetMin}"
+                          Height="{StaticResource TouchTargetMin}"
+                          Foreground="{ThemeResource AppAccentBrush}" />
+            <TextBlock x:Name="MessageText" Style="{StaticResource BodyTextStyle}"
+                       TextAlignment="Center" />
+        </StackPanel>
+    </Grid>
+</UserControl>

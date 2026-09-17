@@ -33,6 +33,12 @@ namespace SshTool.App
             await Platform.AppConfig.LoadAsync();
             Platform.FileLogger.Instance.Log(SshTool.Core.Common.LogLevel.Info, "App", "应用启动");
 
+            // X07：应用基础设施（D05 组合根在后续任务统一接管）
+            Infrastructure.ServiceRegistry.Register<SshTool.Core.Common.ILogger>(Platform.FileLogger.Instance);
+            Infrastructure.ServiceRegistry.Register(new Infrastructure.DialogService());
+            Infrastructure.ServiceRegistry.Register(new Infrastructure.NavigationService());
+            Infrastructure.ServiceRegistry.Get<Infrastructure.NavigationService>().Initialize(rootFrame);
+
             if (e.PrelaunchActivated == false)
             {
                 if (rootFrame.Content == null)

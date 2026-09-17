@@ -33,5 +33,17 @@ namespace SshTool.App.Views.Debug
                 Frame.GoBack();
             }
         }
+
+        private async void OnOverlayDemo(object sender, RoutedEventArgs e)
+        {
+            DemoOverlay.IsActive = true;
+            await System.Threading.Tasks.Task.Delay(2000);
+            DemoOverlay.IsActive = false;
+        }
+
+        private void OnToastDemo(object sender, RoutedEventArgs e)
+        {
+            DemoToast.Show("已复制到剪贴板");
+        }
     }
 }

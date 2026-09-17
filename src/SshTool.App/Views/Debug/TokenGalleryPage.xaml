@@ -4,6 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:SshTool.App.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource AppBgBrush}">
 
@@ -122,6 +123,42 @@
                     <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconError}" FontSize="20" Foreground="{ThemeResource AppDangerBrush}" /><TextBlock Text="Error" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
                     <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconInfo}" FontSize="20" Foreground="{ThemeResource AppInfoBrush}" /><TextBlock Text="Info" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
                 </StackPanel>
+
+                <TextBlock Text="控件（02-UI-DESIGN §6，X07）" Style="{StaticResource SectionTitleTextStyle}" Margin="0,16,0,4" />
+
+                <TextBlock Text="StatusDot 五态" Style="{StaticResource CaptionTextStyle}" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <StackPanel Width="96" Orientation="Horizontal"><controls:StatusDot State="Disconnected" /><TextBlock Text=" 未连接" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" /></StackPanel>
+                    <StackPanel Width="96" Orientation="Horizontal"><controls:StatusDot State="Connecting" /><TextBlock Text=" 连接中" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" /></StackPanel>
+                    <StackPanel Width="96" Orientation="Horizontal"><controls:StatusDot State="Connected" /><TextBlock Text=" 已连接" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" /></StackPanel>
+                    <StackPanel Width="96" Orientation="Horizontal"><controls:StatusDot State="Reconnecting" /><TextBlock Text=" 重连中" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" /></StackPanel>
+                    <StackPanel Width="96" Orientation="Horizontal"><controls:StatusDot State="Error" /><TextBlock Text=" 错误" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" /></StackPanel>
+                </StackPanel>
+
+                <TextBlock Text="Banner 四态（Info 带操作）" Style="{StaticResource CaptionTextStyle}" />
+                <controls:Banner Severity="Info" Title="提示" Message="这是一条 Info Banner。" ActionText="重试" ActionCommand="{x:Null}" Margin="0,0,0,4" />
+                <controls:Banner Severity="Warning" Title="重连中" Message="网络抖动，正在重连…" Margin="0,0,0,4" />
+                <controls:Banner Severity="Error" Title="连接失败" Message="主机密钥与记录不匹配。" Margin="0,0,0,4" />
+                <controls:Banner Severity="Success" Title="已连接" Message="host@192.168.1.1" Margin="0,0,0,8" />
+
+                <TextBlock Text="SectionHeader（带操作）" Style="{StaticResource CaptionTextStyle}" />
+                <controls:SectionHeader Title="最近连接" ActionText="清空" Margin="0,0,0,8" />
+
+                <TextBlock Text="EmptyState" Style="{StaticResource CaptionTextStyle}" />
+                <controls:EmptyState Glyph="{StaticResource IconTerminal}" Title="还没有主机"
+                                     Description="新建一台主机开始第一次 SSH 连接"
+                                     PrimaryText="新建主机" SecondaryText="快速连接" Margin="0,0,0,8" />
+
+                <TextBlock Text="LoadingOverlay / TransientToast" Style="{StaticResource CaptionTextStyle}" />
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="遮罩 2 秒" Click="OnOverlayDemo" />
+                    <Button Content="Toast" Click="OnToastDemo" Margin="12,0,0,0" />
+                </StackPanel>
+                <Grid Height="80" Margin="0,4,0,16" Background="{ThemeResource AppSurfaceBrush}">
+                    <TextBlock Text="遮罩演示区域" Style="{StaticResource CaptionTextStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <controls:LoadingOverlay x:Name="DemoOverlay" Message="连接中…" />
+                    <controls:TransientToast x:Name="DemoToast" />
+                </Grid>
 
             </StackPanel>
         </ScrollViewer>

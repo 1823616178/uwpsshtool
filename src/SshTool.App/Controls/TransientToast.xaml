@@ -1,0 +1,19 @@
+<UserControl
+    x:Class="SshTool.App.Controls.TransientToast"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 02-UI-DESIGN.md §6：页面内底部 1.5 s 提示条（非系统通知） -->
+    <Border x:Name="Toast"
+            Background="{ThemeResource AppSurfaceAltBrush}"
+            BorderBrush="{ThemeResource AppBorderBrush}"
+            BorderThickness="1"
+            CornerRadius="{StaticResource RadiusSm}"
+            Padding="{StaticResource SpaceMd}"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            Margin="{StaticResource PagePadding}"
+            Visibility="Collapsed">
+        <TextBlock x:Name="MessageText" Style="{StaticResource BodyTextStyle}" TextAlignment="Center" />
+    </Border>
+</UserControl>

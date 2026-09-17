@@ -1,0 +1,59 @@
+<UserControl
+    x:Class="SshTool.App.Controls.StatusDot"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 02-UI-DESIGN.md §6 / §2.1 状态点映射：未连接空心（Faint）、连接中/认证中 Accent 脉动、
+         已连接 Success、重连中 Warning 脉动、错误 Danger -->
+    <Grid>
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="Disconnected">
+                    <VisualState.Setters>
+                        <Setter Target="Dot.Fill" Value="Transparent" />
+                        <Setter Target="Dot.Stroke" Value="{ThemeResource AppTextFaintBrush}" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Connecting">
+                    <VisualState.Setters>
+                        <Setter Target="Dot.Fill" Value="{ThemeResource AppAccentBrush}" />
+                        <Setter Target="Dot.Stroke" Value="Transparent" />
+                    </VisualState.Setters>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="Opacity"
+                                         From="0.4" To="1.0" Duration="0:0:0.6"
+                                         AutoReverse="True" RepeatBehavior="Forever" />
+                    </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Connected">
+                    <VisualState.Setters>
+                        <Setter Target="Dot.Fill" Value="{ThemeResource AppSuccessBrush}" />
+                        <Setter Target="Dot.Stroke" Value="Transparent" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Reconnecting">
+                    <VisualState.Setters>
+                        <Setter Target="Dot.Fill" Value="{ThemeResource AppWarningBrush}" />
+                        <Setter Target="Dot.Stroke" Value="Transparent" />
+                    </VisualState.Setters>
+                    <Storyboard>
+                        <DoubleAnimation Storyboard.TargetName="Dot" Storyboard.TargetProperty="Opacity"
+                                         From="0.4" To="1.0" Duration="0:0:0.6"
+                                         AutoReverse="True" RepeatBehavior="Forever" />
+                    </Storyboard>
+                </VisualState>
+                <VisualState x:Name="Error">
+                    <VisualState.Setters>
+                        <Setter Target="Dot.Fill" Value="{ThemeResource AppDangerBrush}" />
+                        <Setter Target="Dot.Stroke" Value="Transparent" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <Ellipse x:Name="Dot"
+                 Width="{StaticResource StatusDotSize}"
+                 Height="{StaticResource StatusDotSize}"
+                 StrokeThickness="1" />
+    </Grid>
+</UserControl>

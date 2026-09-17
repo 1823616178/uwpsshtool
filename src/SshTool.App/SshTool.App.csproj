@@ -90,6 +90,30 @@
     <Compile Include="Platform\ThemeService.cs" />
     <Compile Include="Platform\FileLogger.cs" />
     <Compile Include="Platform\AppConfig.cs" />
+    <Compile Include="Infrastructure\ServiceRegistry.cs" />
+    <Compile Include="Infrastructure\DispatcherHelper.cs" />
+    <Compile Include="Infrastructure\IBackHandler.cs" />
+    <Compile Include="Infrastructure\NavigationService.cs" />
+    <Compile Include="Infrastructure\DialogService.cs" />
+    <Compile Include="Infrastructure\ViewModelBase.cs" />
+    <Compile Include="Controls\StatusDot.xaml.cs">
+      <DependentUpon>StatusDot.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\Banner.xaml.cs">
+      <DependentUpon>Banner.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\EmptyState.xaml.cs">
+      <DependentUpon>EmptyState.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\SectionHeader.xaml.cs">
+      <DependentUpon>SectionHeader.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\LoadingOverlay.xaml.cs">
+      <DependentUpon>LoadingOverlay.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\TransientToast.xaml.cs">
+      <DependentUpon>TransientToast.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Debug\SpikePage.xaml.cs">
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
@@ -128,6 +152,30 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Themes\Controls.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\StatusDot.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\Banner.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\EmptyState.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\SectionHeader.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\LoadingOverlay.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\TransientToast.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
