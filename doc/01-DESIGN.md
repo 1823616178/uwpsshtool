@@ -432,8 +432,9 @@ public ref class KeyTool sealed {
 - 方向键：普通 `ESC [ A`，应用光标模式（DECCKM）`ESC O A`；带修饰 `ESC [ 1 ; m A`（m = 1 + shift + 2·alt + 4·ctrl）
 - Home/End：`ESC [ H` / `ESC [ F`（应用模式 `ESC O H/F`）；PgUp/PgDn `ESC [5~` / `ESC [6~`；Insert `ESC [2~`；Delete `ESC [3~`
 - F1–F4 `ESC O P..S`；F5 `ESC [15~`，F6 `17~`，F7 `18~`，F8 `19~`，F9 `20~`，F10 `21~`，F11 `23~`，F12 `24~`
+- 带修饰的 Home/End/~/F 键（xterm 惯例）：Home/End 与 F1–F4 用 `ESC [ 1 ; m H/F/P..S`，PgUp/PgDn/Insert/Delete 与 F5–F12 用 `ESC [ n ; m ~`（m 公式同方向键；无修饰时才用上一条的 SS3/短形式）
 - Ctrl+字母 → 字母 & 0x1F；Ctrl+Space/Ctrl+@ → 0x00；Ctrl+[ → ESC；Ctrl+\ → 0x1C；Ctrl+] → 0x1D；Ctrl+^ → 0x1E；Ctrl+_ → 0x1F
-- Alt+X → `ESC` + X；Backspace → `0x7F`（可设置为 `0x08`）；Enter → `\r`；Tab → `\t`；Shift+Tab → `ESC [ Z`
+- Alt+X → `ESC` + X（CSI/SS3 路径已把 alt 编码进 m，不再加前缀）；Backspace → `0x7F`（可设置为 `0x08`）；Enter → `\r`；Tab → `\t`；Shift+Tab → `ESC [ Z`
 
 ### 7.6 指针与手势（PointerInput）
 
