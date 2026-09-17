@@ -40,7 +40,7 @@
 | M0 | 基座与技术验证 | 13 | 3 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 0 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
-| M3 | 数据层与主机管理 | 12 | 1 | 主机/分组增删改、凭据安全保存 |
+| M3 | 数据层与主机管理 | 12 | 2 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 0 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 0 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 0 | 主题、字体、配色可改可导入 |
@@ -553,7 +553,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] Clone 深拷贝（列表/字典不共享）
   - 验证：`dotnet test`
 
-- [ ] **D02 JSON 仓库、编解码与迁移** `M`
+- [x] **D02 JSON 仓库、编解码与迁移** `M`
   - 依赖：D01、X04
   - 参考：`01-DESIGN.md §8.2、§8.4、D8、D9`
   - 产出：`src/SshTool.Core/Storage/{IFileSystem,InMemoryFileSystem,JsonStore,IEntityCodec,ChangeOrigin,RepositoryChangedEventArgs,Repository,ConfigService}.cs`、`Storage/Codecs/*.cs`（7 个实体）、`Storage/Repositories/{HostRepository,GroupRepository,TunnelRepository,SnippetRepository,AppearanceRepository,KnownHostRepository,KeyRepository}.cs`、`src/SshTool.App/Platform/UwpFileSystem.cs`、测试
@@ -562,17 +562,17 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. 原子保存（`*.tmp` → 替换）；损坏文件备份为 `*.corrupt-yyyyMMddHHmmss` 并以空集合继续 + 对外暴露 `LoadWarnings`。
     3. 迁移：`IMigration { From, To, Apply(JObject) }` 链式执行（放一个 no-op v1 示例与测试）。
     4. 仓库：内存缓存、串行化写入（`SemaphoreSlim`）、`Changed` 事件带 `ChangeOrigin`（User/Sync）与变更实体 id 列表；`ReplaceAll(items, origin)` 供同步使用。
-    5. `ConfigService` 协调多仓库引用规则：删主机 → 删其隧道、清其他主机 `jumpHostId`、调用 `ISecretStore` 级联（D03 前注入空实现）；删分组 → 清主机 `groupId` 与隧道 `groupId`；删密钥 → 被主机引用时拒绝。
+    5. `ConfigService` 协调多仓库引用规则：删主机 → 删其隧道（含 relay `destServerId` 指向者）、清其他主机 `jumpHostId`、调用 `ISecretStore` 级联（D03 前注入空实现）；删分组 → 清主机 `groupId` 与隧道 `groupId`；删密钥 → 被主机引用时拒绝。
   - 验收：
-    - [ ] 7 个编解码器往返单测
-    - [ ] JsonStore：原子写（模拟写一半失败原文件不变）、损坏文件备份、迁移链
-    - [ ] ConfigService 引用规则单测
+    - [x] 7 个编解码器往返单测
+    - [x] JsonStore：原子写（模拟写一半失败原文件不变）、损坏文件备份、迁移链
+    - [x] ConfigService 引用规则单测
   - 验证：`dotnet test`
 
 - [ ] **D03 凭据安全存储** `S`
   - 依赖：D02、SP06
   - 参考：`01-DESIGN.md §8.2、D10`
-  - 产出：`src/SshTool.Core/Storage/{ISecretStore,SecretKeys,InMemorySecretStore,ISecureFile,InMemorySecureFile}.cs`、`src/SshTool.App/Platform/{DpapiSecureFile,DpapiSecretStore}.cs`、测试
+  - 产出：`src/SshTool.Core/Storage/{InMemorySecretStore,ISecureFile,InMemorySecureFile}.cs`（`ISecretStore`/`SecretKeys` 已随 D02 落地）、`src/SshTool.App/Platform/{DpapiSecureFile,DpapiSecretStore}.cs`、测试
   - 要点：`SecretKeys.HostPassword(id)` 等构造函数（键名规范 §8.2）；`GetAsync/SetAsync/RemoveAsync/RemoveByPrefixAsync`；DPAPI 实现把整个键值表 JSON 加密为 `secure/secrets.bin`（串行化访问、原子写）；`ISecureFile` 供 AuthStore/VaultCache 复用；ConfigService 级联删除接入真实接口。
   - 验收：
     - [ ] InMemory 实现与键名构造单测；前缀删除
