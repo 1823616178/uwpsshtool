@@ -109,6 +109,8 @@
     <Compile Include="Platform\UwpFileSystem.cs" />
     <Compile Include="Platform\UwpHttpTransport.cs" />
     <Compile Include="Platform\LocalSettingsStore.cs" />
+    <Compile Include="Platform\NativeSshSession.cs" />
+    <Compile Include="Platform\NativeSshSessionFactory.cs" />
     <Compile Include="Infrastructure\ServiceRegistry.cs" />
     <Compile Include="Infrastructure\DispatcherHelper.cs" />
     <Compile Include="Infrastructure\IBackHandler.cs" />
