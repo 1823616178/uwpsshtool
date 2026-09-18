@@ -84,10 +84,45 @@ VtermBridge *self(void *user)
     return static_cast<VtermBridge *>(user);
 }
 
+void storeVtermCell(const Cell &cell, VTermScreenCell *out)
+{
+    std::memset(out, 0, sizeof(*out));
+    out->chars[0] = cell.codepoint;
+    out->width = (cell.attrs & kAttrWide) ? 2 : 1;
+    out->attrs.bold = (cell.attrs & kAttrBold) != 0;
+    out->attrs.underline = (cell.attrs & kAttrUnderline) ? VTERM_UNDERLINE_SINGLE : VTERM_UNDERLINE_OFF;
+    out->attrs.italic = (cell.attrs & kAttrItalic) != 0;
+    out->attrs.blink = (cell.attrs & kAttrBlink) != 0;
+    out->attrs.reverse = (cell.attrs & kAttrReverse) != 0;
+    out->attrs.strike = (cell.attrs & kAttrStrike) != 0;
+    out->attrs.conceal = (cell.attrs & kAttrInvisible) != 0;
+    if (cell.fgArgb == kDefaultFgMarker) {
+        out->fg.type = VTERM_COLOR_DEFAULT_FG;
+        out->fg.rgb.red = 0;
+        out->fg.rgb.green = 0;
+        out->fg.rgb.blue = 0;
+    } else {
+        vterm_color_rgb(&out->fg, static_cast<uint8_t>(cell.fgArgb >> 16),
+                        static_cast<uint8_t>(cell.fgArgb >> 8), static_cast<uint8_t>(cell.fgArgb));
+    }
+    if (cell.bgArgb == kDefaultBgMarker) {
+        out->bg.type = VTERM_COLOR_DEFAULT_BG;
+        out->bg.rgb.red = 0;
+        out->bg.rgb.green = 0;
+        out->bg.rgb.blue = 0;
+    } else {
+        vterm_color_rgb(&out->bg, static_cast<uint8_t>(cell.bgArgb >> 16),
+                        static_cast<uint8_t>(cell.bgArgb >> 8), static_cast<uint8_t>(cell.bgArgb));
+    }
+}
+
 } // namespace
 
-VtermBridge::VtermBridge(int cols, int rows, uint32_t defaultFgArgb, uint32_t defaultBgArgb)
+VtermBridge::VtermBridge(int cols, int rows, uint32_t defaultFgArgb, uint32_t defaultBgArgb,
+                         size_t scrollbackCapacity)
     : grid_(cols, rows, defaultFgArgb, defaultBgArgb),
+      scrollback_(cols, scrollbackCapacity),
+      sbScratch_(static_cast<size_t>(cols)),
       palette_(kXtermPalette)
 {
     // 注意 libvterm 的参数顺序是 (rows, cols)
@@ -238,6 +273,8 @@ int VtermBridge::onResize(int rows, int cols, void *user)
     // 网格就位后整屏重读一遍，保证与 vterm 缓冲严格一致（resize 低频，代价可忽略）。
     b->convertRect(0, 0, rows, cols);
     b->refreshSoftWrapFlags();
+    b->scrollback_.resizeCols(cols, b->grid_.blankCell());
+    b->sbScratch_.assign(static_cast<size_t>(cols), Cell{});
     if (b->cursorRow_ >= rows)
         b->cursorRow_ = rows - 1;
     if (b->cursorCol_ >= cols)
@@ -245,19 +282,30 @@ int VtermBridge::onResize(int rows, int cols, void *user)
     return 1;
 }
 
-int VtermBridge::onSbPushLine(int /*cols*/, const VTermScreenCell * /*cells*/, void * /*user*/)
+int VtermBridge::onSbPushLine(int cols, const VTermScreenCell *cells, void *user)
 {
-    // T01：行丢弃。T02 接入 ScrollbackBuffer。
+    VtermBridge *b = self(user);
+    const int n = std::min(cols, b->scrollback_.cols());
+    for (int c = 0; c < n; ++c)
+        b->sbScratch_[static_cast<size_t>(c)] = b->convertCell(cells[c]);
+    b->scrollback_.pushLine(b->sbScratch_.data(), static_cast<size_t>(n));
     return 1;
 }
 
-int VtermBridge::onSbPopLine(int /*cols*/, VTermScreenCell * /*cells*/, void * /*user*/)
+int VtermBridge::onSbPopLine(int cols, VTermScreenCell *cells, void *user)
 {
-    return 0; // 没有可回填的回滚行
+    VtermBridge *b = self(user);
+    std::vector<Cell> line(static_cast<size_t>(std::min(cols, b->scrollback_.cols())));
+    if (line.empty() || !b->scrollback_.popLine(line.data()))
+        return 0;
+    for (size_t c = 0; c < line.size(); ++c)
+        storeVtermCell(line[c], &cells[c]);
+    return 1;
 }
 
-int VtermBridge::onSbClear(void * /*user*/)
+int VtermBridge::onSbClear(void *user)
 {
+    self(user)->scrollback_.clear();
     return 1;
 }
 

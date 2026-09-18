@@ -26,6 +26,7 @@
 #include <vterm.h>
 
 #include "grid.h"
+#include "scrollback.h"
 
 namespace sshclient {
 namespace term {
@@ -46,7 +47,8 @@ public:
 
     VtermBridge(int cols, int rows,
                 uint32_t defaultFgArgb = kDefaultFgArgb,
-                uint32_t defaultBgArgb = kDefaultBgArgb);
+                uint32_t defaultBgArgb = kDefaultBgArgb,
+                size_t scrollbackCapacity = ScrollbackBuffer::kDefaultCapacity);
     ~VtermBridge();
 
     VtermBridge(const VtermBridge &) = delete;
@@ -60,6 +62,8 @@ public:
 
     CellGrid &grid() { return grid_; }
     const CellGrid &grid() const { return grid_; }
+
+    const ScrollbackBuffer &scrollback() const { return scrollback_; }
 
     // 终端状态查询（供 UI 层）
     int cursorRow() const { return cursorRow_; }
@@ -114,6 +118,8 @@ private:
     VTerm *vt_ = nullptr;
     VTermScreen *screen_ = nullptr;
     CellGrid grid_;
+    ScrollbackBuffer scrollback_;
+    std::vector<Cell> sbScratch_;
 
     // 终端状态
     int cursorRow_ = 0;

@@ -31,7 +31,8 @@
     <ClInclude Include="$(NativeCoreDir)bridge_logic\decision_gate.h" />
     <ClInclude Include="$(NativeCoreDir)term\grid.h" />
     <ClInclude Include="$(NativeCoreDir)term\vterm_screen.h" />
-    <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp;$(NativeCoreDir)ssh\session.cpp;$(NativeCoreDir)ssh\hostkey.cpp;$(NativeCoreDir)ssh\auth.cpp;$(NativeCoreDir)ssh\channel.cpp;$(NativeCoreDir)term\grid.cpp;$(NativeCoreDir)term\vterm_screen.cpp">
+    <ClInclude Include="$(NativeCoreDir)term\scrollback.h" />
+    <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp;$(NativeCoreDir)ssh\session.cpp;$(NativeCoreDir)ssh\hostkey.cpp;$(NativeCoreDir)ssh\auth.cpp;$(NativeCoreDir)ssh\channel.cpp;$(NativeCoreDir)term\grid.cpp;$(NativeCoreDir)term\vterm_screen.cpp;$(NativeCoreDir)term\scrollback.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <!-- v141 默认 C++14；N04 起 core 使用 std::optional，需显式开 C++17（宿主 CMake 已是 17）。 -->
