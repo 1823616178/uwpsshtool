@@ -8,6 +8,7 @@
 #include <ws2tcpip.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cstdio>
 #include <mutex>
 #include <utility>
@@ -83,6 +84,16 @@ std::string WsaMessage(const char* prefix, int error)
     return std::string(prefix) + " (WSA " + std::to_string(error) + ")";
 }
 
+// N07: monotonic clock milliseconds (only for the keepalive send-interval
+// self-estimate, see doProbeNow).
+std::uint64_t steadyNowMs()
+{
+    return static_cast<std::uint64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch())
+            .count());
+}
+
 } // namespace
 
 SshSession::SshSession(io::SessionThread& thread,
@@ -152,6 +163,35 @@ std::optional<HostKeyInfo> SshSession::hostKeyInfo() const
 {
     std::lock_guard<std::mutex> lock(hostKeyMutex_);
     return hostKeyInfo_;
+}
+
+bool SshSession::setKeepaliveConfig(std::uint32_t intervalSec, std::uint32_t maxMisses)
+{
+    // Only Idle admits: the parameters are assembled once in armKeepalive when
+    // entering Established (libssh2_keepalive_config + timer); changing them
+    // after connect is meaningless — the caller's contract is pre-connect.
+    if (state() != SshSessionState::Idle) {
+        return false;
+    }
+    options_.keepaliveIntervalSec = intervalSec;
+    options_.keepaliveMaxMisses = maxMisses;
+    // The tracker only carries the threshold; rebuilding resets it (Idle has
+    // no loop-thread activity yet, no concurrency).
+    keepaliveMissTracker_ = KeepaliveMissTracker(maxMisses);
+    return true;
+}
+
+bool SshSession::probeNow(std::uint32_t timeoutSec)
+{
+    // Only Established admits: other states either have no connection to probe
+    // or the disconnect/reconnect chain is already running.
+    if (state() != SshSessionState::Established) {
+        return false;
+    }
+    const std::uint32_t timeout =
+        timeoutSec == 0 ? kDefaultKeepaliveProbeTimeoutSec : timeoutSec;
+    thread_.post([this, timeout] { doProbeNow(timeout); });
+    return true;
 }
 
 bool SshSession::isLegalTransition(SshSessionState from, SshSessionState to)
@@ -295,6 +335,12 @@ void SshSession::onSocketEvent(SOCKET, short events)
         if ((events & (POLLERR | POLLHUP | POLLNVAL)) != 0) {
             peerDisconnected(SshSessionError::SocketError, "SSH socket failed");
             return;
+        }
+        // N07: inbound-activity observation (signal 1 of the keepalive
+        // blackhole judgement, see keepalive.h). Only meaningful across
+        // Established periods; marking it in Authenticating too is harmless.
+        if ((events & io::EventLoop::Readable) != 0) {
+            keepaliveInboundSeen_ = true;
         }
         // N05: an in-flight auth operation re-arms per libssh2's declared
         // block direction (see updateSocketInterest); the event drives it.
@@ -521,6 +567,9 @@ bool SshSession::transitionTo(SshSessionState to)
         return false;
     }
     state_.store(to);
+    if (to == SshSessionState::Established) {
+        armKeepalive(); // N07: assemble keepalive (interval 0 = no-op inside)
+    }
     if (stateCallback_) {
         try {
             stateCallback_(from, to);
@@ -586,7 +635,8 @@ void SshSession::releaseResources()
 
 void SshSession::cancelTimers()
 {
-    for (io::EventLoop::TimerId* timer : {&connectTimer_, &handshakeTimer_, &closeTimer_}) {
+    for (io::EventLoop::TimerId* timer :
+         {&connectTimer_, &handshakeTimer_, &closeTimer_, &keepaliveTimer_}) {
         if (*timer != 0) {
             thread_.loop().cancelTimer(*timer);
             *timer = 0;
@@ -634,6 +684,222 @@ void SshSession::notifyChannelsSessionLost()
     channels_.clear();
 }
 
+// ---------------------------------------------------------------- N07 keepalive (loop thread)
+
+void SshSession::armKeepalive()
+{
+    // Hook on entering Established (called from transitionTo); interval 0 =
+    // disabled, return right away.
+    if (options_.keepaliveIntervalSec == 0 || session_ == nullptr) {
+        return;
+    }
+    // want_reply=1: SSH_MSG_GLOBAL_REQUEST demanding an answer (OpenSSH
+    // replies SSH_MSG_REQUEST_SUCCESS). libssh2 does no unanswered counting;
+    // the count/verdict lives in onKeepaliveTick (semantics in keepalive.h).
+    // Note libssh2 promotes interval=1 to 2 (1.11.1 keepalive.c anti-spin
+    // clause) — this layer's period timing is unaffected; after the first
+    // tick we re-arm per seconds_to_next.
+    ::libssh2_keepalive_config(session_, 1, options_.keepaliveIntervalSec);
+
+    keepaliveMissTracker_ = KeepaliveMissTracker(options_.keepaliveMaxMisses);
+    keepaliveSendCount_.store(0, std::memory_order_release);
+    keepaliveMissCount_.store(0, std::memory_order_release);
+    keepaliveProbeCount_.store(0, std::memory_order_release);
+    keepaliveProbe_.disarm();
+    keepaliveLastSentMs_ = 0;
+    // First-period grace: reaching Established at all (the auth success reply)
+    // is inbound evidence of a live peer; also record the FIONREAD baseline so
+    // handshake/auth leftover bytes are not mistaken for "new inbound".
+    keepaliveInboundSeen_ = true;
+    u_long pending = 0;
+    if (::ioctlsocket(socket_, FIONREAD, &pending) == 0) {
+        keepalivePendingBaseline_ = static_cast<long>(pending);
+    }
+
+    keepaliveTimer_ = thread_.loop().runAfter(
+        static_cast<std::uint64_t>(options_.keepaliveIntervalSec) * 1000,
+        [this] { onKeepaliveTick(); });
+}
+
+void SshSession::onKeepaliveTick()
+{
+    keepaliveTimer_ = 0; // this tick's timer fired and is consumed; re-armed below as needed
+    if (state() != SshSessionState::Established || session_ == nullptr ||
+        socket_ == INVALID_SOCKET) {
+        return; // left Established (close/disconnect teardown): the chain ends here
+    }
+
+    // Observe the last period's inbound activity: Readable event flag OR
+    // pending-byte growth (semantics and approximation in keepalive.h); reset
+    // right after observing, entering the next period.
+    u_long pending = 0;
+    if (::ioctlsocket(socket_, FIONREAD, &pending) != 0) {
+        pending = static_cast<u_long>(keepalivePendingBaseline_); // query failed: treat as
+                                                                  // "no growth"; a truly dead
+                                                                  // socket is caught by fd events
+    }
+    const bool hadInbound = keepaliveInboundObserved(keepaliveInboundSeen_,
+                                                     static_cast<long>(pending),
+                                                     keepalivePendingBaseline_);
+    keepaliveInboundSeen_ = false;
+    keepalivePendingBaseline_ = static_cast<long>(pending);
+
+    if (keepaliveMissTracker_.tick(hadInbound)) {
+        keepaliveMissCount_.store(keepaliveMissTracker_.misses(), std::memory_order_release);
+        peerDisconnected(SshSessionError::KeepaliveTimeout,
+                         "keepalive silent blackhole: no inbound data for " +
+                             std::to_string(options_.keepaliveMaxMisses) +
+                             " consecutive periods");
+        return;
+    }
+    keepaliveMissCount_.store(keepaliveMissTracker_.misses(), std::memory_order_release);
+
+    // Send this tick's keepalive. libssh2 semantics (verified against 1.11.1
+    // keepalive.c): it decides whether to actually emit a packet by
+    // keepalive_last_sent + interval; EAGAIN is swallowed into a 0 return
+    // (send buffer full -> pretends sent; the missing reply counts as a miss
+    // this period, self-consistent); a non-zero return = the socket write is
+    // broken (LIBSSH2_ERROR_SOCKET_SEND) -> judge a blackhole directly.
+    int secondsToNext = static_cast<int>(options_.keepaliveIntervalSec);
+    const int rc = ::libssh2_keepalive_send(session_, &secondsToNext);
+    if (rc != 0) {
+        peerDisconnected(SshSessionError::KeepaliveTimeout,
+                         "keepalive send failed (socket write error, libssh2 rc=" +
+                             std::to_string(rc) + ")");
+        return;
+    }
+    keepaliveSendCount_.fetch_add(1, std::memory_order_acq_rel);
+    // This tick's send time (approximation: if libssh2 skipped the send due to
+    // last_sent + interval > now, this records slightly early. Only used by
+    // doProbeNow to decide whether a forced send would be gated; conservative,
+    // harmless).
+    keepaliveLastSentMs_ = steadyNowMs();
+
+    // Re-arm per libssh2's seconds_to_next (the recommended usage) instead of
+    // a fixed period: with time()'s 1 s truncation a fixed period can make
+    // libssh2 occasionally skip a send, and the resulting "no request in
+    // flight" window would record a spurious miss; re-arming per s2n
+    // guarantees every tick actually emits.
+    const std::uint64_t delayMs =
+        static_cast<std::uint64_t>(secondsToNext > 0 ? secondsToNext
+                                                     : options_.keepaliveIntervalSec) *
+        1000;
+    keepaliveTimer_ = thread_.loop().runAfter(delayMs, [this] { onKeepaliveTick(); });
+}
+
+// ---------------------------------------------------------------- N07 active probe (loop thread)
+
+void SshSession::doProbeNow(std::uint32_t timeoutSec)
+{
+    if (state() != SshSessionState::Established || session_ == nullptr ||
+        socket_ == INVALID_SOCKET) {
+        return; // left Established between admission and execution: the
+                // disconnect/reconnect chain takes over; the probe is void
+    }
+    if (keepaliveProbe_.active()) {
+        return; // a window is already running (dedup when network events arrive
+                // in bursts); do not re-arm or reset the baseline
+    }
+
+    // libssh2_keepalive_send gates the actual send on last_sent + interval <=
+    // now (verified against 1.11.1 keepalive.c): under a normal 30 s period a
+    // probe right after a tick would be silently skipped and degrade to
+    // "asked nothing but waited for a reply". So press the interval down to
+    // libssh2's minimum to force the send, then restore the original config
+    // right away (restoring to 0 keeps periodic keepalive off).
+    const std::uint64_t now = steadyNowMs();
+    const bool willSend =
+        keepaliveLastSentMs_ == 0 ||
+        now - keepaliveLastSentMs_ >=
+            static_cast<std::uint64_t>(kLibssh2MinKeepaliveIntervalSec) * 1000;
+
+    u_long pending = 0;
+    if (::ioctlsocket(socket_, FIONREAD, &pending) != 0) {
+        pending = static_cast<u_long>(keepalivePendingBaseline_);
+    }
+    if (willSend) {
+        // Really sending: the window starts now; earlier inbound evidence is
+        // unrelated to this probe.
+        keepaliveInboundSeen_ = false;
+        keepalivePendingBaseline_ = static_cast<long>(pending);
+        keepaliveProbe_.arm(static_cast<long>(pending));
+    } else {
+        // Cannot send (just sent): the previous tick's reply is likely in
+        // flight or just landed — keep the old baseline and the inbound flag
+        // already observed, or that liveness evidence is erased and
+        // misjudged (see KeepaliveProbe::arm).
+        keepaliveProbe_.arm(keepalivePendingBaseline_);
+    }
+
+    ::libssh2_keepalive_config(session_, 1, kLibssh2MinKeepaliveIntervalSec);
+    int secondsToNext = 0;
+    const int rc = ::libssh2_keepalive_send(session_, &secondsToNext);
+    ::libssh2_keepalive_config(session_, 1, options_.keepaliveIntervalSec);
+    if (rc != 0) {
+        keepaliveProbe_.disarm();
+        peerDisconnected(SshSessionError::KeepaliveTimeout,
+                         "network-change probe send failed (socket write error, libssh2 rc=" +
+                             std::to_string(rc) + ")");
+        return;
+    }
+    if (willSend) {
+        keepaliveLastSentMs_ = now;
+        keepaliveSendCount_.fetch_add(1, std::memory_order_acq_rel);
+    }
+    keepaliveProbeCount_.fetch_add(1, std::memory_order_acq_rel);
+
+    // The deadline timer reuses the keepaliveTimer_ slot: the periodic chain
+    // yields during the window and onProbeDeadline resumes it (cancelTimers
+    // covers this timer on disconnect/close, so it is never leaked).
+    if (keepaliveTimer_ != 0) {
+        thread_.loop().cancelTimer(keepaliveTimer_);
+        keepaliveTimer_ = 0;
+    }
+    SSH_LOG("active probe sent (%u s verdict window)", timeoutSec);
+    keepaliveTimer_ = thread_.loop().runAfter(static_cast<std::uint64_t>(timeoutSec) * 1000,
+                                              [this, timeoutSec] { onProbeDeadline(timeoutSec); });
+}
+
+void SshSession::onProbeDeadline(std::uint32_t timeoutSec)
+{
+    keepaliveTimer_ = 0; // this window's timer fired and is consumed
+    if (state() != SshSessionState::Established || session_ == nullptr ||
+        socket_ == INVALID_SOCKET) {
+        keepaliveProbe_.disarm();
+        return; // disconnected/closed inside the window: verdict and resume are moot
+    }
+
+    u_long pending = 0;
+    if (::ioctlsocket(socket_, FIONREAD, &pending) != 0) {
+        pending = static_cast<u_long>(keepaliveProbe_.baseline()); // query failed: "no growth"
+    }
+    const bool alive =
+        keepaliveProbe_.verdictAlive(keepaliveInboundSeen_, static_cast<long>(pending));
+    keepaliveProbe_.disarm();
+
+    if (!alive) {
+        peerDisconnected(SshSessionError::KeepaliveTimeout,
+                         "network-change probe unanswered: no inbound data within " +
+                             std::to_string(timeoutSec) + " s");
+        return;
+    }
+
+    // Alive: this probe's reply is itself a successful inbound observation —
+    // reset the miss counter; resume the periodic chain at the original
+    // interval.
+    keepaliveMissTracker_.reset();
+    keepaliveMissCount_.store(0, std::memory_order_release);
+    keepaliveInboundSeen_ = false;
+    keepalivePendingBaseline_ = static_cast<long>(pending);
+    if (options_.keepaliveIntervalSec == 0) {
+        return; // periodic keepalive was off: this probe was one-shot, do not
+                // invent a periodic chain
+    }
+    keepaliveTimer_ = thread_.loop().runAfter(
+        static_cast<std::uint64_t>(options_.keepaliveIntervalSec) * 1000,
+        [this] { onKeepaliveTick(); });
+}
+
 const char* toString(SshSessionState state)
 {
     switch (state) {
@@ -670,9 +936,38 @@ const char* toString(SshSessionError error)
     case SshSessionError::HandshakeTimeout: return "handshake_timeout";
     case SshSessionError::RemoteClosed: return "remote_closed";
     case SshSessionError::SocketError: return "socket_error";
+    case SshSessionError::KeepaliveTimeout: return "keepalive_timeout";
     case SshSessionError::InternalError: return "internal_error";
     }
     return "unknown";
+}
+
+bool isAutoReconnectable(SshSessionState terminalState, SshSessionError error)
+{
+    switch (terminalState) {
+    case SshSessionState::Disconnected:
+        // Peer close / socket error / keepalive blackhole: all may be
+        // transient network trouble.
+        return true;
+    case SshSessionState::Error:
+        switch (error) {
+        case SshSessionError::DnsResolutionFailed:
+        case SshSessionError::ConnectTimeout:
+        case SshSessionError::ConnectionRefused:
+        case SshSessionError::NetworkUnreachable: // mostly transient
+        case SshSessionError::HandshakeFailed:
+        case SshSessionError::HandshakeTimeout:
+        case SshSessionError::SocketError:
+        case SshSessionError::AuthTimeout: // peer silent during auth: link-class
+            return true;
+        default:
+            // Credential class (201-206), algorithm negotiation, host key
+            // mismatch, internal errors: reconnecting does not help.
+            return false;
+        }
+    default:
+        return false;
+    }
 }
 
 } // namespace ssh

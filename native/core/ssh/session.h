@@ -14,6 +14,7 @@
 
 #include "hostkey.h"
 #include "io/EventLoop.h"
+#include "keepalive.h"
 
 struct _LIBSSH2_SESSION;
 // Forward declarations matching libssh2 1.11.x typedef tags (re-check on pin bump).
@@ -63,8 +64,23 @@ enum class SshSessionError : int {
     HandshakeTimeout = 305,
     RemoteClosed = 401,
     SocketError = 403,
+    // N07: keepalive silent blackhole — keepaliveMaxMisses consecutive periods
+    // with no inbound activity, or the keepalive send itself failed (terminal
+    // Disconnected).
+    KeepaliveTimeout = 404,
     InternalError = 500,
 };
+
+// N07 keepalive defaults (01-DESIGN section 7.1: 30 s default); the
+// SshSessionOptions defaults below use these.
+inline constexpr std::uint32_t kDefaultKeepaliveIntervalSec = 30;
+inline constexpr unsigned kDefaultKeepaliveMaxMisses = 3;
+// N07 active-probe verdict window default (network-change 5 s reconnect goal).
+inline constexpr std::uint32_t kDefaultKeepaliveProbeTimeoutSec = 5;
+// libssh2's minimum keepalive interval (1.11.1 keepalive.c promotes any
+// interval < 2 to 2); doProbeNow borrows it to force a send past the
+// time gate — semantics in that function's comment.
+inline constexpr std::uint32_t kLibssh2MinKeepaliveIntervalSec = 2;
 
 // ---------------------------------------------------------------- N05 auth types
 
@@ -136,6 +152,10 @@ struct SshSessionOptions {
     std::uint32_t authTimeoutMs = 15000;    // single auth attempt timeout (terminal Error)
     std::uint32_t authMaxAttempts = 3;      // auth failures before Error terminal
     std::uint32_t authPromptTimeoutMs = 120000; // KI prompt wait; timeout = cancel
+    // ---- N07 keepalive (takes effect while Established; DESIGN default 30 s) ----
+    std::uint32_t keepaliveIntervalSec = kDefaultKeepaliveIntervalSec; // send period; 0 = off
+    std::uint32_t keepaliveMaxMisses = kDefaultKeepaliveMaxMisses; // consecutive silent
+                                                                   // periods -> blackhole (404)
     // Invoked on the loop thread after the handshake, before Authenticating.
     // Empty = accept (TOFU first-connect semantics; the Core layer supplies
     // the real known_hosts comparison). Must not block.
@@ -194,6 +214,35 @@ public:
     // exclusive with an auth attempt).
     bool queryAuthMethods(AuthMethodsCallback callback);
 
+    // ---- N07 keepalive configuration and observation ----
+    // Set keepalive parameters (any thread; only Idle admits — call before
+    // connect; false = not admitted). Takes effect when entering Established
+    // (libssh2_keepalive_config + periodic timer); semantics in the options
+    // comments and the keepalive.h header note.
+    bool setKeepaliveConfig(std::uint32_t intervalSec, std::uint32_t maxMisses);
+
+    // Called by the upper layer after a network change: fire one keepalive
+    // immediately and open a timeoutSec verdict window — no inbound activity
+    // inside the window goes to Disconnected with KeepaliveTimeout (404), into
+    // the existing reconnect chain. timeoutSec == 0 uses
+    // kDefaultKeepaliveProbeTimeoutSec. Only Established admits (else false).
+    bool probeNow(std::uint32_t timeoutSec);
+
+    // Observation hooks (any thread; for integration tests and diagnostics):
+    // keepalive counters since entering Established.
+    std::uint32_t keepaliveSendCount() const
+    {
+        return keepaliveSendCount_.load(std::memory_order_acquire);
+    }
+    std::uint32_t keepaliveMissCount() const
+    {
+        return keepaliveMissCount_.load(std::memory_order_acquire);
+    }
+    std::uint32_t keepaliveProbeCount() const
+    {
+        return keepaliveProbeCount_.load(std::memory_order_acquire);
+    }
+
     static bool isLegalTransition(SshSessionState from, SshSessionState to);
 
 private:
@@ -221,6 +270,12 @@ private:
     void unregisterChannel(SshChannel* channel);
     void driveChannels();             // socket event -> pump every channel
     void notifyChannelsSessionLost(); // releaseResources: force-clean all
+
+    // ---- N07 keepalive (loop thread only) ----
+    void armKeepalive();    // on entering Established: libssh2_keepalive_config + first tick
+    void onKeepaliveTick(); // each tick: observe inbound -> send -> re-arm per seconds_to_next
+    void doProbeNow(std::uint32_t timeoutSec);   // active probe: force one send + short window
+    void onProbeDeadline(std::uint32_t timeoutSec); // window verdict, resume the periodic chain
 
     // ---- N05 auth driver (loop thread; implemented in auth.cpp) ----
     // In-flight auth attempt: method, credential copies (admission copies and
@@ -295,10 +350,34 @@ private:
 
     // ---- N06 channel registry (loop thread only) ----
     std::vector<SshChannel*> channels_;
+
+    // ---- N07 keepalive state (loop thread only, except the atomic counters) ----
+    io::EventLoop::TimerId keepaliveTimer_ = 0; // next tick / probe deadline (runAfter)
+    KeepaliveMissTracker keepaliveMissTracker_{kDefaultKeepaliveMaxMisses}; // rebuilt on config
+    bool keepaliveInboundSeen_ = false; // a Readable event was seen this period
+    long keepalivePendingBaseline_ = 0; // last tick's FIONREAD pending-byte baseline
+    KeepaliveProbe keepaliveProbe_;     // active-probe window (loop thread only)
+    // Wall time of the last keepalive actually sent (steady_clock ms; 0 = none
+    // yet). doProbeNow uses it to decide whether libssh2's time gate would
+    // skip the forced send (see its comment).
+    std::uint64_t keepaliveLastSentMs_ = 0;
+    // Observation hooks: written on the loop thread, read from any thread.
+    std::atomic<std::uint32_t> keepaliveSendCount_{0};
+    std::atomic<std::uint32_t> keepaliveMissCount_{0};
+    std::atomic<std::uint32_t> keepaliveProbeCount_{0};
 };
 
 const char* toString(SshSessionState state);
 const char* toString(SshSessionError error);
+
+// N07: may the upper layer auto-reconnect after this terminal state?
+//   - Disconnected: always (peer close / socket error / keepalive blackhole
+//     may all be transient network trouble);
+//   - Error: link-class codes yes (DNS/refused/unreachable/timeout/handshake/
+//     socket/auth-timeout), credential-, negotiation- and local-resource-class
+//     codes no (reconnecting does not help);
+//   - Closed and non-terminal states: no.
+bool isAutoReconnectable(SshSessionState terminalState, SshSessionError error);
 
 } // namespace ssh
 } // namespace sshclient

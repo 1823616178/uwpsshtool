@@ -24,6 +24,8 @@
     <ClInclude Include="$(NativeCoreDir)ssh\hostkey.h" />
     <ClInclude Include="$(NativeCoreDir)ssh\auth.h" />
     <ClInclude Include="$(NativeCoreDir)ssh\channel.h" />
+    <ClInclude Include="$(NativeCoreDir)ssh\keepalive.h" />
+    <ClInclude Include="$(NativeCoreDir)ssh\reconnect_policy.h" />
     <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp;$(NativeCoreDir)ssh\session.cpp;$(NativeCoreDir)ssh\hostkey.cpp;$(NativeCoreDir)ssh\auth.cpp;$(NativeCoreDir)ssh\channel.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
