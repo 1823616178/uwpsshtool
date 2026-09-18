@@ -27,6 +27,8 @@
     <ClInclude Include="$(NativeCoreDir)ssh\keepalive.h" />
     <ClInclude Include="$(NativeCoreDir)ssh\reconnect_policy.h" />
     <ClInclude Include="$(NativeCoreDir)ssh\error_codes.h" />
+    <ClInclude Include="$(NativeCoreDir)bridge_logic\dirty_coalescer.h" />
+    <ClInclude Include="$(NativeCoreDir)bridge_logic\decision_gate.h" />
     <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp;$(NativeCoreDir)ssh\session.cpp;$(NativeCoreDir)ssh\hostkey.cpp;$(NativeCoreDir)ssh\auth.cpp;$(NativeCoreDir)ssh\channel.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>

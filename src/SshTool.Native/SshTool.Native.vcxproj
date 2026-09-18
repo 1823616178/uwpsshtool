@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
@@ -119,7 +119,7 @@
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
       <!-- 源码一律 UTF-8 无 BOM；不加 /utf-8 时 MSVC 按 GBK 读，中文注释的尾字节可能吞掉下一行，
            报出「找不到标识符」这类完全对不上的错（doc/ENV.md §5 已记该坑，这里是第二次踩）。 -->
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /std:c++17 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -141,7 +141,7 @@
       <DisableSpecificWarnings>4453;28204</DisableSpecificWarnings>
       <!-- 源码一律 UTF-8 无 BOM；不加 /utf-8 时 MSVC 按 GBK 读，中文注释的尾字节可能吞掉下一行，
            报出「找不到标识符」这类完全对不上的错（doc/ENV.md §5 已记该坑，这里是第二次踩）。 -->
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/utf-8 /std:c++17 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,6 +155,13 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="NativeInfo.h" />
     <ClInclude Include="Spike\SshSpike.h" />
+    <ClInclude Include="Bridge\BridgeUtil.h" />
+    <ClInclude Include="Bridge\ConnectOptions.h" />
+    <ClInclude Include="Bridge\HostKeyInfo.h" />
+    <ClInclude Include="Bridge\HostKeyCheckEventArgs.h" />
+    <ClInclude Include="Bridge\AuthPromptEventArgs.h" />
+    <ClInclude Include="Bridge\StateChangedEventArgs.h" />
+    <ClInclude Include="Bridge\SshSession.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -162,6 +169,12 @@
     </ClCompile>
     <ClCompile Include="NativeInfo.cpp" />
     <ClCompile Include="Spike\SshSpike.cpp" />
+    <ClCompile Include="Bridge\ConnectOptions.cpp" />
+    <ClCompile Include="Bridge\HostKeyInfo.cpp" />
+    <ClCompile Include="Bridge\HostKeyCheckEventArgs.cpp" />
+    <ClCompile Include="Bridge\AuthPromptEventArgs.cpp" />
+    <ClCompile Include="Bridge\StateChangedEventArgs.cpp" />
+    <ClCompile Include="Bridge\SshSession.cpp" />
   </ItemGroup>
   <Import Project="..\..\native\core\NativeCore.vcxitems" Label="Shared" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

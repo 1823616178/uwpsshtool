@@ -130,6 +130,9 @@ target_compile_definitions(keepalive_test PRIVATE SSH_TEST_SOURCE_DIR="${CMAKE_C
 add_executable(error_codes_test error_codes_test.cpp)
 target_link_libraries(error_codes_test PRIVATE ssh_session_host GTest::gtest_main)
 
+add_executable(bridge_logic_test bridge_logic_test.cpp)
+target_link_libraries(bridge_logic_test PRIVATE ssh_core_host GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
 gtest_discover_tests(deps_smoke_test)
@@ -141,3 +144,4 @@ gtest_discover_tests(channel_test)
 gtest_discover_tests(reconnect_policy_test)
 gtest_discover_tests(keepalive_test)
 gtest_discover_tests(error_codes_test)
+gtest_discover_tests(bridge_logic_test)
