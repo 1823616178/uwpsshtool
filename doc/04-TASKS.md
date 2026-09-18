@@ -39,14 +39,14 @@
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
-| M2 | 终端引擎、渲染与输入 | 15 | 4 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
+| M2 | 终端引擎、渲染与输入 | 15 | 5 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **40** | |
+| **合计** | | **111** | **41** | |
 
 ### 1.1 关键路径
 
@@ -419,13 +419,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] DebugConnectPage 改为开 shell 后用 `GetText` 打印屏幕文本（临时验证）
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **T04 全局帧调度器** `S`
+- [x] **T04 全局帧调度器** `S`
   - 依赖：T03
   - 参考：`01-DESIGN.md §7.2、D14`；鸿蒙端 `view/terminal/FrameSchedulerCore.ets`
   - 产出：`src/SshTool.Core/Terminal/FrameSchedulerCore.cs`、`src/SshTool.App/Terminal/FrameScheduler.cs`、测试
   - 要点：可见集合、Wake、空闲 30 帧退订、光标闪烁相位（530 ms）；App 层订阅/退订 `CompositionTarget.Rendering`，`Wake` 可从任意线程调用。
   - 验收：
-    - [ ] Core 单测：空闲退订、Wake 重订阅、不可见视图不拉取、闪烁翻转时机（注入时钟）
+    - [x] Core 单测：空闲退订、Wake 重订阅、不可见视图不拉取、闪烁翻转时机（注入时钟）
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **T05 TerminalView 与基础绘制** `M`
@@ -1354,3 +1354,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | T01 | ad72466 | **完成**。移植鸿蒙 `CellGrid`/`VtermBridge`：16 字节格、脏行、revision、resize 保留交集；默认色标记 `0x00000001`/`0x00000002`；bit8 invisible、bit9 软换行；VT 语料（SGR/光标/滚动区/alt-screen/DECSET）+ 宽字符续格；跟踪 DECCKM/2004/1006（libvterm 无对应 termprop，从输入扫描）。sb_* 空操作留给 T02。native 166；`verify.ps1 -Quick` 全绿。§7.1 属性表补 bit9。 |
 | 2026-09-19 | T02 | 3f145f1 | **完成**。`ScrollbackBuffer` 预分配定长环形缓冲（默认 5000、上限 50000）；`copyWindow`/`copyWindowWithCols`（TOCTOU）/`copyFromBottom`；VtermBridge sb_* 接入；100000 行 `storageBytes` 不变；弹回默认色标记往返。native 190；`verify.ps1 -Quick` 全绿。 |
 | 2026-09-19 | T03 | 0aded15 | **完成**。`snapshot` 纯函数 CopyDirtyRows/CopyViewport/GetText；WinRT `TerminalScreen` + `NativeTerminalScreen`；shell 输出喂 vterm，Resize 同步网格与 PTY。DebugConnectPage 改 OpenShell + GetText。snapshot 单测 7（native 197）；`verify.ps1` 全绿。 |
+| 2026-09-19 | T04 | 6eb4ced | **完成**。`FrameSchedulerCore`：可见集合、Wake、空闲 30 帧退订、530 ms 闪烁（注入时钟）；异常隔离。App `FrameScheduler` 走 `CompositionTarget.Rendering`，Wake 任意线程经 DispatcherHelper 封送。Core 单测 8（共 488）；`verify.ps1` 全绿。 |
