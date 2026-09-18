@@ -86,6 +86,11 @@ target_link_libraries(native_dependencies_host PUBLIC
     crypt32
     ws2_32)
 
+add_library(ssh_session_host STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/session.cpp)
+target_include_directories(ssh_session_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core)
+target_link_libraries(ssh_session_host PUBLIC ssh_core_host native_dependencies_host)
+
 add_executable(smoke_test smoke_test.cpp)
 target_link_libraries(smoke_test PRIVATE ssh_core_host GTest::gtest_main)
 
@@ -95,7 +100,11 @@ target_link_libraries(deps_smoke_test PRIVATE native_dependencies_host GTest::gt
 add_executable(io_test event_loop_test.cpp session_thread_test.cpp)
 target_link_libraries(io_test PRIVATE ssh_core_host GTest::gtest_main)
 
+add_executable(ssh_session_test ssh_session_test.cpp)
+target_link_libraries(ssh_session_test PRIVATE ssh_session_host GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
 gtest_discover_tests(deps_smoke_test)
 gtest_discover_tests(io_test)
+gtest_discover_tests(ssh_session_test)

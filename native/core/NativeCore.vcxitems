@@ -20,7 +20,8 @@
     <ClInclude Include="$(NativeCoreDir)io\EventLoop.h" />
     <ClInclude Include="$(NativeCoreDir)io\SessionThread.h" />
     <ClInclude Include="$(NativeCoreDir)io\WinsockInit.h" />
-    <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp">
+    <ClInclude Include="$(NativeCoreDir)ssh\session.h" />
+    <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp;$(NativeCoreDir)ssh\session.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
     </ClCompile>
@@ -34,6 +35,7 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <CompileAs>CompileAsC</CompileAs>
       <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <ObjectFileName>$(IntDir)libssh2\%(Filename).obj</ObjectFileName>
       <PreprocessorDefinitions>LIBSSH2_OPENSSL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(Libssh2Dir)include;$(Libssh2Dir)src;$(ProjectDir)..\..\native\prebuilt\$(PrebuiltTriplet)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
