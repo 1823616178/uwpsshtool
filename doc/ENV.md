@@ -84,6 +84,7 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\LocalState\logs"
 - **不要把 net8 测试工程放进 sln**：VS 解决方案级 `-t:Restore` 会用旧框架解析器把 `net8.0` 写成 `.NETFramework,Version=v8.0`，损坏其 project.assets.json。Tests 由 `dotnet test` 驱动（若被损坏：`rm -rf tests/*/obj` 后重跑）。
 - Git Bash 里调用 MSBuild 必须用 `-p:` 短横线开关，`/p:` 会被 MSYS 路径转换吞掉。
 - **VS2026 AppxPackage targets 增量构建 bug**：开 bundle（默认）且存在多语言资源分包（`language-en.appx`）时，第二次起的增量 x64 Debug 打包会丢 `PackageLayout\entrypoint\SshTool.App.exe`（MakeAppx 0x80070003 / mapping file line 135；2026-09-18 又见一次紧跟 `-t:Rebuild` 之后的 0x80070002，重跑即过，mapping 里 139 项源文件实际都在）。处置：`AppxBundle=Never`（散装 appx 正是 WinAppDeployCmd 旁加载所需），X06 实测三连构建稳定。首发现场：verify.ps1 门禁。
+- **Appx 打包在 `MrmSupportLibrary.GetLocation` 空引用（APPX0002/MSB4018）**：受控终端进程可能没有继承机器级 `PROCESSOR_ARCHITECTURE`。VS2017 与 VS2026 的 AppxPackage 任务都会无 null 守卫地调用该值的 `ToLowerInvariant()`；因此显式指定 `MrmSupportLibraryPath` 或切换资源索引器均无效。`scripts/verify.ps1` 现从 Machine 级环境补回该变量（取不到时按 OS 位数回退），2026-09-18 复测 x64 Appx 恢复生成。若手工调用 MSBuild，先执行 `$env:PROCESSOR_ARCHITECTURE = [Environment]::GetEnvironmentVariable('PROCESSOR_ARCHITECTURE', 'Machine')`。
 - **PC 本机装 x64 Debug 包跑 Spike（2026-09-18）**：`AppxPackageSigningEnabled=false` 出的散装 appx 未签名，Add-AppxPackage 直接拒（0x800B0100）；自签名证书装进 **CurrentUser** TrustedPeople 后仍 0x800B0109（AppX 部署信任链查 LocalMachine 侧，需管理员）。命令行 msbuild 又**没有 Deploy 目标**，重建不出 VS 的 `bin\<Plat>\<Conf>\AppX` 注册布局。可行解：appx 本质是 zip，解压到任意目录后 `Add-AppxPackage -Register <目录>\AppxManifest.xml`（开发布局注册，开发者模式下免签名、免证书）。另记：appx 签名证书的 EKU 必须是代码签名 `1.3.6.1.5.5.7.3.3`，`1.3.6.1.4.1.311.10.3.4` 是 EFS 加密文件系统，signtool 会报「No certificates were found that met all the given criteria」。签名链：项目无 pfx（签名关闭），手机门户吃未签名包，PC 侧正式安装包签名归 Q09。
 - native C/C++ 源码一律 UTF-8（无 BOM）；MSVC 工程必须加 `/utf-8`（已在 native/tests CMakeLists 设置），否则 GBK 区域下报 C4819 且可能吞字符导致诡异编译错误。
 - pwsh 脚本在 Git Bash 里 `| tail` 时退出码被 tail 覆盖，验证脚本退出码需 `set -o pipefail`。
@@ -106,7 +107,7 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\LocalState\logs"
 ## 7. SP02 Spike 结论（2026-09-17）
 
 - **方案 A（vcpkg）成功**：OpenSSL **3.6.3**（vcpkg ref `2026.07.29`）四个 triplet 全部编成静态库 → `native/prebuilt/{x64-windows-static,x86-uwp,x64-uwp,arm-uwp}/`（各含 libcrypto.lib + libssl.lib + include + VERSION.txt，不入库）。一键脚本 `scripts/build-openssl.ps1`（幂等，已重跑多次验证）。方案 B（perl Configure + nmake）未启用。
-- UWP 三架构走 overlay triplets `native/triplets/*-uwp-v141.cmake`（v141 + 动态 CRT + 静态库）。**ARM 独有补丁**：SDK ≥ 22621 删除 `um/arm`/`ucrt/arm`，vcpkg 注入的 LIB 取自最新 SDK（26100）导致探测链接 LNK1104；triplet 内用 `VCPKG_LINKER_FLAGS` 以 **8.3 短路径**补 19041 库目录（带空格长路径的引号会被 -D 传递剥掉）。8.3 名按机器生成，换机需重查（`native/NATIVE-BUILD.md` §4 踩坑 2）。
+- UWP 三架构走 overlay triplets `native/triplets/*-uwp-v141.cmake`（v141 + 动态 CRT + 静态库）。**ARM 独有补丁**：SDK ≥ 22621 删除 `um/arm`/`ucrt/arm`，vcpkg 注入的 LIB 取自最新 SDK（26100）导致探测链接 LNK1104；triplet 内用 `VCPKG_LINKER_FLAGS` 以 **8.3 短路径**补 19041 库目录（带空格长路径的引号会被 -D 传递剥掉）。8.3 名按机器生成，换机需重查（`native/NATIVE-BUILD.md` §5 踩坑 2）。
 - Native 组件（v141）链接验证：`libcrypto.lib` 需配 `crypt32.lib`（`CertOpenSystemStoreW`）。`NativeInfo::OpenSslVersion()` 已加，MainPage 第三行显示。x64 Debug 与 ARM Release（.NET Native 打包）全链路构建通过。
 - 耗时参考：x64-windows-static 7.4 min，uwp 三架构各约 3.4–3.9 min；产物 libcrypto 约 64–90 MB（含调试信息）。
 - 📱 待真机：Lumia 上启动应用确认 MainPage 显示 `OpenSSL: 3.6.3 ...` 字样。

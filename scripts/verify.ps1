@@ -13,6 +13,17 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $results = New-Object System.Collections.Generic.List[object]
 
+# 某些受控终端只继承用户级环境变量，进程里会缺 PROCESSOR_ARCHITECTURE。
+# VS 的 AppxPackage 任务未做 null 守卫，会因此在 MrmSupportLibrary.GetLocation 空引用。
+if ([string]::IsNullOrWhiteSpace($env:PROCESSOR_ARCHITECTURE)) {
+    $machineArchitecture = [Environment]::GetEnvironmentVariable(
+        'PROCESSOR_ARCHITECTURE', [EnvironmentVariableTarget]::Machine)
+    if ([string]::IsNullOrWhiteSpace($machineArchitecture)) {
+        $machineArchitecture = if ([Environment]::Is64BitOperatingSystem) { 'AMD64' } else { 'x86' }
+    }
+    $env:PROCESSOR_ARCHITECTURE = $machineArchitecture
+}
+
 function Find-MsBuild([string]$range) {
     $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
     if (-not (Test-Path $vswhere)) { throw "找不到 vswhere：$vswhere" }

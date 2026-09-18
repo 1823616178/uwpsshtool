@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    N01：纯 native 核心与固定版本第三方 C 源的唯一 MSBuild 清单。
+    UWP 包装层只导入此文件；后续 N02+ 的 core 源也统一在这里登记。
+  -->
+  <PropertyGroup Label="Globals">
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{857A7E05-3B60-4E2F-B3E0-91079A1A87C6}</ItemsProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NativeCoreDir>$(MSBuildThisFileDirectory)</NativeCoreDir>
+    <Libssh2Dir>$(MSBuildThisFileDirectory)..\third_party\libssh2\</Libssh2Dir>
+    <LibvtermDir>$(MSBuildThisFileDirectory)..\third_party\libvterm\</LibvtermDir>
+    <Argon2Dir>$(MSBuildThisFileDirectory)..\third_party\argon2\</Argon2Dir>
+  </PropertyGroup>
+
+  <ItemGroup Label="Core">
+    <ClInclude Include="$(NativeCoreDir)core_info.h" />
+    <ClCompile Include="$(NativeCoreDir)core_info.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAsWinRT>false</CompileAsWinRT>
+    </ClCompile>
+  </ItemGroup>
+
+  <ItemGroup Label="libssh2">
+    <!-- Pageant/命名管道的 agent_win.c 不是 UWP API；os400qc3.c 是 OS/400 后端。 -->
+    <ClCompile Include="$(Libssh2Dir)src\*.c"
+               Exclude="$(Libssh2Dir)src\agent_win.c;$(Libssh2Dir)src\os400qc3.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <CompileAs>CompileAsC</CompileAs>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <PreprocessorDefinitions>LIBSSH2_OPENSSL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(Libssh2Dir)include;$(Libssh2Dir)src;$(ProjectDir)..\..\native\prebuilt\$(PrebuiltTriplet)\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemGroup>
+
+  <ItemGroup Label="libvterm">
+    <ClCompile Include="$(LibvtermDir)src\*.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <CompileAs>CompileAsC</CompileAs>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <ObjectFileName>$(IntDir)libvterm\%(Filename).obj</ObjectFileName>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4703;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(LibvtermDir)include;$(LibvtermDir)src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemGroup>
+
+  <ItemGroup Label="argon2">
+    <!-- 固定 reference 实现 ref.c；不得换成依赖 CPU 指令集的 opt.c。 -->
+    <ClCompile Include="$(Argon2Dir)src\argon2.c;$(Argon2Dir)src\core.c;$(Argon2Dir)src\encoding.c;$(Argon2Dir)src\ref.c;$(Argon2Dir)src\thread.c;$(Argon2Dir)src\blake2\blake2b.c">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <CompileAs>CompileAsC</CompileAs>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
+      <ObjectFileName>$(IntDir)argon2\%(Filename).obj</ObjectFileName>
+      <PreprocessorDefinitions>ARGON2_NO_THREADS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(Argon2Dir)include;$(Argon2Dir)src;$(Argon2Dir)src\blake2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemGroup>
+</Project>

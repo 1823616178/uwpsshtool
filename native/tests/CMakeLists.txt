@@ -1,10 +1,15 @@
 # X06：宿主机 native 测试门禁。编译 native/core 为 ssh_core_host 静态库 + GoogleTest 冒烟。
 # 构建：cmake -S native/tests -B native/tests/build -A x64 && cmake --build ... --config Release && ctest
 cmake_minimum_required(VERSION 3.20)
-project(ssh_core_host_tests CXX)
+project(ssh_core_host_tests C CXX)
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# SP02 的 x64-windows-static OpenSSL 使用静态 CRT；所有宿主目标（含 GTest）保持一致。
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 # 源码为 UTF-8（无 BOM），MSVC 默认按 ANSI(936) 解读会报 C4819 甚至吞字符
 if(MSVC)
@@ -16,8 +21,7 @@ FetchContent_Declare(googletest
     URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
     URL_HASH SHA256=1f357c27ca988c3f7c6b4bf68a9395005ac6761f034046e9dde0896e3aba00e4
     DOWNLOAD_EXTRACT_TIMESTAMP OFF)
-# 与宿主机默认 /MD 对齐（x64-windows-static OpenSSL 是 /MT，N01 接入时再统一，见 NATIVE-BUILD.md §1）
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+set(gtest_force_shared_crt OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
@@ -26,8 +30,64 @@ add_library(ssh_core_host STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/core_info.cpp)
 target_include_directories(ssh_core_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core)
 
+set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../third_party)
+set(LIBSSH2_DIR ${THIRD_PARTY_DIR}/libssh2)
+set(LIBVTERM_DIR ${THIRD_PARTY_DIR}/libvterm)
+set(ARGON2_DIR ${THIRD_PARTY_DIR}/argon2)
+set(OPENSSL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../prebuilt/x64-windows-static)
+
+foreach(required_file
+        ${LIBSSH2_DIR}/include/libssh2.h
+        ${LIBVTERM_DIR}/src/encoding/DECdrawing.inc
+        ${ARGON2_DIR}/include/argon2.h
+        ${OPENSSL_DIR}/lib/libcrypto.lib)
+    if(NOT EXISTS ${required_file})
+        message(FATAL_ERROR "Missing ${required_file}. Run scripts/fetch-third-party.ps1 and scripts/build-openssl.ps1.")
+    endif()
+endforeach()
+
+file(GLOB LIBSSH2_SOURCES CONFIGURE_DEPENDS ${LIBSSH2_DIR}/src/*.c)
+list(FILTER LIBSSH2_SOURCES EXCLUDE REGEX "[/\\\\](agent_win|os400qc3)\\.c$")
+file(GLOB LIBVTERM_SOURCES CONFIGURE_DEPENDS ${LIBVTERM_DIR}/src/*.c)
+set(ARGON2_SOURCES
+    ${ARGON2_DIR}/src/argon2.c
+    ${ARGON2_DIR}/src/core.c
+    ${ARGON2_DIR}/src/encoding.c
+    ${ARGON2_DIR}/src/ref.c
+    ${ARGON2_DIR}/src/thread.c
+    ${ARGON2_DIR}/src/blake2/blake2b.c)
+
+add_library(native_dependencies_host STATIC
+    ${LIBSSH2_SOURCES}
+    ${LIBVTERM_SOURCES}
+    ${ARGON2_SOURCES})
+target_compile_definitions(native_dependencies_host PRIVATE
+    LIBSSH2_OPENSSL
+    ARGON2_NO_THREADS
+    _CRT_SECURE_NO_DEPRECATE
+    _CRT_NONSTDC_NO_DEPRECATE
+    _WINSOCK_DEPRECATED_NO_WARNINGS)
+target_include_directories(native_dependencies_host PUBLIC
+    ${LIBSSH2_DIR}/include
+    ${LIBVTERM_DIR}/include
+    ${ARGON2_DIR}/include
+    PRIVATE
+    ${LIBSSH2_DIR}/src
+    ${LIBVTERM_DIR}/src
+    ${ARGON2_DIR}/src
+    ${ARGON2_DIR}/src/blake2
+    ${OPENSSL_DIR}/include)
+target_link_libraries(native_dependencies_host PUBLIC
+    ${OPENSSL_DIR}/lib/libcrypto.lib
+    crypt32
+    ws2_32)
+
 add_executable(smoke_test smoke_test.cpp)
 target_link_libraries(smoke_test PRIVATE ssh_core_host GTest::gtest_main)
 
+add_executable(deps_smoke_test deps_smoke_test.cpp)
+target_link_libraries(deps_smoke_test PRIVATE native_dependencies_host GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
+gtest_discover_tests(deps_smoke_test)

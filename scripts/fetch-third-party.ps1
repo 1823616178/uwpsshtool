@@ -11,16 +11,35 @@ $ErrorActionPreference = 'Stop'
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 $Root = Join-Path $RepoRoot 'native\third_party'
 
-# SP03 先只要 libssh2；libvterm 0.3.3 与 argon2 20190702 在 N01 补进来
 $Packages = @(
     [pscustomobject]@{
         Name    = 'libssh2'
         Version = '1.11.1'
+        Archive = 'libssh2-1.11.1.tar.gz'
         Url     = 'https://github.com/libssh2/libssh2/releases/download/libssh2-1.11.1/libssh2-1.11.1.tar.gz'
         Sha256  = 'D9EC76CBE34DB98EEC3539FE2C899D26B0C837CB3EB466A56B0F109CABF658F7'
         # 压缩包内顶层目录，解包后重命名为 Name
         TopDir  = 'libssh2-1.11.1'
         Probe   = 'include\libssh2.h'
+    },
+    [pscustomobject]@{
+        Name    = 'libvterm'
+        Version = '0.3.3'
+        Archive = 'libvterm-0.3.3.tar.gz'
+        Url     = 'https://www.leonerd.org.uk/code/libvterm/libvterm-0.3.3.tar.gz'
+        Sha256  = '09156F43DD2128BD347CBEEBE50D9A571D32C64E0CF18D211197946AFF7226E0'
+        TopDir  = 'libvterm-0.3.3'
+        # 官方 release tar 已包含 Perl 脚本生成的编码表；git 源码快照通常没有。
+        Probe   = 'src\encoding\DECdrawing.inc'
+    },
+    [pscustomobject]@{
+        Name    = 'argon2'
+        Version = '20190702'
+        Archive = 'phc-winner-argon2-20190702.tar.gz'
+        Url     = 'https://github.com/P-H-C/phc-winner-argon2/archive/refs/tags/20190702.tar.gz'
+        Sha256  = 'DAF972A89577F8772602BF2EB38B6A3DD3D922BF5724D45E7F9589B5E830442C'
+        TopDir  = 'phc-winner-argon2-20190702'
+        Probe   = 'include\argon2.h'
     }
 )
 
@@ -39,7 +58,7 @@ foreach ($p in $Packages) {
         continue
     }
 
-    $archive = Join-Path ([IO.Path]::GetTempPath()) (Split-Path $p.Url -Leaf)
+    $archive = Join-Path ([IO.Path]::GetTempPath()) $p.Archive
     if (-not (Test-Path $archive)) {
         Write-Host "下载 $($p.Url)"
         Invoke-WebRequest $p.Url -OutFile $archive -UseBasicParsing
@@ -50,14 +69,26 @@ foreach ($p in $Packages) {
         throw "$($p.Name) SHA256 不符：期望 $($p.Sha256)，实际 $actual（已删除下载文件）"
     }
 
-    if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
+    if (Test-Path $dest) {
+        # 删除目标必须严格位于本仓库 native/third_party 下，避免变量异常时扩大范围。
+        $resolvedRoot = [IO.Path]::GetFullPath($Root).TrimEnd('\') + '\'
+        $resolvedDest = [IO.Path]::GetFullPath($dest)
+        if (-not $resolvedDest.StartsWith($resolvedRoot, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "拒绝删除 third_party 目录之外的路径：$resolvedDest"
+        }
+        Remove-Item -LiteralPath $resolvedDest -Recurse -Force
+    }
     $staging = Join-Path ([IO.Path]::GetTempPath()) ("tp-" + [Guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Force $staging | Out-Null
     try {
         # Windows 10 自带 bsdtar，能直接解 .tar.gz
         & tar.exe -xzf $archive -C $staging
         if ($LASTEXITCODE -ne 0) { throw "解包失败（tar 退出码 $LASTEXITCODE）" }
-        Move-Item (Join-Path $staging $p.TopDir) $dest
+        $sourceDir = Join-Path $staging $p.TopDir
+        if (-not (Test-Path (Join-Path $sourceDir $p.Probe))) {
+            throw "$($p.Name) 压缩包缺少预期文件：$($p.Probe)"
+        }
+        Move-Item -LiteralPath $sourceDir -Destination $dest
     }
     finally {
         Remove-Item $staging -Recurse -Force -ErrorAction SilentlyContinue
