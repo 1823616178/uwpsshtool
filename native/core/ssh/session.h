@@ -26,6 +26,8 @@ class SessionThread;
 }
 namespace ssh {
 
+class SshChannel; // N06: channel.h
+
 enum class SshSessionState {
     Idle,
     Connecting,
@@ -195,6 +197,8 @@ public:
     static bool isLegalTransition(SshSessionState from, SshSessionState to);
 
 private:
+    friend class SshChannel; // N06: registration, pump dispatch, handle access
+
     void doConnect();
     void onSocketEvent(SOCKET socket, short events);
     void beginHandshake();
@@ -211,6 +215,12 @@ private:
     void peerDisconnected(SshSessionError error, std::string message);
     void releaseResources();
     void cancelTimers();
+
+    // ---- N06 channel registry (loop thread only; channel.cpp) ----
+    void registerChannel(SshChannel* channel);
+    void unregisterChannel(SshChannel* channel);
+    void driveChannels();             // socket event -> pump every channel
+    void notifyChannelsSessionLost(); // releaseResources: force-clean all
 
     // ---- N05 auth driver (loop thread; implemented in auth.cpp) ----
     // In-flight auth attempt: method, credential copies (admission copies and
@@ -282,6 +292,9 @@ private:
     io::EventLoop::TimerId authMethodsTimer_ = 0;
     unsigned authFailedAttempts_ = 0;
     AuthPromptGate promptGate_;
+
+    // ---- N06 channel registry (loop thread only) ----
+    std::vector<SshChannel*> channels_;
 };
 
 const char* toString(SshSessionState state);

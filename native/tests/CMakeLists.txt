@@ -89,7 +89,8 @@ target_link_libraries(native_dependencies_host PUBLIC
 add_library(ssh_session_host STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/session.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/hostkey.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/auth.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/auth.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/channel.cpp)
 target_include_directories(ssh_session_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core)
 # hostkey.cpp 用 OpenSSL EVP 算指纹；native_dependencies_host 的 OpenSSL include 是 PRIVATE，这里单独补。
 target_include_directories(ssh_session_host PRIVATE ${OPENSSL_DIR}/include)
@@ -115,6 +116,10 @@ target_link_libraries(auth_test PRIVATE ssh_session_host GTest::gtest_main)
 # 测试内用绝对路径定位 fixtures/keys（ctest 工作目录是 build/）。
 target_compile_definitions(auth_test PRIVATE SSH_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
+add_executable(channel_test channel_test.cpp)
+target_link_libraries(channel_test PRIVATE ssh_session_host GTest::gtest_main)
+target_compile_definitions(channel_test PRIVATE SSH_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
 gtest_discover_tests(deps_smoke_test)
@@ -122,3 +127,4 @@ gtest_discover_tests(io_test)
 gtest_discover_tests(ssh_session_test)
 gtest_discover_tests(hostkey_test)
 gtest_discover_tests(auth_test)
+gtest_discover_tests(channel_test)

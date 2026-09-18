@@ -1,11 +1,13 @@
 #include "session.h"
 
+#include "channel.h"
 #include "io/SessionThread.h"
 
 #include <libssh2.h>
 
 #include <ws2tcpip.h>
 
+#include <algorithm>
 #include <cstdio>
 #include <mutex>
 #include <utility>
@@ -304,16 +306,25 @@ void SshSession::onSocketEvent(SOCKET, short events)
             }
             return;
         }
-        if ((events & io::EventLoop::Readable) != 0) {
-            char byte = 0;
-            const int received = ::recv(socket_, &byte, 1, MSG_PEEK);
-            if (received == 0) {
-                peerDisconnected(SshSessionError::RemoteClosed, "SSH peer closed the connection");
-            } else if (received == SOCKET_ERROR) {
-                const int error = ::WSAGetLastError();
-                if (error != WSAEWOULDBLOCK) {
-                    peerDisconnected(SshSessionError::SocketError,
-                                     WsaMessage("SSH socket read failed", error));
+        // N06: socket events re-drive the channel pumps (EAGAIN continuations,
+        // inbound data, close handshakes).
+        if (!channels_.empty() &&
+            (events & (io::EventLoop::Readable | io::EventLoop::Writable)) != 0) {
+            driveChannels();
+        }
+        if (state() == SshSessionState::Established ||
+            state() == SshSessionState::Authenticating) {
+            if ((events & io::EventLoop::Readable) != 0) {
+                char byte = 0;
+                const int received = ::recv(socket_, &byte, 1, MSG_PEEK);
+                if (received == 0) {
+                    peerDisconnected(SshSessionError::RemoteClosed, "SSH peer closed the connection");
+                } else if (received == SOCKET_ERROR) {
+                    const int error = ::WSAGetLastError();
+                    if (error != WSAEWOULDBLOCK) {
+                        peerDisconnected(SshSessionError::SocketError,
+                                         WsaMessage("SSH socket read failed", error));
+                    }
                 }
             }
         }
@@ -422,6 +433,19 @@ void SshSession::updateSocketInterest()
     }
     if ((directions & LIBSSH2_SESSION_BLOCK_OUTBOUND) != 0) {
         events |= io::EventLoop::Writable;
+    }
+    if (state() == SshSessionState::Established) {
+        // N06: channels consume inbound data on demand; keep Readable armed so
+        // their pumps run. Writable only while a channel declared an outbound
+        // stall (a connected socket is virtually always writable and WSAPoll
+        // is level-triggered — arming it unconditionally would spin the loop).
+        events |= io::EventLoop::Readable;
+        for (SshChannel* channel : channels_) {
+            if (channel->wantsOutboundBlocked()) {
+                events |= io::EventLoop::Writable;
+                break;
+            }
+        }
     }
     if (events == 0) {
         // Nothing blocked (e.g. idle Authenticating/Established): arm read-only.
@@ -536,6 +560,10 @@ void SshSession::releaseResources()
     // in-memory credential copies (auth.cpp); must precede session_ free
     // because the auth context references it.
     clearAuthState();
+    // N06: force-clean every registered channel before the libssh2 session
+    // goes away; a channel free that EAGAINs is covered by the session_free
+    // retry below (channel.cpp onSessionLost).
+    notifyChannelsSessionLost();
     if (socketRegistered_) {
         thread_.loop().removeSocket(socket_);
         socketRegistered_ = false;
@@ -564,6 +592,46 @@ void SshSession::cancelTimers()
             *timer = 0;
         }
     }
+}
+
+// ---------------------------------------------------------------- N06 channel registry (loop thread)
+
+void SshSession::registerChannel(SshChannel* channel)
+{
+    channels_.push_back(channel);
+}
+
+void SshSession::unregisterChannel(SshChannel* channel)
+{
+    channels_.erase(std::remove(channels_.begin(), channels_.end(), channel),
+                    channels_.end());
+}
+
+void SshSession::driveChannels()
+{
+    // pump() may unregister a finished channel and mutate channels_; walk a
+    // snapshot and skip entries that unregistered mid-round.
+    const std::vector<SshChannel*> snapshot = channels_;
+    for (SshChannel* channel : snapshot) {
+        if (std::find(channels_.begin(), channels_.end(), channel) != channels_.end()) {
+            channel->pump();
+        }
+    }
+    // Re-arm per the fresh block directions (a stall may have moved between
+    // inbound/outbound during the pumps).
+    if (socketRegistered_ && state() == SshSessionState::Established) {
+        updateSocketInterest();
+    }
+}
+
+void SshSession::notifyChannelsSessionLost()
+{
+    // onSessionLost() does not unregister (the whole table is dropped here).
+    const std::vector<SshChannel*> snapshot = channels_;
+    for (SshChannel* channel : snapshot) {
+        channel->onSessionLost();
+    }
+    channels_.clear();
 }
 
 const char* toString(SshSessionState state)
