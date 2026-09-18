@@ -27,8 +27,12 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_library(ssh_core_host STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../core/core_info.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/core_info.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/io/EventLoop.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/io/SessionThread.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/io/WinsockInit.cpp)
 target_include_directories(ssh_core_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core)
+target_link_libraries(ssh_core_host PUBLIC ws2_32)
 
 set(THIRD_PARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../third_party)
 set(LIBSSH2_DIR ${THIRD_PARTY_DIR}/libssh2)
@@ -88,6 +92,10 @@ target_link_libraries(smoke_test PRIVATE ssh_core_host GTest::gtest_main)
 add_executable(deps_smoke_test deps_smoke_test.cpp)
 target_link_libraries(deps_smoke_test PRIVATE native_dependencies_host GTest::gtest_main)
 
+add_executable(io_test event_loop_test.cpp session_thread_test.cpp)
+target_link_libraries(io_test PRIVATE ssh_core_host GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
 gtest_discover_tests(deps_smoke_test)
+gtest_discover_tests(io_test)

@@ -17,7 +17,10 @@
 
   <ItemGroup Label="Core">
     <ClInclude Include="$(NativeCoreDir)core_info.h" />
-    <ClCompile Include="$(NativeCoreDir)core_info.cpp">
+    <ClInclude Include="$(NativeCoreDir)io\EventLoop.h" />
+    <ClInclude Include="$(NativeCoreDir)io\SessionThread.h" />
+    <ClInclude Include="$(NativeCoreDir)io\WinsockInit.h" />
+    <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
     </ClCompile>
