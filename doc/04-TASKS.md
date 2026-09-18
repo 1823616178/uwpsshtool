@@ -38,7 +38,7 @@
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
-| M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
+| M1 | 原生 SSH 内核 | 11 | 1 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **26** | |
+| **合计** | | **111** | **27** | |
 
 ### 1.1 关键路径
 
@@ -265,7 +265,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 
 ## 3. M1 — 原生 SSH 内核
 
-- [ ] **N01 第三方源码与原生构建体系** `M`
+- [x] **N01 第三方源码与原生构建体系** `M`
   - 依赖：SP02、SP03
   - 参考：`01-DESIGN.md §3.2、§5、D16、D17`
   - 产出：`scripts/fetch-third-party.ps1`（libssh2 1.11.1、libvterm 0.3.3、phc-winner-argon2 20190702，固定 URL + SHA256）、`native/core/NativeCore.vcxitems`（共享项目，列出 core 与 third_party 源文件）、`src/SshTool.Native` 引用共享项目并移除 Spike 内联源文件、`native/tests/CMakeLists.txt` 更新、`native/NATIVE-BUILD.md` 完整化、`native/tests/deps_smoke_test.cpp`
@@ -275,9 +275,9 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     3. 宿主 CMake 链接 `native/prebuilt/x64-windows-static` 的 OpenSSL。
     4. 冒烟测试：`libssh2_version(0)` 为 1.11.1；`vterm_new(24,80)` 写入 `"hi"` 后屏幕单元格正确；Argon2id 使用 RFC 9106 §5.3 官方测试向量结果一致。
   - 验收：
-    - [ ] SshTool.Native ARM/x86/x64 均构建成功
-    - [ ] 宿主机 native 测试 3 条冒烟用例通过
-    - [ ] `NATIVE-BUILD.md` 可让新机器从零复现
+    - [x] SshTool.Native ARM/x86/x64 均构建成功
+    - [x] 宿主机 native 测试 3 条冒烟用例通过
+    - [x] `NATIVE-BUILD.md` 可让新机器从零复现
   - 验证：`pwsh scripts/verify.ps1 -Arm`
 
 - [ ] **N02 事件循环与会话线程** `M`
@@ -1335,3 +1335,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | SP03 | a3c139c | ⏳ 等待：📱 真机两项（ARM 包 v0.1.0.6 已备好，手机接 USB 后我自动装包+推种子+拉报告）。AI 侧：**PC x64 Debug 验收①通过**（👤 提供测试服务器 192.168.1.25；无人值守实测 `uname -a` 返回 Linux sun 7.0.0-30-generic Ubuntu 24.04 x86_64，exit=0；协商 kex curve25519-sha256 / hostkey ecdsa-sha2-nistp256 / cipher chacha20-poly1305 / mac hmac-sha2-256，总耗时 652ms，报告 sp03-ssh-20260918-084849.txt；PC 回环 UDP 探测亦可用）。**新增无人值守机制**：启动检测 `LocalState\ssh-autotest.json`，读后即删（密码不留盘），自动跑 SSH+UDP 并出报告——N 系列回归不用再戳屏幕；`phone-portal.ps1` 加 `-Push`。踩坑（记 ENV §5）：未签名 appx PC 拒装 0x800B0100、CurrentUser TrustedPeople 仍 0x800B0109、msbuild 无 Deploy 目标，最终「解压 appx + Add-AppxPackage -Register」免签名解决；appx 签名证书 EKU 必须是 1.3.6.1.5.5.7.3.3（311.10.3.4 是 EFS）。verify 全绿；任务不勾选 |
 | 2026-09-18 | SP03 | 8162b9e | **代码任务完成**。用户回报 Lumia 真机 Wi-Fi SSH 成功：697 ms，协商算法与 PC 完全一致，同一服务器指纹一致；UDP 留入渐进真机待办。修正设备门户路径必须含 `\LocalState`，种子改推应用自建 `spike-reports` 目录以继承 ACL；自动测试增加并发防重。按用户要求改为“自动门禁完成即继续编码，📱/👤 按里程碑渐进回归”，并据此归档 X03/X07/U05。465 个 Core 测试、native ctest、文档和 XAML 门禁通过；宿主 UWP 源码编译成功，打包阶段遇本机 SDK `GenerateAppxPackageRecipe`/`MrmSupportLibrary` 工具异常，独立跟踪，不转成人工验收。 |
 | 2026-09-18 | SP06 | 8616af2 | **代码任务完成，真机渐进回归**。新增 PlatformSpikePage：ExtendedExecution 请求/撤销日志、DisplayRequest 成对管理、DPAPI `LOCAL=user` 1 KiB 往返与跨重启文件、Windows.Web.Http GET/HEAD/If-Match、1–30 分钟 SSH tick 后台存活测试；结果统一落 `spike-reports` 与 app.log，密码不保存。UWP C#/XAML 编译通过；人工场景已登记待办，不阻塞 N01/P01。 |
+| 2026-09-18 | N01 | 4e78eb6 | **完成**。固定 URL/SHA256 拉取 libssh2 1.11.1、libvterm 0.3.3 release tar、Argon2 20190702；`NativeCore.vcxitems` 统一 UWP 原生清单，Argon2 固定 ref.c + `ARGON2_NO_THREADS`；宿主链接静态 OpenSSL 并通过 libssh2/libvterm/RFC 9106 三条冒烟。VS2017 v141 的 x64/Win32/ARM 三架构构建成功，`verify.ps1 -Arm` 全绿。顺带定位并修复 Appx 打包 `MrmSupportLibrary.GetLocation` 空引用：受控终端缺进程级 `PROCESSOR_ARCHITECTURE`，门禁从 Machine 级补回。 |
