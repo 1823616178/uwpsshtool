@@ -61,7 +61,7 @@
 pwsh scripts/phone-portal.ps1 -Pair <6位PIN>       # 一次性；会话存 .phone-portal-session.json（已 gitignore）
 pwsh scripts/phone-portal.ps1 -List                # 列 LocalState\spike-reports
 pwsh scripts/phone-portal.ps1 -Pull                # 全部拉到 artifacts/phone-reports/
-pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
+pwsh scripts/phone-portal.ps1 -Get app.log -Path "\LocalState\logs"
 ```
 
 调试页的报告会自动落 `LocalState\spike-reports\`、复制到剪贴板、并写 `logs\app.log`（`Views/Debug/DebugReport.cs`）。
@@ -197,14 +197,19 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
   自带 `_WIN32` 分支，不需要 `libssh2_config.h`；后端用 `LIBSSH2_OPENSSL` + SP02 产出的 `libcrypto.lib`。
   排除 `agent_win.c`（Pageant 窗口消息/命名管道，UWP 禁用）与 `os400qc3.c`。详见 `native/third_party/PATCHES.md`。
 - **链接期未出现 AppContainer 禁用 API 报错**：`socket`/`connect`/`select`/`getaddrinfo` 在 UWP 可链接；
-  能否真正连出去由 📱 验收确认（AppContainer 的网络能力已在清单里：internetClient / internetClientServer / privateNetworkClientServer）。
+  真机 AppContainer 已经 Wi-Fi 实连成功（清单能力：internetClient / internetClientServer / privateNetworkClientServer）。
 - **又踩一次 `/utf-8`**：Native 工程此前没加该开关，MSVC 按 GBK 读 UTF-8 源码，中文注释尾字节吞掉下一行，
   报出「`AppendMethods` 找不到标识符」「`tv` 未声明」这类完全对不上的错。已在两个配置组加 `/utf-8`（§5 早有此坑记录）。
-- 📱 待真机（服务器已由 👤 提供，2026-09-18）：SpikePage 的「SP03 SSH 测试」区填主机/端口/用户/密码/命令 →
-  「连接并执行」；另点「回环 UDP 探测」验证事件循环唤醒方案。报告落 `LocalState\spike-reports\sp03-*.txt`，
-  我用 `phone-portal.ps1 -Pull` 自取。**密码只进内存，不写日志、不落盘、不入报告。**
-- **无人值守模式（2026-09-18 新增，为 N 系列回归铺路）**：启动时若 `LocalState\ssh-autotest.json` 存在
+- **📱 SSH 真机通过（2026-09-18）**：Lumia 950 / ARM Release / .NET Native 经 Wi-Fi 对局域网服务器执行
+  `uname -a` 成功，总耗时 697 ms；协商算法与 PC 完全一致（curve25519-sha256 / ecdsa-sha2-nistp256 /
+  chacha20-poly1305@openssh.com / hmac-sha2-256），主机指纹与 PC 对同一服务器所得结果一致。
+- 📱 回环 UDP 唤醒探测留作渐进真机回归，不阻塞后续编码。
+- **无人值守模式（2026-09-18 新增，为 N 系列回归铺路）**：启动时若
+  `LocalState\spike-reports\ssh-autotest.json` 存在
   （`{"host","port","user","password","command","udp"}`），App 读出后**立即删除文件**，自动跑 SSH 测试 +
   UDP 探测并出报告，全程无需戳屏幕。种子文件 PC 端直接写 LocalState，手机端用
-  `phone-portal.ps1 -Push <file> -Path "\"` 推入。密码只在种子文件里短暂停留，App 读出即删，
+  `phone-portal.ps1 -Push <file>` 推入。密码只在种子文件里短暂停留，App 读出即删，
   依旧不记日志、不落盘（App 自身）、不入报告。
+- **设备门户路径/ACL 坑（2026-09-18 实测）**：`knownfolderid=LocalAppData` 的 `path` 从包数据根开始，
+  必须写 `\LocalState\...`，不是直接写 `\...`。门户推入 `LocalState` 根的文件虽然枚举可见，但不继承应用 ACL，
+  应用打开会得 `UnauthorizedAccessException`；推入应用自己创建的 `LocalState\spike-reports` 子目录可继承正确 ACL。

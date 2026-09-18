@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using Windows.Storage;
@@ -17,15 +18,65 @@ namespace SshTool.App.Views.Debug
     internal static class SshAutoTest
     {
         public const string SeedFileName = "ssh-autotest.json";
+        private static int isRunning;
 
         public static async Task RunIfSeedPresentAsync()
+        {
+            // OnLaunched 与 Resuming 可能紧挨着到达。只允许一个消费者读取并删除种子，
+            // 避免重复探测、双跑 SSH，或一个调用在另一个调用删除后误报失败。
+            if (Interlocked.CompareExchange(ref isRunning, 1, 0) != 0)
+            {
+                return;
+            }
+
+            try
+            {
+                await RunCoreAsync();
+            }
+            finally
+            {
+                Volatile.Write(ref isRunning, 0);
+            }
+        }
+
+        private static async Task RunCoreAsync()
         {
             string json;
             try
             {
-                var item = await ApplicationData.Current.LocalFolder.TryGetItemAsync(SeedFileName);
-                var file = item as StorageFile;
-                if (file == null) { return; }
+                // 先把报告目录建出来（应用自建目录 ACL 归本应用）：既是报告落盘处，
+                // 也是门户推种子的可用通道（根目录被推入的文件 ACL 不含本应用，读不了）
+                await ApplicationData.Current.LocalFolder.CreateFolderAsync(
+                    DebugReport.FolderName, CreationCollisionOption.OpenIfExists);
+                // 种子可能在两处：LocalFolder 根，或 spike-reports 子目录。
+                // 门户往 LocalState 根推的文件 ACL 不含本应用（"Update file access failed"，
+                // 2026-09-18 实测：枚举可见但打开 UnauthorizedAccess）；推到应用自建的
+                // spike-reports 目录里则继承该目录的 ACL，可读。
+                StorageFile file = null;
+                string foundIn = null;
+                foreach (var probe in new[] {
+                    ApplicationData.Current.LocalFolder.Path,
+                    System.IO.Path.Combine(ApplicationData.Current.LocalFolder.Path, DebugReport.FolderName) })
+                {
+                    try
+                    {
+                        file = await StorageFile.GetFileFromPathAsync(
+                            System.IO.Path.Combine(probe, SeedFileName));
+                        foundIn = probe;
+                        break;
+                    }
+                    catch (Exception probeEx)
+                    {
+                        Platform.FileLogger.Instance.Log(SshTool.Core.Common.LogLevel.Info, "SP03",
+                            "自动测试：探测 " + probe + " 未得种子（" + probeEx.GetType().Name + "）");
+                    }
+                }
+                if (file == null)
+                {
+                    return;
+                }
+                Platform.FileLogger.Instance.Log(SshTool.Core.Common.LogLevel.Info, "SP03",
+                    "自动测试：发现种子（" + foundIn + "），读出后删除");
                 json = await FileIO.ReadTextAsync(file);
                 // 先删后跑：不管后面成功失败，密码都不在盘上多留一秒
                 await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
@@ -75,6 +126,10 @@ namespace SshTool.App.Views.Debug
                     + "\nSP03 自动测试失败\n异常：" + ex.GetType().Name + " " + ex.Message;
                 await DebugReport.PublishAsync("sp03-ssh", "SP03", failure);
             }
+
+            // 日志走队列，主动落盘——否则要靠下一次挂起才能从 app.log 看到上面的行
+            try { await Platform.FileLogger.Instance.FlushAsync(); }
+            catch { /* 诊断性落盘失败不影响主流程 */ }
         }
     }
 }

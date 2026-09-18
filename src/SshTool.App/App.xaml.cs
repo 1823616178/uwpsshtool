@@ -17,6 +17,8 @@ namespace SshTool.App
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            // 种子可能在应用被挂起期间才推进来（门户 -Push），恢复时也要检查一次
+            this.Resuming += OnResumingCheckSeed;
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs e)
@@ -72,6 +74,11 @@ namespace SshTool.App
         private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
+        }
+
+        private void OnResumingCheckSeed(object sender, object e)
+        {
+            var ignore = Views.Debug.SshAutoTest.RunIfSeedPresentAsync();
         }
 
         private async void OnSuspending(object sender, SuspendingEventArgs e)

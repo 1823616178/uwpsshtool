@@ -4,11 +4,11 @@
 #
 #   pwsh scripts/phone-portal.ps1 -Pair 3XKF9Q       # 手机：设置→更新和安全→针对开发人员→设备发现→配对
 #   pwsh scripts/phone-portal.ps1 -List              # 列 LocalState\spike-reports
-#   pwsh scripts/phone-portal.ps1 -List -Path "\"    # 列 LocalState 根
+#   pwsh scripts/phone-portal.ps1 -List -Path "\LocalState" # 列 LocalState 根
 #   pwsh scripts/phone-portal.ps1 -Pull              # 把 spike-reports 全部拉到 artifacts/phone-reports/
-#   pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
+#   pwsh scripts/phone-portal.ps1 -Get app.log -Path "\LocalState\logs"
 #   pwsh scripts/phone-portal.ps1 -Install src\SshTool.App\AppPackages\...\SshTool.App_0.1.0.1_ARM.appx
-#   pwsh scripts/phone-portal.ps1 -Push .\ssh-autotest.json -Path "\"   # 上传到 LocalState 根（SP03 无人值守种子）
+#   pwsh scripts/phone-portal.ps1 -Push .\ssh-autotest.json # 上传到应用自建报告目录（继承可读 ACL）
 #
 # 会话 cookie 存在 .phone-portal-session.json（已 gitignore），配对一次后长期可用。
 [CmdletBinding()]
@@ -19,7 +19,8 @@ param(
     [string]$Get,
     [string]$Install,
     [string]$Push,
-    [string]$Path = '\spike-reports',
+    # knownfolderid=LocalAppData 的根是包目录，不是 LocalState；必须显式带 LocalState。
+    [string]$Path = '\LocalState\spike-reports',
     [string]$BaseUrl = 'https://127.0.0.1:10443',
     [string]$PackageFamily = 'SshTool.LumiaSsh'
 )
@@ -55,6 +56,20 @@ function Invoke-Portal([string]$relUrl, $session, [string]$outFile) {
     return Invoke-WebRequest @args
 }
 
+# 门户的 POST 有 CSRF 校验：GET 任意接口时它下发 Set-Cookie: CSRF-Token，
+# 但 PS7 的 WebSession 不收这个 cookie——手工抠出来，POST 时同时放请求头和 Cookie。
+function Get-CsrfHeaders($session) {
+    $probe = Invoke-Portal '/api/app/packagemanager/packages' $session
+    $setCookie = $probe.Headers['Set-Cookie'] -join ';'
+    if ($setCookie -match 'CSRF-Token=([^;,\s]+)') {
+        $token = $Matches[1]
+        $session.Cookies.Add((New-Object System.Net.Cookie('CSRF-Token', $token, '/', ([Uri]$BaseUrl).Host)))
+        return @{ 'X-CSRF-Token' = $token }
+    }
+    Write-Host '警告：没拿到 CSRF-Token，POST 可能 403'
+    return @{}
+}
+
 # ---- 配对 ----
 if ($Pair) {
     $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
@@ -77,8 +92,9 @@ if ($Install) {
         foreach ($d in Get-ChildItem $depDir -Filter *.appx) { $form[$d.Name] = $d }
     }
     Write-Host ("上传 {0} 与 {1} 个依赖包…" -f $appx.Name, ($form.Count - 1))
+    $installHeaders = Get-CsrfHeaders $session
     $r = Invoke-WebRequest -Uri "$BaseUrl/api/app/packagemanager/package?package=$([Uri]::EscapeDataString($appx.Name))" `
-        -Method Post -Form $form -WebSession $session -SkipCertificateCheck -TimeoutSec 600 -UseBasicParsing
+        -Method Post -Form $form -WebSession $session -SkipCertificateCheck -TimeoutSec 600 -UseBasicParsing -Headers $installHeaders
     Write-Host "上传返回 HTTP $($r.StatusCode)，等待安装完成…"
     for ($i = 0; $i -lt 60; $i++) {
         Start-Sleep -Seconds 3
@@ -109,14 +125,16 @@ Write-Host "应用包：$pfn"
 
 $q = "knownfolderid=LocalAppData&packagefullname=$pfn&path=" + [Uri]::EscapeDataString($Path)
 
-# ---- 上传文件到 LocalState\<Path>（SP03：把 ssh-autotest.json 推进无人值守测试）----
+# ---- 上传文件到包数据目录 <Path>（SP03：把 ssh-autotest.json 推进无人值守测试）----
 if ($Push) {
     $item = Get-Item $Push
-    $form = @{ ($item.Name) = $item }
+    # 字段名必须是字面量 "file"（用文件名当字段名会被门户判成 "No files posted"，2026-09-18 实测）
+    $form = @{ 'file' = $item }
     $uq = "$q&filename=" + [Uri]::EscapeDataString($item.Name)
+    $headers = Get-CsrfHeaders $session
     $r = Invoke-WebRequest -Uri "$BaseUrl/api/filesystem/apps/file?$uq" `
-        -Method Post -Form $form -WebSession $session -SkipCertificateCheck -TimeoutSec 120 -UseBasicParsing
-    Write-Host "上传 $($item.Name) → LocalState$Path，HTTP $($r.StatusCode)"
+        -Method Post -Form $form -WebSession $session -SkipCertificateCheck -TimeoutSec 120 -UseBasicParsing -Headers $headers
+    Write-Host "上传 $($item.Name) → $Path，HTTP $($r.StatusCode)"
     exit 0
 }
 
