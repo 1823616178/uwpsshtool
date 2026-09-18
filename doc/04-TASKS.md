@@ -38,7 +38,7 @@
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
-| M1 | 原生 SSH 内核 | 11 | 6 | 调试页在 Lumia 上连服务器执行命令看到输出 |
+| M1 | 原生 SSH 内核 | 11 | 7 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **32** | |
+| **合计** | | **111** | **33** | |
 
 ### 1.1 关键路径
 
@@ -332,13 +332,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 集成：`stty size` 输出与请求的行列一致；resize 后再次 `stty size` 变化（等价验证已过：Windows ConPTY 实测 execWithPty 113x37 生效、shell resize 后 80x24→113x37；POSIX stty 三条用例已入测试、SSH_TEST_POSIX 门控，待 POSIX 服务器跑一次，见文末待办）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
-- [ ] **N07 Keepalive、主动探测与重连策略** `S`
+- [x] **N07 Keepalive、主动探测与重连策略** `S`
   - 依赖：N06
   - 参考：鸿蒙端 `cpp/ssh/keepalive.h`、`reconnect_policy.h`、`cpp/tests/keepalive_test.cpp`、`reconnect_policy_test.cpp`；鸿蒙端 `docs/DESIGN.md §7.5` probeNow 说明
   - 产出：`native/core/ssh/{keepalive.h,reconnect_policy.h}`、对应测试
   - 要点：`libssh2_keepalive_config` + 连续 3 个周期无入站判静默（404）；`ProbeNow()`：强发一拍并开 5 s 判定窗口；重连退避表 1/2/5/10/20/30 s，最大次数可配。
   - 验收：
-    - [ ] 移植用例全部通过（含 KeepaliveProbe 5 条）
+    - [x] 移植用例全部通过（含 KeepaliveProbe 5 条）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
 - [ ] **N08 统一错误码与对拍脚本** `S`
@@ -1344,3 +1344,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | N04 | 1438c45 | **完成**。新增 `native/core/ssh/hostkey.{h,cpp}`：`SHA256:`+base64 无填充指纹、MD5 对照指纹、OpenSSH 逐字节对齐的 Drunken Bishop randomart（17×9）、blob 内嵌算法名解析（libssh2 枚举兜底）、三态比对（Ok/Unknown/Mismatch，提取失败 fail-closed 归 Mismatch）。SshSession 握手成功后、进 Authenticating 前同步调 `hostKeyCallback`（空回调=TOFU 放行）；Reject 或提取失败 → 错误 303、`SSH_DISCONNECT_HOST_KEY_NOT_VERIFIABLE` 优雅断开走 Closing→Closed，被拒后 `hostKeyInfo()` 仍可取供对比视图。黄金向量：固定 ed25519 blob 的 SHA256/MD5/randomart 与 `ssh-keygen -l`/`-E md5 -l`/`-lv` 输出逐字符写死比对 ✓；对测试服务器 192.168.1.25 实测三条集成用例全过（默认放行取指纹 ecdsa-sha2-nistp256、回调比对通过进 Authenticating、伪造指纹被拒且状态序列无 Authenticating）。native 共 35 测试；`verify.ps1 -Quick` 全绿；v141 UWP x64 Debug / ARM Release 构建 ✓（NativeCore.vcxitems 的 Core 组为此补 `/std:c++17`——v141 默认 C++14 无 `std::optional`）。 |
 | 2026-09-18 | N05 | c6a269e | **代码完成**。`native/core/ssh/auth.{h,cpp}`：非阻塞驱动 `authenticatePassword`/`authenticatePublicKey`（frommemory）/`authenticateKeyboardInteractive`/`queryAuthMethods`，受理即复制并 `OPENSSL_cleanse` 清零调用方凭据缓冲，AuthOp 析构兜底清零；失败停留 Authenticating 可重试（authMaxAttempts=3），耗尽或 authTimeoutMs 超时进 Error；错误映射 201/202/203/204（含 libssh2 1.11.1 三条吞错路径的归一化）。KI 按本项目规格走 `IAuthPromptSink` + `AuthPromptGate` 条件变量阻塞等待（默认 120 s 超时视为取消，超时/不死锁有单测）。fixtures：ed25519 OpenSSH 未加密/加密 + RSA-3072 PEM 未加密/加密（短语 `n05-test-passphrase`）。单测 15 条全过（native 共 50）；实测：本机起私有 Windows sshd（127.0.0.1:2222，临时 authorized_keys，测后已回收）连通公钥未加密/加密两条——加密私钥错短语精确映射 204 后重试正确短语进 Established；192.168.1.25 方式探测 `publickey,password`。顺带修 N03 潜伏 bug：`updateSocketInterest` 在 libssh2 无阻塞方向时挂了 Readable\|Writable，WSAPoll 水平触发下空转，改为只挂 Readable。密码成功/KI 两条集成待真实凭据与 KI 服务器（已登记待办）；`verify.ps1 -Quick` 全绿，v141 x64 Debug / ARM Release 构建 ✓。 |
 | 2026-09-18 | N06 | a6affcf | **代码完成**。`native/core/ssh/channel.{h,cpp}`：SshChannel 绑定 SshSession，三种打开形态（openShell / exec / execWithPty）各走 open_session→request_pty→process_startup 三段 EAGAIN 续跑流水线；`setenv` 小队列在 startup 前先行、拒收仅记日志不致命；写路径任意线程受理入队、4 MiB 背压上限整次拒收，`PendingWriteQueue` 纯逻辑组件（head offset 分块 FIFO）；读路径双流（stdout/stderr）交替抽干防窗口饿死，`classifyChannelRead` 纯函数分 Data/Eof/Stalled/Error；resize 在途合并后到优先；sendEof 排在待发数据之后；close 握手→exit-status/exit-signal→free→onClose（PeerEof/ExitStatus/ExitSignal/Error），onOpen/onClose 各恰好一次；另提供阻塞一次性 `execCommand`（测试/诊断用，超时 15 s + 2 s 关闭宽限）。session 接线：通道注册表、socket 事件 driveChannels、releaseResources 先 notifyChannelsSessionLost 再 session_free、Established 态常驻 Readable + 通道出站停滞才挂 Writable。离线单测 9 条（迁移表穷举、受理拒绝、队列部分写/EAGAIN 停滞/清零、读分类四分支）；实测本机私有 sshd（测后已回收）：exit 42 退出码、execCommand 往返、stdout/stderr 分流三条过；ConPTY 探针（SSH_TEST_CONPTY 门控）：execWithPty 113x37 实测生效、shell resize 后 80x24→113x37——**resize 验收等价通过**；POSIX stty/cat 三条用例已入测试（SSH_TEST_POSIX 门控）待 POSIX 服务器（已登记待办）。native 共 67 测试；`verify.ps1 -Quick` 全绿；v141 UWP x64 Debug / ARM Release 构建 ✓。 |
+| 2026-09-18 | N07 | d4ef709 | **代码完成**。纯逻辑件 `keepalive.h`（`keepaliveInboundObserved` 双信号取或：Readable 事件 / FIONREAD 待读字节增长；`KeepaliveMissTracker` 连续静默周期计数，maxMisses=0 只发不判；`KeepaliveProbe` 开窗/基线/到期裁决）与 `reconnect_policy.h`（`BackoffSchedule` 默认 1/2/5/10/20/30 s、上限 6 次、0=无限、空序列回落默认、越界钳末档）。session 集成：错误码 404 `KeepaliveTimeout`；`setKeepaliveConfig` 仅 Idle 受理；进 Established 时 `armKeepalive`（want_reply=1，首周期宽限 + FIONREAD 基线），每拍观测入站→发送→按 libssh2 `seconds_to_next` 预约下一拍，连续静默达标或发送失败 → Disconnected(404)；`probeNow` 仅 Established 受理，压 interval 到 libssh2 下限逼出真发（刚发过则沿用旧基线保留在途应答证据），开 5 s 判定窗口复用 keepaliveTimer_ 槽位，无入站即 404 断线、有入站则 miss 清零续周期链；`isAutoReconnectable`：Disconnected 恒可重连，Error 按链路类/凭据类分。测试 27 条（native 共 94）：纯逻辑 22（含 KeepaliveProbe 5）+ 受理语义 2 + 集成 3；实测私有 sshd（测后已回收）：1 s 周期 2 拍发送计数增长且 0 miss 不误判、interval=0 完全静默、probeNow 2 s 窗口判活不断线。踩坑：sshd_config 的 Windows 路径单反斜杠会被转义吞掉（`\a`、`\n`），须用 `sshd -T` 校验解析结果。`verify.ps1 -Quick` 全绿；v141 UWP x64 Debug / ARM Release 构建 ✓。 |
