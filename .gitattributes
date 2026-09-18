@@ -12,3 +12,5 @@
 *.png     binary
 *.ttf     binary
 *.ico     binary
+# SSH 测试密钥（PEM/OpenSSH 格式）对换行敏感：CRLF 检出会让 ssh-keygen/libssh2 解析失败
+native/tests/fixtures/** text eol=lf
