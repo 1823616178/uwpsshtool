@@ -38,7 +38,7 @@
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
-| M1 | 原生 SSH 内核 | 11 | 9 | 调试页在 Lumia 上连服务器执行命令看到输出 |
+| M1 | 原生 SSH 内核 | 11 | 10 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **35** | |
+| **合计** | | **111** | **36** | |
 
 ### 1.1 关键路径
 
@@ -366,14 +366,14 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 纯逻辑部分（合并投递标志、deferral 超时）抽到 `native/core/bridge_logic/` 并有单测
   - 验证：`pwsh scripts/verify.ps1 -Arm`
 
-- [ ] **N09b C# 会话抽象与原生适配** `M`
+- [x] **N09b C# 会话抽象与原生适配** `M`
   - 依赖：N09a、X07
   - 参考：`01-DESIGN.md §4.1`（Core 不引用 Native）
   - 产出：`src/SshTool.Core/Sessions/{ISshSession.cs,ISshSessionFactory.cs,SshConnectRequest.cs,HostKeyCheck.cs,AuthPrompt.cs,SessionStateKind.cs}`、`src/SshTool.Core/Terminal/ITerminalScreen.cs`（先定义，T03 实现）、`src/SshTool.App/Platform/{NativeSshSession.cs,NativeSshSessionFactory.cs}`、`tests/SshTool.Core.Tests/Fakes/FakeSshSession.cs`
   - 要点：接口方法与事件镜像 §6.2，但只用 Core 自有类型（`Task<SshErrorCode>`、`byte[]`）；适配器负责 WinRT 类型转换与 `IAsyncOperation`→`Task`；`FakeSshSession` 可脚本化（预设每步结果、手动触发事件），供后续 SessionManager 测试。
   - 验收：
-    - [ ] FakeSshSession 自身单测（脚本化行为可预期）
-    - [ ] x64/ARM 构建通过
+    - [x] FakeSshSession 自身单测（脚本化行为可预期）
+    - [x] x64/ARM 构建通过
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **N10 调试连接页（M1 出口演示）** `S` 📱
@@ -1347,3 +1347,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | N07 | d4ef709 | **代码完成**。纯逻辑件 `keepalive.h`（`keepaliveInboundObserved` 双信号取或：Readable 事件 / FIONREAD 待读字节增长；`KeepaliveMissTracker` 连续静默周期计数，maxMisses=0 只发不判；`KeepaliveProbe` 开窗/基线/到期裁决）与 `reconnect_policy.h`（`BackoffSchedule` 默认 1/2/5/10/20/30 s、上限 6 次、0=无限、空序列回落默认、越界钳末档）。session 集成：错误码 404 `KeepaliveTimeout`；`setKeepaliveConfig` 仅 Idle 受理；进 Established 时 `armKeepalive`（want_reply=1，首周期宽限 + FIONREAD 基线），每拍观测入站→发送→按 libssh2 `seconds_to_next` 预约下一拍，连续静默达标或发送失败 → Disconnected(404)；`probeNow` 仅 Established 受理，压 interval 到 libssh2 下限逼出真发（刚发过则沿用旧基线保留在途应答证据），开 5 s 判定窗口复用 keepaliveTimer_ 槽位，无入站即 404 断线、有入站则 miss 清零续周期链；`isAutoReconnectable`：Disconnected 恒可重连，Error 按链路类/凭据类分。测试 27 条（native 共 94）：纯逻辑 22（含 KeepaliveProbe 5）+ 受理语义 2 + 集成 3；实测私有 sshd（测后已回收）：1 s 周期 2 拍发送计数增长且 0 miss 不误判、interval=0 完全静默、probeNow 2 s 窗口判活不断线。踩坑：sshd_config 的 Windows 路径单反斜杠会被转义吞掉（`\a`、`\n`），须用 `sshd -T` 校验解析结果。`verify.ps1 -Quick` 全绿；v141 UWP x64 Debug / ARM Release 构建 ✓。 |
 | 2026-09-18 | N08 | 11b7518 | **完成**。`native/core/ssh/error_codes.h`：kSshErrorCode* 常量表 23 码（命名镜像 C# 成员名 kSshErrorCode<CsMember>，注释带中文文案摘要），`toSshErrorCode(SshSessionError)` 穷尽 switch 无 default（新增枚举 MSVC C4061 点名），`toSshErrorCodeFromLibssh2(int)` 通用诊断兜底映射（超时 402 / 认证 201·202·204 / 协商 301 / 主机密钥 303 / socket 401·403，未识别 → 999；上下文精细映射仍在 session.cpp/auth.cpp 各自路径）。`check-error-codes.ps1` 正式化：逐项比对「成员名=数值」（不再是仅数值集合），多/缺/异值逐项列出并退出 1；正负向实测：23 码一致通过，注入 404→440 报「数值不一致: KeepaliveTimeout」退出 1。单测 8 条（穷尽性、数值锚定 C# 表、libssh2 四分类映射、toString 覆盖，native 共 102）。`verify.ps1 -Quick` 全绿；v141 UWP x64 Debug / ARM Release 构建 ✓。 |
 | 2026-09-19 | N09a | 334ff0a | **完成**。`src/SshTool.Native/Bridge/`：`SshSession`（每会话一条 `SessionThread`；`ConnectAsync`/`AuthenticatePasswordAsync`/`AuthenticatePublicKeyAsync`/`AuthenticateKeyboardInteractiveAsync`/`OpenShellAsync`/`ExecAsync` 全走 `create_async` 返回 `IAsyncOperation<int>`/`<ExecResult^>`，错误码即 N08 统一码）+ `ConnectOptions`/`HostKeyInfo`/`HostKeyCheckEventArgs`/`AuthPromptEventArgs`/`StateChangedEventArgs`/`ExecResult`。HostKeyCheck：0 订阅 TOFU 直通，否则 60 s `DecisionGate` 决策窗（Deferral 挂起暂停计时、末个 Complete 重启整窗；超时/取消 fail-closed 303）；AuthPrompt 由 core 120 s 硬窗口兜底（不因 Deferral 暂停），0 订阅立即空答复；`ContentDirty` 合并投递 + `FetchPendingOutput` 过渡取数（T03 接管后移除）；Close 幂等、析构 Shutdown 安全停线程、core 回调持 `Platform::WeakReference` 防循环。纯逻辑抽 `native/core/bridge_logic/`（`DirtyCoalescer`/`DecisionGate`），单测 12 条（native 共 114）。踩坑：v141 `/ZW` 不收 `!T()` 终结器（C3941，C# 侧须 using/Dispose）；`create_async` 不收 mutable lambda；自定义事件存储须委托私有平凡事件（add 返回其 `+=` token），native 容器持句柄与 `Map<int64,Handler^>` 方案均让位于此；vcxproj 全工程补 `/std:c++17`。§6.2 已回写全部偏差。`verify.ps1 -Arm` 全绿；x86/x64 Debug、ARM Release 构建 ✓。 |
+| 2026-09-19 | N09b | a79cb1d | **完成**。Core：`ISshSession`/`ISshSessionFactory`/`SshConnectRequest`/`HostKeyCheck`/`AuthPrompt`/`SessionStateKind`/`SshExecResult`；`ITerminalScreen` 先定义（T03 实现，N09b `Screen` 恒 null）。App：`NativeSshSession` 适配 WinRT 类型与 `IAsyncOperation`→`Task`，始终订阅 native `HostKeyCheck`（Core 无编排 fail-closed Reject + Deferral 挂起 60 s 窗；`AuthPrompt` 无编排立即 Cancel），`NativeSshSessionFactory` 待 N10/D05 注入。`FakeSshSession` 可脚本化（预设返回、`Fire*` 触发事件、调用记录）+ 工厂；自身单测 15 条（Core 共 480）。`verify.ps1 -Arm` 全绿；x64 Debug / ARM Release 构建通过。 |

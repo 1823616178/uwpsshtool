@@ -214,8 +214,8 @@ uwpsshtool/
 │   │   ├── Models/                   Host、HostGroup、Tunnel、Snippet、AppearanceProfile、KnownHost、KeyEntry、Settings 值类型
 │   │   ├── Validation/               HostValidator、TunnelValidator、GroupValidator（对齐同步 schema 限制）
 │   │   ├── Storage/                  IFileSystem、JsonStore<T>、各 Repository、Migrations、ISecretStore、SecretKeys
-│   │   ├── Sessions/                 SessionInfo、SessionManager、ISshSessionFactory、ReconnectPolicy、AutoRun、CredentialResolver
-│   │   ├── Terminal/                 KeyMap、ShortcutMap、StickyModifiers、SelectionModel、PaneTree、KeyBarLayout、SnippetTemplate
+│   │   ├── Sessions/                 ISshSession、ISshSessionFactory、SshConnectRequest、HostKeyCheck、AuthPrompt、SessionStateKind（SessionInfo、SessionManager、ReconnectPolicy、AutoRun、CredentialResolver 后续）
+│   │   ├── Terminal/                 ITerminalScreen（T03 实现）、KeyMap、ShortcutMap、StickyModifiers、SelectionModel、PaneTree、KeyBarLayout、SnippetTemplate
 │   │   ├── Sync/
 │   │   │   ├── Protocol/             SyncConstants、SyncDocumentV1 模型、SyncDocumentReader/Writer（严格校验）
 │   │   │   ├── Api/                  IHttpTransport、ApiClient、ApiError、Dto
@@ -234,7 +234,7 @@ uwpsshtool/
 │       ├── Assets/                   图标、磁贴、Fonts/JetBrainsMono-*.ttf
 │       ├── Strings/zh-CN/Resources.resw、Strings/en-US/Resources.resw
 │       ├── Infrastructure/           ObservableObject、RelayCommand、AsyncCommand、NavigationService、DialogService、ServiceRegistry、DispatcherHelper
-│       ├── Platform/                 UwpFileSystem、DpapiSecretStore、UwpHttpTransport、LifecycleService、KeepAwakeService、NetworkMonitor、Haptics、ClipboardService、NativeSshSessionFactory、NativeVaultCrypto、FileLogger
+│       ├── Platform/                 UwpFileSystem、DpapiSecretStore、UwpHttpTransport、LifecycleService、KeepAwakeService、NetworkMonitor、Haptics、ClipboardService、NativeSshSession、NativeSshSessionFactory、NativeVaultCrypto、FileLogger
 │       ├── Terminal/                 FrameScheduler、TerminalRenderer、FontMetrics、SoftKeyboardInput、HardwareKeyboardInput、PointerInput、TerminalView.xaml
 │       ├── Controls/                 KeyBar、StatusDot、Banner、EmptyState、SectionHeader、ColorSwatchPicker、LoadingOverlay、RandomArtView
 │       ├── Views/                    各 Page（见 UI 文档 §4）
@@ -371,6 +371,11 @@ public ref class KeyTool sealed {
 > - 析构：v141 `/ZW` 不支持 `!T()` 终结器（C3941），只有 `virtual ~SshSession()`（Dispose）；C# 侧必须 `using`/Dispose 确定性释放。
 > - 事件全部在 I/O 线程触发；core 回调持 `Platform::WeakReference` 回指桥对象，避免循环引用。
 > - 未受理/状态非法统一返回 `InternalError(500)`；`ExecAsync` 持会话锁至调用结束（最坏 30 s），保证 Shutdown 不在飞行中释放 core 会话。
+>
+> **N09b 实现注记（2026-09-19）**：
+> - Core `ISshSession` 镜像本节，只用 Core 自有类型（`Task<SshErrorCode>`、`byte[]`、`SshExecResult`）；`ITerminalScreen` 先定义、T03 实现，N09b 的 `Screen` 恒为 null。
+> - `NativeSshSession` 始终订阅 native `HostKeyCheck`（因此 native 的「0 订阅 TOFU」不再发生）：Core 无编排则 fail-closed `Reject`；有编排则 `GetDeferral` 挂起 60 s 窗。`AuthPrompt` 无编排立即 `Cancel`。
+> - 过渡 `FetchPendingOutput` 挂在 `ISshSession` 上，T03 接管后移除。
 
 ### 6.3 错误码（C# `SshErrorCode` 与 `native/core/ssh/error_codes.h` 数值完全一致）
 
