@@ -362,6 +362,16 @@ public ref class KeyTool sealed {
 // SftpSession / Forwarder 见 F01 / F03 任务
 ```
 
+> **N09a 实现注记（2026-09-19 回写）**：
+> - 状态映射：core 的 `Closing` 瞬态不上抛；`Closed` 映射为 `Disconnected`（`ErrorCode` 带 `lastError` 映射码，本地主动 Close 为 0）。
+> - `FetchPendingOutput(): byte[]` 为过渡取数 API——`ContentDirty` 的拉取配对（拉取复位合并标志），T03 `TerminalScreen` 接管后移除。`Screen`/`TitleChanged`/`Bell`/`ChannelClosed` 属 T03，N09a 未实现。
+> - `HostKeyCheck`：无订阅 = TOFU 直通 Accept；有订阅则事件 + 60 s 决策窗（`DecisionGate`：Deferral 挂起暂停计时，最后一个 Complete 重启整窗；超时/取消 = Reject，fail-closed 303）。
+> - `AuthPrompt`：120 s 硬窗口由 core `authPromptTimeoutMs` 兜底，**不因 Deferral 暂停**；无订阅立即空答复。`Name`/`Instruction` 暂为空串（N05 的 sink 接口未携带，对话框只展示 `Prompts`）。
+> - `ExecAsync` 返回 `ExecResult{ ExitCode, Stdout, Stderr }`（新增 ref class）；打开/传输失败 `ExitCode=-1`、`Stderr` 带诊断。
+> - 析构：v141 `/ZW` 不支持 `!T()` 终结器（C3941），只有 `virtual ~SshSession()`（Dispose）；C# 侧必须 `using`/Dispose 确定性释放。
+> - 事件全部在 I/O 线程触发；core 回调持 `Platform::WeakReference` 回指桥对象，避免循环引用。
+> - 未受理/状态非法统一返回 `InternalError(500)`；`ExecAsync` 持会话锁至调用结束（最坏 30 s），保证 Shutdown 不在飞行中释放 core 会话。
+
 ### 6.3 错误码（C# `SshErrorCode` 与 `native/core/ssh/error_codes.h` 数值完全一致）
 
 沿用鸿蒙端码表：`0` 无错误；`1xx` 连接与网络（101 DNS、102 连接超时、103 拒绝、104 不可达）；`2xx` 认证（201 密码、202 公钥、203 KI、204 私钥短语/加载、205 认证超时、206 本机无凭据）；
