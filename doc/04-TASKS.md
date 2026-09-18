@@ -39,14 +39,14 @@
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
-| M2 | 终端引擎、渲染与输入 | 15 | 3 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
+| M2 | 终端引擎、渲染与输入 | 15 | 4 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **39** | |
+| **合计** | | **111** | **40** | |
 
 ### 1.1 关键路径
 
@@ -409,14 +409,14 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 移植用例通过；写入 100000 行后内存不增长（容量封顶）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
-- [ ] **T03 TerminalScreen 桥与会话数据接线** `M`
+- [x] **T03 TerminalScreen 桥与会话数据接线** `M`
   - 依赖：T02、N09b
   - 参考：`01-DESIGN.md §4.3、§6.2`；鸿蒙端 `cpp/bridge/terminal_bridge.*`、`data_aggregator.*`
   - 产出：`native/core/term/snapshot.{h,cpp}`（纯函数 `CopyDirtyRows(grid, out, bitmap)`、`CopyViewport`）、`src/SshTool.Native/Bridge/TerminalScreen.{h,cpp}`、`src/SshTool.App/Platform/NativeTerminalScreen.cs`、测试 `native/tests/snapshot_test.cpp`
   - 要点：I/O 线程读到通道数据 → 喂 vterm → 触发 ContentDirty；`CopyDirtyRows` 持锁拷贝并清零脏位图；`GetText` 支持回滚区与软换行拼接；`Resize` 同步本地网格与远端 pty。
   - 验收：
-    - [ ] snapshot 单测：无变化返回 false；局部脏行只拷贝这些行；缓冲区大小不匹配时安全失败
-    - [ ] DebugConnectPage 改为开 shell 后用 `GetText` 打印屏幕文本（临时验证）
+    - [x] snapshot 单测：无变化返回 false；局部脏行只拷贝这些行；缓冲区大小不匹配时安全失败
+    - [x] DebugConnectPage 改为开 shell 后用 `GetText` 打印屏幕文本（临时验证）
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **T04 全局帧调度器** `S`
@@ -1353,3 +1353,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | N10 | e595531 | **代码完成**。`DebugConnectPage`：主机/端口/用户/密码 → `NativeSshSession` 连接；HostKeyCheck 把指纹/randomart 打到页面后自动 Accept；密码认证后 `ExecAsync("uname -a; whoami")`；事件日志带相对耗时；密码不落盘不记日志。MainPage `DEBUG_PAGES` 入口。`verify.ps1` 全绿。⏳ x64 Debug 连 WSL sshd、📱 Lumia 连局域网服务器（已登记真机待办）。 |
 | 2026-09-19 | T01 | ad72466 | **完成**。移植鸿蒙 `CellGrid`/`VtermBridge`：16 字节格、脏行、revision、resize 保留交集；默认色标记 `0x00000001`/`0x00000002`；bit8 invisible、bit9 软换行；VT 语料（SGR/光标/滚动区/alt-screen/DECSET）+ 宽字符续格；跟踪 DECCKM/2004/1006（libvterm 无对应 termprop，从输入扫描）。sb_* 空操作留给 T02。native 166；`verify.ps1 -Quick` 全绿。§7.1 属性表补 bit9。 |
 | 2026-09-19 | T02 | 3f145f1 | **完成**。`ScrollbackBuffer` 预分配定长环形缓冲（默认 5000、上限 50000）；`copyWindow`/`copyWindowWithCols`（TOCTOU）/`copyFromBottom`；VtermBridge sb_* 接入；100000 行 `storageBytes` 不变；弹回默认色标记往返。native 190；`verify.ps1 -Quick` 全绿。 |
+| 2026-09-19 | T03 | 0aded15 | **完成**。`snapshot` 纯函数 CopyDirtyRows/CopyViewport/GetText；WinRT `TerminalScreen` + `NativeTerminalScreen`；shell 输出喂 vterm，Resize 同步网格与 PTY。DebugConnectPage 改 OpenShell + GetText。snapshot 单测 7（native 197）；`verify.ps1` 全绿。 |
