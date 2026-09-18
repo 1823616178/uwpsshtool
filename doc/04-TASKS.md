@@ -38,7 +38,7 @@
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
-| M1 | 原生 SSH 内核 | 11 | 2 | 调试页在 Lumia 上连服务器执行命令看到输出 |
+| M1 | 原生 SSH 内核 | 11 | 3 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **28** | |
+| **合计** | | **111** | **29** | |
 
 ### 1.1 关键路径
 
@@ -290,15 +290,15 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 1000 次创建/启动/停止后进程句柄数不增长（`GetProcessHandleCount` 断言）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
-- [ ] **N03 SSH 会话生命周期与状态机** `M`
+- [x] **N03 SSH 会话生命周期与状态机** `M`
   - 依赖：N02
   - 参考：鸿蒙端 `cpp/ssh/session.*`、`cpp/tests/ssh_session_test.cpp`、`sshd_testkit.h`
   - 产出：`native/core/ssh/session.{h,cpp}`、`native/tests/ssh_session_test.cpp`、`native/tests/sshd_testkit.h`
   - 要点：状态 `Idle→Connecting→Handshaking→Authenticating→Established→Disconnected/Error`；非阻塞 connect（`WSAEWOULDBLOCK` + 可写判定 + `SO_ERROR`）；连接超时；优雅关闭；集成测试读取环境变量 `SSH_TEST_HOST/PORT/USER/PASSWORD`，未设置时跳过（`GTEST_SKIP`）。
   - 验收：
-    - [ ] 状态迁移单测全部通过（非法迁移被拒）
-    - [ ] 不可达地址在超时时间内进入 Error(102/104)，不挂死
-    - [ ] 设置环境变量时对 WSL sshd 完成握手（本地手动跑一次并在进度日志记录）
+    - [x] 状态迁移单测全部通过（非法迁移被拒）
+    - [x] 不可达地址在超时时间内进入 Error(102/104)，不挂死
+    - [x] 设置环境变量时对 WSL sshd 完成握手（本地手动跑一次并在进度日志记录）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
 - [ ] **N04 主机密钥与 TOFU** `S`
@@ -1337,3 +1337,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | SP06 | 8616af2 | **代码任务完成，真机渐进回归**。新增 PlatformSpikePage：ExtendedExecution 请求/撤销日志、DisplayRequest 成对管理、DPAPI `LOCAL=user` 1 KiB 往返与跨重启文件、Windows.Web.Http GET/HEAD/If-Match、1–30 分钟 SSH tick 后台存活测试；结果统一落 `spike-reports` 与 app.log，密码不保存。UWP C#/XAML 编译通过；人工场景已登记待办，不阻塞 N01/P01。 |
 | 2026-09-18 | N01 | 4e78eb6 | **完成**。固定 URL/SHA256 拉取 libssh2 1.11.1、libvterm 0.3.3 release tar、Argon2 20190702；`NativeCore.vcxitems` 统一 UWP 原生清单，Argon2 固定 ref.c + `ARGON2_NO_THREADS`；宿主链接静态 OpenSSL 并通过 libssh2/libvterm/RFC 9106 三条冒烟。VS2017 v141 的 x64/Win32/ARM 三架构构建成功，`verify.ps1 -Arm` 全绿。顺带定位并修复 Appx 打包 `MrmSupportLibrary.GetLocation` 空引用：受控终端缺进程级 `PROCESSOR_ARCHITECTURE`，门禁从 Machine 级补回。 |
 | 2026-09-18 | N02 | 0673ba6 | **完成**。EventLoop 以 WSAPoll + 经 100 ms 自检的回环 UDP socket 对唤醒；AppContainer 不允许时自动退化为 50 ms 有界轮询；定时器最小堆、跨线程 FIFO Post、socket 注册/修改/移除与 SessionThread 幂等启停齐备；WinsockInit 进程级引用计数，I/O 线程命名。移植并 Windows 等价替换为 11 条 I/O 测试，含 UDP 收发/所有权、轮询兜底与 1000 次会话创建启停后 `GetProcessHandleCount` 零增长；native 共 15 测试，`verify.ps1 -Quick` 与 `-Arm` 全绿。 |
+| 2026-09-18 | N03 | 1cc2d0d | **完成**。新增 libssh2 非阻塞会话生命周期：`WSAEWOULDBLOCK` 后由 WSAPoll 可写事件配合 `SO_ERROR` 完成连接，连接/握手/关闭定时器、合法迁移表、远端断开与优雅关闭齐备；修复 connect 后立即 close 的入队竞态。新增 8 条会话测试（默认 7 通过、环境集成 1 跳过），native 共 23 条；临时注入环境变量对既有测试服务器 `192.168.1.25:22` 实际握手到 Authenticating 并关闭，32 ms 通过，未发送认证信息；`verify.ps1 -Arm` 全绿（465 Core、x64 Debug、ARM Release/.NET Native）。libssh2 源与本项目同名 `session` 对象冲突，已用独立对象目录隔离。 |
