@@ -1,0 +1,331 @@
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Threading.Tasks;
+using SshTool.App.Controls;
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
+using SshTool.Core.Common;
+using SshTool.Core.Sessions;
+using Windows.ApplicationModel.Resources;
+using Windows.Storage;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
+
+namespace SshTool.App.Views.Debug
+{
+    // N10：M1 出口演示。走 Core ISshSession（NativeSshSession 适配），
+    // HostKeyCheck 把指纹打到页面后自动 Accept；密码认证后 ExecAsync。
+    public sealed partial class DebugConnectPage : Page
+    {
+        private const string SettingPrefix = "debug.n10.";
+        private const string ExecCommand = "uname -a; whoami";
+
+        private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
+        private readonly NativeSshSessionFactory _factory = new NativeSshSessionFactory();
+        private readonly object _logLock = new object();
+        private string _log = string.Empty;
+        private ISshSession _session;
+        private Stopwatch _watch;
+        private string _lastReport = string.Empty;
+
+        public DebugConnectPage()
+        {
+            this.InitializeComponent();
+            HostBox.Text = LoadSetting("host", string.Empty);
+            PortBox.Text = LoadSetting("port", "22");
+            UserBox.Text = LoadSetting("user", string.Empty);
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            ReleaseSession();
+            base.OnNavigatedFrom(e);
+        }
+
+        private async void OnConnectClick(object sender, RoutedEventArgs e)
+        {
+            int port;
+            if (!int.TryParse(PortBox.Text, NumberStyles.None, CultureInfo.InvariantCulture, out port)
+                || port <= 0 || port > 65535)
+            {
+                ShowBanner(BannerSeverity.Error, "端口不合法", "请输入 1–65535。");
+                return;
+            }
+
+            SaveSetting("host", HostBox.Text);
+            SaveSetting("port", PortBox.Text);
+            SaveSetting("user", UserBox.Text);
+
+            string host = HostBox.Text ?? string.Empty;
+            string user = UserBox.Text ?? string.Empty;
+            string password = PasswordBox.Password ?? string.Empty;
+
+            ConnectButton.IsEnabled = false;
+            BusyOverlay.IsActive = true;
+            BusyOverlay.Message = "连接中…";
+            ResultBanner.Visibility = Visibility.Collapsed;
+            OutputBox.Text = string.Empty;
+            EventLogBox.Text = string.Empty;
+            lock (_logLock) { _log = string.Empty; }
+            KeyTypeText.Text = "握手中…";
+            FingerprintText.Text = string.Empty;
+            ArtView.Art = string.Empty;
+            ConnDot.State = StatusDotState.Connecting;
+            _watch = Stopwatch.StartNew();
+            _lastReport = string.Empty;
+
+            try
+            {
+                await RunSessionAsync(host, port, user, password);
+            }
+            catch (Exception ex)
+            {
+                AppendLog("异常 " + ex.GetType().Name);
+                DispatcherHelper.Post(() =>
+                {
+                    ShowBanner(BannerSeverity.Error, "会话异常", ex.GetType().Name);
+                    ConnDot.State = StatusDotState.Error;
+                });
+            }
+            finally
+            {
+                password = null;
+                DispatcherHelper.Post(() =>
+                {
+                    ConnectButton.IsEnabled = true;
+                    BusyOverlay.IsActive = false;
+                    BusyOverlay.Message = string.Empty;
+                });
+            }
+        }
+
+        private async Task RunSessionAsync(string host, int port, string user, string password)
+        {
+            ReleaseSession();
+            ISshSession session = _factory.Create();
+            _session = session;
+            session.StateChanged += OnStateChanged;
+            session.HostKeyCheck += OnHostKeyCheck;
+            session.AuthPrompt += OnAuthPrompt;
+            session.ContentDirty += OnContentDirty;
+
+            try
+            {
+                AppendLog("Connect " + user + "@" + host + ":" + port.ToString(CultureInfo.InvariantCulture));
+
+                var request = new SshConnectRequest
+                {
+                    Host = host,
+                    Port = port,
+                    Username = user,
+                };
+                SshErrorCode connectCode = await session.ConnectAsync(request);
+                AppendLog("Connect → " + FormatCode(connectCode));
+                if (connectCode != SshErrorCode.None)
+                {
+                    Fail(connectCode, "连接失败");
+                    return;
+                }
+
+                SshErrorCode authCode = await session.AuthenticatePasswordAsync(password);
+                AppendLog("AuthPassword → " + FormatCode(authCode));
+                if (authCode != SshErrorCode.None)
+                {
+                    Fail(authCode, "密码认证失败");
+                    return;
+                }
+
+                SshExecResult exec = await session.ExecAsync(ExecCommand);
+                AppendLog("Exec exit=" + exec.ExitCode.ToString(CultureInfo.InvariantCulture));
+                string output = exec.Stdout ?? string.Empty;
+                if (!string.IsNullOrEmpty(exec.Stderr))
+                {
+                    output = output + (output.Length == 0 ? string.Empty : "\n") + "stderr:\n" + exec.Stderr;
+                }
+
+                string report = DebugReport.EnvironmentHeader()
+                    + "\nN10 调试连接\n目标 " + user + "@" + host + ":"
+                    + port.ToString(CultureInfo.InvariantCulture)
+                    + "\n命令 " + ExecCommand
+                    + "\n耗时 " + ElapsedMs() + " ms"
+                    + "\nexit " + exec.ExitCode.ToString(CultureInfo.InvariantCulture)
+                    + "\n\n" + output
+                    + "\n\n事件\n" + EventLogSnapshot();
+                _lastReport = report;
+
+                DispatcherHelper.Post(() =>
+                {
+                    OutputBox.Text = output;
+                    ConnDot.State = StatusDotState.Connected;
+                    ShowBanner(BannerSeverity.Success, "执行完成",
+                        "exit " + exec.ExitCode.ToString(CultureInfo.InvariantCulture)
+                        + " · " + ElapsedMs() + " ms");
+                });
+                await DebugReport.PublishAsync("n10-connect", "N10", report);
+            }
+            finally
+            {
+                ReleaseSession();
+            }
+        }
+
+        private void Fail(SshErrorCode code, string title)
+        {
+            string detail = FormatCode(code);
+            DispatcherHelper.Post(() =>
+            {
+                ConnDot.State = StatusDotState.Error;
+                ShowBanner(BannerSeverity.Error, title, detail);
+            });
+        }
+
+        private void OnStateChanged(object sender, SessionStateChangedEventArgs e)
+        {
+            AppendLog("State=" + e.State
+                + (e.ErrorCode == SshErrorCode.None ? string.Empty : " " + FormatCode(e.ErrorCode))
+                + (string.IsNullOrEmpty(e.Detail) ? string.Empty : " " + e.Detail));
+            DispatcherHelper.Post(() => { ConnDot.State = MapDot(e.State); });
+        }
+
+        private void OnHostKeyCheck(object sender, HostKeyCheckEventArgs e)
+        {
+            HostKeyInfo info = e.Info;
+            // 要点：弹出指纹后自动接受。先记下指纹再 Accept，不挡握手。
+            e.Accept();
+            DispatcherHelper.Post(() =>
+            {
+                KeyTypeText.Text = "密钥类型：" + info.KeyType;
+                FingerprintText.Text = info.FingerprintSha256;
+                ArtView.Art = info.RandomArt;
+            });
+            AppendLog("HostKey " + info.KeyType + " " + info.FingerprintSha256 + " (自动接受)");
+        }
+
+        private void OnAuthPrompt(object sender, AuthPromptEventArgs e)
+        {
+            AppendLog("AuthPrompt（本页走密码认证，取消 KI）");
+            e.Cancel();
+        }
+
+        private void OnContentDirty(object sender, EventArgs e)
+        {
+            AppendLog("ContentDirty");
+        }
+
+        private async void OnCopyClick(object sender, RoutedEventArgs e)
+        {
+            string report = _lastReport;
+            if (string.IsNullOrEmpty(report))
+            {
+                report = DebugReport.EnvironmentHeader() + "\nN10 事件\n" + EventLogSnapshot();
+            }
+            await DebugReport.PublishAsync("n10-connect", "N10", report);
+        }
+
+        private void OnBackClick(object sender, RoutedEventArgs e)
+        {
+            if (Frame != null && Frame.CanGoBack)
+            {
+                Frame.GoBack();
+            }
+        }
+
+        private void ReleaseSession()
+        {
+            ISshSession session = _session;
+            _session = null;
+            if (session == null)
+            {
+                return;
+            }
+            session.StateChanged -= OnStateChanged;
+            session.HostKeyCheck -= OnHostKeyCheck;
+            session.AuthPrompt -= OnAuthPrompt;
+            session.ContentDirty -= OnContentDirty;
+            session.Dispose();
+        }
+
+        private void AppendLog(string message)
+        {
+            string line = "[+" + ElapsedMs() + "ms] " + message;
+            lock (_logLock)
+            {
+                _log = string.IsNullOrEmpty(_log) ? line : _log + "\n" + line;
+            }
+            DispatcherHelper.Post(() => { EventLogBox.Text = EventLogSnapshot(); });
+        }
+
+        private string EventLogSnapshot()
+        {
+            lock (_logLock)
+            {
+                return _log;
+            }
+        }
+
+        private string ElapsedMs()
+        {
+            long ms = _watch != null ? _watch.ElapsedMilliseconds : 0;
+            return ms.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private string FormatCode(SshErrorCode code)
+        {
+            int n = (int)code;
+            string key = "Error_" + n.ToString(CultureInfo.InvariantCulture);
+            string text = null;
+            try
+            {
+                text = _loader.GetString(key);
+            }
+            catch (Exception)
+            {
+                text = null;
+            }
+            if (string.IsNullOrEmpty(text))
+            {
+                text = code.ToString();
+            }
+            return n.ToString(CultureInfo.InvariantCulture) + " " + text;
+        }
+
+        private void ShowBanner(BannerSeverity severity, string title, string message)
+        {
+            ResultBanner.Severity = severity;
+            ResultBanner.Title = title;
+            ResultBanner.Message = message;
+            ResultBanner.Visibility = Visibility.Visible;
+        }
+
+        private static StatusDotState MapDot(SessionStateKind state)
+        {
+            switch (state)
+            {
+                case SessionStateKind.Connecting:
+                case SessionStateKind.Handshaking:
+                case SessionStateKind.Authenticating:
+                    return StatusDotState.Connecting;
+                case SessionStateKind.Established:
+                    return StatusDotState.Connected;
+                case SessionStateKind.Error:
+                    return StatusDotState.Error;
+                default:
+                    return StatusDotState.Disconnected;
+            }
+        }
+
+        private static string LoadSetting(string key, string fallback)
+        {
+            object value;
+            return ApplicationData.Current.LocalSettings.Values.TryGetValue(SettingPrefix + key, out value)
+                ? (value as string) ?? fallback : fallback;
+        }
+
+        private static void SaveSetting(string key, string value)
+        {
+            ApplicationData.Current.LocalSettings.Values[SettingPrefix + key] = value ?? string.Empty;
+        }
+    }
+}

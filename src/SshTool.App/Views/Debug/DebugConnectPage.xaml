@@ -1,0 +1,104 @@
+<Page
+    x:Class="SshTool.App.Views.Debug.DebugConnectPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:SshTool.App.Controls"
+    mc:Ignorable="d"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- N10：M1 出口演示。Views/Debug 豁免魔法数字门禁；仍尽量走 Token。 -->
+    <Grid>
+        <Grid Margin="{StaticResource PagePadding}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                <Button Content="返回" Click="OnBackClick" />
+                <controls:StatusDot x:Name="ConnDot" VerticalAlignment="Center"
+                                    Margin="{StaticResource GapSmLeft}" />
+                <TextBlock Text="N10 调试连接" Style="{StaticResource SectionTitleTextStyle}"
+                           VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1" Margin="{StaticResource GapMdTop}">
+                <StackPanel>
+                    <controls:Banner x:Name="ResultBanner" Visibility="Collapsed"
+                                     Margin="{StaticResource GapSmBottom}" />
+
+                    <Border Background="{ThemeResource AppSurfaceAltBrush}"
+                            BorderBrush="{ThemeResource AppBorderBrush}"
+                            BorderThickness="{StaticResource BorderThin}"
+                            Padding="{StaticResource PadMd}"
+                            Margin="{StaticResource GapSmBottom}">
+                        <StackPanel>
+                            <TextBlock Text="连接参数（密码只进内存）"
+                                       Style="{StaticResource SectionTitleTextStyle}" />
+                            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                                <TextBox x:Name="HostBox" Header="主机" Width="180" InputScope="Url" />
+                                <TextBox x:Name="PortBox" Header="端口" Width="70"
+                                         Margin="{StaticResource GapSmLeft}"
+                                         InputScope="Number" Text="22" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                                <TextBox x:Name="UserBox" Header="用户" Width="130" />
+                                <PasswordBox x:Name="PasswordBox" Header="密码" Width="180"
+                                             Margin="{StaticResource GapSmLeft}" />
+                            </StackPanel>
+                            <Button x:Name="ConnectButton" Content="连接并执行 uname -a; whoami"
+                                    Click="OnConnectClick" Margin="{StaticResource GapSmTop}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="{ThemeResource AppSurfaceAltBrush}"
+                            BorderBrush="{ThemeResource AppBorderBrush}"
+                            BorderThickness="{StaticResource BorderThin}"
+                            Padding="{StaticResource PadMd}"
+                            Margin="{StaticResource GapSmBottom}">
+                        <StackPanel>
+                            <TextBlock Text="主机密钥（显示后自动接受）"
+                                       Style="{StaticResource SectionTitleTextStyle}" />
+                            <TextBlock x:Name="KeyTypeText" Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" Text="尚未握手" />
+                            <controls:MonoText x:Name="FingerprintText" Margin="{StaticResource GapXsTop}" />
+                            <controls:RandomArtView x:Name="ArtView" Margin="{StaticResource GapSmTop}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="{ThemeResource AppSurfaceAltBrush}"
+                            BorderBrush="{ThemeResource AppBorderBrush}"
+                            BorderThickness="{StaticResource BorderThin}"
+                            Padding="{StaticResource PadMd}"
+                            Margin="{StaticResource GapSmBottom}">
+                        <StackPanel>
+                            <TextBlock Text="命令输出" Style="{StaticResource SectionTitleTextStyle}" />
+                            <TextBox x:Name="OutputBox" IsReadOnly="True" AcceptsReturn="True"
+                                     TextWrapping="Wrap" FontFamily="{StaticResource AppMonoFontFamily}"
+                                     MinHeight="80" Margin="{StaticResource GapSmTop}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="{ThemeResource AppSurfaceAltBrush}"
+                            BorderBrush="{ThemeResource AppBorderBrush}"
+                            BorderThickness="{StaticResource BorderThin}"
+                            Padding="{StaticResource PadMd}"
+                            Margin="{StaticResource GapSmBottom}">
+                        <StackPanel>
+                            <TextBlock Text="事件日志（状态 + 耗时）"
+                                       Style="{StaticResource SectionTitleTextStyle}" />
+                            <TextBox x:Name="EventLogBox" IsReadOnly="True" AcceptsReturn="True"
+                                     TextWrapping="Wrap" FontFamily="{StaticResource AppMonoFontFamily}"
+                                     MinHeight="120" Margin="{StaticResource GapSmTop}" />
+                            <Button Content="复制报告" Click="OnCopyClick" Margin="{StaticResource GapSmTop}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <controls:LoadingOverlay x:Name="BusyOverlay" />
+    </Grid>
+</Page>

@@ -31,6 +31,7 @@ namespace SshTool.App
             RenderSpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
             InputSpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
             PlatformSpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
+            DebugConnectButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
 #endif
         }
 
@@ -57,6 +58,11 @@ namespace SshTool.App
         private void OnPlatformSpikeClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             Frame.Navigate(typeof(Views.Debug.PlatformSpikePage));
+        }
+
+        private void OnDebugConnectClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(Views.Debug.DebugConnectPage));
         }
     }
 }

@@ -41,6 +41,9 @@
             <Button x:Name="PlatformSpikeButton" Content="SP06 平台能力自测"
                     Margin="{StaticResource GapMdTop}"
                     Visibility="Collapsed" Click="OnPlatformSpikeClick" />
+            <Button x:Name="DebugConnectButton" Content="N10 调试连接"
+                    Margin="{StaticResource GapMdTop}"
+                    Visibility="Collapsed" Click="OnDebugConnectClick" />
         </StackPanel>
     </Grid>
 </Page>
