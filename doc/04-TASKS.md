@@ -39,14 +39,14 @@
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
-| M2 | 终端引擎、渲染与输入 | 15 | 2 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
+| M2 | 终端引擎、渲染与输入 | 15 | 3 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **38** | |
+| **合计** | | **111** | **39** | |
 
 ### 1.1 关键路径
 
@@ -400,13 +400,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 新增用例：默认色标记、软换行标记、模式位、宽字符续格
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
-- [ ] **T02 回滚缓冲** `S`
+- [x] **T02 回滚缓冲** `S`
   - 依赖：T01
   - 参考：鸿蒙端 `cpp/term/scrollback.*`、`cpp/tests/scrollback_test.cpp`（含回滚窗口 TOCTOU 修复 `a5d759b` 的用例）
   - 产出：`native/core/term/scrollback.{h,cpp}`、对应测试
   - 要点：环形缓冲，容量 1000–50000 可配；按「距底部偏移 + 行数」取窗口；列宽变化时安全处理旧行。
   - 验收：
-    - [ ] 移植用例通过；写入 100000 行后内存不增长（容量封顶）
+    - [x] 移植用例通过；写入 100000 行后内存不增长（容量封顶）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
 - [ ] **T03 TerminalScreen 桥与会话数据接线** `M`
@@ -1352,3 +1352,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | N09b | a79cb1d | **完成**。Core：`ISshSession`/`ISshSessionFactory`/`SshConnectRequest`/`HostKeyCheck`/`AuthPrompt`/`SessionStateKind`/`SshExecResult`；`ITerminalScreen` 先定义（T03 实现，N09b `Screen` 恒 null）。App：`NativeSshSession` 适配 WinRT 类型与 `IAsyncOperation`→`Task`，始终订阅 native `HostKeyCheck`（Core 无编排 fail-closed Reject + Deferral 挂起 60 s 窗；`AuthPrompt` 无编排立即 Cancel），`NativeSshSessionFactory` 待 N10/D05 注入。`FakeSshSession` 可脚本化（预设返回、`Fire*` 触发事件、调用记录）+ 工厂；自身单测 15 条（Core 共 480）。`verify.ps1 -Arm` 全绿；x64 Debug / ARM Release 构建通过。 |
 | 2026-09-19 | N10 | e595531 | **代码完成**。`DebugConnectPage`：主机/端口/用户/密码 → `NativeSshSession` 连接；HostKeyCheck 把指纹/randomart 打到页面后自动 Accept；密码认证后 `ExecAsync("uname -a; whoami")`；事件日志带相对耗时；密码不落盘不记日志。MainPage `DEBUG_PAGES` 入口。`verify.ps1` 全绿。⏳ x64 Debug 连 WSL sshd、📱 Lumia 连局域网服务器（已登记真机待办）。 |
 | 2026-09-19 | T01 | ad72466 | **完成**。移植鸿蒙 `CellGrid`/`VtermBridge`：16 字节格、脏行、revision、resize 保留交集；默认色标记 `0x00000001`/`0x00000002`；bit8 invisible、bit9 软换行；VT 语料（SGR/光标/滚动区/alt-screen/DECSET）+ 宽字符续格；跟踪 DECCKM/2004/1006（libvterm 无对应 termprop，从输入扫描）。sb_* 空操作留给 T02。native 166；`verify.ps1 -Quick` 全绿。§7.1 属性表补 bit9。 |
+| 2026-09-19 | T02 | 3f145f1 | **完成**。`ScrollbackBuffer` 预分配定长环形缓冲（默认 5000、上限 50000）；`copyWindow`/`copyWindowWithCols`（TOCTOU）/`copyFromBottom`；VtermBridge sb_* 接入；100000 行 `storageBytes` 不变；弹回默认色标记往返。native 190；`verify.ps1 -Quick` 全绿。 |
