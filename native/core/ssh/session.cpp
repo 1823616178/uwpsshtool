@@ -294,6 +294,16 @@ void SshSession::onSocketEvent(SOCKET, short events)
             peerDisconnected(SshSessionError::SocketError, "SSH socket failed");
             return;
         }
+        // N05: an in-flight auth operation re-arms per libssh2's declared
+        // block direction (see updateSocketInterest); the event drives it.
+        if (state() == SshSessionState::Authenticating && hasAuthPending()) {
+            if (authMethodsCallback_) {
+                driveAuthMethodsQuery();
+            } else {
+                driveAuth();
+            }
+            return;
+        }
         if ((events & io::EventLoop::Readable) != 0) {
             char byte = 0;
             const int received = ::recv(socket_, &byte, 1, MSG_PEEK);
@@ -414,7 +424,10 @@ void SshSession::updateSocketInterest()
         events |= io::EventLoop::Writable;
     }
     if (events == 0) {
-        events = io::EventLoop::Readable | io::EventLoop::Writable;
+        // Nothing blocked (e.g. idle Authenticating/Established): arm read-only.
+        // Arming Writable here would spin the loop — a connected socket is
+        // virtually always writable and WSAPoll is level-triggered.
+        events = io::EventLoop::Readable;
     }
     if (!thread_.loop().modifySocket(socket_, events)) {
         // Closing has only one legal terminal transition. A failed interest
@@ -519,6 +532,10 @@ void SshSession::peerDisconnected(SshSessionError error, std::string message)
 void SshSession::releaseResources()
 {
     cancelTimers();
+    // N05: clear auth state first — disarms the auth timers and wipes the
+    // in-memory credential copies (auth.cpp); must precede session_ free
+    // because the auth context references it.
+    clearAuthState();
     if (socketRegistered_) {
         thread_.loop().removeSocket(socket_);
         socketRegistered_ = false;
@@ -573,6 +590,12 @@ const char* toString(SshSessionError error)
     case SshSessionError::ConnectTimeout: return "connect_timeout";
     case SshSessionError::ConnectionRefused: return "connection_refused";
     case SshSessionError::NetworkUnreachable: return "network_unreachable";
+    case SshSessionError::AuthFailedPassword: return "auth_failed_password";
+    case SshSessionError::AuthFailedKey: return "auth_failed_key";
+    case SshSessionError::AuthFailedInteractive: return "auth_failed_interactive";
+    case SshSessionError::AuthFailedPassphrase: return "auth_failed_passphrase";
+    case SshSessionError::AuthTimeout: return "auth_timeout";
+    case SshSessionError::NoLocalCredential: return "no_local_credential";
     case SshSessionError::AlgorithmNegotiationFailed: return "algorithm_negotiation_failed";
     case SshSessionError::HostKeyMismatch: return "host_key_mismatch";
     case SshSessionError::HandshakeFailed: return "handshake_failed";

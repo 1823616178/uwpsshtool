@@ -100,16 +100,6 @@ std::vector<std::string> SplitLines(const std::string& text)
     return lines;
 }
 
-bool Visited(const StateRecorder& recorder, SshSessionState state)
-{
-    for (const SshSessionState visited : recorder.sequence()) {
-        if (visited == state) {
-            return true;
-        }
-    }
-    return false;
-}
-
 void EnsureLibssh2Init()
 {
     static std::once_flag once;

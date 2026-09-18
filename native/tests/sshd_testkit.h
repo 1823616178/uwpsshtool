@@ -90,4 +90,15 @@ bool LoadSshIntegrationEnvironment(SshIntegrationEnvironment& environment)
     return true;
 }
 
+// Whether the recorder ever reached the given state.
+bool Visited(const StateRecorder& recorder, sshclient::ssh::SshSessionState state)
+{
+    for (const sshclient::ssh::SshSessionState visited : recorder.sequence()) {
+        if (visited == state) {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace

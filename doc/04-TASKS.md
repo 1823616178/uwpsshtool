@@ -38,7 +38,7 @@
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
-| M1 | 原生 SSH 内核 | 11 | 4 | 调试页在 Lumia 上连服务器执行命令看到输出 |
+| M1 | 原生 SSH 内核 | 11 | 5 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **30** | |
+| **合计** | | **111** | **31** | |
 
 ### 1.1 关键路径
 
@@ -311,15 +311,15 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] Mismatch 路径断言不进入 Authenticating
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
-- [ ] **N05 认证：密码 / 公钥 / keyboard-interactive** `M`
+- [x] **N05 认证：密码 / 公钥 / keyboard-interactive** `M`
   - 依赖：N04
   - 参考：鸿蒙端 `cpp/ssh/auth.*`、`cpp/tests/auth_test.cpp`
   - 产出：`native/core/ssh/auth.{h,cpp}`、`native/tests/auth_test.cpp`、`native/tests/fixtures/keys/`（测试专用密钥：ed25519 OpenSSH 未加密/加密、RSA PEM 未加密/加密，WSL `ssh-keygen` 生成后提交）
   - 要点：`userauth_password`；`userauth_publickey_frommemory`（私钥缓冲 + 短语）；keyboard-interactive 回调通过 `IAuthPromptSink` 接口把 prompts 抛给上层并**阻塞等待**答复（条件变量，120 s 超时视为取消）；列出服务器支持的认证方式；缓冲用完 `OPENSSL_cleanse`。
   - 验收：
-    - [ ] 错误映射单测：认证失败 → 201/202/203，短语错误 → 204
-    - [ ] KI 回调在无答复超时后返回取消，不死锁
-    - [ ] 集成（环境变量开启时）四种方式各连通一次，结果记入进度日志
+    - [x] 错误映射单测：认证失败 → 201/202/203，短语错误 → 204
+    - [x] KI 回调在无答复超时后返回取消，不死锁
+    - [ ] 集成（环境变量开启时）四种方式各连通一次，结果记入进度日志（已连通 2/4：公钥未加密/加密；密码与 KI 待真实凭据与 KI 服务器，见文末待办）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
 - [ ] **N06 Shell 通道、PTY 与 exec** `M`
@@ -1283,6 +1283,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] SP06 📱 DPAPI `LOCAL=user` 1 KiB 往返与重启后解密成功
 - [ ] SP06 📱 HTTP GET/HEAD 返回 401 且可读取头/体；带引号的 `If-Match: "revision-0"` 可发送
 - [ ] SP06 📱 按实测结论回写 `01-DESIGN.md §10`、D10、D11、R5、R6
+- [ ] N05 👤 密码认证集成跑通：用真实账号设 `SSH_TEST_HOST/PORT/USER/PASSWORD` 后跑 `auth_test.exe --gtest_filter='AuthIntegrationTest.Password*'`（成功进 Established + 错密码映射 201 可重试两条）
+- [ ] N05 👤 KI 集成跑通：找一台 `keyboard-interactive` 启用的服务器（本机 Windows sshd 与 192.168.1.25 均只提供 `publickey,password`），另设 `SSH_TEST_KI=1` 跑 `AuthIntegrationTest.KeyboardInteractiveRoundTrip`
 
 ---
 
@@ -1339,3 +1341,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | N02 | 0673ba6 | **完成**。EventLoop 以 WSAPoll + 经 100 ms 自检的回环 UDP socket 对唤醒；AppContainer 不允许时自动退化为 50 ms 有界轮询；定时器最小堆、跨线程 FIFO Post、socket 注册/修改/移除与 SessionThread 幂等启停齐备；WinsockInit 进程级引用计数，I/O 线程命名。移植并 Windows 等价替换为 11 条 I/O 测试，含 UDP 收发/所有权、轮询兜底与 1000 次会话创建启停后 `GetProcessHandleCount` 零增长；native 共 15 测试，`verify.ps1 -Quick` 与 `-Arm` 全绿。 |
 | 2026-09-18 | N03 | 1cc2d0d | **完成**。新增 libssh2 非阻塞会话生命周期：`WSAEWOULDBLOCK` 后由 WSAPoll 可写事件配合 `SO_ERROR` 完成连接，连接/握手/关闭定时器、合法迁移表、远端断开与优雅关闭齐备；修复 connect 后立即 close 的入队竞态。新增 8 条会话测试（默认 7 通过、环境集成 1 跳过），native 共 23 条；临时注入环境变量对既有测试服务器 `192.168.1.25:22` 实际握手到 Authenticating 并关闭，32 ms 通过，未发送认证信息；`verify.ps1 -Arm` 全绿（465 Core、x64 Debug、ARM Release/.NET Native）。libssh2 源与本项目同名 `session` 对象冲突，已用独立对象目录隔离。 |
 | 2026-09-18 | N04 | 1438c45 | **完成**。新增 `native/core/ssh/hostkey.{h,cpp}`：`SHA256:`+base64 无填充指纹、MD5 对照指纹、OpenSSH 逐字节对齐的 Drunken Bishop randomart（17×9）、blob 内嵌算法名解析（libssh2 枚举兜底）、三态比对（Ok/Unknown/Mismatch，提取失败 fail-closed 归 Mismatch）。SshSession 握手成功后、进 Authenticating 前同步调 `hostKeyCallback`（空回调=TOFU 放行）；Reject 或提取失败 → 错误 303、`SSH_DISCONNECT_HOST_KEY_NOT_VERIFIABLE` 优雅断开走 Closing→Closed，被拒后 `hostKeyInfo()` 仍可取供对比视图。黄金向量：固定 ed25519 blob 的 SHA256/MD5/randomart 与 `ssh-keygen -l`/`-E md5 -l`/`-lv` 输出逐字符写死比对 ✓；对测试服务器 192.168.1.25 实测三条集成用例全过（默认放行取指纹 ecdsa-sha2-nistp256、回调比对通过进 Authenticating、伪造指纹被拒且状态序列无 Authenticating）。native 共 35 测试；`verify.ps1 -Quick` 全绿；v141 UWP x64 Debug / ARM Release 构建 ✓（NativeCore.vcxitems 的 Core 组为此补 `/std:c++17`——v141 默认 C++14 无 `std::optional`）。 |
+| 2026-09-18 | N05 | （待定） | **代码完成**。`native/core/ssh/auth.{h,cpp}`：非阻塞驱动 `authenticatePassword`/`authenticatePublicKey`（frommemory）/`authenticateKeyboardInteractive`/`queryAuthMethods`，受理即复制并 `OPENSSL_cleanse` 清零调用方凭据缓冲，AuthOp 析构兜底清零；失败停留 Authenticating 可重试（authMaxAttempts=3），耗尽或 authTimeoutMs 超时进 Error；错误映射 201/202/203/204（含 libssh2 1.11.1 三条吞错路径的归一化）。KI 按本项目规格走 `IAuthPromptSink` + `AuthPromptGate` 条件变量阻塞等待（默认 120 s 超时视为取消，超时/不死锁有单测）。fixtures：ed25519 OpenSSH 未加密/加密 + RSA-3072 PEM 未加密/加密（短语 `n05-test-passphrase`）。单测 15 条全过（native 共 50）；实测：本机起私有 Windows sshd（127.0.0.1:2222，临时 authorized_keys，测后已回收）连通公钥未加密/加密两条——加密私钥错短语精确映射 204 后重试正确短语进 Established；192.168.1.25 方式探测 `publickey,password`。顺带修 N03 潜伏 bug：`updateSocketInterest` 在 libssh2 无阻塞方向时挂了 Readable\|Writable，WSAPoll 水平触发下空转，改为只挂 Readable。密码成功/KI 两条集成待真实凭据与 KI 服务器（已登记待办）；`verify.ps1 -Quick` 全绿，v141 x64 Debug / ARM Release 构建 ✓。 |
