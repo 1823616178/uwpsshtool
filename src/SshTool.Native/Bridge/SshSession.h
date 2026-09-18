@@ -36,6 +36,7 @@
 #include "Bridge/HostKeyCheckEventArgs.h"
 #include "Bridge/HostKeyInfo.h"
 #include "Bridge/StateChangedEventArgs.h"
+#include "Bridge/TerminalScreen.h"
 
 #include "bridge_logic/decision_gate.h"
 #include "bridge_logic/dirty_coalescer.h"
@@ -98,6 +99,7 @@ namespace SshTool
 
                 property Platform::String^ Id { Platform::String^ get(); }
                 property SessionState State { SessionState get(); }
+                property TerminalScreen^ Screen { TerminalScreen^ get(); }
 
                 // 返回值是 N08 统一错误码（0 = 成功），与 C# SshErrorCode 一致。
                 Windows::Foundation::IAsyncOperation<int>^ ConnectAsync(ConnectOptions^ options);
@@ -197,6 +199,7 @@ namespace SshTool
                 sshclient::bridge::DirtyCoalescer dirtyCoalescer_;
                 std::mutex outputMutex_;
                 std::string pendingOutput_;
+                TerminalScreen^ screen_;
             };
         }
     }

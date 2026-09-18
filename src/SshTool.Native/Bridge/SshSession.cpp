@@ -63,12 +63,14 @@ namespace SshTool
                 id_ = ref new Platform::String(idText.c_str(),
                                                static_cast<unsigned int>(idText.size()));
                 thread_->start();
+                screen_ = ref new TerminalScreen();
             }
 
             SshSession::~SshSession() { Shutdown(); }
 
             Platform::String^ SshSession::Id::get() { return id_; }
             SessionState SshSession::State::get() { return state_.load(); }
+            TerminalScreen^ SshSession::Screen::get() { return screen_; }
 
             void SshSession::Close()
             {
@@ -262,6 +264,10 @@ namespace SshTool
                 {
                     std::lock_guard<std::mutex> lock(outputMutex_);
                     pendingOutput_ += data;
+                }
+                if (screen_ != nullptr)
+                {
+                    screen_->Feed(data.data(), data.size());
                 }
                 if (dirtyCoalescer_.markDirty()) // 0→1 才投递，已挂起则合并
                 {
@@ -490,6 +496,10 @@ namespace SshTool
                     }
                     shellOpenTce_ = tce;
                     shell_ = std::move(shell);
+                    if (screen_ != nullptr)
+                    {
+                        screen_->ResetGrid(cols, rows);
+                    }
                 }
                 return concurrency::create_task(*tce);
             }
@@ -545,6 +555,10 @@ namespace SshTool
                 if (shell_ != nullptr)
                 {
                     shell_->resize(static_cast<std::uint32_t>(cols), static_cast<std::uint32_t>(rows));
+                }
+                if (screen_ != nullptr)
+                {
+                    screen_->ResetGrid(cols, rows);
                 }
             }
 

@@ -17,11 +17,13 @@ namespace SshTool.App.Platform
     public sealed class NativeSshSession : ISshSession
     {
         private readonly NativeBridge.SshSession _native;
+        private readonly NativeTerminalScreen _screen;
         private bool _disposed;
 
         public NativeSshSession()
         {
             _native = new NativeBridge.SshSession();
+            _screen = new NativeTerminalScreen(_native.Screen);
             _native.StateChanged += OnStateChanged;
             _native.HostKeyCheck += OnHostKeyCheck;
             _native.AuthPrompt += OnAuthPrompt;
@@ -40,7 +42,7 @@ namespace SshTool.App.Platform
 
         public ITerminalScreen Screen
         {
-            get { return null; } // T03 接入
+            get { return _screen; }
         }
 
         public event EventHandler<SessionStateChangedEventArgs> StateChanged;

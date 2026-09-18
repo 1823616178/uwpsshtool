@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Text;
 using System.Threading.Tasks;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
@@ -137,20 +138,36 @@ namespace SshTool.App.Views.Debug
                     return;
                 }
 
-                SshExecResult exec = await session.ExecAsync(ExecCommand);
-                AppendLog("Exec exit=" + exec.ExitCode.ToString(CultureInfo.InvariantCulture));
-                string output = exec.Stdout ?? string.Empty;
-                if (!string.IsNullOrEmpty(exec.Stderr))
+                SshErrorCode shellCode = await session.OpenShellAsync(80, 24);
+                AppendLog("OpenShell → " + FormatCode(shellCode));
+                if (shellCode != SshErrorCode.None)
                 {
-                    output = output + (output.Length == 0 ? string.Empty : "\n") + "stderr:\n" + exec.Stderr;
+                    Fail(shellCode, "打开 shell 失败");
+                    return;
+                }
+
+                var dirty = new TaskCompletionSource<bool>();
+                EventHandler onDirty = (s, e) => { dirty.TrySetResult(true); };
+                session.ContentDirty += onDirty;
+                session.Write(Encoding.UTF8.GetBytes(ExecCommand + "\n"));
+                AppendLog("Write " + ExecCommand);
+                var timeout = Task.Delay(4000);
+                await Task.WhenAny(dirty.Task, timeout);
+                session.ContentDirty -= onDirty;
+
+                string output = string.Empty;
+                if (session.Screen != null)
+                {
+                    output = session.Screen.GetText(0, 0, session.Screen.Rows - 1,
+                        session.Screen.Cols - 1, 0);
+                    AppendLog("GetText len=" + output.Length.ToString(CultureInfo.InvariantCulture));
                 }
 
                 string report = DebugReport.EnvironmentHeader()
-                    + "\nN10 调试连接\n目标 " + user + "@" + host + ":"
+                    + "\nN10/T03 调试连接\n目标 " + user + "@" + host + ":"
                     + port.ToString(CultureInfo.InvariantCulture)
                     + "\n命令 " + ExecCommand
                     + "\n耗时 " + ElapsedMs() + " ms"
-                    + "\nexit " + exec.ExitCode.ToString(CultureInfo.InvariantCulture)
                     + "\n\n" + output
                     + "\n\n事件\n" + EventLogSnapshot();
                 _lastReport = report;
@@ -159,9 +176,8 @@ namespace SshTool.App.Views.Debug
                 {
                     OutputBox.Text = output;
                     ConnDot.State = StatusDotState.Connected;
-                    ShowBanner(BannerSeverity.Success, "执行完成",
-                        "exit " + exec.ExitCode.ToString(CultureInfo.InvariantCulture)
-                        + " · " + ElapsedMs() + " ms");
+                    ShowBanner(BannerSeverity.Success, "屏幕文本",
+                        ElapsedMs() + " ms · " + output.Length.ToString(CultureInfo.InvariantCulture) + " 字");
                 });
                 await DebugReport.PublishAsync("n10-connect", "N10", report);
             }

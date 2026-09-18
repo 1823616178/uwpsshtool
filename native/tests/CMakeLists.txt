@@ -136,7 +136,8 @@ target_link_libraries(bridge_logic_test PRIVATE ssh_core_host GTest::gtest_main)
 add_library(ssh_term_host STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/term/grid.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/term/vterm_screen.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../core/term/scrollback.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/term/scrollback.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/term/snapshot.cpp)
 target_include_directories(ssh_term_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core
     PRIVATE ${LIBVTERM_DIR}/include)
 target_link_libraries(ssh_term_host PUBLIC native_dependencies_host)
@@ -149,6 +150,9 @@ target_link_libraries(vterm_screen_test PRIVATE ssh_term_host GTest::gtest_main)
 
 add_executable(scrollback_test scrollback_test.cpp)
 target_link_libraries(scrollback_test PRIVATE ssh_term_host GTest::gtest_main)
+
+add_executable(snapshot_test snapshot_test.cpp)
+target_link_libraries(snapshot_test PRIVATE ssh_term_host GTest::gtest_main)
 
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
@@ -165,3 +169,4 @@ gtest_discover_tests(bridge_logic_test)
 gtest_discover_tests(term_grid_test)
 gtest_discover_tests(vterm_screen_test)
 gtest_discover_tests(scrollback_test)
+gtest_discover_tests(snapshot_test)
