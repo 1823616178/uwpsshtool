@@ -84,6 +84,7 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
 - **不要把 net8 测试工程放进 sln**：VS 解决方案级 `-t:Restore` 会用旧框架解析器把 `net8.0` 写成 `.NETFramework,Version=v8.0`，损坏其 project.assets.json。Tests 由 `dotnet test` 驱动（若被损坏：`rm -rf tests/*/obj` 后重跑）。
 - Git Bash 里调用 MSBuild 必须用 `-p:` 短横线开关，`/p:` 会被 MSYS 路径转换吞掉。
 - **VS2026 AppxPackage targets 增量构建 bug**：开 bundle（默认）且存在多语言资源分包（`language-en.appx`）时，第二次起的增量 x64 Debug 打包会丢 `PackageLayout\entrypoint\SshTool.App.exe`（MakeAppx 0x80070003 / mapping file line 135；2026-09-18 又见一次紧跟 `-t:Rebuild` 之后的 0x80070002，重跑即过，mapping 里 139 项源文件实际都在）。处置：`AppxBundle=Never`（散装 appx 正是 WinAppDeployCmd 旁加载所需），X06 实测三连构建稳定。首发现场：verify.ps1 门禁。
+- **PC 本机装 x64 Debug 包跑 Spike（2026-09-18）**：`AppxPackageSigningEnabled=false` 出的散装 appx 未签名，Add-AppxPackage 直接拒（0x800B0100）；自签名证书装进 **CurrentUser** TrustedPeople 后仍 0x800B0109（AppX 部署信任链查 LocalMachine 侧，需管理员）。命令行 msbuild 又**没有 Deploy 目标**，重建不出 VS 的 `bin\<Plat>\<Conf>\AppX` 注册布局。可行解：appx 本质是 zip，解压到任意目录后 `Add-AppxPackage -Register <目录>\AppxManifest.xml`（开发布局注册，开发者模式下免签名、免证书）。另记：appx 签名证书的 EKU 必须是代码签名 `1.3.6.1.5.5.7.3.3`，`1.3.6.1.4.1.311.10.3.4` 是 EFS 加密文件系统，signtool 会报「No certificates were found that met all the given criteria」。签名链：项目无 pfx（签名关闭），手机门户吃未签名包，PC 侧正式安装包签名归 Q09。
 - native C/C++ 源码一律 UTF-8（无 BOM）；MSVC 工程必须加 `/utf-8`（已在 native/tests CMakeLists 设置），否则 GBK 区域下报 C4819 且可能吞字符导致诡异编译错误。
 - pwsh 脚本在 Git Bash 里 `| tail` 时退出码被 tail 覆盖，验证脚本退出码需 `set -o pipefail`。
 - **VS 里构建报 `ilc.exe 未能运行……ilclog.csv 正由另一进程使用`（LoggerBasedExecTask）**：命令行构建与 VS 撞同一配置。MSBuild 默认 **node reuse**，命令行构建结束后仍留常驻 `MSBuild.exe` 节点攥着 `obj\<Plat>\Release\ilc\` 下的文件，VS 再构建同一配置即被占用（.NET Native 的 ilc 尤其明显）。处置：命令行一律加 `-nr:false`（`scripts/verify.ps1` 已全部加上，2026-09-18）；已中招则 `Get-Process MSBuild | Stop-Process -Force`（别杀 devenv）+ 删 `obj\<Plat>\Release\ilc` 后重建。另：同一配置不要 VS 与命令行同时构建。
@@ -199,6 +200,11 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
   能否真正连出去由 📱 验收确认（AppContainer 的网络能力已在清单里：internetClient / internetClientServer / privateNetworkClientServer）。
 - **又踩一次 `/utf-8`**：Native 工程此前没加该开关，MSVC 按 GBK 读 UTF-8 源码，中文注释尾字节吞掉下一行，
   报出「`AppendMethods` 找不到标识符」「`tv` 未声明」这类完全对不上的错。已在两个配置组加 `/utf-8`（§5 早有此坑记录）。
-- 📱 待真机（需 👤 提供一台可达的 SSH 服务器）：SpikePage 的「SP03 SSH 测试」区填主机/端口/用户/密码/命令 →
+- 📱 待真机（服务器已由 👤 提供，2026-09-18）：SpikePage 的「SP03 SSH 测试」区填主机/端口/用户/密码/命令 →
   「连接并执行」；另点「回环 UDP 探测」验证事件循环唤醒方案。报告落 `LocalState\spike-reports\sp03-*.txt`，
   我用 `phone-portal.ps1 -Pull` 自取。**密码只进内存，不写日志、不落盘、不入报告。**
+- **无人值守模式（2026-09-18 新增，为 N 系列回归铺路）**：启动时若 `LocalState\ssh-autotest.json` 存在
+  （`{"host","port","user","password","command","udp"}`），App 读出后**立即删除文件**，自动跑 SSH 测试 +
+  UDP 探测并出报告，全程无需戳屏幕。种子文件 PC 端直接写 LocalState，手机端用
+  `phone-portal.ps1 -Push <file> -Path "\"` 推入。密码只在种子文件里短暂停留，App 读出即删，
+  依旧不记日志、不落盘（App 自身）、不入报告。

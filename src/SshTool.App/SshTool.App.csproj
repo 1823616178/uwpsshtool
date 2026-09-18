@@ -164,6 +164,7 @@
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Debug\DebugReport.cs" />
+    <Compile Include="Views\Debug\SshAutoTest.cs" />
     <Compile Include="Views\Debug\InputSpikePage.xaml.cs">
       <DependentUpon>InputSpikePage.xaml</DependentUpon>
     </Compile>

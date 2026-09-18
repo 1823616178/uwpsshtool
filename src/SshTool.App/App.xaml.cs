@@ -59,6 +59,8 @@ namespace SshTool.App
             // 激活之后再读包内配置：UWP 对激活有超时，启动路径上不做阻塞 IO
             //（配置只影响日志级别与同步地址，晚一拍无影响）。
             var ignore = LoadConfigAsync();
+            // SP03：发现 ssh-autotest.json 则跑无人值守 SSH 测试（读后即删，详见该类注释）
+            var ignoreAutoTest = Views.Debug.SshAutoTest.RunIfSeedPresentAsync();
         }
 
         private static async Task LoadConfigAsync()

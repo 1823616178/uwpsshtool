@@ -1,4 +1,4 @@
-﻿# 通过 Windows Device Portal（USB 转发到本机 10080/10443）操作 Lumia：配对、列目录、拉文件。
+# 通过 Windows Device Portal（USB 转发到本机 10080/10443）操作 Lumia：配对、列目录、拉文件。
 # 目的：📱 验收产生的报告（LocalState\spike-reports\*.txt、logs\app.log）能直接取回 PC，
 #       不用人对着手机屏幕抄数字。
 #
@@ -8,6 +8,7 @@
 #   pwsh scripts/phone-portal.ps1 -Pull              # 把 spike-reports 全部拉到 artifacts/phone-reports/
 #   pwsh scripts/phone-portal.ps1 -Get app.log -Path "\logs"
 #   pwsh scripts/phone-portal.ps1 -Install src\SshTool.App\AppPackages\...\SshTool.App_0.1.0.1_ARM.appx
+#   pwsh scripts/phone-portal.ps1 -Push .\ssh-autotest.json -Path "\"   # 上传到 LocalState 根（SP03 无人值守种子）
 #
 # 会话 cookie 存在 .phone-portal-session.json（已 gitignore），配对一次后长期可用。
 [CmdletBinding()]
@@ -17,6 +18,7 @@ param(
     [switch]$Pull,
     [string]$Get,
     [string]$Install,
+    [string]$Push,
     [string]$Path = '\spike-reports',
     [string]$BaseUrl = 'https://127.0.0.1:10443',
     [string]$PackageFamily = 'SshTool.LumiaSsh'
@@ -106,6 +108,17 @@ $pfn = $pkg.PackageFullName
 Write-Host "应用包：$pfn"
 
 $q = "knownfolderid=LocalAppData&packagefullname=$pfn&path=" + [Uri]::EscapeDataString($Path)
+
+# ---- 上传文件到 LocalState\<Path>（SP03：把 ssh-autotest.json 推进无人值守测试）----
+if ($Push) {
+    $item = Get-Item $Push
+    $form = @{ ($item.Name) = $item }
+    $uq = "$q&filename=" + [Uri]::EscapeDataString($item.Name)
+    $r = Invoke-WebRequest -Uri "$BaseUrl/api/filesystem/apps/file?$uq" `
+        -Method Post -Form $form -WebSession $session -SkipCertificateCheck -TimeoutSec 120 -UseBasicParsing
+    Write-Host "上传 $($item.Name) → LocalState$Path，HTTP $($r.StatusCode)"
+    exit 0
+}
 
 if ($List -or $Pull) {
     $files = (Invoke-Portal "/api/filesystem/apps/files?$q" $session).Content | ConvertFrom-Json
