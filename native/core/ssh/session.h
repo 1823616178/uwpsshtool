@@ -6,8 +6,10 @@
 #include <cstdint>
 #include <functional>
 #include <mutex>
+#include <optional>
 #include <string>
 
+#include "hostkey.h"
 #include "io/EventLoop.h"
 
 struct _LIBSSH2_SESSION;
@@ -39,6 +41,7 @@ enum class SshSessionError : int {
     ConnectionRefused = 103,
     NetworkUnreachable = 104,
     AlgorithmNegotiationFailed = 301,
+    HostKeyMismatch = 303,
     HandshakeFailed = 304,
     HandshakeTimeout = 305,
     RemoteClosed = 401,
@@ -50,6 +53,10 @@ struct SshSessionOptions {
     std::uint32_t connectTimeoutMs = 15000;
     std::uint32_t handshakeTimeoutMs = 15000;
     std::uint32_t closeFlushTimeoutMs = 2000;
+    // Invoked on the loop thread after the handshake, before Authenticating.
+    // Empty = accept (TOFU first-connect semantics; the Core layer supplies
+    // the real known_hosts comparison). Must not block.
+    HostKeyCallback hostKeyCallback;
 };
 
 class SshSession final {
@@ -71,6 +78,10 @@ public:
     SshSessionError lastError() const;
     std::string lastErrorMessage() const;
 
+    // Host key presented by the peer; set once the handshake completes and
+    // kept after a rejection so the UI can show actual vs expected.
+    std::optional<HostKeyInfo> hostKeyInfo() const;
+
     static bool isLegalTransition(SshSessionState from, SshSessionState to);
 
 private:
@@ -78,6 +89,8 @@ private:
     void onSocketEvent(SOCKET socket, short events);
     void beginHandshake();
     void driveHandshake();
+    void verifyHostKey();
+    void rejectHostKey(std::string message);
     void updateSocketInterest();
     void doClose();
     void driveClose();
@@ -112,6 +125,10 @@ private:
     mutable std::mutex errorMutex_;
     SshSessionError error_ = SshSessionError::None;
     std::string errorMessage_;
+
+    mutable std::mutex hostKeyMutex_;
+    std::optional<HostKeyInfo> hostKeyInfo_;
+    bool hostKeyRejected_ = false;
 };
 
 const char* toString(SshSessionState state);

@@ -38,7 +38,7 @@
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
-| M1 | 原生 SSH 内核 | 11 | 3 | 调试页在 Lumia 上连服务器执行命令看到输出 |
+| M1 | 原生 SSH 内核 | 11 | 4 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **29** | |
+| **合计** | | **111** | **30** | |
 
 ### 1.1 关键路径
 
@@ -301,14 +301,14 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 设置环境变量时对 WSL sshd 完成握手（本地手动跑一次并在进度日志记录）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
-- [ ] **N04 主机密钥与 TOFU** `S`
+- [x] **N04 主机密钥与 TOFU** `S`
   - 依赖：N03
   - 参考：鸿蒙端 `cpp/ssh/hostkey.*`、`cpp/tests/hostkey_test.cpp`
   - 产出：`native/core/ssh/hostkey.{h,cpp}`、`native/tests/hostkey_test.cpp`
   - 要点：`SHA256:` + base64 无填充指纹；randomart（OpenSSH 同款 17×9）；密钥类型名；比对接口返回 Match/Mismatch/Unknown；Mismatch 时会话不得继续认证。
   - 验收：
-    - [ ] 固定公钥 blob 的指纹与 randomart 与 `ssh-keygen -lv` 输出一致（期望值写死在测试中）
-    - [ ] Mismatch 路径断言不进入 Authenticating
+    - [x] 固定公钥 blob 的指纹与 randomart 与 `ssh-keygen -lv` 输出一致（期望值写死在测试中）
+    - [x] Mismatch 路径断言不进入 Authenticating
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
 - [ ] **N05 认证：密码 / 公钥 / keyboard-interactive** `M`
@@ -1338,3 +1338,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | N01 | 4e78eb6 | **完成**。固定 URL/SHA256 拉取 libssh2 1.11.1、libvterm 0.3.3 release tar、Argon2 20190702；`NativeCore.vcxitems` 统一 UWP 原生清单，Argon2 固定 ref.c + `ARGON2_NO_THREADS`；宿主链接静态 OpenSSL 并通过 libssh2/libvterm/RFC 9106 三条冒烟。VS2017 v141 的 x64/Win32/ARM 三架构构建成功，`verify.ps1 -Arm` 全绿。顺带定位并修复 Appx 打包 `MrmSupportLibrary.GetLocation` 空引用：受控终端缺进程级 `PROCESSOR_ARCHITECTURE`，门禁从 Machine 级补回。 |
 | 2026-09-18 | N02 | 0673ba6 | **完成**。EventLoop 以 WSAPoll + 经 100 ms 自检的回环 UDP socket 对唤醒；AppContainer 不允许时自动退化为 50 ms 有界轮询；定时器最小堆、跨线程 FIFO Post、socket 注册/修改/移除与 SessionThread 幂等启停齐备；WinsockInit 进程级引用计数，I/O 线程命名。移植并 Windows 等价替换为 11 条 I/O 测试，含 UDP 收发/所有权、轮询兜底与 1000 次会话创建启停后 `GetProcessHandleCount` 零增长；native 共 15 测试，`verify.ps1 -Quick` 与 `-Arm` 全绿。 |
 | 2026-09-18 | N03 | 1cc2d0d | **完成**。新增 libssh2 非阻塞会话生命周期：`WSAEWOULDBLOCK` 后由 WSAPoll 可写事件配合 `SO_ERROR` 完成连接，连接/握手/关闭定时器、合法迁移表、远端断开与优雅关闭齐备；修复 connect 后立即 close 的入队竞态。新增 8 条会话测试（默认 7 通过、环境集成 1 跳过），native 共 23 条；临时注入环境变量对既有测试服务器 `192.168.1.25:22` 实际握手到 Authenticating 并关闭，32 ms 通过，未发送认证信息；`verify.ps1 -Arm` 全绿（465 Core、x64 Debug、ARM Release/.NET Native）。libssh2 源与本项目同名 `session` 对象冲突，已用独立对象目录隔离。 |
+| 2026-09-18 | N04 | bb6fd2a | **完成**。新增 `native/core/ssh/hostkey.{h,cpp}`：`SHA256:`+base64 无填充指纹、MD5 对照指纹、OpenSSH 逐字节对齐的 Drunken Bishop randomart（17×9）、blob 内嵌算法名解析（libssh2 枚举兜底）、三态比对（Ok/Unknown/Mismatch，提取失败 fail-closed 归 Mismatch）。SshSession 握手成功后、进 Authenticating 前同步调 `hostKeyCallback`（空回调=TOFU 放行）；Reject 或提取失败 → 错误 303、`SSH_DISCONNECT_HOST_KEY_NOT_VERIFIABLE` 优雅断开走 Closing→Closed，被拒后 `hostKeyInfo()` 仍可取供对比视图。黄金向量：固定 ed25519 blob 的 SHA256/MD5/randomart 与 `ssh-keygen -l`/`-E md5 -l`/`-lv` 输出逐字符写死比对 ✓；对测试服务器 192.168.1.25 实测三条集成用例全过（默认放行取指纹 ecdsa-sha2-nistp256、回调比对通过进 Authenticating、伪造指纹被拒且状态序列无 Authenticating）。native 共 35 测试；`verify.ps1 -Quick` 全绿；v141 UWP x64 Debug / ARM Release 构建 ✓（NativeCore.vcxitems 的 Core 组为此补 `/std:c++17`——v141 默认 C++14 无 `std::optional`）。 |

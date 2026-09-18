@@ -87,8 +87,11 @@ target_link_libraries(native_dependencies_host PUBLIC
     ws2_32)
 
 add_library(ssh_session_host STATIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/session.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/session.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/hostkey.cpp)
 target_include_directories(ssh_session_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core)
+# hostkey.cpp 用 OpenSSL EVP 算指纹；native_dependencies_host 的 OpenSSL include 是 PRIVATE，这里单独补。
+target_include_directories(ssh_session_host PRIVATE ${OPENSSL_DIR}/include)
 target_link_libraries(ssh_session_host PUBLIC ssh_core_host native_dependencies_host)
 
 add_executable(smoke_test smoke_test.cpp)
@@ -103,8 +106,12 @@ target_link_libraries(io_test PRIVATE ssh_core_host GTest::gtest_main)
 add_executable(ssh_session_test ssh_session_test.cpp)
 target_link_libraries(ssh_session_test PRIVATE ssh_session_host GTest::gtest_main)
 
+add_executable(hostkey_test hostkey_test.cpp)
+target_link_libraries(hostkey_test PRIVATE ssh_session_host GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
 gtest_discover_tests(deps_smoke_test)
 gtest_discover_tests(io_test)
 gtest_discover_tests(ssh_session_test)
+gtest_discover_tests(hostkey_test)

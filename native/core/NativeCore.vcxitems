@@ -21,9 +21,12 @@
     <ClInclude Include="$(NativeCoreDir)io\SessionThread.h" />
     <ClInclude Include="$(NativeCoreDir)io\WinsockInit.h" />
     <ClInclude Include="$(NativeCoreDir)ssh\session.h" />
-    <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp;$(NativeCoreDir)ssh\session.cpp">
+    <ClInclude Include="$(NativeCoreDir)ssh\hostkey.h" />
+    <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp;$(NativeCoreDir)ssh\session.cpp;$(NativeCoreDir)ssh\hostkey.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
+      <!-- v141 默认 C++14；N04 起 core 使用 std::optional，需显式开 C++17（宿主 CMake 已是 17）。 -->
+      <AdditionalOptions>/std:c++17 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemGroup>
 

@@ -146,6 +146,12 @@ std::string SshSession::lastErrorMessage() const
     return errorMessage_;
 }
 
+std::optional<HostKeyInfo> SshSession::hostKeyInfo() const
+{
+    std::lock_guard<std::mutex> lock(hostKeyMutex_);
+    return hostKeyInfo_;
+}
+
 bool SshSession::isLegalTransition(SshSessionState from, SshSessionState to)
 {
     using State = SshSessionState;
@@ -330,8 +336,7 @@ void SshSession::driveHandshake()
     if (result == 0) {
         thread_.loop().cancelTimer(handshakeTimer_);
         handshakeTimer_ = 0;
-        transitionTo(SshSessionState::Authenticating);
-        updateSocketInterest();
+        verifyHostKey();
         return;
     }
     if (result == LIBSSH2_ERROR_EAGAIN) {
@@ -347,6 +352,55 @@ void SshSession::driveHandshake()
          std::string("SSH handshake failed: ") +
              (message == nullptr ? std::to_string(result)
                                  : std::string(message, static_cast<std::size_t>(messageLength))));
+}
+
+void SshSession::verifyHostKey()
+{
+    std::optional<HostKeyInfo> info = extractHostKey(session_);
+    {
+        std::lock_guard<std::mutex> lock(hostKeyMutex_);
+        hostKeyInfo_ = info;
+    }
+    if (!info.has_value()) {
+        // Fail-closed: a session that cannot show its host key never
+        // authenticates, with or without a callback.
+        rejectHostKey("host key unavailable after handshake");
+        return;
+    }
+    HostKeyDecision decision = HostKeyDecision::Accept;
+    if (options_.hostKeyCallback) {
+        try {
+            decision = options_.hostKeyCallback(*info);
+        } catch (...) {
+            SSH_LOG("host key callback threw; rejecting");
+            decision = HostKeyDecision::Reject;
+        }
+    }
+    if (decision == HostKeyDecision::Accept) {
+        transitionTo(SshSessionState::Authenticating);
+        updateSocketInterest();
+        return;
+    }
+    rejectHostKey(std::string("host key rejected: ") + info->fingerprintSha256);
+}
+
+void SshSession::rejectHostKey(std::string message)
+{
+    {
+        std::lock_guard<std::mutex> lock(errorMutex_);
+        error_ = SshSessionError::HostKeyMismatch;
+        errorMessage_ = std::move(message);
+    }
+    hostKeyRejected_ = true;
+    if (!transitionTo(SshSessionState::Closing)) {
+        return;
+    }
+    closeTimer_ = thread_.loop().runAfter(options_.closeFlushTimeoutMs, [this] {
+        if (state() == SshSessionState::Closing) {
+            completeClose();
+        }
+    });
+    driveClose();
 }
 
 void SshSession::updateSocketInterest()
@@ -404,8 +458,11 @@ void SshSession::driveClose()
         completeClose();
         return;
     }
-    const int result = ::libssh2_session_disconnect_ex(
-        session_, SSH_DISCONNECT_BY_APPLICATION, "client closed session", "");
+    const int reason = hostKeyRejected_ ? SSH_DISCONNECT_HOST_KEY_NOT_VERIFIABLE
+                                        : SSH_DISCONNECT_BY_APPLICATION;
+    const char* description = hostKeyRejected_ ? "host key verification failed"
+                                               : "client closed session";
+    const int result = ::libssh2_session_disconnect_ex(session_, reason, description, "");
     if (result == LIBSSH2_ERROR_EAGAIN) {
         updateSocketInterest();
         return;
@@ -517,6 +574,7 @@ const char* toString(SshSessionError error)
     case SshSessionError::ConnectionRefused: return "connection_refused";
     case SshSessionError::NetworkUnreachable: return "network_unreachable";
     case SshSessionError::AlgorithmNegotiationFailed: return "algorithm_negotiation_failed";
+    case SshSessionError::HostKeyMismatch: return "host_key_mismatch";
     case SshSessionError::HandshakeFailed: return "handshake_failed";
     case SshSessionError::HandshakeTimeout: return "handshake_timeout";
     case SshSessionError::RemoteClosed: return "remote_closed";
