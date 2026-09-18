@@ -37,7 +37,7 @@
 
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
-| M0 | 基座与技术验证 | 13 | 12 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
+| M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 0 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **25** | |
+| **合计** | | **111** | **26** | |
 
 ### 1.1 关键路径
 
@@ -171,7 +171,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 组合态判定与提交策略五条已定稿回写 `01-DESIGN.md §7.5`；**300 ms 静默兜底不启用**
   - 验证：真机
 
-- [ ] **SP06 Spike：后台保活、常亮、DPAPI 与明文 HTTP** `S` 👤📱
+- [x] **SP06 Spike：后台保活、常亮、DPAPI 与明文 HTTP** `S` 👤📱
   - 依赖：SP03
   - 参考：`01-DESIGN.md §10、D10、D11、R5、R6`
   - 产出：`src/SshTool.App/Views/Debug/PlatformSpikePage.xaml(.cs)`、`doc/ENV.md` 追加结论
@@ -185,7 +185,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 ExtendedExecution 授予/撤销情况与各场景存活时长已记录
     - [ ] 📱 DPAPI 往返与重启后解密成功
     - [ ] 📱 HTTP 401 响应体与头解析正确，If-Match 可发送
-    - [ ] 回写 `01-DESIGN.md §10`、D10、D11、R5、R6
+    - [ ] 📱 真机结论出来后回写 `01-DESIGN.md §10`、D10、D11、R5、R6
   - 验证：真机
 
 - [x] **X03 Design Token 与主题资源** `M`
@@ -1279,6 +1279,10 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [x] X04 📱 已完成（2026-09-18，真机 app.log 取回核对）
 - [ ] X07 📱/👤 画廊页控件区展示 StatusDot 五态（连接中/重连中脉动）、Banner 四 Severity、EmptyState、SectionHeader、LoadingOverlay、TransientToast（1.5s 自动消失）
 - [ ] U05 👤/📱 画廊页逐个弹出 7 个对话框返回正确结果；连发两个按顺序显示不崩溃（MainPage DEBUG「X03 Token 画廊」内对话框区）
+- [ ] SP06 📱 ExtendedExecution 授予/撤销情况；锁屏 1/5/15 分钟、切应用、省电模式下的 SSH tick 存活时长
+- [ ] SP06 📱 DPAPI `LOCAL=user` 1 KiB 往返与重启后解密成功
+- [ ] SP06 📱 HTTP GET/HEAD 返回 401 且可读取头/体；带引号的 `If-Match: "revision-0"` 可发送
+- [ ] SP06 📱 按实测结论回写 `01-DESIGN.md §10`、D10、D11、R5、R6
 
 ---
 
@@ -1330,3 +1334,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | U05 | 271a33d | ⏳ 等待：👤/📱 画廊页观感与结果确认。AI 侧完成：Dialogs/ 七对话框（HostKey/HostKeyMismatch/Credential/Passphrase/KbdInteractive/Confirm/ExitWithSessions），各自 `static ShowAsync` 经 DialogService 排队、结果类型化、None 映射取消、PasswordBox 读出即清空；Mismatch 次按钮需输入主机名确认（deferral 阻止关闭）；ConfirmDialog 通用化（isDanger 时主按钮 AppDangerBrush，覆盖 ConfirmDelete 场景）；Controls/ 新增 MonoText（等宽可选中，Compact 切 Caption 字号）与 RandomArtView；Tokens 补 `AppMonoFontFamily`/`GapXsTop`/`GapSmTop`，Controls.xaml 补 `MonoTextStyle`；画廊页加对话框演示区（结果脱敏：密码只显长度）+ 连发两个验证排队；verify 全绿（465 单测、魔法数字、x64 Debug 无 WMC0151）；任务不勾选 |
 | 2026-09-18 | SP03 | a3c139c | ⏳ 等待：📱 真机两项（ARM 包 v0.1.0.6 已备好，手机接 USB 后我自动装包+推种子+拉报告）。AI 侧：**PC x64 Debug 验收①通过**（👤 提供测试服务器 192.168.1.25；无人值守实测 `uname -a` 返回 Linux sun 7.0.0-30-generic Ubuntu 24.04 x86_64，exit=0；协商 kex curve25519-sha256 / hostkey ecdsa-sha2-nistp256 / cipher chacha20-poly1305 / mac hmac-sha2-256，总耗时 652ms，报告 sp03-ssh-20260918-084849.txt；PC 回环 UDP 探测亦可用）。**新增无人值守机制**：启动检测 `LocalState\ssh-autotest.json`，读后即删（密码不留盘），自动跑 SSH+UDP 并出报告——N 系列回归不用再戳屏幕；`phone-portal.ps1` 加 `-Push`。踩坑（记 ENV §5）：未签名 appx PC 拒装 0x800B0100、CurrentUser TrustedPeople 仍 0x800B0109、msbuild 无 Deploy 目标，最终「解压 appx + Add-AppxPackage -Register」免签名解决；appx 签名证书 EKU 必须是 1.3.6.1.5.5.7.3.3（311.10.3.4 是 EFS）。verify 全绿；任务不勾选 |
 | 2026-09-18 | SP03 | （本次） | **代码任务完成**。用户回报 Lumia 真机 Wi-Fi SSH 成功：697 ms，协商算法与 PC 完全一致，同一服务器指纹一致；UDP 留入渐进真机待办。修正设备门户路径必须含 `\LocalState`，种子改推应用自建 `spike-reports` 目录以继承 ACL；自动测试增加并发防重。按用户要求改为“自动门禁完成即继续编码，📱/👤 按里程碑渐进回归”，并据此归档 X03/X07/U05。465 个 Core 测试、native ctest、文档和 XAML 门禁通过；宿主 UWP 源码编译成功，打包阶段遇本机 SDK `GenerateAppxPackageRecipe`/`MrmSupportLibrary` 工具异常，独立跟踪，不转成人工验收。 |
+| 2026-09-18 | SP06 | （本次） | **代码任务完成，真机渐进回归**。新增 PlatformSpikePage：ExtendedExecution 请求/撤销日志、DisplayRequest 成对管理、DPAPI `LOCAL=user` 1 KiB 往返与跨重启文件、Windows.Web.Http GET/HEAD/If-Match、1–30 分钟 SSH tick 后台存活测试；结果统一落 `spike-reports` 与 app.log，密码不保存。UWP C#/XAML 编译通过；人工场景已登记待办，不阻塞 N01/P01。 |

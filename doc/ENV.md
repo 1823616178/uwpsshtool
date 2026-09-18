@@ -213,3 +213,15 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\LocalState\logs"
 - **设备门户路径/ACL 坑（2026-09-18 实测）**：`knownfolderid=LocalAppData` 的 `path` 从包数据根开始，
   必须写 `\LocalState\...`，不是直接写 `\...`。门户推入 `LocalState` 根的文件虽然枚举可见，但不继承应用 ACL，
   应用打开会得 `UnauthorizedAccessException`；推入应用自己创建的 `LocalState\spike-reports` 子目录可继承正确 ACL。
+
+## 11. SP06 平台能力自测（代码完成，真机渐进回归）
+
+`PlatformSpikePage` 已提供以下可重复自测，所有结果自动写入 `LocalState\spike-reports` 与 `app.log`：
+
+- `ExtendedExecutionSession(Reason=Unspecified)` 的 Allowed/Denied 与 Revoked 原因；
+- `DisplayRequest.RequestActive/RequestRelease` 成对调用；
+- `DataProtectionProvider("LOCAL=user")` 对固定 1 KiB 数据的当次往返，以及上次运行密文的跨重启解密；
+- 关闭缓存、Cookie、自动重定向的 `Windows.Web.Http` GET/HEAD，含带引号 `If-Match: "revision-0"`；
+- 远端每 10 秒输出 UTC 时间的 1–30 分钟 SSH tick，用于以后批量观察锁屏、切应用和省电模式。
+
+📱 实测结论暂不阻塞编码；结果取得后再回写 `01-DESIGN.md §10`、D10/D11 与 R5/R6。

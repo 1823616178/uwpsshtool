@@ -1,0 +1,91 @@
+<Page
+    x:Class="SshTool.App.Views.Debug.PlatformSpikePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal">
+            <Button Content="返回" Click="OnBackClick" />
+            <TextBlock Text="SP06 平台能力自测" FontSize="20"
+                       VerticalAlignment="Center" Margin="16,0,0,0" />
+        </StackPanel>
+
+        <TextBlock x:Name="StatusText" Grid.Row="1" Margin="0,12,0,8"
+                   TextWrapping="Wrap" Text="结果自动写入 LocalState\spike-reports 与 app.log" />
+
+        <ScrollViewer Grid.Row="2">
+            <StackPanel>
+                <Border Background="{ThemeResource AppSurfaceAltBrush}"
+                        BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1"
+                        Padding="8" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="后台与屏幕" Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock x:Name="ExecutionText" Text="ExtendedExecution：未请求"
+                                   TextWrapping="Wrap" Margin="0,4,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="请求后台执行" Click="OnRequestExecutionClick" />
+                            <Button Content="释放" Click="OnReleaseExecutionClick" Margin="8,0,0,0" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button Content="屏幕常亮" Click="OnDisplayActiveClick" />
+                            <Button Content="释放常亮" Click="OnDisplayReleaseClick" Margin="8,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{ThemeResource AppSurfaceAltBrush}"
+                        BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1"
+                        Padding="8" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="DPAPI 与 HTTP" Style="{StaticResource SectionTitleTextStyle}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button x:Name="DpapiButton" Content="运行 DPAPI 自测" Click="OnDpapiClick" />
+                            <Button x:Name="HttpButton" Content="运行 HTTP 自测" Click="OnHttpClick" Margin="8,0,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{ThemeResource AppSurfaceAltBrush}"
+                        BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="1"
+                        Padding="8" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="后台 SSH tick" Style="{StaticResource SectionTitleTextStyle}" />
+                        <TextBlock Text="远端每 10 秒输出 UTC 时间；密码不保存。开始后可切应用、锁屏或开省电模式。"
+                                   TextWrapping="Wrap" Margin="0,4,0,8" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="HostBox" Header="主机" Width="170" InputScope="Url" />
+                            <TextBox x:Name="PortBox" Header="端口" Width="70" Margin="8,0,0,0"
+                                     InputScope="Number" Text="22" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBox x:Name="UserBox" Header="用户" Width="120" />
+                            <PasswordBox x:Name="PasswordBox" Header="密码" Width="170" Margin="8,0,0,0" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBox x:Name="MinutesBox" Header="持续分钟" Width="90" Text="5"
+                                     InputScope="Number" />
+                            <Button x:Name="SshButton" Content="开始" Click="OnBackgroundSshClick"
+                                    Margin="8,20,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <Button Content="复制最近报告" Click="OnCopyClick" />
+                </StackPanel>
+                <TextBlock x:Name="ReportText" FontFamily="Consolas" TextWrapping="Wrap"
+                           IsTextSelectionEnabled="True" Text="尚未运行" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

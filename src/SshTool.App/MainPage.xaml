@@ -38,6 +38,9 @@
             <Button x:Name="InputSpikeButton" Content="SP05 输入事件采集"
                     Margin="{StaticResource GapMdTop}"
                     Visibility="Collapsed" Click="OnInputSpikeClick" />
+            <Button x:Name="PlatformSpikeButton" Content="SP06 平台能力自测"
+                    Margin="{StaticResource GapMdTop}"
+                    Visibility="Collapsed" Click="OnPlatformSpikeClick" />
         </StackPanel>
     </Grid>
 </Page>

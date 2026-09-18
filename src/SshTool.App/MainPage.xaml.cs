@@ -30,6 +30,7 @@ namespace SshTool.App
             TokenGalleryButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
             RenderSpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
             InputSpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
+            PlatformSpikeButton.Visibility = Windows.UI.Xaml.Visibility.Visible;
 #endif
         }
 
@@ -51,6 +52,11 @@ namespace SshTool.App
         private void OnInputSpikeClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
         {
             Frame.Navigate(typeof(Views.Debug.InputSpikePage));
+        }
+
+        private void OnPlatformSpikeClick(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(Views.Debug.PlatformSpikePage));
         }
     }
 }

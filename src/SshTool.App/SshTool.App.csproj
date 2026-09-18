@@ -165,6 +165,9 @@
     </Compile>
     <Compile Include="Views\Debug\DebugReport.cs" />
     <Compile Include="Views\Debug\SshAutoTest.cs" />
+    <Compile Include="Views\Debug\PlatformSpikePage.xaml.cs">
+      <DependentUpon>PlatformSpikePage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Debug\InputSpikePage.xaml.cs">
       <DependentUpon>InputSpikePage.xaml</DependentUpon>
     </Compile>
@@ -198,6 +201,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Debug\TokenGalleryPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Debug\PlatformSpikePage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
