@@ -38,7 +38,7 @@
 | 里程碑 | 内容 | 任务数 | 已完成 | 出口演示 |
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
-| M1 | 原生 SSH 内核 | 11 | 1 | 调试页在 Lumia 上连服务器执行命令看到输出 |
+| M1 | 原生 SSH 内核 | 11 | 2 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 1 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
@@ -46,7 +46,7 @@
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **27** | |
+| **合计** | | **111** | **28** | |
 
 ### 1.1 关键路径
 
@@ -280,14 +280,14 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] `NATIVE-BUILD.md` 可让新机器从零复现
   - 验证：`pwsh scripts/verify.ps1 -Arm`
 
-- [ ] **N02 事件循环与会话线程** `M`
+- [x] **N02 事件循环与会话线程** `M`
   - 依赖：N01
   - 参考：鸿蒙端 `cpp/io/EventLoop.*`、`SessionThread.*`、`cpp/tests/event_loop_test.cpp`、`session_thread_test.cpp`；`01-DESIGN.md §6.1`
   - 产出：`native/core/io/{EventLoop,SessionThread,WinsockInit}.{h,cpp}`、`native/tests/{event_loop_test,session_thread_test}.cpp`
   - 要点：`WSAPoll` 替代 epoll；唤醒机制按 SP03 结论（回环 UDP 对或 50 ms 超时轮询）；定时器最小堆；`WinsockInit` 进程级引用计数；线程安全的 `Post(task)`。
   - 验收：
-    - [ ] 移植的全部用例通过（Windows 不适用的用例写明原因并替换为等价用例）
-    - [ ] 1000 次创建/启动/停止后进程句柄数不增长（`GetProcessHandleCount` 断言）
+    - [x] 移植的全部用例通过（Windows 不适用的用例写明原因并替换为等价用例）
+    - [x] 1000 次创建/启动/停止后进程句柄数不增长（`GetProcessHandleCount` 断言）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
 - [ ] **N03 SSH 会话生命周期与状态机** `M`
@@ -1336,3 +1336,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-18 | SP03 | 8162b9e | **代码任务完成**。用户回报 Lumia 真机 Wi-Fi SSH 成功：697 ms，协商算法与 PC 完全一致，同一服务器指纹一致；UDP 留入渐进真机待办。修正设备门户路径必须含 `\LocalState`，种子改推应用自建 `spike-reports` 目录以继承 ACL；自动测试增加并发防重。按用户要求改为“自动门禁完成即继续编码，📱/👤 按里程碑渐进回归”，并据此归档 X03/X07/U05。465 个 Core 测试、native ctest、文档和 XAML 门禁通过；宿主 UWP 源码编译成功，打包阶段遇本机 SDK `GenerateAppxPackageRecipe`/`MrmSupportLibrary` 工具异常，独立跟踪，不转成人工验收。 |
 | 2026-09-18 | SP06 | 8616af2 | **代码任务完成，真机渐进回归**。新增 PlatformSpikePage：ExtendedExecution 请求/撤销日志、DisplayRequest 成对管理、DPAPI `LOCAL=user` 1 KiB 往返与跨重启文件、Windows.Web.Http GET/HEAD/If-Match、1–30 分钟 SSH tick 后台存活测试；结果统一落 `spike-reports` 与 app.log，密码不保存。UWP C#/XAML 编译通过；人工场景已登记待办，不阻塞 N01/P01。 |
 | 2026-09-18 | N01 | 4e78eb6 | **完成**。固定 URL/SHA256 拉取 libssh2 1.11.1、libvterm 0.3.3 release tar、Argon2 20190702；`NativeCore.vcxitems` 统一 UWP 原生清单，Argon2 固定 ref.c + `ARGON2_NO_THREADS`；宿主链接静态 OpenSSL 并通过 libssh2/libvterm/RFC 9106 三条冒烟。VS2017 v141 的 x64/Win32/ARM 三架构构建成功，`verify.ps1 -Arm` 全绿。顺带定位并修复 Appx 打包 `MrmSupportLibrary.GetLocation` 空引用：受控终端缺进程级 `PROCESSOR_ARCHITECTURE`，门禁从 Machine 级补回。 |
+| 2026-09-18 | N02 | 0673ba6 | **完成**。EventLoop 以 WSAPoll + 经 100 ms 自检的回环 UDP socket 对唤醒；AppContainer 不允许时自动退化为 50 ms 有界轮询；定时器最小堆、跨线程 FIFO Post、socket 注册/修改/移除与 SessionThread 幂等启停齐备；WinsockInit 进程级引用计数，I/O 线程命名。移植并 Windows 等价替换为 11 条 I/O 测试，含 UDP 收发/所有权、轮询兜底与 1000 次会话创建启停后 `GetProcessHandleCount` 零增长；native 共 15 测试，`verify.ps1 -Quick` 与 `-Arm` 全绿。 |
