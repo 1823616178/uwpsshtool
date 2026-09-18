@@ -400,7 +400,7 @@ public ref class KeyTool sealed {
 | 0 | u32 | Unicode 码点（0 空；`0xFFFFFFFF` 宽字符续格） |
 | 4 | u32 | 前景 ARGB（已解析调色板/真彩；默认色用特殊值 `0x00000001` 标记，由外观决定） |
 | 8 | u32 | 背景 ARGB（默认色 `0x00000002`） |
-| 12 | u16 | 属性位：bit0 bold、1 italic、2 underline、3 blink、4 reverse、5 strike、6 dim、7 wide、8 invisible |
+| 12 | u16 | 属性位：bit0 bold、1 italic、2 underline、3 blink、4 reverse、5 strike、6 dim、7 wide、8 invisible、9 本行软换行续接（写在行末格） |
 | 14 | u16 | 保留 |
 
 > 默认前景/背景用标记值而不是写死黑白，是鸿蒙端 TerminalRender 历史失败用例（「native 默认黑底替换为外观背景」）的教训：让外观切换无需重放数据。
