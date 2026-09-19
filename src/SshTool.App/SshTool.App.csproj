@@ -107,6 +107,8 @@
     <Compile Include="Platform\FileLogger.cs" />
     <Compile Include="Platform\AppConfig.cs" />
     <Compile Include="Platform\UwpFileSystem.cs" />
+    <Compile Include="Platform\DpapiSecureFile.cs" />
+    <Compile Include="Platform\DpapiSecretStore.cs" />
     <Compile Include="Platform\UwpHttpTransport.cs" />
     <Compile Include="Platform\LocalSettingsStore.cs" />
     <Compile Include="Platform\NativeSshSession.cs" />
