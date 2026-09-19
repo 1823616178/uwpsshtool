@@ -1,0 +1,13 @@
+<ContentDialog
+    x:Class="SshTool.App.Dialogs.PasteConfirmDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    MaxWidth="{StaticResource DialogMaxWidth}">
+
+    <StackPanel>
+        <TextBlock x:Name="SummaryText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+        <controls:MonoText x:Name="PreviewText" Margin="{StaticResource GapSmTop}" />
+        <CheckBox x:Name="DontAskBox" Content="不再提示" Margin="{StaticResource GapSmTop}" />
+    </StackPanel>
+</ContentDialog>

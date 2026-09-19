@@ -263,6 +263,12 @@ namespace SshTool.App.Views.Debug
                 AppendLog("KeyBar hidekb");
                 return;
             }
+            if (e.Action == KeyBarAction.Paste)
+            {
+                TermView.PasteFromClipboard();
+                AppendLog("KeyBar paste");
+                return;
+            }
             AppendLog("KeyBar action " + e.Action);
         }
 

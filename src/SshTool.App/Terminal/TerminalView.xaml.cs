@@ -3,6 +3,7 @@ using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using SshTool.App.Controls;
+using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
 using SshTool.Core.Models;
@@ -103,6 +104,13 @@ namespace SshTool.App.Terminal
         {
             get { return _hardwareKeyboard.Shortcuts; }
             set { _hardwareKeyboard.Shortcuts = value ?? ShortcutMap.Default; }
+        }
+
+        public bool PasteConfirmMultiline { get; set; } = true;
+
+        public void PasteFromClipboard()
+        {
+            PasteClipboard();
         }
 
         public bool FocusInput()
@@ -501,7 +509,32 @@ namespace SshTool.App.Terminal
             {
                 return;
             }
-            SendInput(System.Text.Encoding.UTF8.GetBytes(text.Replace("\r\n", "\r").Replace('\n', '\r')));
+            string normalized = PasteProcessor.NormalizeNewlines(text);
+            if (PasteProcessor.NeedsMultilineConfirm(normalized, PasteConfirmMultiline))
+            {
+                try
+                {
+                    var confirm = await PasteConfirmDialog.ShowAsync(normalized);
+                    if (confirm == null || !confirm.Confirmed)
+                    {
+                        return;
+                    }
+                    if (confirm.DontAskAgain)
+                    {
+                        PasteConfirmMultiline = false;
+                    }
+                }
+                catch (Exception)
+                {
+                    return;
+                }
+            }
+            bool bracketed = _screen != null && _screen.BracketedPaste;
+            var chunks = PasteProcessor.ChunkUtf8(PasteProcessor.WrapBracketed(normalized, bracketed));
+            for (int i = 0; i < chunks.Count; i++)
+            {
+                SendInput(chunks[i]);
+            }
         }
 
         private void RefreshSelectionOverlay()

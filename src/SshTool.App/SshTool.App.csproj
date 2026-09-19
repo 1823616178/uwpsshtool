@@ -176,6 +176,9 @@
     <Compile Include="Dialogs\ConfirmDialog.xaml.cs">
       <DependentUpon>ConfirmDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\PasteConfirmDialog.xaml.cs">
+      <DependentUpon>PasteConfirmDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\ExitWithSessionsDialog.xaml.cs">
       <DependentUpon>ExitWithSessionsDialog.xaml</DependentUpon>
     </Compile>
@@ -316,6 +319,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Dialogs\ConfirmDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\PasteConfirmDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
