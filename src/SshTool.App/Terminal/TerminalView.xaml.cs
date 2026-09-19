@@ -83,6 +83,21 @@ namespace SshTool.App.Terminal
             return _softKeyboard.Focus();
         }
 
+        public void ToggleSoftKeyboard()
+        {
+            if (_softKeyboard.IsInputPaneVisible)
+            {
+                _softKeyboard.HidePane();
+                return;
+            }
+            FocusInput();
+        }
+
+        public void SendInput(byte[] data)
+        {
+            OnSoftKeyboardInput(this, new TerminalInputEventArgs(data ?? new byte[0]));
+        }
+
         public ISshSession Session
         {
             get { return _session; }

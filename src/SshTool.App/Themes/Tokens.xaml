@@ -43,6 +43,7 @@
     <x:Double x:Key="TouchTargetMin">40</x:Double>
     <x:Double x:Key="KeyBarHeight">40</x:Double>
     <x:Double x:Key="KeyBarKeyMinWidth">44</x:Double>
+    <Thickness x:Key="KeyBarLockedBorder">0,0,0,2</Thickness>
     <x:Double x:Key="TerminalInfoBarHeight">32</x:Double>
     <x:Double x:Key="TabStripHeight">36</x:Double>
     <x:Double x:Key="SplitterThickness">6</x:Double>

@@ -41,11 +41,16 @@ namespace SshTool.App.Views.Debug
             UserBox.Text = LoadSetting("user", DebugSshDefaults.User);
             PasswordBox.Password = DebugSshDefaults.Password;
             TermView.Input += OnTerminalInput;
+            TermKeyBar.Sticky = TermView.StickyModifiers;
+            TermKeyBar.Input += OnKeyBarInput;
+            TermKeyBar.Action += OnKeyBarAction;
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             TermView.Input -= OnTerminalInput;
+            TermKeyBar.Input -= OnKeyBarInput;
+            TermKeyBar.Action -= OnKeyBarAction;
             ReleaseSession();
             base.OnNavigatedFrom(e);
         }
@@ -228,6 +233,26 @@ namespace SshTool.App.Views.Debug
         {
             int n = e != null && e.Data != null ? e.Data.Length : 0;
             AppendLog("Input " + n.ToString(CultureInfo.InvariantCulture) + " bytes");
+        }
+
+        private void OnKeyBarInput(object sender, TerminalInputEventArgs e)
+        {
+            TermView.SendInput(e != null ? e.Data : null);
+        }
+
+        private void OnKeyBarAction(object sender, KeyBarActionEventArgs e)
+        {
+            if (e == null)
+            {
+                return;
+            }
+            if (e.Action == KeyBarAction.HideKeyboard)
+            {
+                TermView.ToggleSoftKeyboard();
+                AppendLog("KeyBar hidekb");
+                return;
+            }
+            AppendLog("KeyBar action " + e.Action);
         }
 
         private void OnSendClick(object sender, RoutedEventArgs e)

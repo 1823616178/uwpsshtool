@@ -118,6 +118,7 @@
     <Compile Include="Terminal\TerminalView.xaml.cs">
       <DependentUpon>TerminalView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Platform\Haptics.cs" />
     <Compile Include="Platform\NativeSshSessionFactory.cs" />
     <Compile Include="Infrastructure\ServiceRegistry.cs" />
     <Compile Include="Infrastructure\DispatcherHelper.cs" />
@@ -148,6 +149,9 @@
     </Compile>
     <Compile Include="Controls\RandomArtView.xaml.cs">
       <DependentUpon>RandomArtView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\KeyBar.xaml.cs">
+      <DependentUpon>KeyBar.xaml</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\HostKeyDialog.xaml.cs">
       <DependentUpon>HostKeyDialog.xaml</DependentUpon>
@@ -275,6 +279,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\RandomArtView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\KeyBar.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

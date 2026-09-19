@@ -91,6 +91,19 @@ namespace SshTool.App.Terminal
             return _box.Focus(FocusState.Programmatic);
         }
 
+        public bool IsInputPaneVisible
+        {
+            get { return OccludedRect.Height > 0; }
+        }
+
+        public void HidePane()
+        {
+            if (_inputPane != null)
+            {
+                _inputPane.TryHide();
+            }
+        }
+
         public void Dispose()
         {
             if (_disposed)

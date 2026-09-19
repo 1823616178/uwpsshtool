@@ -81,6 +81,9 @@
                                           Margin="{StaticResource GapSmTop}">
                                 <term:TerminalView x:Name="TermView" />
                             </ScrollViewer>
+                            <controls:KeyBar x:Name="TermKeyBar"
+                                             Margin="{StaticResource GapSmTop}"
+                                             AllowFocusOnInteraction="False" />
                             <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
                                 <TextBox x:Name="SendBox" Width="220" PlaceholderText="输入命令，回车发送"
                                          KeyDown="OnSendKeyDown" />
