@@ -28,6 +28,24 @@ namespace SshTool.Core.Sync.Api.Dtos
                 ["ciphertextHash"] = CiphertextHash
             };
         }
+
+        // S12a：pendingUpload 重放时把落盘的 body 原文解析回请求体（逐字节重放，不断言语义）。
+        public static EncryptedDocumentData Parse(JObject o)
+        {
+            if (o == null)
+            {
+                throw new ProtocolParseException("$", "加密文档不是对象");
+            }
+            return new EncryptedDocumentData
+            {
+                SchemaVersion = DtoReader.Int(o, "schemaVersion", "schemaVersion"),
+                KeyVersion = DtoReader.Int(o, "keyVersion", "keyVersion"),
+                Algorithm = DtoReader.Str(o, "algorithm", "algorithm"),
+                Nonce = DtoReader.Str(o, "nonce", "nonce"),
+                Ciphertext = DtoReader.Str(o, "ciphertext", "ciphertext"),
+                CiphertextHash = DtoReader.Str(o, "ciphertextHash", "ciphertextHash")
+            };
+        }
     }
 
     // GET sync/document 响应

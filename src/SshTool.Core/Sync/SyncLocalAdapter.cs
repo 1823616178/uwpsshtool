@@ -54,7 +54,7 @@ namespace SshTool.Core.Sync
     // 上行出站文档只经 SyncDocumentWriter 序列化（固定键序/排序，见 Writer/SameContent），
     // 下行入站文档由调用方经 SyncDocumentReader 校验后传入（此处再做 Validator 防御性复检）。
     // 日志只记相位与数量，不记密码/短语/私钥/明文/密文。
-    public sealed class SyncLocalAdapter
+    public sealed class SyncLocalAdapter : ISyncLocalPort
     {
         private const string Tag = "SyncLocalAdapter";
         private const string UpdatedAtFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";

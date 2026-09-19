@@ -1,11 +1,16 @@
 using System;
 using System.Globalization;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SshTool.Core.Common;
+using SshTool.Core.Storage;
 using SshTool.Core.Sync.Api;
 using SshTool.Core.Sync.Api.Dtos;
 using SshTool.Core.Sync.Auth;
+using SshTool.Core.Sync.Protocol;
 using SshTool.Core.Sync.Vault;
 
 namespace SshTool.Core.Sync
@@ -17,16 +22,45 @@ namespace SshTool.Core.Sync
         Recovery
     }
 
-    // 03-SYNC-PROTOCOL.md §7.1 初始化与认证 + §7.2 保险库操作（不含 Rotate）。
+    // S12a：协调器↔本地文档的最小端口（SyncLocalAdapter 已实现；单测用假实现）。
+    // Build 读本地仓库快照并按 VaultCache 偏好输出 secrets；Apply 整份替换
+    //（ChangeOrigin.Sync，不再标脏，避免上传回环，见 §5.2/踩坑 #13）。
+    public interface ISyncLocalPort
+    {
+        Task<SyncDocumentV1> BuildLocalDocumentAsync(SyncPreferencesV1 preferences);
+
+        Task ApplyDocumentAsync(SyncDocumentV1 document);
+    }
+
+    // SyncNow 的冲突解决策略（桌面端 SyncNowInput.strategy）。
+    // None = 常规同步；KeepLocal/UseRemote 只由 S12b 的 ResolveConflict 传入。
+    public enum SyncNowStrategy
+    {
+        None,
+        KeepLocal,
+        UseRemote
+    }
+
+    public sealed class SyncNowInput
+    {
+        public SyncNowStrategy Strategy { get; set; }
+    }
+
+    // 03-SYNC-PROTOCOL.md §7.1 初始化与认证 + §7.2 保险库操作（不含 Rotate）
+    // + §7.3 同步主流程与上传（S12a：单飞 SyncNow、pendingUpload 重放、HEAD 分支、
+    // 无新版本上传条件、有新版本干净应用/脏合并上传、Upload/CommitRemote）。
     // S11 范围（第一部分）：Initialize、注册/登录后流程、ProbeVault、
     // SetupVault（先落盘 pending 再 POST）、Unlock、Lock、DeleteVault、
     // SetPreferences（拒绝直接关闭敏感开关）、Logout、ChangeAccountPassword、
     // DeleteAccount 与 StateChanged 事件。
     //
-    // 不在 S11：PerformSync/SyncNow 上传下载（S12a）、冲突与 initial-import（S12b）、
-    // 轮换/历史/退避重试/MarkDirty（S13）、触发器与轮询（S14）。
+    // 不在 S12a（S12b 落地）：SaveConflict/initial-import/remote-deletion/
+    // RemoteDeletionConflicts/ResolveConflict——冲突条件命中时抛 NotSupportedException
+    //（HandleSyncError 照常记 error 并上抛，调用方可忽略）。
+    // 不在 S12a（S13 落地）：Rotate/Restore/Clear、退避重试与 ITimerFactory、
+    // MarkDirty 防抖（此处只有无防抖的 NotifyLocalChanged 供 Upload 竞争检测与 S13 复用）。
     // SetupVault/Unlock 成功后只把 dirty=true（或就绪）记入缓存并转 idle/ready，
-    // 实际上传由 S12a 的 SyncNow 完成。
+    // 首次加密上传由 SyncNow 完成（与桌面端 setupVault 尾部 syncNow 对齐）。
     //
     // 与桌面端 sync-coordinator.ts 逐项对齐（含文案）：
     //   - 已登录不再重复登录（每次登录新建设备，见踩坑 #10）。
@@ -44,9 +78,20 @@ namespace SshTool.Core.Sync
         private readonly ILogger _logger;
         private readonly Func<DateTimeOffset> _clock;
         private readonly Func<string> _guid;
+        private readonly ISyncLocalPort _local;
+        private readonly Func<long, Task> _sleep;
 
         private readonly object _stateLock = new object();
         private SyncState _state;
+
+        // 单飞 SyncNow：运行中的同步任务（并发调用共用同一个 Task，见桌面端 running）。
+        private readonly object _syncLock = new object();
+        private Task _runningSync;
+        private object _runningToken;
+
+        // 本地修改代际：Upload 收尾时比对，期间有改动则保持 dirty 并 250 ms 后再同步。
+        // 自增与快照都在 _stateLock 下（S13 的 MarkDirty 复用同一计数）。
+        private int _changeGeneration;
 
         // 每次状态变更后同步触发（调用线程；UI 层负责封送到 UI 线程）。
         public event Action<SyncState> StateChanged;
@@ -59,7 +104,9 @@ namespace SshTool.Core.Sync
             IDeviceDescriptorProvider devices,
             ILogger logger = null,
             Func<DateTimeOffset> clock = null,
-            Func<string> newGuid = null)
+            Func<string> newGuid = null,
+            ISyncLocalPort local = null,
+            Func<long, Task> sleep = null)
         {
             if (auth == null)
             {
@@ -89,6 +136,8 @@ namespace SshTool.Core.Sync
             _logger = logger;
             _clock = clock ?? (() => DateTimeOffset.UtcNow);
             _guid = newGuid ?? (() => Guid.NewGuid().ToString());
+            _local = local;
+            _sleep = sleep ?? (ms => Task.Delay((int)ms));
             lock (_stateLock)
             {
                 _state = BuildState(_auth.Session, _vault.State);
@@ -108,7 +157,7 @@ namespace SshTool.Core.Sync
         }
 
         // §7.1 Initialize：读会话 → 绑定缓存 → 重建状态 → 无 vaultId 则安全探测。
-        // S11 无轮询与 SyncNow（S13/S14 落地）。
+        // 轮询在 S14 落地；登录/初始化成功后的首次同步由调用方显式 SyncNowAsync 触发。
         public async Task InitializeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             var session = await _auth.LoadAsync().ConfigureAwait(false);
@@ -278,7 +327,7 @@ namespace SshTool.Core.Sync
             return recoveryKey;
         }
 
-        // §7.2 UnlockVault：拉信封 → 解包 → 记 key 并启用 → idle/ready（同步由 S12a 接管）。
+        // §7.2 UnlockVault：拉信封 → 解包 → 记 key 并启用 → idle/ready（首次同步由调用方 SyncNowAsync 触发）。
         public async Task UnlockVaultAsync(
             string secret,
             VaultUnlockMethod method,
@@ -485,7 +534,8 @@ namespace SshTool.Core.Sync
             }
         }
 
-        // 探测是咨询性工作：瞬断绝不拒绝认证、不抛回调用方（见桌面端 probeVaultSafely）。
+        // 探测是咨询性工作：瞬断绝不拒绝认证、不抛回调用方（见桌面端 probeVaultSafely，
+        // 其错误同样走 HandleSyncErrorAsync 映射）。
         private async Task ProbeVaultSafelyAsync(CancellationToken cancellationToken)
         {
             try
@@ -494,14 +544,14 @@ namespace SshTool.Core.Sync
             }
             catch (Exception error)
             {
-                await HandleProbeErrorAsync(error).ConfigureAwait(false);
+                await HandleSyncErrorAsync(error).ConfigureAwait(false);
             }
         }
 
-        // S11 的最小错误映射（完整退避重试在 S13 落地）：
+        // §7.4 HandleSyncError（S12a 最小映射，S13 追加退避重试/Retry-After/ITimerFactory）：
         // 终端鉴权 → 清会话 + 锁库 + auth_error；已无会话 → signed_out；
         // 其他 → offline（网络/超时）或 error，保留登录会话。
-        private async Task HandleProbeErrorAsync(Exception error)
+        private async Task HandleSyncErrorAsync(Exception error)
         {
             var apiError = error as ApiError;
             if (apiError != null && IsTerminalAuthError(apiError))
@@ -676,6 +726,508 @@ namespace SshTool.Core.Sync
             {
                 _logger.Log(LogLevel.Info, "Sync", message);
             }
+        }
+
+        // ---------- S12a：同步主流程与上传（§7.3 PerformSync ①–④非冲突路径、Upload、CommitRemote） ----------
+
+        // 本地发生用户修改时调用（S13 的 MarkDirty 防抖与 S14 的仓库接线复用）：
+        // generation +1 并持久化 dirty；Upload 收尾据此判断上传期间是否有改动。
+        public async Task NotifyLocalChangedAsync()
+        {
+            lock (_stateLock)
+            {
+                _changeGeneration++;
+            }
+            await _vault.UpdateAsync(next =>
+            {
+                next.Dirty = true;
+            }).ConfigureAwait(false);
+            PatchState(next =>
+            {
+                next.Dirty = true;
+            });
+        }
+
+        // §7.3 SyncNow：单飞——已有运行中的同步时返回同一个 Task（桌面端 running）。
+        // 注意：假实现/内存存储下全链路可能同步完成，RunSyncAsync 的 finally 会先于外层
+        // 赋值执行；必须用 token 守卫清槽（同 S07 刷新单飞的教训），否则槽里留下已完成的
+        // 旧任务，后续调用会复用它而不再同步。
+        public Task SyncNowAsync(
+            SyncNowInput input = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            SyncNowStrategy strategy = input != null ? input.Strategy : SyncNowStrategy.None;
+            lock (_syncLock)
+            {
+                if (_runningSync != null)
+                {
+                    return _runningSync;
+                }
+                var token = new object();
+                _runningToken = token;
+                Task task = RunSyncAsync(strategy, cancellationToken, token);
+                if (task.IsCompleted)
+                {
+                    // 同步完成/同步抛错：finally 已按 token 清槽，此处不再占槽，直接返回。
+                    return task;
+                }
+                _runningSync = task;
+                return task;
+            }
+        }
+
+        private async Task RunSyncAsync(
+            SyncNowStrategy strategy, CancellationToken cancellationToken, object token)
+        {
+            try
+            {
+                await PerformSyncAsync(strategy, cancellationToken).ConfigureAwait(false);
+            }
+            finally
+            {
+                lock (_syncLock)
+                {
+                    if (ReferenceEquals(_runningToken, token))
+                    {
+                        _runningToken = null;
+                        _runningSync = null;
+                    }
+                }
+            }
+        }
+
+        private async Task PerformSyncAsync(SyncNowStrategy strategy, CancellationToken cancellationToken)
+        {
+            VaultCacheState snapshot = _vault.State;
+            if (!_auth.Session.Authenticated)
+            {
+                PatchState(next =>
+                {
+                    next.Phase = SyncPhase.SignedOut;
+                });
+                return;
+            }
+            if (snapshot.Preferences == null || !snapshot.Preferences.Enabled)
+            {
+                PatchState(next =>
+                {
+                    next.Phase = SyncPhase.Disabled;
+                });
+                return;
+            }
+            if (string.IsNullOrEmpty(snapshot.VaultKeyBase64) || string.IsNullOrEmpty(snapshot.VaultId))
+            {
+                string snapshotVaultId = snapshot.VaultId;
+                PatchState(next =>
+                {
+                    next.Phase = SyncPhase.Locked;
+                    next.Vault = snapshotVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
+                });
+                return;
+            }
+
+            PatchState(next =>
+            {
+                next.Phase = SyncPhase.Syncing;
+                next.Message = "";
+                next.NextRetryAt = null;
+            });
+            Info("开始同步");
+            try
+            {
+                SyncDocumentV1 local = await BuildLocalDocumentAsync().ConfigureAwait(false);
+                // ① 重放未确认的上传；返回 null 表示重放后本地仍是最新（已 synced）。
+                SyncDocumentV1 continued = await ReplayPendingUploadAsync(local, cancellationToken)
+                    .ConfigureAwait(false);
+                if (continued == null)
+                {
+                    return;
+                }
+                local = continued;
+                VaultCacheState active = _vault.State;
+                // ② 探测
+                SyncDocumentHead head;
+                try
+                {
+                    head = await _api.HeadSyncDocumentAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (ApiError error) when (error.Code == "SYNC_DOCUMENT_NOT_FOUND")
+                {
+                    // 云端已建库但还没有文档：按 revision "0" 走首次上传（§7.3 ②）。
+                    head = new SyncDocumentHead
+                    {
+                        Revision = "0",
+                        KeyVersion = active.KeyVersion,
+                        Etag = null,
+                        LastModified = null
+                    };
+                }
+                catch (ApiError error) when (error.Code == "VAULT_NOT_FOUND")
+                {
+                    // 保险库在别的设备上被删除：本地密钥失效，进 disabled（§7.3 ②）。
+                    await _vault.LockAsync().ConfigureAwait(false);
+                    PatchState(next =>
+                    {
+                        next.Phase = SyncPhase.Disabled;
+                        next.Vault = VaultStatus.Missing;
+                        next.Message = "云端保险库已被删除，请重新创建同步保险库";
+                        next.NextRetryAt = null;
+                    });
+                    Info("云端保险库已被删除");
+                    return;
+                }
+                if (head.KeyVersion != active.KeyVersion)
+                {
+                    await _vault.LockAsync().ConfigureAwait(false);
+                    PatchState(next =>
+                    {
+                        next.Phase = SyncPhase.Locked;
+                        next.Vault = VaultStatus.Locked;
+                        next.KeyVersion = head.KeyVersion;
+                        next.Message = "云端密钥已轮换，请重新输入同步密码或恢复密钥";
+                        next.NextRetryAt = null;
+                    });
+                    Info("云端密钥版本不一致，已锁定");
+                    return;
+                }
+                if (CompareRevisions(head.Revision, active.Revision) < 0)
+                {
+                    throw new InvalidOperationException("云端 revision 低于本机基线，已停止上传以避免覆盖");
+                }
+                // ③ 云端没有新版本
+                if (string.Equals(head.Revision, active.Revision, StringComparison.Ordinal))
+                {
+                    if (active.Dirty
+                        || string.Equals(head.Revision, "0", StringComparison.Ordinal)
+                        || strategy == SyncNowStrategy.KeepLocal)
+                    {
+                        await UploadAsync(local, head.Revision, active.VaultId, active.KeyVersion, cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        PatchState(next =>
+                        {
+                            next.Phase = SyncPhase.Synced;
+                            next.Message = "";
+                        });
+                    }
+                    return;
+                }
+                // ④ 云端有新版本
+                SyncDocumentResponse remoteResponse =
+                    await _api.GetSyncDocumentAsync(cancellationToken).ConfigureAwait(false);
+                SyncDocumentV1 remote = await DecryptRemoteAsync(
+                    remoteResponse, active.VaultKeyBase64, active.VaultId).ConfigureAwait(false);
+                if (active.BaseDocument == null && strategy == SyncNowStrategy.None)
+                {
+                    await RequireConflictHandlingAsync("initial-import").ConfigureAwait(false);
+                    return;
+                }
+                // 注：干净设备的远端删除确认（remote-deletion 检查）在 S12b 插入到此处之前。
+                if (!active.Dirty || strategy == SyncNowStrategy.UseRemote)
+                {
+                    await _local.ApplyDocumentAsync(remote).ConfigureAwait(false);
+                    await CommitRemoteAsync(remote, remoteResponse.Revision).ConfigureAwait(false);
+                    Info("已应用远端文档 revision=" + remoteResponse.Revision);
+                    return;
+                }
+                if (active.BaseDocument == null)
+                {
+                    await RequireConflictHandlingAsync("initial-import").ConfigureAwait(false);
+                    return;
+                }
+                SyncMergeResult merged = SyncMerge.Merge(active.BaseDocument, local, remote);
+                if (merged.Conflicts.Count != 0)
+                {
+                    await RequireConflictHandlingAsync("merge-conflict").ConfigureAwait(false);
+                    return;
+                }
+                await _local.ApplyDocumentAsync(merged.Document).ConfigureAwait(false);
+                await _vault.UpdateAsync(next =>
+                {
+                    next.Revision = remoteResponse.Revision;
+                    next.Dirty = true;
+                }).ConfigureAwait(false);
+                await UploadAsync(
+                    merged.Document, remoteResponse.Revision, active.VaultId, active.KeyVersion, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                await HandleSyncErrorAsync(error).ConfigureAwait(false);
+                throw;
+            }
+        }
+
+        // ① 重放未确认的上传：body 原文 + 同一幂等键 + If-Match=pending.baseRevision。
+        // 无 pending 时原样返回本地文档；重放后本地仍是最新时提交并返回 null（已 synced）；
+        // 否则返回重建后的本地文档继续 ②③④。重放失败不清除 pending（下次再续；只有
+        // Upload 内的三种确定性错误才清除，见 UploadAsync）。
+        private async Task<SyncDocumentV1> ReplayPendingUploadAsync(
+            SyncDocumentV1 local, CancellationToken cancellationToken)
+        {
+            PendingUpload pending = _vault.State.PendingUpload;
+            if (pending == null)
+            {
+                return local;
+            }
+            EncryptedDocumentData data =
+                EncryptedDocumentData.Parse(JsonText.ParseObject(pending.Body));
+            SyncWriteResponse resumed = await _api.PutSyncDocumentAsync(
+                data, pending.BaseRevision, pending.IdempotencyKey, cancellationToken).ConfigureAwait(false);
+            bool stillCurrent = SyncDocumentWriter.SameContent(local, pending.Document);
+            await _vault.UpdateAsync(next =>
+            {
+                next.Revision = resumed.Revision;
+                next.BaseDocument = pending.Document;
+                next.Dirty = !stillCurrent;
+                next.PendingUpload = null;
+                next.LastSyncedAt = resumed.UpdatedAt;
+            }).ConfigureAwait(false);
+            PatchState(next =>
+            {
+                next.Revision = resumed.Revision;
+                next.Dirty = !stillCurrent;
+                next.LastSyncedAt = resumed.UpdatedAt;
+                next.Message = "";
+            });
+            if (stillCurrent)
+            {
+                PatchState(next =>
+                {
+                    next.Phase = SyncPhase.Synced;
+                });
+                Info("续传完成 revision=" + resumed.Revision);
+                return null;
+            }
+            return await BuildLocalDocumentAsync().ConfigureAwait(false);
+        }
+
+        // §7.3 Upload：快照 generation → 加密 → 先落盘 pendingUpload 再 PUT；
+        // SYNC_REVISION_CONFLICT / VAULT_KEY_VERSION_MISMATCH / IDEMPOTENCY_KEY_REUSED
+        // 时清除 pending 后上抛（409 不在 Upload 内重试，下次同步走 ④ 拉远端合并）；
+        // 成功后按 generation 是否变化决定 dirty，变化且 autoSync 时 250 ms 后再同步。
+        private async Task UploadAsync(
+            SyncDocumentV1 doc,
+            string baseRevision,
+            string vaultId,
+            int keyVersion,
+            CancellationToken cancellationToken)
+        {
+            int generation;
+            lock (_stateLock)
+            {
+                generation = _changeGeneration;
+            }
+            VaultCacheState cache = _vault.State;
+            string vaultKey = cache.VaultKeyBase64;
+            if (string.IsNullOrEmpty(vaultKey))
+            {
+                throw new InvalidOperationException("保险库未解锁");
+            }
+            byte[] plaintext = SyncDocumentWriter.WriteUtf8(doc);
+            EncryptedDocumentEnvelope encrypted = await _crypto.EncryptDocumentAsync(
+                vaultKey, vaultId, SyncConstants.SchemaVersion, keyVersion, plaintext).ConfigureAwait(false);
+            if (encrypted == null)
+            {
+                throw new InvalidOperationException("同步文档加密失败，请重试");
+            }
+            string body = encrypted.ToJson().ToString(Formatting.None);
+            string idempotencyKey = _guid();
+            var pending = new PendingUpload
+            {
+                IdempotencyKey = idempotencyKey,
+                BaseRevision = baseRevision,
+                Body = body,
+                Document = doc.Clone(),
+                CreatedAt = NowIso()
+            };
+            // 踩坑 #12：先持久化再发请求（响应丢失后用完全相同的 body 与幂等键续传）。
+            await _vault.UpdateAsync(next =>
+            {
+                next.PendingUpload = pending;
+            }).ConfigureAwait(false);
+            SyncWriteResponse response;
+            try
+            {
+                response = await _api.PutSyncDocumentAsync(
+                    ToDocumentData(encrypted), baseRevision, idempotencyKey, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (ApiError error) when (
+                error.Code == "SYNC_REVISION_CONFLICT"
+                || error.Code == "VAULT_KEY_VERSION_MISMATCH"
+                || error.Code == "IDEMPOTENCY_KEY_REUSED")
+            {
+                await _vault.UpdateAsync(next =>
+                {
+                    next.PendingUpload = null;
+                }).ConfigureAwait(false);
+                throw;
+            }
+            bool changed;
+            lock (_stateLock)
+            {
+                changed = generation != _changeGeneration;
+            }
+            string syncedAt = NowIso();
+            await _vault.UpdateAsync(next =>
+            {
+                next.Revision = response.Revision;
+                next.BaseDocument = doc;
+                next.Dirty = changed;
+                next.PendingUpload = null;
+                next.LastSyncedAt = syncedAt;
+                next.Conflict = null;
+                next.ConflictRemoteDocument = null;
+                next.ConflictRemoteRevision = null;
+            }).ConfigureAwait(false);
+            PatchState(next =>
+            {
+                next.Phase = changed ? SyncPhase.Idle : SyncPhase.Synced;
+                next.Revision = response.Revision;
+                next.Dirty = changed;
+                next.LastSyncedAt = syncedAt;
+                next.Conflict = null;
+                next.Message = "";
+            });
+            Info("上传完成 revision=" + response.Revision);
+            if (changed && _vault.State.Preferences.AutoSync)
+            {
+                _ = FollowUpSyncAfterDelayAsync();
+            }
+        }
+
+        // §7.3 CommitRemote：远端为准落本地基线（S12a 只用于干净应用路径）。
+        private async Task CommitRemoteAsync(SyncDocumentV1 document, string revision)
+        {
+            string syncedAt = NowIso();
+            await _vault.UpdateAsync(next =>
+            {
+                next.BaseDocument = document;
+                next.Revision = revision;
+                next.Dirty = false;
+                next.LastSyncedAt = syncedAt;
+                next.Conflict = null;
+                next.ConflictRemoteDocument = null;
+                next.ConflictRemoteRevision = null;
+            }).ConfigureAwait(false);
+            PatchState(next =>
+            {
+                next.Phase = SyncPhase.Synced;
+                next.Revision = revision;
+                next.Dirty = false;
+                next.LastSyncedAt = syncedAt;
+                next.Conflict = null;
+                next.Message = "";
+            });
+        }
+
+        // §7.3 ④ 解密远端：解密失败抛错进 error（绝不上传覆盖，见 §4.3）；
+        // schemaVersion != 1 按 §4.3 报「云端文档版本更高，请升级应用」（只读不写）。
+        private async Task<SyncDocumentV1> DecryptRemoteAsync(
+            SyncDocumentResponse response, string vaultKey, string vaultId)
+        {
+            var envelope = new EncryptedDocumentEnvelope
+            {
+                SchemaVersion = response.SchemaVersion,
+                KeyVersion = response.KeyVersion,
+                Algorithm = response.Algorithm,
+                Nonce = response.Nonce,
+                Ciphertext = response.Ciphertext,
+                CiphertextHash = response.CiphertextHash
+            };
+            byte[] plaintext = await _crypto.DecryptDocumentAsync(vaultKey, vaultId, envelope)
+                .ConfigureAwait(false);
+            if (plaintext == null)
+            {
+                throw new InvalidOperationException("云端文档解密失败");
+            }
+            return DecodeRemoteDocument(plaintext);
+        }
+
+        private static SyncDocumentV1 DecodeRemoteDocument(byte[] plaintext)
+        {
+            string json = Encoding.UTF8.GetString(plaintext, 0, plaintext.Length);
+            JObject root;
+            try
+            {
+                root = JsonText.ParseObject(json);
+            }
+            catch (Exception ex)
+            {
+                throw new SyncDocumentInvalidException("$", "云端文档不是有效 JSON：" + ex.Message);
+            }
+            JToken version = root["schemaVersion"];
+            if (version != null && version.Type == JTokenType.Integer
+                && (long)version != SyncConstants.SchemaVersion)
+            {
+                throw new InvalidOperationException("云端文档版本更高，请升级应用");
+            }
+            return SyncDocumentReader.Read(json);
+        }
+
+        private async Task<SyncDocumentV1> BuildLocalDocumentAsync()
+        {
+            if (_local == null)
+            {
+                throw new InvalidOperationException("本地同步适配器未配置");
+            }
+            VaultCacheState cache = _vault.State;
+            SyncPreferences prefs = cache.Preferences;
+            var documentPrefs = new SyncPreferencesV1
+            {
+                SyncPasswords = prefs != null && prefs.SyncPasswords,
+                SyncPrivateKeys = prefs != null && prefs.SyncPrivateKeys
+            };
+            return await _local.BuildLocalDocumentAsync(documentPrefs).ConfigureAwait(false);
+        }
+
+        // revision 是 u64 十进制字符串（踩坑 #8）：按长度再按字典序比较，不转数字。
+        private static int CompareRevisions(string left, string right)
+        {
+            string a = string.IsNullOrEmpty(left) ? "0" : left;
+            string b = string.IsNullOrEmpty(right) ? "0" : right;
+            if (a.Length != b.Length)
+            {
+                return a.Length < b.Length ? -1 : 1;
+            }
+            return string.CompareOrdinal(a, b);
+        }
+
+        // Upload 收尾发现上传期间本地又有改动：250 ms 后再同步一次（桌面端同值）。
+        private async Task FollowUpSyncAfterDelayAsync()
+        {
+            try
+            {
+                await _sleep(250).ConfigureAwait(false);
+                await SyncNowAsync().ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                Info("延迟复同步失败：" + FormatErrorMessage(error));
+            }
+        }
+
+        // S12b 占位：initial-import / merge-conflict 的冲突摘要持久化与解决。
+        // S12a 只走非冲突路径；命中时抛 NotSupportedException（S12b 替换为 SaveConflict）。
+        private Task RequireConflictHandlingAsync(string reason)
+        {
+            throw new NotSupportedException("冲突处理（" + reason + "）在 S12b 实现");
+        }
+
+        private static EncryptedDocumentData ToDocumentData(EncryptedDocumentEnvelope envelope)
+        {
+            return new EncryptedDocumentData
+            {
+                SchemaVersion = envelope.SchemaVersion,
+                KeyVersion = envelope.KeyVersion,
+                Algorithm = envelope.Algorithm,
+                Nonce = envelope.Nonce,
+                Ciphertext = envelope.Ciphertext,
+                CiphertextHash = envelope.CiphertextHash
+            };
         }
 
         // ---------- 信封 DTO ↔ 域模型 ----------
