@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SshTool.Core.Common;
+using SshTool.Core.Sessions;
 using SshTool.Core.Storage;
 using SshTool.Core.Sync.Api;
 using SshTool.Core.Sync.Api.Dtos;
@@ -47,27 +48,29 @@ namespace SshTool.Core.Sync
         public SyncNowStrategy Strategy { get; set; }
     }
 
-    // 03-SYNC-PROTOCOL.md §7.1 初始化与认证 + §7.2 保险库操作（不含 Rotate）
+    // 03-SYNC-PROTOCOL.md §7.1 初始化与认证 + §7.2 保险库操作（含 Rotate）
     // + §7.3 同步主流程与上传（S12a：单飞 SyncNow、pendingUpload 重放、HEAD 分支、
     // 无新版本上传条件、有新版本干净应用/脏合并上传、Upload/CommitRemote；
-    // S12b：SaveConflict/initial-import/remote-deletion/RemoteDeletionConflicts/ResolveConflict）。
+    // S12b：SaveConflict/initial-import/remote-deletion/RemoteDeletionConflicts/ResolveConflict；
+    // S13：RotateVaultKey/RestoreRevision/ClearRevisions/List 透传、MarkDirty 防抖、
+    // HandleSyncError 退避重试与 ITimerFactory）。
     // S11 范围（第一部分）：Initialize、注册/登录后流程、ProbeVault、
     // SetupVault（先落盘 pending 再 POST）、Unlock、Lock、DeleteVault、
     // SetPreferences（拒绝直接关闭敏感开关）、Logout、ChangeAccountPassword、
     // DeleteAccount 与 StateChanged 事件。
     //
-    // 不在 S12b（S13 落地）：Rotate/Restore/Clear、退避重试与 ITimerFactory、
-    // MarkDirty 防抖（此处只有无防抖的 NotifyLocalChanged 供 Upload 竞争检测与 S13 复用）。
+    // S14（触发器与应用接线）不在此文件：MarkDirty 只负责标脏 + 防抖调度，
+    // 仓库 Changed 接线与轮询由 SyncTriggers 落地。
     // SetupVault/Unlock 成功后只把 dirty=true（或就绪）记入缓存并转 idle/ready，
     // 首次加密上传由 SyncNow 完成（与桌面端 setupVault 尾部 syncNow 对齐）。
     //
-    // 与桌面端 sync-coordinator.ts 逐项对齐（含文案）：
-    //   - 已登录不再重复登录（每次登录新建设备，见踩坑 #10）。
-    //   - 探测是咨询性工作：失败走 ProbeVaultSafely，绝不抛回登录/初始化（见 §7.1）。
-    //   - pendingVaultSetup 先持久化再发请求；重试/重启复用同一材料与幂等键。
+    // 与桌面端 sync-coordinator.ts 逐项对齐（含文案），两处故意差异：
+    //   - MarkDirty 防抖 3000 ms（以 §7.3 为准；桌面端同名方法为 1200 ms）。
+    //   - 定时经 ITimerFactory（复用 SessionManager 的接口；桌面端用 setTimeout）。
+    //
     // 日志脱敏：只记相位与 keyVersion/revision 等计数，绝不记录密码、恢复密钥、
     // vaultKey、信封内容与请求体。
-    public sealed class SyncCoordinator
+    public sealed class SyncCoordinator : IDisposable
     {
         private readonly AuthStore _auth;
         private readonly VaultCacheStore _vault;
@@ -92,6 +95,23 @@ namespace SshTool.Core.Sync
         // 自增与快照都在 _stateLock 下（S13 的 MarkDirty 复用同一计数）。
         private int _changeGeneration;
 
+        // S13：重试退避与防抖定时（复用 SessionManager 的 ITimerFactory，见 §7.4/§7.3）。
+        // 未注入时用 Task.Delay 内建实现（单测默认）；生产由 S14 注入 DispatcherTimerFactory。
+        private readonly ITimerFactory _timers;
+        private readonly object _timerLock = new object();
+        private IDisposable _debounceTimer;
+        private IDisposable _retryTimer;
+
+        // §7.4 退避表（秒）：delay = RetryAfterMs ?? steps[min(retryAttempt, 6)] × 1000。
+        private static readonly int[] RetryDelayStepsSeconds = { 1, 2, 5, 10, 30, 60, 300 };
+
+        // §7.3 MarkDirty 防抖：3000 ms 后 SyncNow。
+        public const int MarkDirtyDebounceMs = 3000;
+
+        // §7.4 退避计数：可重试错误且 autoSync 时按表累进；Upload 成功清零。
+        // 读写都在 _stateLock 下（定时回调与同步路径并发）。
+        private int _retryAttempt;
+
         // 每次状态变更后同步触发（调用线程；UI 层负责封送到 UI 线程）。
         public event Action<SyncState> StateChanged;
 
@@ -105,7 +125,8 @@ namespace SshTool.Core.Sync
             Func<DateTimeOffset> clock = null,
             Func<string> newGuid = null,
             ISyncLocalPort local = null,
-            Func<long, Task> sleep = null)
+            Func<long, Task> sleep = null,
+            ITimerFactory timers = null)
         {
             if (auth == null)
             {
@@ -137,6 +158,7 @@ namespace SshTool.Core.Sync
             _guid = newGuid ?? (() => Guid.NewGuid().ToString());
             _local = local;
             _sleep = sleep ?? (ms => Task.Delay((int)ms));
+            _timers = timers ?? new TaskDelayTimerFactory();
             lock (_stateLock)
             {
                 _state = BuildState(_auth.Session, _vault.State);
@@ -547,9 +569,12 @@ namespace SshTool.Core.Sync
             }
         }
 
-        // §7.4 HandleSyncError（S12a 最小映射，S13 追加退避重试/Retry-After/ITimerFactory）：
+        // §7.4 HandleSyncError（S13 完整版，与桌面端 handleSyncError 同构）：
         // 终端鉴权 → 清会话 + 锁库 + auth_error；已无会话 → signed_out；
-        // 其他 → offline（网络/超时）或 error，保留登录会话。
+        // 其他 → offline（网络/超时）或 error；可重试（offline/429/≥500）且 autoSync
+        // 时按退避表 [1,2,5,10,30,60,300]s 安排 SyncNow（Retry-After 优先），
+        // 经 ITimerFactory 调度并记 nextRetryAt。
+        // 释放语义：定时回调只做 fire-and-forget（内部吞错记日志），绝不抛回调用方。
         private async Task HandleSyncErrorAsync(Exception error)
         {
             var apiError = error as ApiError;
@@ -557,11 +582,11 @@ namespace SshTool.Core.Sync
             {
                 await _auth.ClearAsync().ConfigureAwait(false);
                 await _vault.LockAsync().ConfigureAwait(false);
-                var cache = _vault.State;
+                var terminalCache = _vault.State;
                 PatchState(next =>
                 {
                     next.Phase = SyncPhase.AuthError;
-                    next.Vault = cache.VaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
+                    next.Vault = terminalCache.VaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
                     next.Message = FormatErrorMessage(apiError);
                     next.NextRetryAt = null;
                 });
@@ -570,11 +595,11 @@ namespace SshTool.Core.Sync
             if (!_auth.Session.Authenticated)
             {
                 await _vault.LockAsync().ConfigureAwait(false);
-                var cache = _vault.State;
+                var signedOutCache = _vault.State;
                 PatchState(next =>
                 {
                     next.Phase = SyncPhase.SignedOut;
-                    next.Vault = cache.VaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
+                    next.Vault = signedOutCache.VaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
                     next.Message = FormatErrorMessage(error);
                     next.NextRetryAt = null;
                 });
@@ -582,12 +607,81 @@ namespace SshTool.Core.Sync
             }
             bool offline = apiError != null
                 && (apiError.Kind == ApiErrorKind.Network || apiError.Kind == ApiErrorKind.Timeout);
+            bool retryable = offline
+                || (apiError != null && apiError.Status == 429)
+                || (apiError != null && apiError.Status != null && apiError.Status.Value >= 500);
+            string nextRetryAt = null;
+            if (retryable && IsAutoSyncEnabled())
+            {
+                long delayMs;
+                lock (_stateLock)
+                {
+                    int index = _retryAttempt < RetryDelayStepsSeconds.Length - 1
+                        ? _retryAttempt
+                        : RetryDelayStepsSeconds.Length - 1;
+                    long stepMs = (long)RetryDelayStepsSeconds[index] * 1000L;
+                    _retryAttempt++;
+                    delayMs = apiError != null && apiError.RetryAfterMs != null
+                        ? apiError.RetryAfterMs.Value
+                        : stepMs;
+                }
+                nextRetryAt = _clock().ToUniversalTime().AddMilliseconds((double)delayMs)
+                    .ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture);
+                ScheduleRetry(delayMs);
+                Info("同步失败，已安排自动重试 delayMs=" + delayMs.ToString(CultureInfo.InvariantCulture));
+            }
             PatchState(next =>
             {
                 next.Phase = offline ? SyncPhase.Offline : SyncPhase.Error;
                 next.Message = FormatErrorMessage(error);
-                next.NextRetryAt = null;
+                next.NextRetryAt = nextRetryAt;
             });
+        }
+
+        private bool IsAutoSyncEnabled()
+        {
+            SyncPreferences preferences = _vault.State.Preferences;
+            return preferences != null && preferences.AutoSync;
+        }
+
+        // §7.4：取消上一次重试定时，安排 delayMs 后 SyncNow（桌面端 retryTimer 同构）。
+        private void ScheduleRetry(long delayMs)
+        {
+            int dueMs = delayMs < 0 ? 0 : (delayMs > int.MaxValue ? int.MaxValue : (int)delayMs);
+            lock (_timerLock)
+            {
+                if (_retryTimer != null)
+                {
+                    _retryTimer.Dispose();
+                    _retryTimer = null;
+                }
+                _retryTimer = _timers.Schedule(dueMs, () =>
+                {
+                    var ignore = RetryTimerFiredAsync();
+                });
+            }
+        }
+
+        private async Task RetryTimerFiredAsync()
+        {
+            IDisposable fired;
+            lock (_timerLock)
+            {
+                fired = _retryTimer;
+                _retryTimer = null;
+            }
+            if (fired != null)
+            {
+                fired.Dispose();
+            }
+            try
+            {
+                await SyncNowAsync().ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                Info("自动重试同步失败：" + FormatErrorMessage(error));
+            }
         }
 
         private void ApplySessionState(AuthState session, VaultCacheState cache)
@@ -1089,6 +1183,8 @@ namespace SshTool.Core.Sync
             lock (_stateLock)
             {
                 changed = generation != _changeGeneration;
+                // §7.3：上传成功 → 退避计数清零（与桌面端 upload 尾部 retryAttempt=0 对齐）。
+                _retryAttempt = 0;
             }
             string syncedAt = NowIso();
             await _vault.UpdateAsync(next =>
@@ -1497,6 +1593,341 @@ namespace SshTool.Core.Sync
                 Ciphertext = envelope.Ciphertext,
                 CiphertextHash = envelope.CiphertextHash
             };
+        }
+
+        // ---------- S13：轮换、历史、MarkDirty 与释放（§7.2 Rotate、§7.3 Restore/Clear/MarkDirty） ----------
+
+        // §7.2 RotateSensitiveSync：仅用于关闭敏感同步（开→关）；成功返回新恢复密钥。
+        // 前置：已解锁；确有「开→关」，否则抛（关闭走 SetPreferences 直接拒绝，见 S11）。
+        public Task<string> RotateSensitiveSyncAsync(
+            SyncPreferences preferences,
+            string currentPassword,
+            string syncPassword,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (preferences == null)
+            {
+                throw new ArgumentNullException(nameof(preferences));
+            }
+            RequireCredential(currentPassword, nameof(currentPassword));
+            RequireCredential(syncPassword, nameof(syncPassword));
+            VaultCacheState cache = _vault.State;
+            if (string.IsNullOrEmpty(cache.VaultId)
+                || string.IsNullOrEmpty(cache.VaultKeyBase64)
+                || cache.KeyVersion < 1)
+            {
+                throw new InvalidOperationException("同步保险库未解锁");
+            }
+            SyncPreferences current = cache.Preferences ?? SyncPreferences.Defaults();
+            bool disablesPassword = current.SyncPasswords && !preferences.SyncPasswords;
+            bool disablesPrivateKey = current.SyncPrivateKeys && !preferences.SyncPrivateKeys;
+            if (!disablesPassword && !disablesPrivateKey)
+            {
+                throw new InvalidOperationException("密钥轮换只用于关闭已启用的敏感同步");
+            }
+            return RotateVaultKeyAsync(
+                preferences, currentPassword, syncPassword,
+                "敏感字段已清理，密钥和历史版本已轮换", cancellationToken);
+        }
+
+        // §7.2 ChangeSyncPassword：轮换整个 vaultKey，旧同步密码与旧恢复密钥一起失效。
+        // 同步范围（preferences）不变，文档内容只换密钥（与桌面端 changeSyncPassword 对齐）。
+        public Task<string> ChangeSyncPasswordAsync(
+            string currentPassword,
+            string syncPassword,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            RequireCredential(currentPassword, nameof(currentPassword));
+            RequireCredential(syncPassword, nameof(syncPassword));
+            VaultCacheState cache = _vault.State;
+            if (string.IsNullOrEmpty(cache.VaultId)
+                || string.IsNullOrEmpty(cache.VaultKeyBase64)
+                || cache.KeyVersion < 1)
+            {
+                throw new InvalidOperationException("同步保险库未解锁");
+            }
+            SyncPreferences unchanged = cache.Preferences == null
+                ? SyncPreferences.Defaults()
+                : cache.Preferences.Clone();
+            return RotateVaultKeyAsync(
+                unchanged, currentPassword, syncPassword,
+                "同步密码已更新，请保存新的恢复密钥", cancellationToken);
+        }
+
+        // §7.2 RotateVaultKey：生成新 vaultKey → 新同步密码重新包装 →
+        // 整份文档重新加密上传（POST vault/rotate，If-Match=轮换前 revision，原子清空历史）。
+        // 成功：换 key/version/revision/基线，清 pendingUpload 与冲突，进 synced，返回新恢复密钥。
+        // 失败：回滚 preferences 并原样上抛；Ambiguous（响应丢失、服务端可能已执行）→
+        // phase=error 并提示用新同步密码重新解锁（新恢复密钥已找不回，但新密码仍可解）。
+        // 注意 currentPassword 是账号登录密码（踩坑 #14），syncPassword 是新的同步密码。
+        private async Task<string> RotateVaultKeyAsync(
+            SyncPreferences preferences,
+            string currentPassword,
+            string syncPassword,
+            string successMessage,
+            CancellationToken cancellationToken)
+        {
+            VaultCacheState cache = _vault.State;
+            if (string.IsNullOrEmpty(cache.VaultId)
+                || string.IsNullOrEmpty(cache.VaultKeyBase64)
+                || cache.KeyVersion < 1)
+            {
+                throw new InvalidOperationException("同步保险库未解锁");
+            }
+            string vaultId = cache.VaultId;
+            string baseRevision = cache.Revision;
+            int nextVersion = cache.KeyVersion + 1;
+            VaultSetupResult setup = await _crypto.CreateAsync(syncPassword, nextVersion)
+                .ConfigureAwait(false);
+            if (setup == null || setup.Envelope == null
+                || string.IsNullOrEmpty(setup.VaultKeyBase64)
+                || string.IsNullOrEmpty(setup.RecoveryKey))
+            {
+                throw new InvalidOperationException("保险库创建失败，请重试");
+            }
+            SyncPreferences previous = cache.Preferences == null
+                ? SyncPreferences.Defaults()
+                : cache.Preferences.Clone();
+            SyncPreferences wanted = preferences.Clone();
+            try
+            {
+                await _vault.UpdateAsync(next =>
+                {
+                    next.Preferences = wanted.Clone();
+                }).ConfigureAwait(false);
+                // 新偏好先生效，Build 按新偏好输出（关闭的敏感字段不再进文档，见 §5.1）。
+                SyncDocumentV1 document = await BuildLocalDocumentAsync().ConfigureAwait(false);
+                byte[] plaintext = SyncDocumentWriter.WriteUtf8(document);
+                EncryptedDocumentEnvelope encrypted = await _crypto.EncryptDocumentAsync(
+                    setup.VaultKeyBase64, vaultId, SyncConstants.SchemaVersion, nextVersion, plaintext)
+                    .ConfigureAwait(false);
+                if (encrypted == null)
+                {
+                    throw new InvalidOperationException("同步文档加密失败，请重试");
+                }
+                RotateVaultResponse response = await _api.RotateVaultAsync(
+                    currentPassword, ToData(setup.Envelope), ToDocumentData(encrypted),
+                    baseRevision, _guid(), cancellationToken).ConfigureAwait(false);
+                if (response.KeyVersion != nextVersion)
+                {
+                    throw new InvalidOperationException("服务端返回了意外的密钥版本");
+                }
+                // Lumia 的本地端口无 lockSecrets（凭据只在 SecretStore，无内存明文缓存）；
+                // 新基线直接应用（ChangeOrigin.Sync，不再标脏）。
+                await _local.ApplyDocumentAsync(document).ConfigureAwait(false);
+                string syncedAt = response.UpdatedAt;
+                SyncDocumentV1 committed = document.Clone();
+                SyncPreferences committedPrefs = wanted.Clone();
+                await _vault.UpdateAsync(next =>
+                {
+                    next.VaultKeyBase64 = setup.VaultKeyBase64;
+                    next.KeyVersion = response.KeyVersion;
+                    next.Revision = response.Revision;
+                    next.Preferences = committedPrefs;
+                    next.BaseDocument = committed;
+                    next.Dirty = false;
+                    next.PendingUpload = null;
+                    next.Conflict = null;
+                    next.ConflictRemoteDocument = null;
+                    next.ConflictRemoteRevision = null;
+                    next.LastSyncedAt = syncedAt;
+                }).ConfigureAwait(false);
+                SyncPreferences statePrefs = wanted.Clone();
+                PatchState(next =>
+                {
+                    next.Phase = SyncPhase.Synced;
+                    next.Vault = VaultStatus.Ready;
+                    next.KeyVersion = response.KeyVersion;
+                    next.Revision = response.Revision;
+                    next.Preferences = statePrefs;
+                    next.Dirty = false;
+                    next.LastSyncedAt = syncedAt;
+                    next.Conflict = null;
+                    next.Message = successMessage;
+                });
+                Info("保险库密钥已轮换 keyVersion="
+                    + response.KeyVersion.ToString(CultureInfo.InvariantCulture));
+                return setup.RecoveryKey;
+            }
+            catch (Exception error)
+            {
+                SyncPreferences rollback = previous.Clone();
+                await _vault.UpdateAsync(next =>
+                {
+                    next.Preferences = rollback;
+                }).ConfigureAwait(false);
+                var apiError = error as ApiError;
+                if (apiError != null && apiError.Ambiguous)
+                {
+                    PatchState(next =>
+                    {
+                        next.Phase = SyncPhase.Error;
+                        next.Message = "轮换结果未知，若云端已经轮换，请用新的同步密码重新解锁保险库";
+                    });
+                }
+                throw;
+            }
+        }
+
+        // §7.3 RestoreRevision：恢复历史版本（POST，If-Match=当前 revision，新幂等键），
+        // 随后 SyncNow(use-remote) 把恢复后的远端拉下来应用。
+        public async Task RestoreRevisionAsync(
+            string revision,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (string.IsNullOrWhiteSpace(revision))
+            {
+                throw new ArgumentException("revision 不能为空", nameof(revision));
+            }
+            VaultCacheState cache = _vault.State;
+            await _api.RestoreRevisionAsync(revision, cache.Revision, _guid(), cancellationToken)
+                .ConfigureAwait(false);
+            Info("历史版本已恢复 revision=" + revision);
+            await SyncNowAsync(
+                new SyncNowInput { Strategy = SyncNowStrategy.UseRemote }, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        // §7.3 ClearRevisions：清空历史（DELETE，If-Match=当前 revision）。
+        public Task<DeleteRevisionsResponse> ClearRevisionsAsync(
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return _api.DeleteRevisionsAsync(_vault.State.Revision, cancellationToken);
+        }
+
+        // 历史与设备列表透传（U18 直接绑定返回的 DTO；不碰本地状态）。
+        public Task<RevisionListResponse> ListRevisionsAsync(
+            int limit = 20,
+            string beforeRevision = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return _api.ListRevisionsAsync(limit, beforeRevision, cancellationToken);
+        }
+
+        public Task<DeviceListResponse> ListDevicesAsync(
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return _api.ListDevicesAsync(cancellationToken);
+        }
+
+        // §7.3 MarkDirty：未启用直接返回；generation+1 并持久化 dirty；
+        // autoSync 时防抖 MarkDirtyDebounceMs（3000 ms）后 SyncNow。
+        // S14 的仓库 Changed 接线调用此方法（Sync 来源与无关实体由调用方过滤）。
+        public async Task MarkDirtyAsync()
+        {
+            VaultCacheState snapshot = _vault.State;
+            SyncPreferences preferences = snapshot.Preferences;
+            if (preferences == null || !preferences.Enabled)
+            {
+                return;
+            }
+            await NotifyLocalChangedAsync().ConfigureAwait(false);
+            if (!preferences.AutoSync)
+            {
+                return;
+            }
+            lock (_timerLock)
+            {
+                if (_debounceTimer != null)
+                {
+                    _debounceTimer.Dispose();
+                    _debounceTimer = null;
+                }
+                _debounceTimer = _timers.Schedule(MarkDirtyDebounceMs, () =>
+                {
+                    var ignore = DebouncedSyncNowAsync();
+                });
+            }
+            Info("本地已标脏，防抖后同步");
+        }
+
+        private async Task DebouncedSyncNowAsync()
+        {
+            IDisposable fired;
+            lock (_timerLock)
+            {
+                fired = _debounceTimer;
+                _debounceTimer = null;
+            }
+            if (fired != null)
+            {
+                fired.Dispose();
+            }
+            try
+            {
+                await SyncNowAsync().ConfigureAwait(false);
+            }
+            catch (Exception error)
+            {
+                Info("防抖同步失败：" + FormatErrorMessage(error));
+            }
+        }
+
+        // 释放防抖与重试定时（S14 组合根在注销/释放协调器时调用）。
+        public void Dispose()
+        {
+            lock (_timerLock)
+            {
+                if (_debounceTimer != null)
+                {
+                    _debounceTimer.Dispose();
+                    _debounceTimer = null;
+                }
+                if (_retryTimer != null)
+                {
+                    _retryTimer.Dispose();
+                    _retryTimer = null;
+                }
+            }
+        }
+
+        // 未注入 ITimerFactory 时的内建实现（Task.Delay 一次性定时，供单测与桌面逻辑单测）。
+        private sealed class TaskDelayTimerFactory : ITimerFactory
+        {
+            public IDisposable Schedule(int delayMs, Action callback)
+            {
+                var source = new CancellationTokenSource();
+                Task.Delay(delayMs < 0 ? 0 : delayMs, source.Token).ContinueWith(t =>
+                {
+                    if (!t.IsCanceled && callback != null)
+                    {
+                        callback();
+                    }
+                }, TaskContinuationOptions.ExecuteSynchronously);
+                return new CancelOnDispose(source);
+            }
+
+            public IDisposable SchedulePeriodic(int periodMs, Action callback)
+            {
+                throw new NotSupportedException("SyncCoordinator 仅使用一次性定时");
+            }
+
+            private sealed class CancelOnDispose : IDisposable
+            {
+                private CancellationTokenSource _source;
+
+                public CancelOnDispose(CancellationTokenSource source)
+                {
+                    _source = source;
+                }
+
+                public void Dispose()
+                {
+                    CancellationTokenSource source = _source;
+                    _source = null;
+                    if (source != null)
+                    {
+                        try
+                        {
+                            source.Cancel();
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                        }
+                        source.Dispose();
+                    }
+                }
+            }
         }
 
         // ---------- 信封 DTO ↔ 域模型 ----------
