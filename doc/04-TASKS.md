@@ -40,13 +40,13 @@
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
-| M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
+| M3 | 数据层与主机管理 | 12 | 5 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **51** | |
+| **合计** | | **111** | **52** | |
 
 ### 1.1 关键路径
 
@@ -569,13 +569,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] ConfigService 引用规则单测
   - 验证：`dotnet test`
 
-- [ ] **D03 凭据安全存储** `S`
+- [x] **D03 凭据安全存储** `S`
   - 依赖：D02、SP06
   - 参考：`01-DESIGN.md §8.2、D10`
   - 产出：`src/SshTool.Core/Storage/{InMemorySecretStore,ISecureFile,InMemorySecureFile}.cs`（`ISecretStore`/`SecretKeys` 已随 D02 落地）、`src/SshTool.App/Platform/{DpapiSecureFile,DpapiSecretStore}.cs`、测试
   - 要点：`SecretKeys.HostPassword(id)` 等构造函数（键名规范 §8.2）；`GetAsync/SetAsync/RemoveAsync/RemoveByPrefixAsync`；DPAPI 实现把整个键值表 JSON 加密为 `secure/secrets.bin`（串行化访问、原子写）；`ISecureFile` 供 AuthStore/VaultCache 复用；ConfigService 级联删除接入真实接口。
   - 验收：
-    - [ ] InMemory 实现与键名构造单测；前缀删除
+    - [x] InMemory 实现与键名构造单测；前缀删除
     - [ ] 📱 真机写入后用设备门户下载 LocalFolder，`secrets.bin` 中搜索不到测试密码明文
   - 验证：`dotnet test`；真机
 
@@ -1299,6 +1299,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] T12 📱 长按选词、拖柄扩展、复制到系统剪贴板
 - [ ] T14 📱 普通屏回滚流畅；`less` 中滑动翻页；捏合不抖
 - [ ] T15 📱（Continuum）vim `:set mouse=a` 点击定位、htop 点击、tmux 滚轮正常
+- [ ] D03 📱 真机写入后用设备门户下载 LocalFolder，`secrets.bin` 中搜索不到测试密码明文
 
 ---
 
@@ -1376,3 +1377,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | T13 | edfb682 | **完成**（无 📱 项）。`PasteProcessor` 把 CRLF/LF/CR 归一为 `\r`，可选 `ESC[200~…ESC[201~]` 包裹，4 KiB UTF-8 分块不切断多字节。多行且 `PasteConfirmMultiline` 时弹确认框（前 5 行预览，「不再提示」关掉确认）。键条 paste 走同一路径。Core 单测 +7（共 573）；`verify.ps1` 全绿。 |
 | 2026-09-19 | T14 | 0e1855a | **代码完成**。`ScrollController` 偏移 0=底部，夹取 [0, scrollback]；底部时新输出跟随，回滚中保持偏移；用户输入回底。`MouseEncoder` 滚轮 SGR/X10；alt-screen 拖动按 `altScreenScroll` 发方向键或滚轮（未开鼠标上报时滚轮回退方向键）。`PointerInput` 平移+惯性+捏合 8–28 与字号气泡；回滚中 `CopyViewport` 且不画光标。Core 单测 +10（共 583）；`verify.ps1` 全绿。⏳ 回滚/`less`/捏合（已登记真机待办）。 |
 | 2026-09-19 | T15 | f3199f9 | **代码完成**。MouseEncoder 四种模式×SGR/默认；SGR 坐标 300 不截断、X10 夹到 223。鼠标左键：上报或本地选择（Shift 强制、双击选词、三击选行）；滚轮在上报开启时发序列。右键复制/粘贴/全选/清屏/片段；悬停 IBeam。Core 单测 +10（共 593）；`verify.ps1` 全绿。⏳ Continuum vim/htop/tmux（已登记真机待办）。 |
+| 2026-09-19 | D03 | 9464eb2 | **代码完成**。InMemorySecretStore + SecretKeys 前缀删除；ISecureFile / InMemorySecureFile；DpapiSecureFile `LOCAL=user` 原子写 `secure/secrets.bin`；DpapiSecretStore 串行 JSON 键值表。Core 单测 +5（共 598）；`verify.ps1` 全绿。⏳ secrets.bin 无明文（已登记真机待办）。 |
