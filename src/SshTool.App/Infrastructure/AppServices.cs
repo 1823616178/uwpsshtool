@@ -47,6 +47,7 @@ namespace SshTool.App.Infrastructure
         public SessionManager Sessions { get; private set; }
         public KeepAwakeService KeepAwake { get; private set; }
         public LifecycleService Lifecycle { get; private set; }
+        public NetworkMonitor Network { get; private set; }
         public List<string> LoadWarnings { get; private set; }
 
         public static AppServices Initialize()
@@ -107,12 +108,18 @@ namespace SshTool.App.Infrastructure
             });
             // P01：屏幕常亮与生命周期服务（依赖 Sessions；Start 由 App.OnLaunched
             // 在启动完成后调用，以接入 Application 级前后台事件）。
+            // P02：网络监听（依赖 Sessions；就地 Start：NetworkStatusChanged 与
+            // Application 事件无关，早订早得基线）。
             Time("Lifecycle", () =>
             {
                 KeepAwake = new KeepAwakeService(Settings, Sessions, Logger);
                 ServiceRegistry.Register(KeepAwake);
                 Lifecycle = new LifecycleService(Sessions, Settings, KeepAwake, Logger);
                 ServiceRegistry.Register(Lifecycle);
+                Network = new NetworkMonitor(Logger);
+                ServiceRegistry.Register(Network);
+                Lifecycle.WatchNetwork(Network);
+                Network.Start();
             });
             Logger.Log(LogLevel.Info, "App",
                 "启动完成 " + total.ElapsedMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ms");

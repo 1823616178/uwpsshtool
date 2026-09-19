@@ -49,6 +49,8 @@ namespace SshTool.App.Platform
         private EventHandler<object> _resumingHandler;
         private EventHandler _sessionsChangedHandler;
         private EventHandler<SettingChangedEventArgs> _settingsChangedHandler;
+        private NetworkMonitor _network;
+        private EventHandler _networkChangedHandler;
 
         public LifecycleService(
             SessionManager sessions,
@@ -162,16 +164,54 @@ namespace SshTool.App.Platform
                 {
                     _settings.Changed -= _settingsChangedHandler;
                 }
+                EventHandler networkHandler;
+                NetworkMonitor network;
                 lock (_sync)
                 {
+                    networkHandler = _networkChangedHandler;
+                    network = _network;
+                    _networkChangedHandler = null;
+                    _network = null;
                     CancelTimerLocked();
                     ReleaseExecutionLocked();
+                }
+                if (network != null && networkHandler != null)
+                {
+                    try
+                    {
+                        network.NetworkChanged -= networkHandler;
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
             }
             catch (Exception ex)
             {
                 _logger?.Log(LogLevel.Warning, "Lifecycle", "stop failed " + ex.GetType().Name);
             }
+        }
+
+        // P02：接入网络变化（AppServices 在 NetworkMonitor.Start 之前调用）。
+        // Monitor 已做 1 s 防抖与「适配器 id + 连接级别」判据，此处只做收敛执行：
+        // 退避中的会话立即重连、已连接的 ProbeNow（见 SessionManager.OnNetworkChanged）。
+        // S14 同步触发器直接订阅 NetworkMonitor.NetworkChanged，本类不转发现象。
+        public void WatchNetwork(NetworkMonitor monitor)
+        {
+            if (monitor == null)
+            {
+                return;
+            }
+            lock (_sync)
+            {
+                if (_network != null)
+                {
+                    return;
+                }
+                _network = monitor;
+                _networkChangedHandler = OnNetworkChanged;
+            }
+            monitor.NetworkChanged += _networkChangedHandler;
         }
 
         // ---- 系统事件入口 ----
@@ -256,6 +296,23 @@ namespace SshTool.App.Platform
             {
                 _logger?.Log(LogLevel.Warning, "Lifecycle", "mark suspend failed " + ex.GetType().Name);
             }
+        }
+
+        // P02：切网收敛（线程池线程触发；SessionManager 内部已做 UI 封送，
+        // 此处直接调用。日志只记会话计数）。
+        private void OnNetworkChanged(object sender, EventArgs e)
+        {
+            int n;
+            try
+            {
+                n = _sessions.OnNetworkChanged();
+            }
+            catch (Exception ex)
+            {
+                _logger?.Log(LogLevel.Warning, "Lifecycle", "network converge failed " + ex.GetType().Name);
+                return;
+            }
+            _logger?.Log(LogLevel.Info, "Lifecycle", "network changed sessions=" + n);
         }
 
         private void OnSessionsChanged(object sender, EventArgs e)

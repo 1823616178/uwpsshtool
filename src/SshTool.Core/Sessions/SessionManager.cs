@@ -314,6 +314,46 @@ namespace SshTool.Core.Sessions
             return count;
         }
 
+        // P02：默认网变化收敛（对齐鸿蒙端 SessionManager.notifyNetworkChanged，
+        // 见 01-DESIGN.md §10；调用方是 App 层 NetworkMonitor→LifecycleService，
+        // 已过 1 s 防抖与「适配器 id + 连接级别」判据）：
+        //   - 退避倒计时中的：撤掉倒计时立即重连（新网络多半已经可用）；
+        //   - 已连接的：ProbeNow() 开 5 s 判定窗口，黑洞即走既有重连链；
+        //   - 策略挂起中的不动（回前台统一恢复）；终态（用户取消/不可重试/耗尽）
+        //     与正在拨号中的不动（新拨号自己会走新网络）。
+        // 返回被处理的会话数。日志只记计数。
+        public int OnNetworkChanged()
+        {
+            int affected = 0;
+            SessionInfo[] copy = _sessions.ToArray();
+            for (int i = 0; i < copy.Length; i++)
+            {
+                SessionInfo info = copy[i];
+                if (info.UserClosed || info.PolicySuspended
+                    || info.State == SessionUiState.Closed)
+                {
+                    continue;
+                }
+                if (_reconnectTimers.ContainsKey(info.SessionId))
+                {
+                    ReconnectNow(info.SessionId);
+                    affected++;
+                    continue;
+                }
+                if (info.State != SessionUiState.Connected || info.NativeSession == null)
+                {
+                    continue;
+                }
+                info.NativeSession.ProbeNow();
+                affected++;
+            }
+            if (affected > 0 && _logger != null)
+            {
+                _logger.Log(LogLevel.Info, "Session", "network changed affected=" + affected.ToString());
+            }
+            return affected;
+        }
+
         // P01：Suspending 时标记「挂起前在线」的会话（01-DESIGN.md §10）。
         public void MarkOnlineBeforeSuspend()
         {

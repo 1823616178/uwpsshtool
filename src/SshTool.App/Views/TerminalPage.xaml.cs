@@ -14,6 +14,9 @@ namespace SshTool.App.Views
 {
     public sealed partial class TerminalPage : Page
     {
+        // P02：省电模式 Banner 数据源（01-DESIGN.md §10；ApiInformation 守卫在内）。
+        private readonly Platform.EnergySaverWatcher _energySaver = new Platform.EnergySaverWatcher();
+
         public TerminalPage()
         {
             ViewModel = new TerminalViewModel();
@@ -78,10 +81,16 @@ namespace SshTool.App.Views
             await ViewModel.LoadAsync(e.Parameter as TerminalArgs);
             BindSession();
             ViewModel.AttachNative(native => Term.Session = native);
+            // P02：省电模式 Banner（事件在系统线程触发，handler 内封送回 UI）。
+            _energySaver.Changed += OnEnergySaverChanged;
+            _energySaver.Start();
+            UpdateEnergySaverBanner();
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            _energySaver.Changed -= OnEnergySaverChanged;
+            _energySaver.Stop();
             StatusBarService.ShowThemed();
             // P01：离开终端页即释放常亮（DisplayRequest 成对，见 KeepAwakeService）。
             Platform.KeepAwakeService keepAwake;
@@ -139,6 +148,46 @@ namespace SshTool.App.Views
                 text = ResourceLoader.GetForCurrentView().GetString(model.MessageKey);
             }
             Overlay.SetMessage(string.IsNullOrEmpty(text) ? model.MessageKey : text);
+        }
+
+        // P02：省电模式 Banner（01-DESIGN.md §10：省电模式下后台连接会被系统断开）。
+        // 文案走 Resources.resw（中英）；守卫未通过（IsAvailable == false）则永不显示。
+        private void OnEnergySaverChanged(object sender, EventArgs e)
+        {
+            DispatcherHelper.Post(UpdateEnergySaverBanner);
+        }
+
+        private void UpdateEnergySaverBanner()
+        {
+            bool on = false;
+            try
+            {
+                on = _energySaver.IsEnergySaverOn;
+            }
+            catch (Exception)
+            {
+                on = false;
+            }
+            if (!on)
+            {
+                EnergySaverBanner.Visibility = Visibility.Collapsed;
+                return;
+            }
+            ResourceLoader loader = ResourceLoader.GetForCurrentView();
+            string title = loader.GetString("EnergySaverBanner_Title");
+            string message = loader.GetString("EnergySaverBanner_Message");
+            if (string.IsNullOrEmpty(title))
+            {
+                title = "省电模式已开启";
+            }
+            if (string.IsNullOrEmpty(message))
+            {
+                message = "省电模式下切换到后台时连接会被系统断开，回到应用后会自动重连";
+            }
+            EnergySaverBanner.Severity = BannerSeverity.Warning;
+            EnergySaverBanner.Title = title;
+            EnergySaverBanner.Message = message;
+            EnergySaverBanner.Visibility = Visibility.Visible;
         }
 
         private static StatusDotState ToDot(SessionUiState state)

@@ -48,4 +48,6 @@
   <data name="Overlay_Reconnecting" xml:space="preserve"><value>Disconnected, reconnecting</value></data>
   <data name="Overlay_Closed" xml:space="preserve"><value>Session ended</value></data>
   <data name="Overlay_PolicyDisconnected" xml:space="preserve"><value>The connection was dropped in the background.</value></data>
+  <data name="EnergySaverBanner_Title" xml:space="preserve"><value>Battery saver is on</value></data>
+  <data name="EnergySaverBanner_Message" xml:space="preserve"><value>In Battery saver mode, connections are dropped in the background and reconnected when you return.</value></data>
 </root>

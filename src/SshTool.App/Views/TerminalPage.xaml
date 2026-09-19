@@ -15,11 +15,16 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Grid x:Name="InfoBar" Background="{ThemeResource AppSurfaceBrush}"
+        <!-- P02：省电模式 Banner（EnergySaverStatus == On 时显示，见 xaml.cs）。
+             正文案从 Resources.resw 取（中英），此处只摆位，不写字面量。 -->
+        <controls:Banner x:Name="EnergySaverBanner" Visibility="Collapsed" />
+
+        <Grid x:Name="InfoBar" Grid.Row="1" Background="{ThemeResource AppSurfaceBrush}"
               Height="{StaticResource TerminalInfoBarHeight}" Tapped="OnInfoTapped">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -37,9 +42,9 @@
             <Button Grid.Column="2" Content="⋯" Click="OnMenuClick" />
         </Grid>
 
-        <term:TerminalView x:Name="Term" Grid.Row="1" />
-        <controls:KeyBar x:Name="Keys" Grid.Row="2" />
-        <controls:SessionOverlay x:Name="Overlay" Grid.RowSpan="3" />
+        <term:TerminalView x:Name="Term" Grid.Row="2" />
+        <controls:KeyBar x:Name="Keys" Grid.Row="3" />
+        <controls:SessionOverlay x:Name="Overlay" Grid.RowSpan="4" />
 
         <!-- U12：窄屏回退单窗格（本页即单窗格）；宽屏（Continuum/鼠标）键条默认隐藏，可从菜单手动打开。 -->
         <VisualStateManager.VisualStateGroups>
