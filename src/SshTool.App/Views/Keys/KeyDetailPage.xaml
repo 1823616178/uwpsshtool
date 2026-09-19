@@ -1,0 +1,75 @@
+<Page
+    x:Class="SshTool.App.Views.Keys.KeyDetailPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- K02 密钥详情（02-UI-DESIGN.md §5.10）：改名、类型/指纹、复制/分享公钥、
+         使用它的主机、导出私钥（二次确认）、删除（被引用时禁止）。 -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock Text="密钥详情" Style="{StaticResource PageTitleTextStyle}"
+                   Margin="{StaticResource PagePadding}" />
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}">
+                <TextBox x:Name="NameBox" Header="名称" TextChanged="OnNameChanged" />
+                <Button x:Name="RenameButton" Content="保存名称" Click="OnRenameClick"
+                        IsEnabled="False" Margin="{StaticResource GapXsTop}" />
+
+                <TextBlock Text="类型" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapSmTop}" />
+                <TextBlock x:Name="TypeText" Style="{StaticResource BodyTextStyle}" />
+                <TextBlock Text="位数" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapXsTop}" />
+                <TextBlock x:Name="BitsText" Style="{StaticResource BodyTextStyle}" />
+                <TextBlock Text="格式" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapXsTop}" />
+                <TextBlock x:Name="FormatText" Style="{StaticResource BodyTextStyle}" />
+                <TextBlock Text="已加密" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapXsTop}" />
+                <TextBlock x:Name="EncryptedText" Style="{StaticResource BodyTextStyle}" />
+                <TextBlock Text="创建时间" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapXsTop}" />
+                <TextBlock x:Name="CreatedText" Style="{StaticResource BodyTextStyle}" />
+
+                <TextBlock Text="指纹" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapSmTop}" />
+                <controls:MonoText x:Name="FingerprintText" Compact="True" />
+
+                <TextBlock Text="公钥" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapSmTop}" />
+                <controls:MonoText x:Name="PublicKeyText" Compact="True" />
+                <StackPanel Orientation="Horizontal" Margin="{StaticResource GapXsTop}">
+                    <Button Content="复制" Click="OnCopyClick" />
+                    <Button Content="分享" Click="OnShareClick" Margin="{StaticResource GapSmLeft}" />
+                </StackPanel>
+
+                <TextBlock Text="使用它的主机" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapSmTop}" />
+                <TextBlock x:Name="NoHostsText" Text="没有主机使用该密钥"
+                           Style="{StaticResource BodyTextStyle}" />
+                <ListView x:Name="HostList" SelectionMode="None"
+                          IsItemClickEnabled="True" ItemClick="OnHostClick">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Padding="{StaticResource PagePadding}">
+                                <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}" />
+                                <TextBlock Text="{Binding Subtitle}" Style="{StaticResource CaptionTextStyle}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <Button Content="导出私钥" Click="OnExportClick" Margin="{StaticResource GapSmTop}" />
+                <Button Content="删除" Click="OnDeleteClick" Margin="{StaticResource GapXsTop}" />
+                <TextBlock x:Name="StatusText" Style="{StaticResource CaptionTextStyle}"
+                           TextWrapping="Wrap" Margin="{StaticResource GapXsTop}" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

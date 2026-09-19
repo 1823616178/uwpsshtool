@@ -1,0 +1,69 @@
+<Page
+    x:Class="SshTool.App.Views.Keys.KeysPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- K02 密钥管理（02-UI-DESIGN.md §5.10）。行点按进详情；长按/右键菜单删除。 -->
+    <Page.BottomAppBar>
+        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
+            <AppBarButton Label="生成" Click="OnGenerateClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconAdd}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton Label="导入" Click="OnImportClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconDownload}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+        </CommandBar>
+    </Page.BottomAppBar>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock Text="密钥" Style="{StaticResource PageTitleTextStyle}"
+                   Margin="{StaticResource PagePadding}" />
+        <Grid Grid.Row="1">
+            <controls:EmptyState x:Name="Empty"
+                                 Glyph="{StaticResource IconKey}"
+                                 Title="还没有密钥"
+                                 Description="生成一个新密钥，或导入已有的私钥。"
+                                 PrimaryText="生成密钥"
+                                 SecondaryText="导入密钥"
+                                 Visibility="Collapsed" />
+            <ListView x:Name="KeyList" SelectionMode="None"
+                      IsItemClickEnabled="True" ItemClick="OnItemClick">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="{StaticResource PagePadding}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}" />
+                                <TextBlock Text="{Binding Subtitle}" Style="{StaticResource CaptionTextStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="…" Margin="{StaticResource GapSmLeft}"
+                                    MinWidth="{StaticResource TouchTargetMin}"
+                                    MinHeight="{StaticResource TouchTargetMin}"
+                                    Background="{ThemeResource AppSurfaceAltBrush}">
+                                <Button.Flyout>
+                                    <MenuFlyout>
+                                        <MenuFlyoutItem Text="查看详情" Click="OnDetailClick" />
+                                        <MenuFlyoutItem Text="删除" Click="OnDeleteClick" />
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </Grid>
+</Page>

@@ -1,0 +1,36 @@
+<ContentDialog
+    x:Class="SshTool.App.Dialogs.KeyImportDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    MaxWidth="{StaticResource DialogMaxWidth}"
+    Title="导入密钥"
+    PrimaryButtonText="继续"
+    SecondaryButtonText="取消">
+
+    <!-- K02 密钥导入（02-UI-DESIGN.md §5.10）：文件/粘贴 → 解析（加密要短语）
+         → 类型/指纹确认 → 命名保存；指纹重复时提示。短语读出即清空，不记日志。 -->
+    <ScrollViewer>
+        <StackPanel>
+            <Button x:Name="PickFileButton" Content="从文件导入…" Click="OnPickFileClick"
+                    HorizontalAlignment="Stretch" />
+            <TextBox x:Name="PasteBox" Header="粘贴私钥" AcceptsReturn="True" TextWrapping="Wrap"
+                     PlaceholderText="-----BEGIN … PRIVATE KEY-----"
+                     Margin="{StaticResource GapSmTop}" TextChanged="OnInputChanged" />
+            <StackPanel x:Name="PassphrasePanel" Visibility="Collapsed" Margin="{StaticResource GapSmTop}">
+                <PasswordBox x:Name="PassphraseBox" Header="短语" />
+                <CheckBox x:Name="RememberBox" Content="保存短语" IsChecked="True"
+                          Margin="{StaticResource GapXsTop}" />
+            </StackPanel>
+            <StackPanel x:Name="PreviewPanel" Visibility="Collapsed" Margin="{StaticResource GapSmTop}">
+                <TextBlock x:Name="TypeText" Style="{StaticResource BodyTextStyle}" />
+                <controls:MonoText x:Name="FingerprintText" Compact="True"
+                                   Margin="{StaticResource GapXsTop}" />
+            </StackPanel>
+            <TextBox x:Name="NameBox" Header="名称" Margin="{StaticResource GapSmTop}" />
+            <TextBlock x:Name="ErrorText" Style="{StaticResource CaptionTextStyle}"
+                       Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
+                       Visibility="Collapsed" Margin="{StaticResource GapXsTop}" />
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

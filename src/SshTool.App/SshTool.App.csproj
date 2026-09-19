@@ -113,6 +113,7 @@
     <Compile Include="Platform\LocalSettingsStore.cs" />
     <Compile Include="Platform\NativeSshSession.cs" />
     <Compile Include="Platform\NativeVaultCrypto.cs" />
+    <Compile Include="Platform\NativeKeyTool.cs" />
     <Compile Include="Platform\NativeTerminalScreen.cs" />
     <Compile Include="Terminal\FrameScheduler.cs" />
     <Compile Include="Terminal\FontMetrics.cs" />
@@ -198,6 +199,15 @@
     <Compile Include="Dialogs\ExitWithSessionsDialog.xaml.cs">
       <DependentUpon>ExitWithSessionsDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\KeyImportDialog.xaml.cs">
+      <DependentUpon>KeyImportDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\KeyGenerateDialog.xaml.cs">
+      <DependentUpon>KeyGenerateDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\ThemeSchemePickerDialog.xaml.cs">
+      <DependentUpon>ThemeSchemePickerDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Debug\SpikePage.xaml.cs">
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
@@ -238,6 +248,10 @@
     <Compile Include="ViewModels\Snippets\SnippetEditViewModel.cs" />
     <Compile Include="ViewModels\Snippets\SnippetPickerViewModel.cs" />
     <Compile Include="ViewModels\Snippets\SnippetSendHelper.cs" />
+    <Compile Include="ViewModels\Keys\KeysViewModel.cs" />
+    <Compile Include="ViewModels\Keys\KeyDetailViewModel.cs" />
+    <Compile Include="ViewModels\Keys\KeyImportViewModel.cs" />
+    <Compile Include="ViewModels\Keys\KeyGenerateViewModel.cs" />
     <Compile Include="Controls\SnippetPickerFlyout.xaml.cs">
       <DependentUpon>SnippetPickerFlyout.xaml</DependentUpon>
     </Compile>
@@ -309,6 +323,12 @@
     </Compile>
     <Compile Include="Views\PlaceholderPage.xaml.cs">
       <DependentUpon>PlaceholderPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Keys\KeysPage.xaml.cs">
+      <DependentUpon>KeysPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Keys\KeyDetailPage.xaml.cs">
+      <DependentUpon>KeyDetailPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -534,6 +554,26 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Dialogs\ExitWithSessionsDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\KeyImportDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\KeyGenerateDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Keys\KeysPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Keys\KeyDetailPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\ThemeSchemePickerDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

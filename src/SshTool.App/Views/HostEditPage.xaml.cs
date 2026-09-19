@@ -403,14 +403,47 @@ namespace SshTool.App.Views
             ViewModel.Credentials.KeyId = SelectedId(KeyBox);
         }
 
-        private void OnImportKey(object sender, RoutedEventArgs e)
+        private async void OnImportKey(object sender, RoutedEventArgs e)
         {
-            ViewModel.ImportKeyCommand.Execute(null);
+            // K02：导入对话框；新建或去重命中都选中该密钥。
+            KeyImportDialogResult result = await KeyImportDialog.ShowAsync();
+            if (result == null || result.Cancelled)
+            {
+                return;
+            }
+            string selectId = result.Created == null ? result.ExistingKeyId : result.Created.Id;
+            if (string.IsNullOrEmpty(selectId))
+            {
+                return;
+            }
+            await ViewModel.ReloadKeysAsync();
+            _suppressCombo = true;
+            KeyBox.ItemsSource = ViewModel.Keys;
+            SelectById(KeyBox, selectId);
+            _suppressCombo = false;
+            if (ViewModel.Credentials != null)
+            {
+                ViewModel.Credentials.KeyId = selectId;
+            }
         }
 
-        private void OnGenerateKey(object sender, RoutedEventArgs e)
+        private async void OnGenerateKey(object sender, RoutedEventArgs e)
         {
-            ViewModel.GenerateKeyCommand.Execute(null);
+            // K02：生成对话框；成功后选中新密钥。
+            KeyGenerateDialogResult result = await KeyGenerateDialog.ShowAsync();
+            if (result == null || result.Cancelled || result.Created == null)
+            {
+                return;
+            }
+            await ViewModel.ReloadKeysAsync();
+            _suppressCombo = true;
+            KeyBox.ItemsSource = ViewModel.Keys;
+            SelectById(KeyBox, result.Created.Id);
+            _suppressCombo = false;
+            if (ViewModel.Credentials != null)
+            {
+                ViewModel.Credentials.KeyId = result.Created.Id;
+            }
         }
 
         private void ShowErrors()

@@ -1,0 +1,29 @@
+<ContentDialog
+    x:Class="SshTool.App.Dialogs.KeyGenerateDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    MaxWidth="{StaticResource DialogMaxWidth}"
+    Title="生成密钥"
+    PrimaryButtonText="生成"
+    SecondaryButtonText="取消">
+
+    <!-- K02 密钥生成（02-UI-DESIGN.md §5.10）：类型（ED25519 推荐 / RSA）→
+         名称 → 注释 → 生成中进度。生成的私钥未加密，无短语项。 -->
+    <Grid>
+        <StackPanel>
+            <ComboBox x:Name="TypeBox" Header="类型" HorizontalAlignment="Stretch"
+                      SelectionChanged="OnTypeChanged">
+                <ComboBoxItem Content="ED25519（推荐）" IsSelected="True" />
+                <ComboBoxItem Content="RSA 3072" />
+                <ComboBoxItem Content="RSA 4096" />
+            </ComboBox>
+            <TextBox x:Name="NameBox" Header="名称" Margin="{StaticResource GapSmTop}" />
+            <TextBox x:Name="CommentBox" Header="注释" Margin="{StaticResource GapSmTop}" />
+            <TextBlock x:Name="ErrorText" Style="{StaticResource CaptionTextStyle}"
+                       Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
+                       Visibility="Collapsed" Margin="{StaticResource GapXsTop}" />
+        </StackPanel>
+        <controls:LoadingOverlay x:Name="Progress" Message="正在生成…" IsActive="False" />
+    </Grid>
+</ContentDialog>

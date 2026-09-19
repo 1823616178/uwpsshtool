@@ -84,10 +84,6 @@ namespace SshTool.App.ViewModels
             ClearFingerprintCommand = new RelayCommand(ClearFingerprint);
             AddTunnelCommand = new RelayCommand(() =>
                 Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs("添加隧道", "M7")));
-            ImportKeyCommand = new RelayCommand(() =>
-                Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs("导入密钥", "M7")));
-            GenerateKeyCommand = new RelayCommand(() =>
-                Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs("生成密钥", "M7")));
         }
 
         public ICommand SaveCommand { get; private set; }
@@ -95,8 +91,6 @@ namespace SshTool.App.ViewModels
         public ICommand AddEnvCommand { get; private set; }
         public ICommand ClearFingerprintCommand { get; private set; }
         public ICommand AddTunnelCommand { get; private set; }
-        public ICommand ImportKeyCommand { get; private set; }
-        public ICommand GenerateKeyCommand { get; private set; }
 
         public ObservableCollection<IdNameOption> Groups { get; private set; }
         public ObservableCollection<IdNameOption> Jumps { get; private set; }
@@ -316,6 +310,14 @@ namespace SshTool.App.ViewModels
 
             await ReloadAppearancesAsync().ConfigureAwait(true);
 
+            await ReloadKeysAsync().ConfigureAwait(true);
+
+            RefreshJumps();
+        }
+
+        // K02：导入/生成密钥后刷新私钥下拉（保留已选）。
+        public async Task ReloadKeysAsync()
+        {
             Keys.Clear();
             Keys.Add(new IdNameOption(string.Empty, "（未选择）"));
             IReadOnlyList<KeyEntry> keys = await _services.Keys.GetAllAsync().ConfigureAwait(true);
@@ -326,8 +328,6 @@ namespace SshTool.App.ViewModels
                 string label = (key.Name ?? "密钥") + " · " + (key.KeyType ?? "") + " · " + tail;
                 Keys.Add(new IdNameOption(key.Id, label));
             }
-
-            RefreshJumps();
         }
 
         // A03：从外观管理页返回后刷新下拉（保留已选）。
