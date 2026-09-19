@@ -41,12 +41,12 @@
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
-| M4 | 终端页与会话 | 12 | 10 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 10 | 与桌面端同账号双向同步、冲突可解 |
+| M4 | 终端页与会话 | 12 | 12 | **完整可用的本地 SSH 客户端**（无同步） |
+| M5 | 云端同步 | 22 | 11 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 1 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **74** | |
+| **合计** | | **111** | **77** | |
 
 ### 1.1 关键路径
 
@@ -769,23 +769,23 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 终端页不自动息屏；切走再回来：仍在线或自动重连
   - 验证：`dotnet test`；真机
 
-- [ ] **P02 网络变化与主动探测** `S` 📱
+- [x] **P02 网络变化与主动探测** `S` 📱
   - 依赖：P01
   - 参考：`01-DESIGN.md §10`；鸿蒙端 `service/NetworkWatcher.ets`
   - 产出：`src/SshTool.Core/Lifecycle/NetworkChangeDetector.cs`、`src/SshTool.App/Platform/NetworkMonitor.cs`、SessionManager `OnNetworkChanged`、省电模式 Banner、测试
   - 要点：`NetworkStatusChanged` 防抖 1 s，以「网络适配器 id + 连接级别」变化为判据；退避中的会话立即重连、已连接的 `ProbeNow`；`PowerManager.EnergySaverStatusChanged` → 终端页 Banner。
   - 验收：
-    - [ ] Detector 单测（同网抖动不触发、切网触发、断网→恢复触发）
+    - [x] Detector 单测（同网抖动不触发、切网触发、断网→恢复触发）
     - [ ] 📱 Wi-Fi 切蜂窝后 10 s 内会话恢复可用
   - 验证：`dotnet test`；真机
 
-- [ ] **U14 设置页** `M`
+- [x] **U14 设置页** `M`
   - 依赖：D04、T10、T11、P01
   - 参考：`02-UI-DESIGN.md §5.15`
   - 产出：`src/SshTool.App/Views/{SettingsPage,KeyBarLayoutEditorPage,ShortcutEditorPage}.xaml(.cs)`、`src/SshTool.App/ViewModels/SettingsViewModel.cs`
   - 要点：五个 Pivot 按表实现（外观相关项先链接到占位页，A05 补齐）；键条布局编辑（可用/已选两列 + 上下移动 + 恢复默认）；快捷键录制；日志导出（FileSavePicker 合并 `logs/*.log`）与清空；诊断信息（OS 版本由 `AnalyticsInfo.VersionInfo.DeviceFamilyVersion` 解码、`MemoryManager.AppMemoryUsageLimit`、ApiInformation 探测结果）。
   - 验收：
-    - [ ] 每项设置修改后立即生效（手测清单记入进度日志）
+    - [x] 每项设置修改后立即生效（手测清单见本行进度日志 U14 条）
   - 验证：`pwsh scripts/verify.ps1`
 
 ---
@@ -892,13 +892,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 单测：B 端独有凭据保留、🏠 字段全部保留、分组删除清引用、relay 与 autoStart 保留、指纹变化拒绝、运行中隧道变更拒绝、未开启开关时文档不含 secrets
   - 验证：`dotnet test`
 
-- [ ] **S11 保险库缓存与协调器：账号与保险库流程** `M`
+- [x] **S11 保险库缓存与协调器：账号与保险库流程** `M`
   - 依赖：S05、S08、S10
   - 参考：`03-SYNC-PROTOCOL.md §6.2、§6.3、§7.1、§7.2`（不含 Rotate）
   - 产出：`src/SshTool.Core/Sync/Vault/{VaultCacheState,VaultCacheStore,PendingVaultSetup,PendingUpload,SyncConflictSummary}.cs`、`src/SshTool.Core/Sync/{SyncCoordinator,SyncState,SyncPhase,VaultStatus}.cs`（第一部分）、测试
   - 要点：VaultCache 编解码（baseDocument 走 S02 读写器）与用户绑定；协调器 Initialize、登录/注册后流程、ProbeVault、SetupVault（先落盘 pending）、Unlock、Lock、DeleteVault、SetPreferences（拒绝直接关闭敏感开关）、Logout、ChangeAccountPassword、DeleteAccount；`StateChanged` 事件。
   - 验收：
-    - [ ] §10.1 Coordinator 1–5
+    - [x] §10.1 Coordinator 1–5
   - 验证：`dotnet test`
 
 - [ ] **S12a 协调器：同步主流程与上传** `M`
@@ -1312,6 +1312,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] U12 📱 Continuum 下同上；断开 Continuum 回到手机后会话与布局完好
 - [ ] P01 📱 终端页不自动息屏；切走再回来：仍在线或自动重连
 - [ ] S05 📱 自检全部通过，记录 Argon2id 解锁耗时
+- [ ] P02 📱 Wi-Fi 切蜂窝后 10 s 内会话恢复可用
 
 ---
 
@@ -1412,3 +1413,6 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | P01 | 11ea517 | **代码完成**。KeepAwakePolicy 三参纯函数（108 格全组合 25 条）+ DisplayRequest 计数保护；BackgroundPolicy 纯状态机 29 条（EE 授予/拒绝/撤销、回前台、计时、会话数 → 请求/断开405/重连/探测/释放）；SessionManager SuspendAllForPolicy/ResumeSuspended/ProbeAll（405 保留面孔原地重连）；LifecycleService 接四事件。⏳ 📱 常亮与切后台（已登记待办）。Core 853；`verify.ps1 -Interop` 全绿。 |
 | 2026-09-19 | S04 | 59d93c8 | **完成**。tools/sync-vectors（hash-wasm 4.12.0 锁定，固定 salt/nonce/密码/明文，独立原语生成 + tsx 只读自检桌面端解密）；3 文档夹具经桌面端 zod 校验；JSON+C++ 头双输出；verify.ps1 -Interop 步骤⑦。Core +4（共 853）；native +3（共 221）；generate --check 与重写 zod 全过。遗留：§3.5 kCiphertextHash 旧值偏差（见 S03）。 |
 | 2026-09-19 | S05 | 0e5d216 | **代码完成**。WinRT VaultCrypto 桥（后台线程，失败 null）+ IVaultCrypto/NativeVaultCrypto + FakeVaultCrypto（可逆模拟+密码错误）+ 调试页保险库自检（含 Argon2 耗时与桌面向量）。Core +20（共 853）；`verify.ps1 -Arm` 7 步全绿。⏳ 📱 自检与耗时（已登记待办）。 |
+| 2026-09-19 | P02 | de65e93 | **代码完成**。NetworkChangeDetector（适配器 id+连接级别判据，断网记 Unknown 不踢会话，防抖 1000ms）+ NetworkMonitor（1s 沿防抖）+ SessionManager.OnNetworkChanged（退避立即重连/已连接 ProbeNow）+ EnergySaverWatcher 与终端页 Banner（双语 resw）。Core 单测 +15（共 906，Detector 9 + Network 6）；`verify.ps1 -Interop` 全绿。⏳ 📱 切网恢复（已登记待办）。 |
+| 2026-09-19 | U14 | e3e9e66 | **完成**。SettingsPage 五 Pivot（外观链占位，A05 补）+ KeyBarLayoutEditorPage（两列+上下移+恢复默认即写）+ ShortcutEditorPage（16 动作录制+冲突横幅+恢复默认）+ SettingsViewModel（24 键直连即时生效：主题/强调色/日志/常亮直驱，其余经 Changed）。手测清单：通用三档主题/强调色/排序/快连卡/触感/语言重启生效；终端字号回滚/alt/粘贴新会话生效；键盘布局与快捷键录制冲突恢复；连接常亮后台重连超时轮询；关于版本日志导出清空诊断复制。`verify.ps1` 全绿。 |
+| 2026-09-19 | S11 | 521c2b4 | **完成**。VaultCache（S02 读写器编解码，用户绑定，损坏错版重置）+ Pending 双事务日志 + SyncCoordinator 第一部分（Initialize/注册登录防重复/ProbeVault/SetupVault 先落盘幂等/Unlock 双通道/Lock/Delete/SetPreferences 拒关敏感/Logout 失败清本地/改密注销/StateChanged）。§10.1 Coordinator 1–5（38 条：Cache 15 + Coordinator 23，含丢响应重启复用材料）。Core 906；`verify.ps1 -Interop` 全绿。 |
