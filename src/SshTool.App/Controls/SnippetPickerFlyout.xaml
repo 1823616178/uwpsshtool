@@ -1,0 +1,49 @@
+<UserControl
+    x:Class="SshTool.App.Controls.SnippetPickerFlyout"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls">
+
+    <!-- U13：终端内片段选择器（02-UI-DESIGN.md §5.9）。搜索 + 按分组列表，点击即发送。 -->
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="GroupedSnippets" x:Name="GroupedSnippets"
+                              IsSourceGrouped="True" ItemsPath="Rows" />
+        <DataTemplate x:Key="SnippetItemTemplate">
+            <StackPanel Padding="{StaticResource PagePadding}">
+                <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}" />
+                <TextBlock Text="{Binding Preview}" Style="{StaticResource CaptionTextStyle}"
+                           TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="SnippetGroupHeaderTemplate">
+            <TextBlock Text="{Binding Title}" Style="{StaticResource CaptionTextStyle}"
+                       Padding="{StaticResource PagePadding}" />
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid Background="{ThemeResource AppSurfaceBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <AutoSuggestBox x:Name="SearchBox" PlaceholderText="搜索片段"
+                        QueryIcon="Find" TextChanged="OnSearchChanged"
+                        Margin="{StaticResource PagePadding}" />
+        <Grid Grid.Row="1">
+            <ListView x:Name="SnippetList"
+                      ItemTemplate="{StaticResource SnippetItemTemplate}"
+                      SelectionMode="None"
+                      IsItemClickEnabled="True"
+                      ItemClick="OnItemClick">
+                <ListView.GroupStyle>
+                    <GroupStyle HidesIfEmpty="False" HeaderTemplate="{StaticResource SnippetGroupHeaderTemplate}" />
+                </ListView.GroupStyle>
+            </ListView>
+            <controls:EmptyState x:Name="Empty"
+                                 Glyph="{StaticResource IconSnippet}"
+                                 Title="没有片段"
+                                 Description="先去「片段」页添加常用命令。"
+                                 Visibility="Collapsed" />
+        </Grid>
+    </Grid>
+</UserControl>

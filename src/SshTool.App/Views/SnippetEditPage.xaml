@@ -1,0 +1,61 @@
+<Page
+    x:Class="SshTool.App.Views.SnippetEditPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- U13：片段编辑页（02-UI-DESIGN.md §5.9）。名称 / 分组（可输入新分组）/
+         内容（多行等宽）/ 发送后回车 / 变量说明。 -->
+    <Page.BottomAppBar>
+        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
+            <AppBarButton Label="保存" Click="OnSaveClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconEdit}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton Label="删除" Click="OnDeleteClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconDelete}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton Label="取消" Click="OnCancelClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconDisconnect}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+        </CommandBar>
+    </Page.BottomAppBar>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="TitleText" Style="{StaticResource PageTitleTextStyle}"
+                   Margin="{StaticResource PagePadding}" />
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}">
+                <TextBox x:Name="NameBox" Header="名称 *" TextChanged="OnNameChanged" />
+                <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
+                           Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                <AutoSuggestBox x:Name="GroupBox" Header="分组" PlaceholderText="可输入新分组"
+                                Margin="{StaticResource GapSmTop}"
+                                TextChanged="OnGroupTextChanged"
+                                SuggestionChosen="OnGroupSuggestionChosen" />
+                <TextBox x:Name="ContentBox" Header="内容 *" AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         FontFamily="{StaticResource AppMonoFontFamily}"
+                         MinHeight="{StaticResource ListRowHeight}"
+                         Margin="{StaticResource GapSmTop}"
+                         TextChanged="OnContentChanged" />
+                <TextBlock x:Name="ContentError" Style="{StaticResource CaptionTextStyle}"
+                           Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                <CheckBox x:Name="SendEnterBox" Content="发送后回车"
+                          Margin="{StaticResource GapSmTop}"
+                          Checked="OnSendEnterChanged" Unchecked="OnSendEnterChanged" />
+                <TextBlock x:Name="VariableHint" Style="{StaticResource CaptionTextStyle}"
+                           TextWrapping="Wrap" Margin="{StaticResource GapSmTop}" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

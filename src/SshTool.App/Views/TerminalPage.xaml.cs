@@ -49,6 +49,9 @@ namespace SshTool.App.Views
                     Term.Session.Write(e.Data);
                 }
             };
+            // U13：键条 snippets 键打开片段选择器（发送经 ISshSession.Write）。
+            Keys.Action += OnKeyBarAction;
+            Term.SnippetRequested += (s, e) => OpenSnippetPicker(Term);
             // U12：物理键盘快捷键的视图局部动作（复制/粘贴/字号）；标签/分屏类动作是
             // 工作区概念，单窗格本页忽略（Continuum 下用 MainPage 宽屏）。
             Term.Shortcut += OnTermShortcut;
@@ -155,10 +158,47 @@ namespace SshTool.App.Views
             var flyout = new MenuFlyout();
             flyout.Items.Add(Item("会话", () => SessionsSplit.IsPaneOpen = !SessionsSplit.IsPaneOpen));
             flyout.Items.Add(Item("键条", ToggleKeyBar));
-            flyout.Items.Add(Item("片段", () => ViewModel.SnippetsCommand.Execute(null)));
+            // U13：终端菜单「片段」打开选择器（锚定菜单按钮）。
+            FrameworkElement anchor = sender as FrameworkElement;
+            flyout.Items.Add(Item("片段", () => OpenSnippetPicker(anchor ?? Term)));
             flyout.Items.Add(Item("断开", () => ViewModel.DisconnectCommand.Execute(null)));
             flyout.Items.Add(Item("关闭会话", () => ViewModel.CloseSessionCommand.Execute(null)));
             flyout.ShowAt((FrameworkElement)sender);
+        }
+
+        // U13：片段选择器统一入口（终端菜单 / 键条 snippets 键 / 右键菜单）。
+        private void OpenSnippetPicker(FrameworkElement anchor)
+        {
+            if (anchor == null)
+            {
+                anchor = Term;
+            }
+            SnippetPickerFlyout.Show(anchor, ViewModel.Session);
+        }
+
+        private void OnKeyBarAction(object sender, SshTool.Core.Terminal.KeyBarActionEventArgs e)
+        {
+            if (e == null)
+            {
+                return;
+            }
+            switch (e.Action)
+            {
+                case SshTool.Core.Terminal.KeyBarAction.Snippets:
+                    OpenSnippetPicker(Keys);
+                    break;
+                case SshTool.Core.Terminal.KeyBarAction.Paste:
+                    Term.PasteFromClipboard();
+                    break;
+                case SshTool.Core.Terminal.KeyBarAction.Copy:
+                    Term.CopySelectionToClipboard();
+                    break;
+                case SshTool.Core.Terminal.KeyBarAction.HideKeyboard:
+                    Term.ToggleSoftKeyboard();
+                    break;
+                default:
+                    break;
+            }
         }
 
         // U12：宽屏默认隐藏键条后可手动打开/关闭。

@@ -221,6 +221,23 @@
     <Compile Include="ViewModels\TerminalViewModel.cs" />
     <Compile Include="ViewModels\SessionsPaneViewModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModel.cs" />
+    <Compile Include="ViewModels\Snippets\SnippetGroupVm.cs" />
+    <Compile Include="ViewModels\Snippets\SnippetsViewModel.cs" />
+    <Compile Include="ViewModels\Snippets\SnippetEditViewModel.cs" />
+    <Compile Include="ViewModels\Snippets\SnippetPickerViewModel.cs" />
+    <Compile Include="ViewModels\Snippets\SnippetSendHelper.cs" />
+    <Compile Include="Controls\SnippetPickerFlyout.xaml.cs">
+      <DependentUpon>SnippetPickerFlyout.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\SnippetVariableDialog.xaml.cs">
+      <DependentUpon>SnippetVariableDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SnippetsPage.xaml.cs">
+      <DependentUpon>SnippetsPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SnippetEditPage.xaml.cs">
+      <DependentUpon>SnippetEditPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\TerminalPage.xaml.cs">
       <DependentUpon>TerminalPage.xaml</DependentUpon>
     </Compile>
@@ -330,6 +347,22 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\TerminalPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\SnippetsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\SnippetEditPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\SnippetPickerFlyout.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\SnippetVariableDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

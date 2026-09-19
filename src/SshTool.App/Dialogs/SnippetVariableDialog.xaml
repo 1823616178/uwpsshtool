@@ -1,0 +1,13 @@
+<ContentDialog
+    x:Class="SshTool.App.Dialogs.SnippetVariableDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    MaxWidth="{StaticResource DialogMaxWidth}">
+
+    <!-- 02-UI-DESIGN.md §5.8 SnippetVariableDialog：片段内容预览 + 未知变量输入框 -->
+    <StackPanel>
+        <controls:MonoText x:Name="PreviewText" />
+        <StackPanel x:Name="PromptsPanel" Margin="{StaticResource GapSmTop}" />
+    </StackPanel>
+</ContentDialog>

@@ -105,6 +105,10 @@ namespace SshTool.App.Terminal
 
         public event EventHandler<ShortcutActionEventArgs> Shortcut;
 
+        // U13：右键菜单「发送片段」由宿主页面接管（页面持有 SessionInfo，才能填充
+        // ${host}/${user}/${port}/${name} 内置变量；本视图只有 ISshSession）。
+        public event EventHandler SnippetRequested;
+
         public StickyModifiers StickyModifiers
         {
             get { return _sticky; }
@@ -863,7 +867,14 @@ namespace SshTool.App.Terminal
                 }
             }));
             flyout.Items.Add(MenuItem("清屏", (s, a) => SendInput(new byte[] { 0x1B, (byte)'[', (byte)'H', 0x1B, (byte)'[', (byte)'2', (byte)'J' })));
-            flyout.Items.Add(MenuItem("发送片段", (s, a) => { }));
+            flyout.Items.Add(MenuItem("发送片段", (s, a) =>
+            {
+                EventHandler handler = SnippetRequested;
+                if (handler != null)
+                {
+                    handler(this, EventArgs.Empty);
+                }
+            }));
             try
             {
                 flyout.ShowAt(this, point);

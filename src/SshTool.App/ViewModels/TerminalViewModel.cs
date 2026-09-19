@@ -35,8 +35,11 @@ namespace SshTool.App.ViewModels
             DisconnectCommand = new RelayCommand(Disconnect);
             CloseSessionCommand = new RelayCommand(CloseSession);
             PasteCommand = new RelayCommand(() => { });
+            // U13：终端菜单/键条的片段入口直接由 TerminalPage 打开选择器；
+            // 此命令保留给其他绑定方：带当前会话进入片段管理页（可发送）。
             SnippetsCommand = new RelayCommand(() =>
-                Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs("片段", "M4")));
+                Navigation.Navigate<SnippetsPage>(
+                    SnippetsArgs.WithSession(_session == null ? null : _session.SessionId)));
         }
 
         public ICommand ToggleInfoCommand { get; private set; }
