@@ -115,7 +115,8 @@ $Assets = @(
 $TargetSizes = @(16, 24, 32, 48, 256)
 
 if ($List) {
-    $count = $Assets.Count * $Scales.Count + $TargetSizes.Count * 2
+    # 每个基名产出 Scales.Count 个 scale 文件 + scale-100 时附带 1 份无限定符基名（供清单引用）
+    $count = $Assets.Count * ($Scales.Count + 1) + $TargetSizes.Count * 2
     Write-Host "将生成 $count 个 PNG 到 $OutDir"
     exit 0
 }
