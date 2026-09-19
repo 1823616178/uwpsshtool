@@ -39,14 +39,14 @@
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
-| M2 | 终端引擎、渲染与输入 | 15 | 10 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
+| M2 | 终端引擎、渲染与输入 | 15 | 11 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **46** | |
+| **合计** | | **111** | **47** | |
 
 ### 1.1 关键路径
 
@@ -490,13 +490,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 单手完成 Ctrl+C、Ctrl+Z、Esc、Tab 补全；锁定 Ctrl 连续发送多个控制字符
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **T11 物理键盘与快捷键表** `S`
+- [x] **T11 物理键盘与快捷键表** `S`
   - 依赖：T09
   - 参考：`01-DESIGN.md §7.5`；`02-UI-DESIGN.md §5.16`
   - 产出：`src/SshTool.Core/Terminal/ShortcutMap.cs`、`src/SshTool.App/Terminal/HardwareKeyboardInput.cs`、测试
   - 要点：`CoreWindow.KeyDown/CharacterReceived` + `AcceleratorKeyActivated`（Alt 组合）；先匹配快捷键（动作枚举）再走 KeyMap；有物理键盘输入时隐藏 SIP 并把焦点留在 TerminalView；快捷键表 JSON 序列化与默认值。
   - 验收：
-    - [ ] ShortcutMap 单测：默认表、覆盖、冲突检测、序列化往返
+    - [x] ShortcutMap 单测：默认表、覆盖、冲突检测、序列化往返
     - [ ] 📱（蓝牙键盘或 Continuum）Ctrl+C、Alt+B、方向、F1–F12 正确
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1295,6 +1295,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] T07 📱 Lumia 竖/横屏切换后执行 `stty size`，确认远端行列数与显示网格一致
 - [ ] T09 📱 英文、退格、回车、中文拼音「你好」均正确送达远端（MainPage DEBUG「N10 调试连接」，点终端区域弹键盘）
 - [ ] T10 📱 单手完成 Ctrl+C、Ctrl+Z、Esc、Tab 补全；锁定 Ctrl 连续发送多个控制字符
+- [ ] T11 📱（蓝牙键盘或 Continuum）Ctrl+C、Alt+B、方向、F1–F12 正确
 
 ---
 
@@ -1367,3 +1368,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | T07 | cfb4163 | **代码完成**。`GridSizeCalculator` 按可视宽高扣除双边 padding 与覆盖式键条，向下取整并保证 20×5；`FontMetrics` 用 Win2D 测 `M`，按行高系数取整，字号/DPI 变化重测；`TerminalView.Session` 接线并对尺寸变化做 100 ms 防抖 `Resize`。Calculator 单测 +10（Core 共 520）；`verify.ps1 -Arm` 全绿（native 197、x64 Debug、ARM Release/.NET Native）。⏳ Lumia 旋转后 `stty size`（已登记真机待办）。 |
 | 2026-09-19 | T09 | cabcf6b | **代码完成**。`SentinelDiff` 对两个 U+200B 做新增/删除差分（有新增不把哨兵缺失当远端退格）；`SoftKeyboardInput` 按 SP05 五条规则：焦点在哨兵只走 TextBox、非组合态 TextChanged 发新增、组合结束走完整差分、Enter 去重发 `\r`、非组合 Backspace 走 KeyDown。点击终端 `Focus(Programmatic)` 弹 SIP；`InputPane.Showing` 每次读 OccludedRect 并 `EnsuredFocusedElementInView`，与视图相交高度并入网格计算。TerminalView 暴露 `Input` 并写入 `ISshSession.Write`。Core 单测 +12（共 532）；`verify.ps1` 全绿。⏳ 英文/退格/回车/拼音「你好」真机送达（已登记真机待办）。 |
 | 2026-09-19 | T10 | 6536c80 | **代码完成**。`KeyBarLayout` 解析逗号布局（未知忽略、去重、空串回退默认，与设置键默认值对拍）；`KeyBar` 横向滚动、修饰键三态（强调色/锁定底+2epx 底边）、方向键 400/60 ms 连发、动作事件；右侧固定 hidekb。`Haptics` 10 ms，`VibrationDevice` + ApiInformation 守卫。调试连接页接入同一 `StickyModifiers`。Core 单测 +13（共 545）；`verify.ps1` 全绿。⏳ 单手 Ctrl+C/Z、Esc、Tab、锁定 Ctrl（已登记真机待办）。 |
+| 2026-09-19 | T11 | 84a081b | **代码完成**。`ShortcutMap` 默认 §5.16（Ctrl+Shift 复制/新标签等，不抢 Ctrl+C）；JSON 对象覆盖、未知键忽略、非法 JSON 回退默认、冲突检测先命中先赢。`HardwareKeyboardInput`：哨兵聚焦时不抢可打印/回车/退格；Alt 走 AcceleratorKey（不用 Character 事件的 VirtualKey）；快捷键先于 KeyMap。有物理键盘时点终端隐藏 SIP 并把焦点留在 TerminalView。Core 单测 +9（共 554）；`verify.ps1` 全绿。⏳ 蓝牙/Continuum Ctrl+C、Alt+B、方向、F1–F12（已登记真机待办）。 |
