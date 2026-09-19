@@ -1,8 +1,14 @@
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
+using SshTool.Core.Appearance;
 using SshTool.Core.Models;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Windows.Storage;
+using Windows.Storage.Pickers;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -88,9 +94,83 @@ namespace SshTool.App.Views
             ViewModel.NewCommand.Execute(null);
         }
 
-        private void OnImportClick(object sender, RoutedEventArgs e)
+        private async void OnImportClick(object sender, RoutedEventArgs e)
         {
-            ViewModel.ImportCommand.Execute(null);
+            await ImportAsync();
+        }
+
+        // A04：配色导入（02-UI-DESIGN.md §5.12）。FileOpenPicker 选 .itermcolors /
+        // .json → Core 解析（非法文件由解析器返回中文错误，不抛异常）→ 单个直接
+        // 存并进编辑页改名微调，多个弹 ThemeSchemePickerDialog 让用户勾选。
+        private async Task ImportAsync()
+        {
+            try
+            {
+                var picker = new FileOpenPicker();
+                picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+                picker.FileTypeFilter.Add(".itermcolors");
+                picker.FileTypeFilter.Add(".json");
+                StorageFile file = await picker.PickSingleFileAsync();
+                if (file == null)
+                {
+                    return;
+                }
+                var props = await file.GetBasicPropertiesAsync();
+                if (props.Size > 262144)
+                {
+                    await ConfirmDialog.ShowAsync("导入失败", "文件过大（超过 256 KiB），请选择配色文件。", "确定", "关闭");
+                    return;
+                }
+                string text = await FileIO.ReadTextAsync(file);
+                string suggested = Path.GetFileNameWithoutExtension(file.Name);
+                ThemeImportResult result;
+                if (string.Equals(file.FileType, ".itermcolors", StringComparison.OrdinalIgnoreCase))
+                {
+                    result = ItermcolorsParser.Parse(text, suggested);
+                }
+                else if (string.Equals(file.FileType, ".json", StringComparison.OrdinalIgnoreCase))
+                {
+                    result = WindowsTerminalSchemeParser.Parse(text, suggested);
+                }
+                else
+                {
+                    await ConfirmDialog.ShowAsync("导入失败", "不支持的文件类型，请选择 .itermcolors 或 .json 文件。", "确定", "关闭");
+                    return;
+                }
+                if (!result.Ok || result.Profiles.Count == 0)
+                {
+                    await ConfirmDialog.ShowAsync("导入失败",
+                        result.Ok ? "文件中没有可导入的配色。" : result.Error, "确定", "关闭");
+                    return;
+                }
+                if (result.Profiles.Count == 1)
+                {
+                    bool saved = await ViewModel.ImportProfilesAsync(new List<AppearanceProfile> { result.Profiles[0] });
+                    if (!saved)
+                    {
+                        await ConfirmDialog.ShowAsync("导入失败", "保存导入的配色时出错，请重试。", "确定", "关闭");
+                        return;
+                    }
+                    ViewModel.OpenEdit(new AppearanceRow(result.Profiles[0], false));
+                    return;
+                }
+                IReadOnlyList<AppearanceProfile> selected =
+                    await ThemeSchemePickerDialog.ShowAsync(result.Profiles);
+                if (selected.Count == 0)
+                {
+                    return;
+                }
+                if (!await ViewModel.ImportProfilesAsync(selected))
+                {
+                    await ConfirmDialog.ShowAsync("导入失败", "保存导入的配色时出错，请重试。", "确定", "关闭");
+                    return;
+                }
+                await ViewModel.RefreshAsync();
+            }
+            catch (Exception ex)
+            {
+                await ConfirmDialog.ShowAsync("导入失败", "读取或保存文件时出错：" + ex.Message, "确定", "关闭");
+            }
         }
     }
 }

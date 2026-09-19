@@ -101,12 +101,10 @@ namespace SshTool.App.ViewModels
             _services = services;
             Items = new ObservableCollection<AppearanceRow>();
             NewCommand = new RelayCommand(() => Navigation.Navigate<AppearanceEditPage>(AppearanceEditArgs.New()));
-            ImportCommand = new RelayCommand(() => Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs("导入配色", "M6")));
         }
 
         public ObservableCollection<AppearanceRow> Items { get; private set; }
         public ICommand NewCommand { get; private set; }
-        public ICommand ImportCommand { get; private set; }
 
         public void OpenEdit(AppearanceRow row)
         {
@@ -173,6 +171,28 @@ namespace SshTool.App.ViewModels
             catch (Exception ex)
             {
                 OnError(ex);
+            }
+        }
+
+        // A04：导入落盘（解析器已分配 id、填好默认值；失败记日志并返回 false）。
+        public async Task<bool> ImportProfilesAsync(IReadOnlyList<AppearanceProfile> profiles)
+        {
+            if (profiles == null || profiles.Count == 0)
+            {
+                return false;
+            }
+            try
+            {
+                for (int i = 0; i < profiles.Count; i++)
+                {
+                    await _services.AppearanceService.AddAsync(profiles[i]).ConfigureAwait(true);
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                OnError(ex);
+                return false;
             }
         }
 
