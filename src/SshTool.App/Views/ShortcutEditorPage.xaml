@@ -1,0 +1,55 @@
+<Page
+    x:Class="SshTool.App.Views.ShortcutEditorPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- U14 快捷键表编辑（02-UI-DESIGN.md §5.16）：列出动作 ↔ 组合键，点击录制新组合。 -->
+    <Page.Resources>
+        <DataTemplate x:Key="ShortcutItemTemplate">
+            <Grid Padding="{StaticResource PagePadding}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding DisplayName}" Style="{StaticResource BodyTextStyle}" />
+                    <TextBlock Text="{Binding ChordText}" Style="{StaticResource MonoCaptionTextStyle}" />
+                </StackPanel>
+                <Button Grid.Column="1" Content="录制" Click="OnRecordClick"
+                        MinWidth="{StaticResource TouchTargetMin}"
+                        MinHeight="{StaticResource TouchTargetMin}"
+                        Margin="{StaticResource GapSmLeft}" />
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock Text="快捷键" Style="{StaticResource PageTitleTextStyle}"
+                   Margin="{StaticResource PagePadding}" />
+        <TextBlock Text="点击录制后按下新组合；默认组合都带 Shift，避免抢占终端按键"
+                   Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
+                   Margin="{StaticResource PagePadding}" TextWrapping="Wrap" />
+        <TextBlock x:Name="ConflictWarning" Grid.Row="2"
+                   Style="{StaticResource CaptionTextStyle}"
+                   Foreground="{ThemeResource AppDangerBrush}"
+                   Margin="{StaticResource PagePadding}"
+                   Visibility="Collapsed" TextWrapping="Wrap" />
+        <ListView x:Name="ShortcutList" Grid.Row="3"
+                  ItemTemplate="{StaticResource ShortcutItemTemplate}"
+                  SelectionMode="None" />
+        <StackPanel Grid.Row="4" Orientation="Horizontal"
+                    Margin="{StaticResource PagePadding}">
+            <Button Content="恢复默认" Click="OnResetClick" />
+        </StackPanel>
+        <controls:TransientToast x:Name="Toast" Grid.Row="4" />
+    </Grid>
+</Page>

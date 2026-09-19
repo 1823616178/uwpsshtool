@@ -1,0 +1,1000 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Text;
+using System.Threading.Tasks;
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
+using SshTool.Core.Common;
+using SshTool.Core.Storage;
+using SshTool.Core.Terminal;
+using Windows.ApplicationModel;
+using Windows.Foundation.Metadata;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Provider;
+
+namespace SshTool.App.ViewModels
+{
+    // U14 诊断探针行（名称 + 可用/不可用）。
+    public sealed class DiagnosticProbeRow
+    {
+        public string Name { get; set; }
+        public string Status { get; set; }
+    }
+
+    // U14 设置页 ViewModel：SettingsRepository 的直接映射 + 立即生效。
+    //
+    // 分工：每个 setter 写仓库（非法值先钳制，绝不抛给 UI）并触发副作用；
+    // LifecycleService 已订阅仓库 Changed（keepAlive/keepScreenOn 即时纠正），
+    // 此处只处理必须在设置页上下文中立即看到的三项：主题、强调色、日志级别。
+    // ComboBox 索引映射集中在此（XAML 不做转换器，页码后置代码只调这组静态方法）。
+    public sealed class SettingsViewModel : ViewModelBase
+    {
+        public const int MinFontSize = 8;
+        public const int MaxFontSize = 28;
+        public const int MinScrollback = 1000;
+        public const int MaxScrollback = 50000;
+        public const int MinConnectTimeout = 5;
+        public const int MaxConnectTimeout = 60;
+        public const int MinReconnectAttempts = 0;
+        public const int MaxReconnectAttempts = 10;
+
+        private static readonly int[] BackgroundDisconnectOptions = { 0, 5, 15, 30, 60 };
+        private static readonly int[] SyncPollOptions = { 0, 60, 300, 900 };
+
+        private readonly SettingsRepository _settings;
+
+        private string _osVersion = string.Empty;
+        private string _deviceFamily = string.Empty;
+        private string _memoryText = string.Empty;
+        private string _appVersion = string.Empty;
+
+        public SettingsViewModel(AppServices services)
+            : this(services != null ? services.Settings : null)
+        {
+        }
+
+        public SettingsViewModel(SettingsRepository settings)
+        {
+            if (settings == null)
+            {
+                throw new ArgumentNullException("settings");
+            }
+            _settings = settings;
+            Probes = new ObservableCollection<DiagnosticProbeRow>();
+            _settings.Changed += OnSettingsChanged;
+            RefreshDiagnostics();
+        }
+
+        public ObservableCollection<DiagnosticProbeRow> Probes { get; private set; }
+
+        // ---------- 通用 ----------
+
+        public string ThemeMode
+        {
+            get { return SafeGetString("themeMode", "dark"); }
+            set
+            {
+                string normalized = NormalizeEnum(value, new[] { "system", "dark", "light" }, "dark");
+                _settings.Set("themeMode", normalized);
+                ApplyThemeNow();
+                RaisePropertyChanged("ThemeMode");
+            }
+        }
+
+        public bool UseSystemAccent
+        {
+            get { return SafeGetBool("useSystemAccent", true); }
+            set
+            {
+                _settings.Set("useSystemAccent", value);
+                ApplyAccentNow(value);
+                RaisePropertyChanged("UseSystemAccent");
+            }
+        }
+
+        public string HostSortMode
+        {
+            get { return SafeGetString("hostSortMode", "name"); }
+            set
+            {
+                string normalized = NormalizeEnum(value, new[] { "name", "recent" }, "name");
+                _settings.Set("hostSortMode", normalized);
+                RaisePropertyChanged("HostSortMode");
+            }
+        }
+
+        public bool ShowQuickConnect
+        {
+            get { return SafeGetBool("showQuickConnect", true); }
+            set
+            {
+                _settings.Set("showQuickConnect", value);
+                RaisePropertyChanged("ShowQuickConnect");
+            }
+        }
+
+        public bool HapticsEnabled
+        {
+            get { return SafeGetBool("hapticsEnabled", true); }
+            set
+            {
+                _settings.Set("hapticsEnabled", value);
+                RaisePropertyChanged("HapticsEnabled");
+            }
+        }
+
+        public string Language
+        {
+            get { return SafeGetString("language", "system"); }
+            set
+            {
+                string normalized = NormalizeEnum(value, new[] { "system", "zh-CN", "en-US" }, "system");
+                _settings.Set("language", normalized);
+                RaisePropertyChanged("Language");
+            }
+        }
+
+        // ---------- 终端 ----------
+
+        public string DefaultAppearanceId
+        {
+            get { return SafeGetString("defaultAppearanceId", "builtin-harmony-dark"); }
+            set
+            {
+                _settings.Set("defaultAppearanceId", value ?? string.Empty);
+                RaisePropertyChanged("DefaultAppearanceId");
+            }
+        }
+
+        public int TerminalFontSize
+        {
+            get { return SafeGetInt("terminalFontSize", 12); }
+            set
+            {
+                int clamped = Clamp(value, MinFontSize, MaxFontSize);
+                _settings.Set("terminalFontSize", clamped);
+                RaisePropertyChanged("TerminalFontSize");
+            }
+        }
+
+        public int ScrollbackLines
+        {
+            get { return SafeGetInt("scrollbackLines", 5000); }
+            set
+            {
+                int clamped = Clamp(value, MinScrollback, MaxScrollback);
+                _settings.Set("scrollbackLines", clamped);
+                RaisePropertyChanged("ScrollbackLines");
+            }
+        }
+
+        public string AltScreenScroll
+        {
+            get { return SafeGetString("altScreenScroll", "arrows"); }
+            set
+            {
+                string normalized = NormalizeEnum(value, new[] { "arrows", "wheel" }, "arrows");
+                _settings.Set("altScreenScroll", normalized);
+                RaisePropertyChanged("AltScreenScroll");
+            }
+        }
+
+        public bool PasteConfirmMultiline
+        {
+            get { return SafeGetBool("pasteConfirmMultiline", true); }
+            set
+            {
+                _settings.Set("pasteConfirmMultiline", value);
+                RaisePropertyChanged("PasteConfirmMultiline");
+            }
+        }
+
+        // ---------- 键盘 ----------
+
+        public bool KeyBarVisible
+        {
+            get { return SafeGetBool("keyBarVisible", true); }
+            set
+            {
+                _settings.Set("keyBarVisible", value);
+                RaisePropertyChanged("KeyBarVisible");
+            }
+        }
+
+        public string KeyBarLayout
+        {
+            get { return SafeGetString("keyBarLayout", SshTool.Core.Terminal.KeyBarLayout.DefaultString); }
+            set
+            {
+                string layout = string.IsNullOrWhiteSpace(value)
+                    ? SshTool.Core.Terminal.KeyBarLayout.DefaultString : value;
+                _settings.Set("keyBarLayout", layout);
+                RaisePropertyChanged("KeyBarLayout");
+                RaisePropertyChanged("KeyBarSummary");
+            }
+        }
+
+        public string KeyBarSummary
+        {
+            get
+            {
+                int count = SshTool.Core.Terminal.KeyBarLayout.Parse(KeyBarLayout).Count;
+                return count.ToString(CultureInfo.InvariantCulture) + " 个键";
+            }
+        }
+
+        public string ShortcutsJson
+        {
+            get { return SafeGetString("shortcuts", "{}"); }
+            set
+            {
+                _settings.Set("shortcuts", string.IsNullOrEmpty(value) ? "{}" : value);
+                RaisePropertyChanged("ShortcutsJson");
+                RaisePropertyChanged("ShortcutSummary");
+            }
+        }
+
+        public ShortcutMap CurrentShortcutMap
+        {
+            get { return ShortcutMap.Parse(ShortcutsJson); }
+        }
+
+        public string ShortcutSummary
+        {
+            get
+            {
+                ShortcutMap map = CurrentShortcutMap;
+                if (map.Conflicts.Count > 0)
+                {
+                    return map.Conflicts.Count.ToString(CultureInfo.InvariantCulture) + " 处冲突";
+                }
+                return map.Bindings.Count.ToString(CultureInfo.InvariantCulture) + " 个动作";
+            }
+        }
+
+        public void ResetKeyBarLayout()
+        {
+            KeyBarLayout = SshTool.Core.Terminal.KeyBarLayout.DefaultString;
+        }
+
+        public void ResetShortcuts()
+        {
+            ShortcutsJson = "{}";
+        }
+
+        // ---------- 连接 ----------
+
+        public string KeepScreenOn
+        {
+            get { return SafeGetString("keepScreenOn", "session"); }
+            set
+            {
+                string normalized = NormalizeEnum(value, new[] { "never", "session", "always" }, "session");
+                _settings.Set("keepScreenOn", normalized);
+                RefreshKeepAwake();
+                RaisePropertyChanged("KeepScreenOn");
+            }
+        }
+
+        public bool KeepAliveInBackground
+        {
+            get { return SafeGetBool("keepAliveInBackground", true); }
+            set
+            {
+                _settings.Set("keepAliveInBackground", value);
+                RaisePropertyChanged("KeepAliveInBackground");
+            }
+        }
+
+        public int BackgroundDisconnectMinutes
+        {
+            get { return SafeGetInt("backgroundDisconnectMinutes", 0); }
+            set
+            {
+                int clamped = value < 0 ? 0 : value;
+                _settings.Set("backgroundDisconnectMinutes", clamped);
+                RaisePropertyChanged("BackgroundDisconnectMinutes");
+            }
+        }
+
+        public int ReconnectMaxAttempts
+        {
+            get { return SafeGetInt("reconnectMaxAttempts", 6); }
+            set
+            {
+                int clamped = Clamp(value, MinReconnectAttempts, MaxReconnectAttempts);
+                _settings.Set("reconnectMaxAttempts", clamped);
+                RaisePropertyChanged("ReconnectMaxAttempts");
+            }
+        }
+
+        public int ConnectTimeoutSeconds
+        {
+            get { return SafeGetInt("connectTimeoutSeconds", 15); }
+            set
+            {
+                int clamped = Clamp(value, MinConnectTimeout, MaxConnectTimeout);
+                _settings.Set("connectTimeoutSeconds", clamped);
+                RaisePropertyChanged("ConnectTimeoutSeconds");
+            }
+        }
+
+        public int SyncPollForegroundSeconds
+        {
+            get { return SafeGetInt("syncPollForegroundSeconds", 60); }
+            set
+            {
+                int clamped = value < 0 ? 0 : value;
+                _settings.Set("syncPollForegroundSeconds", clamped);
+                RaisePropertyChanged("SyncPollForegroundSeconds");
+            }
+        }
+
+        // ---------- 关于 ----------
+
+        public string LogLevel
+        {
+            get { return SafeGetString("logLevel", "info"); }
+            set
+            {
+                string normalized = NormalizeEnum(value, new[] { "debug", "info", "warn", "error" }, "info");
+                _settings.Set("logLevel", normalized);
+                ApplyLogLevelNow(normalized);
+                RaisePropertyChanged("LogLevel");
+            }
+        }
+
+        public string OsVersionText
+        {
+            get { return _osVersion; }
+            private set { SetProperty(ref _osVersion, value); }
+        }
+
+        public string DeviceFamilyText
+        {
+            get { return _deviceFamily; }
+            private set { SetProperty(ref _deviceFamily, value); }
+        }
+
+        public string MemoryText
+        {
+            get { return _memoryText; }
+            private set { SetProperty(ref _memoryText, value); }
+        }
+
+        public string AppVersionText
+        {
+            get { return _appVersion; }
+            private set { SetProperty(ref _appVersion, value); }
+        }
+
+        // ---------- ComboBox 索引映射（页码后置代码只调这里） ----------
+
+        public static int ThemeModeToIndex(string value)
+        {
+            if (string.Equals(value, "system", StringComparison.Ordinal)) { return 0; }
+            if (string.Equals(value, "light", StringComparison.Ordinal)) { return 2; }
+            return 1;
+        }
+
+        public static string IndexToThemeMode(int index)
+        {
+            if (index == 0) { return "system"; }
+            if (index == 2) { return "light"; }
+            return "dark";
+        }
+
+        public static int SortModeToIndex(string value)
+        {
+            return string.Equals(value, "recent", StringComparison.Ordinal) ? 1 : 0;
+        }
+
+        public static string IndexToSortMode(int index)
+        {
+            return index == 1 ? "recent" : "name";
+        }
+
+        public static int LanguageToIndex(string value)
+        {
+            if (string.Equals(value, "zh-CN", StringComparison.Ordinal)) { return 1; }
+            if (string.Equals(value, "en-US", StringComparison.Ordinal)) { return 2; }
+            return 0;
+        }
+
+        public static string IndexToLanguage(int index)
+        {
+            if (index == 1) { return "zh-CN"; }
+            if (index == 2) { return "en-US"; }
+            return "system";
+        }
+
+        public static int KeepScreenOnToIndex(string value)
+        {
+            if (string.Equals(value, "never", StringComparison.Ordinal)) { return 0; }
+            if (string.Equals(value, "always", StringComparison.Ordinal)) { return 2; }
+            return 1;
+        }
+
+        public static string IndexToKeepScreenOn(int index)
+        {
+            if (index == 0) { return "never"; }
+            if (index == 2) { return "always"; }
+            return "session";
+        }
+
+        public static int AltScrollToIndex(string value)
+        {
+            return string.Equals(value, "wheel", StringComparison.Ordinal) ? 1 : 0;
+        }
+
+        public static string IndexToAltScroll(int index)
+        {
+            return index == 1 ? "wheel" : "arrows";
+        }
+
+        public static int LogLevelToIndex(string value)
+        {
+            if (string.Equals(value, "debug", StringComparison.Ordinal)) { return 0; }
+            if (string.Equals(value, "warn", StringComparison.Ordinal)) { return 2; }
+            if (string.Equals(value, "error", StringComparison.Ordinal)) { return 3; }
+            return 1;
+        }
+
+        public static string IndexToLogLevel(int index)
+        {
+            if (index == 0) { return "debug"; }
+            if (index == 2) { return "warn"; }
+            if (index == 3) { return "error"; }
+            return "info";
+        }
+
+        public static int BackgroundDisconnectToIndex(int minutes)
+        {
+            int best = 0;
+            for (int i = 0; i < BackgroundDisconnectOptions.Length; i++)
+            {
+                if (minutes == BackgroundDisconnectOptions[i]) { return i; }
+                if (Math.Abs(minutes - BackgroundDisconnectOptions[i])
+                    < Math.Abs(minutes - BackgroundDisconnectOptions[best]))
+                {
+                    best = i;
+                }
+            }
+            return best;
+        }
+
+        public static int IndexToBackgroundDisconnect(int index)
+        {
+            if (index < 0 || index >= BackgroundDisconnectOptions.Length) { return 0; }
+            return BackgroundDisconnectOptions[index];
+        }
+
+        public static int SyncPollToIndex(int seconds)
+        {
+            int best = 1;
+            for (int i = 0; i < SyncPollOptions.Length; i++)
+            {
+                if (seconds == SyncPollOptions[i]) { return i; }
+                if (Math.Abs(seconds - SyncPollOptions[i]) < Math.Abs(seconds - SyncPollOptions[best]))
+                {
+                    best = i;
+                }
+            }
+            return best;
+        }
+
+        public static int IndexToSyncPoll(int index)
+        {
+            if (index < 0 || index >= SyncPollOptions.Length) { return 60; }
+            return SyncPollOptions[index];
+        }
+
+        // ---------- 快捷键中文名（§5.16） ----------
+
+        public static string ShortcutDisplayName(ShortcutAction action)
+        {
+            switch (action)
+            {
+                case ShortcutAction.NewTab: return "新标签";
+                case ShortcutAction.ClosePane: return "关闭窗格/标签";
+                case ShortcutAction.NextTab: return "下一个标签";
+                case ShortcutAction.PrevTab: return "上一个标签";
+                case ShortcutAction.SplitRight: return "向右分屏";
+                case ShortcutAction.SplitDown: return "向下分屏";
+                case ShortcutAction.FocusLeft: return "聚焦左侧窗格";
+                case ShortcutAction.FocusUp: return "聚焦上方窗格";
+                case ShortcutAction.FocusRight: return "聚焦右侧窗格";
+                case ShortcutAction.FocusDown: return "聚焦下方窗格";
+                case ShortcutAction.Copy: return "复制";
+                case ShortcutAction.Paste: return "粘贴";
+                case ShortcutAction.FontIncrease: return "字号增大";
+                case ShortcutAction.FontDecrease: return "字号减小";
+                case ShortcutAction.FontReset: return "字号重置";
+                case ShortcutAction.Find: return "查找";
+                default: return action.ToString();
+            }
+        }
+
+        // ---------- 诊断 ----------
+
+        public void RefreshDiagnostics()
+        {
+            OsVersionText = DecodeOsVersion();
+            DeviceFamilyText = ReadDeviceFamily();
+            MemoryText = ReadMemoryText();
+            AppVersionText = ReadAppVersion();
+            RefreshProbes();
+        }
+
+        public string BuildDiagnosticsText()
+        {
+            var sb = new StringBuilder();
+            sb.Append("应用版本：").Append(AppVersionText).Append("\r\n");
+            sb.Append("设备系列：").Append(DeviceFamilyText).Append("\r\n");
+            sb.Append("系统版本：").Append(OsVersionText).Append("\r\n");
+            sb.Append("内存：").Append(MemoryText).Append("\r\n");
+            for (int i = 0; i < Probes.Count; i++)
+            {
+                sb.Append(Probes[i].Name).Append("：").Append(Probes[i].Status).Append("\r\n");
+            }
+            return sb.ToString();
+        }
+
+        // ---------- 日志导出与清空 ----------
+
+        // 合并 logs/*.log（按文件名排序，段首加文件名头），经 FileSavePicker 落盘。
+        // 返回给 UI 显示的一句话；只记文件数与字节数，绝不记内容（脱敏）。
+        public async Task<string> ExportLogsAsync()
+        {
+            StorageFolder logs;
+            try
+            {
+                logs = await ApplicationData.Current.LocalFolder
+                    .CreateFolderAsync("logs", CreationCollisionOption.OpenIfExists);
+            }
+            catch (Exception ex)
+            {
+                return "无法打开日志目录：" + ex.GetType().Name;
+            }
+
+            List<StorageFile> logFiles = new List<StorageFile>();
+            try
+            {
+                foreach (StorageFile f in await logs.GetFilesAsync())
+                {
+                    if (f.Name.EndsWith(".log", StringComparison.OrdinalIgnoreCase))
+                    {
+                        logFiles.Add(f);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return "枚举日志失败：" + ex.GetType().Name;
+            }
+
+            logFiles.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+            if (logFiles.Count == 0)
+            {
+                return "没有可导出的日志";
+            }
+
+            var sb = new StringBuilder();
+            long totalBytes = 0;
+            for (int i = 0; i < logFiles.Count; i++)
+            {
+                string content = string.Empty;
+                try
+                {
+                    content = await FileIO.ReadTextAsync(logFiles[i]);
+                }
+                catch (Exception)
+                {
+                    content = string.Empty;
+                }
+                totalBytes += content.Length;
+                sb.Append("===== ").Append(logFiles[i].Name).Append(" =====\r\n");
+                sb.Append(content);
+                if (!content.EndsWith("\r\n", StringComparison.Ordinal)
+                    && !content.EndsWith("\n", StringComparison.Ordinal))
+                {
+                    sb.Append("\r\n");
+                }
+            }
+
+            FileSavePicker picker = new FileSavePicker();
+            picker.SuggestedFileName = string.Format(
+                CultureInfo.InvariantCulture, "lumia-ssh-logs-{0:yyyyMMdd-HHmmss}", DateTime.Now);
+            picker.FileTypeChoices.Add("日志文件", new List<string> { ".log" });
+            StorageFile target;
+            try
+            {
+                target = await picker.PickSaveFileAsync();
+            }
+            catch (Exception ex)
+            {
+                return "保存对话框失败：" + ex.GetType().Name;
+            }
+            if (target == null)
+            {
+                return "已取消导出";
+            }
+
+            try
+            {
+                CachedFileManager.DeferUpdates(target);
+                await FileIO.WriteTextAsync(target, sb.ToString());
+                FileUpdateStatus status = await CachedFileManager.CompleteUpdatesAsync(target);
+                if (status != FileUpdateStatus.Complete)
+                {
+                    return "导出未完成：" + status.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                return "导出失败：" + ex.GetType().Name;
+            }
+
+            try
+            {
+                Logger.Log(SshTool.Core.Common.LogLevel.Info, "Settings",
+                    "导出日志 " + logFiles.Count.ToString(CultureInfo.InvariantCulture)
+                    + " 个文件，约 " + totalBytes.ToString(CultureInfo.InvariantCulture) + " 字符");
+            }
+            catch (Exception)
+            {
+            }
+            return "已导出 " + logFiles.Count.ToString(CultureInfo.InvariantCulture) + " 个日志文件";
+        }
+
+        public async Task<string> ClearLogsAsync()
+        {
+            int deleted = 0;
+            try
+            {
+                StorageFolder logs = await ApplicationData.Current.LocalFolder
+                    .CreateFolderAsync("logs", CreationCollisionOption.OpenIfExists);
+                foreach (StorageFile f in await logs.GetFilesAsync())
+                {
+                    if (!f.Name.EndsWith(".log", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+                    try
+                    {
+                        await f.DeleteAsync(StorageDeleteOption.PermanentDelete);
+                        deleted++;
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return "清空失败：" + ex.GetType().Name;
+            }
+
+            try
+            {
+                Logger.Log(SshTool.Core.Common.LogLevel.Info, "Settings",
+                    "清空日志 " + deleted.ToString(CultureInfo.InvariantCulture) + " 个文件");
+            }
+            catch (Exception)
+            {
+            }
+            return deleted == 0 ? "没有可清空的日志" : "已清空日志";
+        }
+
+        // ---------- 内部 ----------
+
+        private void OnSettingsChanged(object sender, SettingChangedEventArgs e)
+        {
+            // 外部写入（如键条编辑页）后刷新绑定；本类 setter 已逐个 Raise，无需映射 key。
+            RaisePropertyChanged("ThemeMode");
+            RaisePropertyChanged("UseSystemAccent");
+            RaisePropertyChanged("HostSortMode");
+            RaisePropertyChanged("ShowQuickConnect");
+            RaisePropertyChanged("HapticsEnabled");
+            RaisePropertyChanged("Language");
+            RaisePropertyChanged("DefaultAppearanceId");
+            RaisePropertyChanged("TerminalFontSize");
+            RaisePropertyChanged("ScrollbackLines");
+            RaisePropertyChanged("AltScreenScroll");
+            RaisePropertyChanged("PasteConfirmMultiline");
+            RaisePropertyChanged("KeyBarVisible");
+            RaisePropertyChanged("KeyBarLayout");
+            RaisePropertyChanged("KeyBarSummary");
+            RaisePropertyChanged("ShortcutsJson");
+            RaisePropertyChanged("ShortcutSummary");
+            RaisePropertyChanged("KeepScreenOn");
+            RaisePropertyChanged("KeepAliveInBackground");
+            RaisePropertyChanged("BackgroundDisconnectMinutes");
+            RaisePropertyChanged("ReconnectMaxAttempts");
+            RaisePropertyChanged("ConnectTimeoutSeconds");
+            RaisePropertyChanged("SyncPollForegroundSeconds");
+            RaisePropertyChanged("LogLevel");
+        }
+
+        private string SafeGetString(string key, string fallback)
+        {
+            try
+            {
+                return _settings.GetString(key);
+            }
+            catch (Exception)
+            {
+                return fallback;
+            }
+        }
+
+        private int SafeGetInt(string key, int fallback)
+        {
+            try
+            {
+                return _settings.GetInt(key);
+            }
+            catch (Exception)
+            {
+                return fallback;
+            }
+        }
+
+        private bool SafeGetBool(string key, bool fallback)
+        {
+            try
+            {
+                return _settings.GetBool(key);
+            }
+            catch (Exception)
+            {
+                return fallback;
+            }
+        }
+
+        private static string NormalizeEnum(string value, string[] allowed, string fallback)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return fallback;
+            }
+            for (int i = 0; i < allowed.Length; i++)
+            {
+                if (string.Equals(value, allowed[i], StringComparison.Ordinal))
+                {
+                    return value;
+                }
+            }
+            return fallback;
+        }
+
+        private static int Clamp(int value, int min, int max)
+        {
+            if (value < min) { return min; }
+            if (value > max) { return max; }
+            return value;
+        }
+
+        private void ApplyThemeNow()
+        {
+            try
+            {
+                AppThemeMode mode = ParseTheme(ThemeMode);
+                if (DispatcherHelper.HasThreadAccess)
+                {
+                    ThemeService.Apply(mode);
+                }
+                else
+                {
+                    DispatcherHelper.Post(() => ThemeService.Apply(mode));
+                }
+            }
+            catch (Exception ex)
+            {
+                LogQuiet("应用主题失败 " + ex.GetType().Name);
+            }
+        }
+
+        private static void ApplyAccentNow(bool useSystem)
+        {
+            try
+            {
+                if (DispatcherHelper.HasThreadAccess)
+                {
+                    ThemeService.UseSystemAccent = useSystem;
+                }
+                else
+                {
+                    DispatcherHelper.Post(() => { ThemeService.UseSystemAccent = useSystem; });
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void ApplyLogLevelNow(string level)
+        {
+            try
+            {
+                FileLogger.Instance.MinLevel = ParseLogLevel(level);
+            }
+            catch (Exception ex)
+            {
+                LogQuiet("应用日志级别失败 " + ex.GetType().Name);
+            }
+        }
+
+        private void RefreshKeepAwake()
+        {
+            try
+            {
+                KeepAwakeService keepAwake;
+                if (ServiceRegistry.TryGet(out keepAwake))
+                {
+                    keepAwake.RefreshSettings();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogQuiet("刷新常亮失败 " + ex.GetType().Name);
+            }
+        }
+
+        private void LogQuiet(string message)
+        {
+            try
+            {
+                Logger.Log(SshTool.Core.Common.LogLevel.Warning, "Settings", message);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        internal static AppThemeMode ParseTheme(string mode)
+        {
+            if (string.Equals(mode, "light", StringComparison.OrdinalIgnoreCase)) { return AppThemeMode.Light; }
+            if (string.Equals(mode, "dark", StringComparison.OrdinalIgnoreCase)) { return AppThemeMode.Dark; }
+            return AppThemeMode.System;
+        }
+
+        internal static SshTool.Core.Common.LogLevel ParseLogLevel(string level)
+        {
+            if (string.Equals(level, "debug", StringComparison.OrdinalIgnoreCase))
+            {
+                return SshTool.Core.Common.LogLevel.Debug;
+            }
+            if (string.Equals(level, "warn", StringComparison.OrdinalIgnoreCase))
+            {
+                return SshTool.Core.Common.LogLevel.Warning;
+            }
+            if (string.Equals(level, "error", StringComparison.OrdinalIgnoreCase))
+            {
+                return SshTool.Core.Common.LogLevel.Error;
+            }
+            return SshTool.Core.Common.LogLevel.Info;
+        }
+
+        private static string DecodeOsVersion()
+        {
+            try
+            {
+                if (!ApiInformation.IsTypePresent("Windows.System.Profile.AnalyticsInfo"))
+                {
+                    return "unknown";
+                }
+                string rawText = Windows.System.Profile.AnalyticsInfo.VersionInfo.DeviceFamilyVersion;
+                ulong raw;
+                if (!ulong.TryParse(rawText, NumberStyles.None, CultureInfo.InvariantCulture, out raw))
+                {
+                    return "unknown";
+                }
+                return string.Format(
+                    CultureInfo.InvariantCulture, "{0}.{1}.{2}.{3}",
+                    (raw & 0xFFFF000000000000UL) >> 48,
+                    (raw & 0x0000FFFF00000000UL) >> 32,
+                    (raw & 0x00000000FFFF0000UL) >> 16,
+                    raw & 0x000000000000FFFFUL);
+            }
+            catch (Exception)
+            {
+                return "unknown";
+            }
+        }
+
+        private static string ReadDeviceFamily()
+        {
+            try
+            {
+                if (!ApiInformation.IsTypePresent("Windows.System.Profile.AnalyticsInfo"))
+                {
+                    return "unknown";
+                }
+                string family = Windows.System.Profile.AnalyticsInfo.VersionInfo.DeviceFamily;
+                return string.IsNullOrEmpty(family) ? "unknown" : family;
+            }
+            catch (Exception)
+            {
+                return "unknown";
+            }
+        }
+
+        private static string ReadMemoryText()
+        {
+            try
+            {
+                if (!ApiInformation.IsTypePresent("Windows.System.MemoryManager"))
+                {
+                    return "不可用";
+                }
+                ulong limit = Windows.System.MemoryManager.AppMemoryUsageLimit;
+                ulong usage = Windows.System.MemoryManager.AppMemoryUsage;
+                return string.Format(
+                    CultureInfo.InvariantCulture, "已用 {0} MB / 上限 {1} MB",
+                    (limit == 0 ? 0 : usage / 1048576UL),
+                    (limit == 0 ? 0 : limit / 1048576UL));
+            }
+            catch (Exception)
+            {
+                return "不可用";
+            }
+        }
+
+        private static string ReadAppVersion()
+        {
+            try
+            {
+                PackageVersion v = Package.Current.Id.Version;
+                string arch = Package.Current.Id.Architecture.ToString();
+#if NET_NATIVE
+                const string toolchain = ".NET Native";
+#else
+                const string toolchain = "CoreCLR";
+#endif
+                return string.Format(
+                    CultureInfo.InvariantCulture, "{0}.{1}.{2}.{3} {4} {5}",
+                    v.Major, v.Minor, v.Build, v.Revision, arch, toolchain);
+            }
+            catch (Exception)
+            {
+                return "unknown";
+            }
+        }
+
+        private void RefreshProbes()
+        {
+            Probes.Clear();
+            AddProbe("触感", "Windows.Phone.Devices.Notification.VibrationDevice");
+            AddProbe("状态栏", "Windows.UI.ViewManagement.StatusBar");
+            AddProbe("后台保活", "Windows.ApplicationModel.ExtendedExecution.ExtendedExecutionSession");
+            AddProbe("屏幕常亮", "Windows.System.Display.DisplayRequest");
+            AddProbe("设备信息", "Windows.System.Profile.AnalyticsInfo");
+            AddProbe("内存诊断", "Windows.System.MemoryManager");
+            AddProbe("日志导出", "Windows.Storage.Pickers.FileSavePicker");
+            AddProbe("凭据加密", "Windows.Security.Cryptography.DataProtection.DataProtectionProvider");
+            AddProbe("设备名称", "Windows.Security.ExchangeActiveSyncProvisioning.EasClientDeviceInformation");
+        }
+
+        private void AddProbe(string name, string typeName)
+        {
+            bool present = false;
+            try
+            {
+                present = ApiInformation.IsTypePresent(typeName);
+            }
+            catch (Exception)
+            {
+                present = false;
+            }
+            Probes.Add(new DiagnosticProbeRow
+            {
+                Name = name,
+                Status = present ? "可用" : "不可用"
+            });
+        }
+    }
+}
