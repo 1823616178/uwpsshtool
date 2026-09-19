@@ -148,32 +148,11 @@ namespace SshTool.App.Views
             }
         }
 
+        // U01 状态栏随主题（A05：实现收拢到 StatusBarService.RefreshTheme，
+        // 与 ThemeService.Apply 共用同一套主题字典解析）。
         private void ApplyStatusBar()
         {
-            if (!ApiInformation.IsTypePresent("Windows.UI.ViewManagement.StatusBar"))
-            {
-                return;
-            }
-            try
-            {
-                StatusBar bar = StatusBar.GetForCurrentView();
-                bar.BackgroundOpacity = 1;
-                object bg = Application.Current.Resources["AppBgBrush"];
-                object fg = Application.Current.Resources["AppTextBrush"];
-                var bgBrush = bg as SolidColorBrush;
-                var fgBrush = fg as SolidColorBrush;
-                if (bgBrush != null)
-                {
-                    bar.BackgroundColor = bgBrush.Color;
-                }
-                if (fgBrush != null)
-                {
-                    bar.ForegroundColor = fgBrush.Color;
-                }
-            }
-            catch (Exception)
-            {
-            }
+            Platform.StatusBarService.RefreshTheme();
         }
 
         private void OnNewClick(object sender, RoutedEventArgs e)
