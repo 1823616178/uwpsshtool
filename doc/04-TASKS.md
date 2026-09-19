@@ -40,13 +40,13 @@
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
-| M3 | 数据层与主机管理 | 12 | 7 | 主机/分组增删改、凭据安全保存 |
+| M3 | 数据层与主机管理 | 12 | 8 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **54** | |
+| **合计** | | **111** | **55** | |
 
 ### 1.1 关键路径
 
@@ -608,13 +608,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] check-magic-numbers 通过
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **U02 主机列表** `M` 📱
+- [x] **U02 主机列表** `M` 📱
   - 依赖：U01
   - 参考：`02-UI-DESIGN.md §5.1`；鸿蒙端 `viewmodel/HostListViewModel.ets`（纯函数与用例）
   - 产出：`src/SshTool.Core/Hosts/{HostListBuilder,HostListRow,QuickConnectParser,IHostStatusProvider}.cs`、`src/SshTool.App/ViewModels/HostListViewModel.cs`、`src/SshTool.App/Views/Main/HostsPivot.xaml(.cs)`、`src/SshTool.App/Controls/HostRow.xaml(.cs)`、测试
   - 要点：分组/排序/搜索（名称、地址、用户，大小写不敏感）纯函数；分组折叠持久化到 `hostGroupCollapsed`；徽标；状态点从 `IHostStatusProvider` 取（先用空实现）；快速连接解析 `user@host[:port]`（含 IPv6 `[::1]:22`）；空状态与无结果状态；长按/右键 MenuFlyout；删除确认（显示将级联删除的隧道数）；Debug 菜单「生成 100 台测试主机」。
   - 验收：
-    - [ ] Core 单测 ≥20 条（分组、两种排序、搜索、折叠、快速连接解析含非法输入）
+    - [x] Core 单测 ≥20 条（分组、两种排序、搜索、折叠、快速连接解析含非法输入）
     - [ ] 📱 100 台主机滚动流畅
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1302,6 +1302,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] D03 📱 真机写入后用设备门户下载 LocalFolder，`secrets.bin` 中搜索不到测试密码明文
 - [ ] D05 👤 x64 Debug 冷启动进入 MainPage，日志含各阶段耗时
 - [ ] D05 📱 ARM Release 冷启动正常
+- [ ] U02 📱 100 台主机滚动流畅
 
 ---
 
@@ -1382,3 +1383,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | D03 | 9464eb2 | **代码完成**。InMemorySecretStore + SecretKeys 前缀删除；ISecureFile / InMemorySecureFile；DpapiSecureFile `LOCAL=user` 原子写 `secure/secrets.bin`；DpapiSecretStore 串行 JSON 键值表。Core 单测 +5（共 598）；`verify.ps1` 全绿。⏳ secrets.bin 无明文（已登记真机待办）。 |
 | 2026-09-19 | D05 | b87c415 | **代码完成**。`AppServices` 组合根：配置/设置/七仓库/DPAPI 凭据/ConfigService；启动各阶段耗时写 app.log；挂起 Flush；未处理异常记类型名；LoadWarnings 上 MainPage Banner。`verify.ps1` 全绿（598）。⏳ x64/ARM 冷启动（已登记待办）。 |
 | 2026-09-19 | U01 | 680f734 | **完成**。`Views/MainPage` Pivot 主机/会话/隧道 EmptyState；底部 CommandBar 新建/搜索/同步 + 更多进 PlaceholderPage（「将在 Mx 提供」）；返回键规则 7（非主机 Pivot 切回主机）；状态栏随主题；DEBUG 页改到溢出菜单。`verify.ps1` 全绿（598）。 |
+| 2026-09-19 | U02 | 08d2467 | **代码完成**。HostListBuilder 分组/name+recent 排序/搜索/折叠 JSON；QuickConnectParser `user@host[:port]` 含 `[::1]:22`；NullHostStatusProvider；HostsPivot + HostRow + 删除确认隧道数；Debug「生成 100 台测试主机」。Core 单测 +35（共 633）。⏳ 100 台滚动（已登记真机待办）。 |
