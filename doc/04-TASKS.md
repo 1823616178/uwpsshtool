@@ -42,11 +42,11 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 12 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 11 | 与桌面端同账号双向同步、冲突可解 |
-| M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
-| M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
+| M5 | 云端同步 | 22 | 12 | 与桌面端同账号双向同步、冲突可解 |
+| M6 | 外观系统 | 5 | 3 | 主题、字体、配色可改可导入 |
+| M7 | 密钥、SFTP、转发、跳板 | 11 | 1 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 1 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **77** | |
+| **合计** | | **111** | **80** | |
 
 ### 1.1 关键路径
 
@@ -901,13 +901,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] §10.1 Coordinator 1–5
   - 验证：`dotnet test`
 
-- [ ] **S12a 协调器：同步主流程与上传** `M`
+- [x] **S12a 协调器：同步主流程与上传** `M`
   - 依赖：S11、S09
   - 参考：`03-SYNC-PROTOCOL.md §7.3`（PerformSync ①–④ 的非冲突路径、Upload、CommitRemote）
   - 产出：`SyncCoordinator` 同步部分、测试
   - 要点：单飞 SyncNow；pendingUpload 重放；HEAD 分支（无文档/无保险库/keyVersion 不一致/revision 回退）；无新版本时的上传条件；有新版本且本地不脏 → 应用远端；本地脏 → 合并 → 上传；上传前落盘 pendingUpload，特定错误清除；changeGeneration 竞争处理。
   - 验收：
-    - [ ] §10.1 Coordinator 6、9、20，以及「上传期间本地又改动 → dirty 保持并 250 ms 后再同步」
+    - [x] §10.1 Coordinator 6、9、20，以及「上传期间本地又改动 → dirty 保持并 250 ms 后再同步」
   - 验证：`dotnet test`
 
 - [ ] **S12b 协调器：冲突、首次导入与远端删除** `M`
@@ -1028,13 +1028,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 单测：9 套、每套 20 个色位合法 `#RRGGBB`、id 唯一（鸿蒙端仓库不在本机，Harmony 两套按 02-UI-DESIGN §3 Token 族推导并在注释注明）
   - 验证：`dotnet test`
 
-- [ ] **A03 外观列表、编辑页与实时预览** `M` 📱
+- [x] **A03 外观列表、编辑页与实时预览** `M` 📱
   - 依赖：A02、T07
   - 参考：`02-UI-DESIGN.md §5.12`
   - 产出：`src/SshTool.App/Views/{AppearanceListPage,AppearanceEditPage}.xaml(.cs)`、ViewModels、`src/SshTool.Core/Appearance/SampleScreenBuilder.cs`、`ColorSwatchPicker` 完整版（HSV 滑块、新旧对比）、TerminalView 支持静态缓冲源、测试
   - 要点：预览使用 SampleScreenBuilder 生成的 16 字节单元格缓冲；编辑实时（≤100 ms）；未保存返回确认并还原；编辑内置主题自动复制；设为默认；已打开的终端收到外观变化后刷新调色板与字体度量（不重连）；主机编辑页「外观」下拉接入。
   - 验收：
-    - [ ] SampleScreenBuilder 单测（16 色、粗体、下划线、反色）
+    - [x] SampleScreenBuilder 单测（16 色、粗体、下划线、反色）
     - [ ] 📱 修改字号/配色后已打开终端即时生效
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1060,14 +1060,14 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 
 ## 9. M7 — 密钥、SFTP、端口转发、跳板
 
-- [ ] **K01 原生密钥工具** `M`
+- [x] **K01 原生密钥工具** `M`
   - 依赖：N05
   - 参考：`01-DESIGN.md §6.1 keytool、§6.2 KeyTool`；`03-SYNC-PROTOCOL.md §9`
   - 产出：`native/core/crypto/keytool.{h,cpp}`、`src/SshTool.Native/Bridge/{KeyTool,KeyInfo}.{h,cpp}`、`native/tests/keytool_test.cpp`、`native/tests/fixtures/keys/*`（补充 ecdsa、加密 OpenSSH、PKCS#8 等）
   - 要点：生成 ed25519（openssh-key-v1 未加密，含 checkint 与 padding）、RSA 3072/4096（PEM）；解析 openssh-key-v1（直接取公钥 blob；读 cipher/kdf 名判定是否加密）、PEM/PKCS#8（OpenSSL，支持短语）；导出 `ssh-xxx AAAA… comment`；SHA256 指纹。
   - 验收：
-    - [ ] 所有夹具的类型/位数/是否加密判定正确，指纹等于 `ssh-keygen -lf` 期望值
-    - [ ] 生成的 ed25519 私钥能被 libssh2 `publickey_frommemory` 加载（单测内校验）
+    - [x] 所有夹具的类型/位数/是否加密判定正确，指纹等于 `ssh-keygen -lf` 期望值
+    - [x] 生成的 ed25519 私钥能被 libssh2 `publickey_frommemory` 加载（单测内校验）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
 - [ ] **K02 密钥管理页面** `M` 📱
@@ -1313,6 +1313,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] P01 📱 终端页不自动息屏；切走再回来：仍在线或自动重连
 - [ ] S05 📱 自检全部通过，记录 Argon2id 解锁耗时
 - [ ] P02 📱 Wi-Fi 切蜂窝后 10 s 内会话恢复可用
+- [ ] A03 📱 修改字号/配色后已打开终端即时生效
 
 ---
 
@@ -1416,3 +1417,6 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | P02 | de65e93 | **代码完成**。NetworkChangeDetector（适配器 id+连接级别判据，断网记 Unknown 不踢会话，防抖 1000ms）+ NetworkMonitor（1s 沿防抖）+ SessionManager.OnNetworkChanged（退避立即重连/已连接 ProbeNow）+ EnergySaverWatcher 与终端页 Banner（双语 resw）。Core 单测 +15（共 906，Detector 9 + Network 6）；`verify.ps1 -Interop` 全绿。⏳ 📱 切网恢复（已登记待办）。 |
 | 2026-09-19 | U14 | e3e9e66 | **完成**。SettingsPage 五 Pivot（外观链占位，A05 补）+ KeyBarLayoutEditorPage（两列+上下移+恢复默认即写）+ ShortcutEditorPage（16 动作录制+冲突横幅+恢复默认）+ SettingsViewModel（24 键直连即时生效：主题/强调色/日志/常亮直驱，其余经 Changed）。手测清单：通用三档主题/强调色/排序/快连卡/触感/语言重启生效；终端字号回滚/alt/粘贴新会话生效；键盘布局与快捷键录制冲突恢复；连接常亮后台重连超时轮询；关于版本日志导出清空诊断复制。`verify.ps1` 全绿。 |
 | 2026-09-19 | S11 | 521c2b4 | **完成**。VaultCache（S02 读写器编解码，用户绑定，损坏错版重置）+ Pending 双事务日志 + SyncCoordinator 第一部分（Initialize/注册登录防重复/ProbeVault/SetupVault 先落盘幂等/Unlock 双通道/Lock/Delete/SetPreferences 拒关敏感/Logout 失败清本地/改密注销/StateChanged）。§10.1 Coordinator 1–5（38 条：Cache 15 + Coordinator 23，含丢响应重启复用材料）。Core 906；`verify.ps1 -Interop` 全绿。 |
+| 2026-09-19 | S12a | 3924c8f | **完成**。SyncNow 单飞 + PerformSync ①–④ 非冲突路径 + Upload（先落盘 pending、确定性错误清除、generation 竞争 + 250ms 复同步）+ CommitRemote；冲突分支占位抛 NotSupported（S12b 接）。修单飞槽竞态（finally 先于赋值，token 守卫清槽）。§10.1 Coordinator 6/9/20 + 上传期改动复同步（15 条）。Core 953；`verify.ps1 -Quick` 全绿。 |
+| 2026-09-19 | A03 | 8d9c1e3 | **代码完成**。SampleScreenBuilder（36×8 样例屏）+ HsvColor/Comparer + StaticTerminalScreen；AppearanceList/EditPage（实时预览<100ms、内置复制、脏确认、设默认）+ ColorSwatchPicker 完整版（HSV+新旧对比）；TerminalView.ApplyAppearance（不重连）+ 刷新链路（Changed 按主机重应用）；HostEdit/设置/菜单接入。Core +32（共 953，样例屏验收已勾）；`verify.ps1` 全绿。⏳ 📱 即时生效与观感（已登记待办）。 |
+| 2026-09-19 | K01 | fbd5444 | **完成**。keytool 生成 ed25519（手写 openssh-key-v1）/RSA3072/4096 + 解析三格式 + 导出公钥行 + SHA256 指纹；WinRT KeyTool/KeyInfo 桥；14 夹具 + 12 用例（指纹硬编码=`ssh-keygen -lf`、libssh2 加载校验）。修 Bridge/obj 大小写覆盖（Core 组 IntDir 隔离）与 ECDSA/PEM 空行 bug。native 233；v141 x64/ARM 构建 ✓；`verify.ps1 -Quick` 全绿。遗留：KeyInfo 多 Comment 属性未回写 §6.2（K02 可补）。 |
