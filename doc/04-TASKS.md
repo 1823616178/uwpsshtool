@@ -41,12 +41,12 @@
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
-| M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
+| M4 | 终端页与会话 | 12 | 2 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **59** | |
+| **合计** | | **111** | **60** | |
 
 ### 1.1 关键路径
 
@@ -670,7 +670,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 
 ## 6. M4 — 终端页与会话
 
-- [ ] **D06 SessionManager** `M`
+- [x] **D06 SessionManager** `M`
   - 依赖：D02、D03、N09b、T03
   - 参考：`01-DESIGN.md §9`；鸿蒙端 `service/SessionManager.ets` 与 `SessionManager.test.ets`
   - 产出：`src/SshTool.Core/Sessions/{SessionInfo,SessionManager,IHostKeyPrompter,ICredentialPrompter,ITimerFactory,IUiDispatcher,ReconnectScheduler,HostKeyVerifier}.cs`、测试
@@ -680,7 +680,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     3. `Close(sessionId)`、`CloseAll()`、`ActiveSessionCount`、`SessionsChanged` 事件、`IHostStatusProvider` 实现（替换 U02 空实现）。
     4. 属性变更经注入的 `IUiDispatcher`（测试用同步实现）。
   - 验收：
-    - [ ] 单测 ≥15 条：首次连接 TOFU 接受/拒绝、指纹不匹配拒绝、同步指纹匹配自动写 KnownHost、无密码弹框并记住、密码错误重试 3 次、KI、断线自动重连成功、认证错误不重连、用户关闭停止重连、旧句柄迟到事件被忽略、CloseAll
+    - [x] 单测 ≥15 条：首次连接 TOFU 接受/拒绝、指纹不匹配拒绝、同步指纹匹配自动写 KnownHost、无密码弹框并记住、密码错误重试 3 次、KI、断线自动重连成功、认证错误不重连、用户关闭停止重连、旧句柄迟到事件被忽略、CloseAll
   - 验证：`dotnet test`
 
 - [ ] **D07 测试连接服务** `S`
@@ -1389,3 +1389,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | U03b | 50fe573 | **完成**。CredentialDraft 保存勾选/取消、切换认证清理；SecretStore 写入/删除；密码框「已保存」不回显；导入/生成进 M7 占位。Core 单测 +11（共 661）。 |
 | 2026-09-19 | U04 | 9e5fdb1 | **完成**。GroupManagePage 新建/重命名/24 色板+Hex/上移下移/删除（提示主机与隧道数，ConfigService 清 groupId，仓库层已单测）；HostEdit「管理分组」。verify 全绿（661）。 |
 | 2026-09-19 | U06 | 52f0ec1 | **代码完成**。KnownHostsPage 列表/搜索/指纹+randomart 详情/删除确认。MainPage 更多→已知主机。⏳ 删除后再次连接 TOFU 待 D06 回归（已登记待办）。verify 全绿（661）。 |
+| 2026-09-19 | D06 | b81535f | **完成**。SessionManager 按 §9.2 编排 TOFU/KnownHost/同步指纹、密码重试 3 次/KI、退避重连、CloseAll、迟到事件丢弃；实现 IHostStatusProvider。Core 单测 +19（共 680）。 |
