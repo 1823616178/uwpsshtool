@@ -115,11 +115,15 @@
     <Compile Include="Terminal\FontMetrics.cs" />
     <Compile Include="Terminal\SoftKeyboardInput.cs" />
     <Compile Include="Terminal\HardwareKeyboardInput.cs" />
+    <Compile Include="Terminal\SelectionLayer.xaml.cs">
+      <DependentUpon>SelectionLayer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Terminal\TerminalRenderer.cs" />
     <Compile Include="Terminal\TerminalView.xaml.cs">
       <DependentUpon>TerminalView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Platform\Haptics.cs" />
+    <Compile Include="Platform\ClipboardService.cs" />
     <Compile Include="Platform\NativeSshSessionFactory.cs" />
     <Compile Include="Infrastructure\ServiceRegistry.cs" />
     <Compile Include="Infrastructure\DispatcherHelper.cs" />
@@ -224,6 +228,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Debug\PlatformSpikePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Terminal\SelectionLayer.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

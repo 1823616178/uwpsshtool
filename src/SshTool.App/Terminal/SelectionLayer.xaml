@@ -1,0 +1,39 @@
+<UserControl
+    x:Class="SshTool.App.Terminal.SelectionLayer"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    IsHitTestVisible="True"
+    IsTabStop="False">
+
+    <Grid>
+        <Canvas x:Name="HighlightCanvas" IsHitTestVisible="False" />
+        <Canvas x:Name="HandleCanvas" />
+        <Border x:Name="Toolbar"
+                Visibility="Collapsed"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Background="{ThemeResource AppSurfaceBrush}"
+                BorderBrush="{ThemeResource AppBorderBrush}"
+                BorderThickness="{StaticResource BorderThin}"
+                CornerRadius="{StaticResource RadiusSm}"
+                Padding="{StaticResource PadMd}"
+                Margin="{StaticResource GapSmTop}">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="CopyButton" Content="复制" Click="OnCopyClick"
+                        AllowFocusOnInteraction="False" IsTabStop="False" />
+                <Button x:Name="PasteButton" Content="粘贴" Click="OnPasteClick"
+                        AllowFocusOnInteraction="False" IsTabStop="False"
+                        Margin="{StaticResource GapSmLeft}" />
+                <Button x:Name="SelectAllButton" Content="全选" Click="OnSelectAllClick"
+                        AllowFocusOnInteraction="False" IsTabStop="False"
+                        Margin="{StaticResource GapSmLeft}" />
+                <Button x:Name="ShareButton" Content="分享" Click="OnShareClick"
+                        AllowFocusOnInteraction="False" IsTabStop="False"
+                        Margin="{StaticResource GapSmLeft}" />
+                <Button x:Name="DismissButton" Content="✕" Click="OnDismissClick"
+                        AllowFocusOnInteraction="False" IsTabStop="False"
+                        Margin="{StaticResource GapSmLeft}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

@@ -2,12 +2,15 @@ using System;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
+using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.Core.Models;
 using SshTool.Core.Sessions;
 using SshTool.Core.Terminal;
 using Windows.Foundation;
 using Windows.UI;
+using Windows.UI.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -26,6 +29,8 @@ namespace SshTool.App.Terminal
         private readonly TerminalModes _modes = new TerminalModes();
         private readonly string _schedulerId = "tv-" + Guid.NewGuid().ToString("N");
         private readonly DispatcherTimer _resizeTimer = new DispatcherTimer();
+        private readonly SelectionModel _selection = new SelectionModel();
+        private bool _draggingSelection;
         private ISshSession _session;
         private ITerminalScreen _screen;
         private byte[] _cells = new byte[0];
@@ -51,6 +56,9 @@ namespace SshTool.App.Terminal
             this.GotFocus += OnGotFocus;
             this.LostFocus += OnLostFocus;
             this.Tapped += OnTapped;
+            this.Holding += OnHolding;
+            this.PointerMoved += OnPointerMoved;
+            this.PointerReleased += OnPointerReleased;
             this.SizeChanged += OnSizeChanged;
             _renderer.MetricsInvalidated += OnMetricsInvalidated;
             _resizeTimer.Interval = TimeSpan.FromMilliseconds(100);
@@ -213,6 +221,11 @@ namespace SshTool.App.Terminal
                 _softKeyboard.Attach(Sentinel);
             }
             _hardwareKeyboard.Attach();
+            if (Selection != null)
+            {
+                Selection.ToolbarAction += OnSelectionToolbar;
+                Selection.HandleDrag += OnSelectionHandleDrag;
+            }
             if (!_registered)
             {
                 FrameScheduler.Instance.Register(_schedulerId, OnTick);
@@ -229,6 +242,11 @@ namespace SshTool.App.Terminal
             _resizeTimer.Stop();
             _softKeyboard.Detach();
             _hardwareKeyboard.Detach();
+            if (Selection != null)
+            {
+                Selection.ToolbarAction -= OnSelectionToolbar;
+                Selection.HandleDrag -= OnSelectionHandleDrag;
+            }
             UnsubscribeDeviceLost();
             if (_registered)
             {
@@ -332,6 +350,12 @@ namespace SshTool.App.Terminal
 
         private void OnTapped(object sender, TappedRoutedEventArgs e)
         {
+            if (_selection.IsActive)
+            {
+                _selection.Cancel();
+                RefreshSelectionOverlay();
+                return;
+            }
             if (HardwareKeyboardInput.IsHardwareKeyboardPresent)
             {
                 this.IsTabStop = true;
@@ -340,6 +364,187 @@ namespace SshTool.App.Terminal
                 return;
             }
             FocusInput();
+        }
+
+        private void OnHolding(object sender, HoldingRoutedEventArgs e)
+        {
+            if (e.HoldingState != HoldingState.Started)
+            {
+                return;
+            }
+            int row;
+            int col;
+            if (!TryHitCell(e.GetPosition(this), out row, out col))
+            {
+                return;
+            }
+            ISelectionGrid grid = CurrentGrid();
+            if (grid == null)
+            {
+                return;
+            }
+            _selection.BeginWord(row, col, grid);
+            _draggingSelection = true;
+            RefreshSelectionOverlay();
+            e.Handled = true;
+        }
+
+        private void OnPointerMoved(object sender, PointerRoutedEventArgs e)
+        {
+            if (!_draggingSelection || !_selection.IsActive || !e.Pointer.IsInContact)
+            {
+                return;
+            }
+            int row;
+            int col;
+            if (!TryHitCell(e.GetCurrentPoint(this).Position, out row, out col))
+            {
+                return;
+            }
+            ISelectionGrid grid = CurrentGrid();
+            if (grid == null)
+            {
+                return;
+            }
+            _selection.Extend(row, col, grid);
+            RefreshSelectionOverlay();
+        }
+
+        private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            _draggingSelection = false;
+        }
+
+        private void OnSelectionToolbar(object sender, SelectionToolbarEventArgs e)
+        {
+            if (e == null)
+            {
+                return;
+            }
+            switch (e.Action)
+            {
+                case SelectionToolbarAction.Copy:
+                    CopySelection();
+                    break;
+                case SelectionToolbarAction.Paste:
+                    PasteClipboard();
+                    break;
+                case SelectionToolbarAction.SelectAll:
+                    ISelectionGrid grid = CurrentGrid();
+                    if (grid != null)
+                    {
+                        _selection.SelectAll(grid);
+                        RefreshSelectionOverlay();
+                    }
+                    break;
+                case SelectionToolbarAction.Share:
+                    CopySelection();
+                    try
+                    {
+                        Windows.ApplicationModel.DataTransfer.DataTransferManager.ShowShareUI();
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    break;
+                default:
+                    _selection.Cancel();
+                    RefreshSelectionOverlay();
+                    break;
+            }
+        }
+
+        private void OnSelectionHandleDrag(object sender, HandleDragEventArgs e)
+        {
+            if (e == null || !_selection.IsActive)
+            {
+                return;
+            }
+            int row;
+            int col;
+            if (!TryHitCell(new Point(e.X, e.Y), out row, out col))
+            {
+                return;
+            }
+            ISelectionGrid grid = CurrentGrid();
+            if (grid == null)
+            {
+                return;
+            }
+            if (e.Handle == SelectionLayer.HandleStart)
+            {
+                _selection.MoveStart(row, col, grid);
+            }
+            else
+            {
+                _selection.MoveEnd(row, col, grid);
+            }
+            RefreshSelectionOverlay();
+        }
+
+        private void CopySelection()
+        {
+            ISelectionGrid grid = CurrentGrid();
+            string text = _selection.ExtractText(grid);
+            ClipboardService.SetText(text);
+            Haptics.VibrateLight(true);
+            if (CopiedToast != null)
+            {
+                CopiedToast.Show("已复制");
+            }
+        }
+
+        private async void PasteClipboard()
+        {
+            string text = await ClipboardService.GetTextAsync();
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+            SendInput(System.Text.Encoding.UTF8.GetBytes(text.Replace("\r\n", "\r").Replace('\n', '\r')));
+        }
+
+        private void RefreshSelectionOverlay()
+        {
+            if (Selection == null)
+            {
+                return;
+            }
+            if (!_selection.IsActive || _screen == null || _renderer.CellWidth <= 0)
+            {
+                Selection.Hide();
+                return;
+            }
+            Selection.Show(_selection.Normalized, _renderer.CellWidth, _renderer.CellHeight,
+                TerminalPadding, _screen.Rows, _screen.Cols);
+        }
+
+        private ISelectionGrid CurrentGrid()
+        {
+            if (_screen == null || _cells == null || _cells.Length == 0)
+            {
+                return null;
+            }
+            return new BufferSelectionGrid(_cells, _screen.Rows, _screen.Cols);
+        }
+
+        private bool TryHitCell(Point point, out int row, out int col)
+        {
+            row = 0;
+            col = 0;
+            double cellWidth = _renderer.CellWidth;
+            double cellHeight = _renderer.CellHeight;
+            if (cellWidth <= 0 || cellHeight <= 0 || _screen == null)
+            {
+                return false;
+            }
+            col = (int)Math.Floor((point.X - TerminalPadding) / cellWidth);
+            row = (int)Math.Floor((point.Y - TerminalPadding) / cellHeight);
+            if (col < 0 || row < 0 || col >= _screen.Cols || row >= _screen.Rows)
+            {
+                return false;
+            }
+            return true;
         }
 
         private void OnHardwareInput(object sender, TerminalInputEventArgs e)

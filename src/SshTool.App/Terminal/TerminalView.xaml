@@ -3,6 +3,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
+    xmlns:local="using:SshTool.App.Terminal"
+    xmlns:controls="using:SshTool.App.Controls"
     IsTabStop="False"
     AllowFocusOnInteraction="False"
     UseSystemFocusVisuals="False">
@@ -14,6 +16,9 @@
                               AllowFocusOnInteraction="False"
                               Draw="OnDraw"
                               CreateResources="OnCreateResources" />
+        <local:SelectionLayer x:Name="Selection"
+                              Visibility="Collapsed" />
+        <controls:TransientToast x:Name="CopiedToast" />
         <!-- T09：隐藏哨兵，承接 SIP / IME。IsHitTestVisible=False 让点击落到画布。 -->
         <TextBox x:Name="Sentinel"
                  Width="{StaticResource SentinelInputSize}"

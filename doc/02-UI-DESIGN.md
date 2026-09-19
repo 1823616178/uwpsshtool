@@ -65,6 +65,7 @@
 | `KeyBarHeight` | 40 | 键条 |
 | `KeyBarKeyMinWidth` | 44 | 键帽 |
 | `KeyBarLockedBorder` | `0,0,0,2` | 修饰键锁定态底边 2epx 横线 |
+| `SelectionOverlayOpacity` | `0.35` | 终端选区半透明叠加 |
 | `TerminalInfoBarHeight` | 32 | 终端顶部信息条 |
 | `TabStripHeight` | 36 | 宽屏标签栏 |
 | `SplitterThickness` | 6 | 分屏分隔条（命中区 16） |
