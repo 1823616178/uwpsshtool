@@ -39,14 +39,14 @@
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
-| M2 | 终端引擎、渲染与输入 | 15 | 11 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
+| M2 | 终端引擎、渲染与输入 | 15 | 12 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **47** | |
+| **合计** | | **111** | **48** | |
 
 ### 1.1 关键路径
 
@@ -500,13 +500,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱（蓝牙键盘或 Continuum）Ctrl+C、Alt+B、方向、F1–F12 正确
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **T12 触摸选择与复制** `M`
+- [x] **T12 触摸选择与复制** `M`
   - 依赖：T06
   - 参考：`01-DESIGN.md §7.6`；`02-UI-DESIGN.md §5.5`；鸿蒙端 `view/terminal/SelectionModel.ets`
   - 产出：`src/SshTool.Core/Terminal/SelectionModel.cs`、`src/SshTool.App/Terminal/SelectionLayer.xaml(.cs)`、`src/SshTool.App/Platform/ClipboardService.cs`、测试
   - 要点：绝对行坐标；选词（字母数字与 `-_./~` 视为词内）、选行；宽字符边界扩展；拖柄；浮动工具条（复制/粘贴/全选/分享）；复制文本走 `GetText`（软换行不插换行，行尾空白裁剪）；TransientToast + 触感。
   - 验收：
-    - [ ] SelectionModel 单测 ≥10 条（跨行、宽字符、反向拖动、回滚区）
+    - [x] SelectionModel 单测 ≥10 条（跨行、宽字符、反向拖动、回滚区）
     - [ ] 📱 长按选词、拖柄扩展、复制到系统剪贴板
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1296,6 +1296,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] T09 📱 英文、退格、回车、中文拼音「你好」均正确送达远端（MainPage DEBUG「N10 调试连接」，点终端区域弹键盘）
 - [ ] T10 📱 单手完成 Ctrl+C、Ctrl+Z、Esc、Tab 补全；锁定 Ctrl 连续发送多个控制字符
 - [ ] T11 📱（蓝牙键盘或 Continuum）Ctrl+C、Alt+B、方向、F1–F12 正确
+- [ ] T12 📱 长按选词、拖柄扩展、复制到系统剪贴板
 
 ---
 
@@ -1369,3 +1370,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | T09 | cabcf6b | **代码完成**。`SentinelDiff` 对两个 U+200B 做新增/删除差分（有新增不把哨兵缺失当远端退格）；`SoftKeyboardInput` 按 SP05 五条规则：焦点在哨兵只走 TextBox、非组合态 TextChanged 发新增、组合结束走完整差分、Enter 去重发 `\r`、非组合 Backspace 走 KeyDown。点击终端 `Focus(Programmatic)` 弹 SIP；`InputPane.Showing` 每次读 OccludedRect 并 `EnsuredFocusedElementInView`，与视图相交高度并入网格计算。TerminalView 暴露 `Input` 并写入 `ISshSession.Write`。Core 单测 +12（共 532）；`verify.ps1` 全绿。⏳ 英文/退格/回车/拼音「你好」真机送达（已登记真机待办）。 |
 | 2026-09-19 | T10 | 6536c80 | **代码完成**。`KeyBarLayout` 解析逗号布局（未知忽略、去重、空串回退默认，与设置键默认值对拍）；`KeyBar` 横向滚动、修饰键三态（强调色/锁定底+2epx 底边）、方向键 400/60 ms 连发、动作事件；右侧固定 hidekb。`Haptics` 10 ms，`VibrationDevice` + ApiInformation 守卫。调试连接页接入同一 `StickyModifiers`。Core 单测 +13（共 545）；`verify.ps1` 全绿。⏳ 单手 Ctrl+C/Z、Esc、Tab、锁定 Ctrl（已登记真机待办）。 |
 | 2026-09-19 | T11 | 84a081b | **代码完成**。`ShortcutMap` 默认 §5.16（Ctrl+Shift 复制/新标签等，不抢 Ctrl+C）；JSON 对象覆盖、未知键忽略、非法 JSON 回退默认、冲突检测先命中先赢。`HardwareKeyboardInput`：哨兵聚焦时不抢可打印/回车/退格；Alt 走 AcceleratorKey（不用 Character 事件的 VirtualKey）；快捷键先于 KeyMap。有物理键盘时点终端隐藏 SIP 并把焦点留在 TerminalView。Core 单测 +9（共 554）；`verify.ps1` 全绿。⏳ 蓝牙/Continuum Ctrl+C、Alt+B、方向、F1–F12（已登记真机待办）。 |
+| 2026-09-19 | T12 | 21a4d0e | **代码完成**。`SelectionModel` 选词（字母数字+`-_./~`）、选行、全选、宽字符边界、反向拖动、软换行不插换行、行尾空白裁剪；回滚区用绝对行。`SelectionLayer` 高亮/拖柄/工具条；`ClipboardService` 写系统剪贴板。复制轻震 + TransientToast「已复制」。Core 单测 +12（共 566）；`verify.ps1` 全绿。⏳ 长按选词/拖柄/剪贴板（已登记真机待办）。 |
