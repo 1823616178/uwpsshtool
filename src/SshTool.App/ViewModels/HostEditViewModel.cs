@@ -54,6 +54,8 @@ namespace SshTool.App.ViewModels
         private IReadOnlyList<Host> _allHosts = new Host[0];
         private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
         private string _title = "新建主机";
+        private AuthType _loadedAuth;
+        private string _loadedKeyId;
 
         public HostEditViewModel(AppServices services)
         {
@@ -73,12 +75,18 @@ namespace SshTool.App.ViewModels
             };
             EnvVars = new ObservableCollection<EnvVarItem>();
             Tunnels = new ObservableCollection<IdNameOption>();
+            Keys = new ObservableCollection<IdNameOption>();
+            Credentials = CredentialDraft.ForNew();
             SaveCommand = new AsyncCommand(SaveCoreAsync, onError: OnError);
             CancelCommand = new RelayCommand(() => Navigation.GoBack());
             AddEnvCommand = new RelayCommand(AddEnv);
             ClearFingerprintCommand = new RelayCommand(ClearFingerprint);
             AddTunnelCommand = new RelayCommand(() =>
                 Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs("添加隧道", "M7")));
+            ImportKeyCommand = new RelayCommand(() =>
+                Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs("导入密钥", "M7")));
+            GenerateKeyCommand = new RelayCommand(() =>
+                Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs("生成密钥", "M7")));
         }
 
         public ICommand SaveCommand { get; private set; }
@@ -86,6 +94,8 @@ namespace SshTool.App.ViewModels
         public ICommand AddEnvCommand { get; private set; }
         public ICommand ClearFingerprintCommand { get; private set; }
         public ICommand AddTunnelCommand { get; private set; }
+        public ICommand ImportKeyCommand { get; private set; }
+        public ICommand GenerateKeyCommand { get; private set; }
 
         public ObservableCollection<IdNameOption> Groups { get; private set; }
         public ObservableCollection<IdNameOption> Jumps { get; private set; }
@@ -93,6 +103,8 @@ namespace SshTool.App.ViewModels
         public ObservableCollection<IdNameOption> TermTypes { get; private set; }
         public ObservableCollection<EnvVarItem> EnvVars { get; private set; }
         public ObservableCollection<IdNameOption> Tunnels { get; private set; }
+        public ObservableCollection<IdNameOption> Keys { get; private set; }
+        public CredentialDraft Credentials { get; private set; }
 
         public string Title
         {
@@ -112,7 +124,21 @@ namespace SshTool.App.ViewModels
 
         public bool IsDirty
         {
-            get { return _state != null && _state.IsDirty; }
+            get
+            {
+                if (_state != null && _state.IsDirty)
+                {
+                    return true;
+                }
+                if (Credentials == null)
+                {
+                    return false;
+                }
+                return Credentials.PasswordState != CredentialFieldState.Unchanged
+                    || Credentials.PassphraseState != CredentialFieldState.Unchanged
+                    || Credentials.AuthType != _loadedAuth
+                    || !string.Equals(Credentials.KeyId ?? string.Empty, _loadedKeyId ?? string.Empty, StringComparison.Ordinal);
+            }
         }
 
         public string Name { get { return _state == null ? string.Empty : _state.Name; } set { SetField(() => _state.Name = value); } }
@@ -166,6 +192,7 @@ namespace SshTool.App.ViewModels
             }
 
             await LoadLookupsAsync().ConfigureAwait(true);
+            await LoadCredentialsAsync().ConfigureAwait(true);
             Revalidate();
             RaiseAll();
         }
@@ -199,6 +226,8 @@ namespace SshTool.App.ViewModels
                 LastSaveHadErrors = true;
                 return;
             }
+            _state.AuthType = Credentials.AuthType;
+            _state.KeyId = Credentials.KeyId;
             Host host = _state.ToHost();
             if (_state.Mode == HostEditMode.Edit)
             {
@@ -208,6 +237,8 @@ namespace SshTool.App.ViewModels
             {
                 await _services.Hosts.AddAsync(host, ChangeOrigin.User).ConfigureAwait(true);
             }
+            await PersistSecretsAsync(host.Id).ConfigureAwait(true);
+            Credentials.ClearPlaintext();
             _state.CaptureBaseline();
             Navigation.GoBack();
         }
@@ -271,7 +302,66 @@ namespace SshTool.App.ViewModels
                 }
             }
 
+            Keys.Clear();
+            Keys.Add(new IdNameOption(string.Empty, "（未选择）"));
+            IReadOnlyList<KeyEntry> keys = await _services.Keys.GetAllAsync().ConfigureAwait(true);
+            for (int i = 0; i < keys.Count; i++)
+            {
+                KeyEntry key = keys[i];
+                string tail = CredentialDraft.FingerprintTail(key.FingerprintSha256);
+                string label = (key.Name ?? "密钥") + " · " + (key.KeyType ?? "") + " · " + tail;
+                Keys.Add(new IdNameOption(key.Id, label));
+            }
+
             RefreshJumps();
+        }
+
+        private async Task LoadCredentialsAsync()
+        {
+            Credentials = CredentialDraft.ForNew();
+            Credentials.AuthType = _state.AuthType;
+            Credentials.KeyId = _state.KeyId;
+            if (!string.IsNullOrEmpty(_state.HostId) && _state.Mode == HostEditMode.Edit)
+            {
+                string savedPassword = await _services.Secrets.GetAsync(SecretKeys.HostPassword(_state.HostId)).ConfigureAwait(true);
+                string savedPass = await _services.Secrets.GetAsync(SecretKeys.HostPassphrase(_state.HostId)).ConfigureAwait(true);
+                Credentials.HasSavedPassword = !string.IsNullOrEmpty(savedPassword);
+                Credentials.HasSavedPassphrase = !string.IsNullOrEmpty(savedPass);
+                Credentials.RememberPassword = Credentials.HasSavedPassword;
+                Credentials.RememberPassphrase = Credentials.HasSavedPassphrase;
+            }
+            _loadedAuth = Credentials.AuthType;
+            _loadedKeyId = Credentials.KeyId;
+            RaisePropertyChanged("Credentials");
+            RaisePropertyChanged("PasswordPlaceholder");
+            RaisePropertyChanged("PassphrasePlaceholder");
+        }
+
+        public string PasswordPlaceholder
+        {
+            get { return Credentials != null && Credentials.HasSavedPassword ? "已保存" : string.Empty; }
+        }
+
+        public string PassphrasePlaceholder
+        {
+            get { return Credentials != null && Credentials.HasSavedPassphrase ? "已保存" : string.Empty; }
+        }
+
+        public async Task PersistSecretsAsync(string hostId)
+        {
+            IReadOnlyList<SecretMutation> mutations = Credentials.BuildMutations(hostId);
+            for (int i = 0; i < mutations.Count; i++)
+            {
+                SecretMutation m = mutations[i];
+                if (m.Value == null)
+                {
+                    await _services.Secrets.RemoveAsync(m.Key).ConfigureAwait(true);
+                }
+                else
+                {
+                    await _services.Secrets.SetAsync(m.Key, m.Value).ConfigureAwait(true);
+                }
+            }
         }
 
         private void RefreshJumps()

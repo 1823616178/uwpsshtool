@@ -3,6 +3,7 @@ using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
 using SshTool.Core.Hosts;
+using SshTool.Core.Models;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -36,6 +37,7 @@ namespace SshTool.App.Views
         private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
         private bool _abandonConfirmed;
         private bool _suppressCombo;
+        private bool _suppressAuth;
 
         public HostEditPage()
         {
@@ -98,6 +100,18 @@ namespace SshTool.App.Views
             TermTypeBox.ItemsSource = ViewModel.TermTypes;
             EnvList.ItemsSource = ViewModel.EnvVars;
             TunnelList.ItemsSource = ViewModel.Tunnels;
+            KeyBox.ItemsSource = ViewModel.Keys;
+            PasswordBox.PlaceholderText = ViewModel.PasswordPlaceholder;
+            PassphraseBox.PlaceholderText = ViewModel.PassphrasePlaceholder;
+            _suppressAuth = true;
+            AuthPasswordRadio.IsChecked = ViewModel.Credentials.AuthType == AuthType.Password;
+            AuthKeyRadio.IsChecked = ViewModel.Credentials.AuthType == AuthType.Key;
+            AuthAgentRadio.IsChecked = ViewModel.Credentials.AuthType == AuthType.Agent;
+            RememberPasswordSwitch.IsOn = ViewModel.Credentials.RememberPassword;
+            RememberPassphraseSwitch.IsOn = ViewModel.Credentials.RememberPassphrase;
+            SelectById(KeyBox, ViewModel.Credentials.KeyId);
+            ApplyAuthPanels(ViewModel.Credentials.AuthType);
+            _suppressAuth = false;
             SelectById(GroupBox, ViewModel.GroupId);
             SelectById(JumpBox, ViewModel.JumpHostId);
             SelectById(AppearanceBox, ViewModel.AppearanceId);
@@ -252,6 +266,105 @@ namespace SshTool.App.Views
         private void OnAddTunnel(object sender, RoutedEventArgs e)
         {
             ViewModel.AddTunnelCommand.Execute(null);
+        }
+
+        private async void OnAuthPasswordChecked(object sender, RoutedEventArgs e)
+        {
+            await SwitchAuthAsync(AuthType.Password);
+        }
+
+        private async void OnAuthKeyChecked(object sender, RoutedEventArgs e)
+        {
+            await SwitchAuthAsync(AuthType.Key);
+        }
+
+        private async void OnAuthAgentChecked(object sender, RoutedEventArgs e)
+        {
+            await SwitchAuthAsync(AuthType.Agent);
+        }
+
+        private async System.Threading.Tasks.Task SwitchAuthAsync(AuthType next)
+        {
+            if (_suppressAuth || ViewModel.Credentials == null)
+            {
+                return;
+            }
+            AuthSwitchPreview preview = ViewModel.Credentials.PreviewSwitch(next);
+            if (preview.NeedsConfirm)
+            {
+                ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
+                    "切换认证方式？", preview.Message, "切换", "取消");
+                if (!confirm.Confirmed)
+                {
+                    _suppressAuth = true;
+                    AuthPasswordRadio.IsChecked = ViewModel.Credentials.AuthType == AuthType.Password;
+                    AuthKeyRadio.IsChecked = ViewModel.Credentials.AuthType == AuthType.Key;
+                    AuthAgentRadio.IsChecked = ViewModel.Credentials.AuthType == AuthType.Agent;
+                    _suppressAuth = false;
+                    return;
+                }
+            }
+            ViewModel.Credentials.ApplySwitch(next);
+            ApplyAuthPanels(next);
+        }
+
+        private void ApplyAuthPanels(AuthType type)
+        {
+            PasswordPanel.Visibility = type == AuthType.Password ? Visibility.Visible : Visibility.Collapsed;
+            KeyPanel.Visibility = type == AuthType.Key ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void OnPasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.Credentials != null)
+            {
+                ViewModel.Credentials.SetPassword(PasswordBox.Password);
+            }
+        }
+
+        private void OnPassphraseChanged(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.Credentials != null)
+            {
+                ViewModel.Credentials.SetPassphrase(PassphraseBox.Password);
+            }
+        }
+
+        private void OnRememberPasswordToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressAuth || ViewModel.Credentials == null)
+            {
+                return;
+            }
+            ViewModel.Credentials.SetRememberPassword(RememberPasswordSwitch.IsOn);
+        }
+
+        private void OnRememberPassphraseToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppressAuth || ViewModel.Credentials == null)
+            {
+                return;
+            }
+            ViewModel.Credentials.SetRememberPassphrase(RememberPassphraseSwitch.IsOn);
+        }
+
+        private void OnKeyChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppressCombo || ViewModel.Credentials == null)
+            {
+                return;
+            }
+            ViewModel.Credentials.KeyId = SelectedId(KeyBox);
+        }
+
+        private void OnImportKey(object sender, RoutedEventArgs e)
+        {
+            ViewModel.ImportKeyCommand.Execute(null);
+        }
+
+        private void OnGenerateKey(object sender, RoutedEventArgs e)
+        {
+            ViewModel.GenerateKeyCommand.Execute(null);
         }
 
         private void ShowErrors()

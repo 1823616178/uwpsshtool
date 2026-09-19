@@ -58,9 +58,40 @@
                 </ScrollViewer>
             </PivotItem>
             <PivotItem Header="认证">
-                <controls:EmptyState Glyph="{StaticResource IconKey}"
-                                     Title="认证"
-                                     Description="将在 U03b 提供" />
+                <ScrollViewer>
+                    <StackPanel Padding="{StaticResource PagePadding}">
+                        <RadioButton x:Name="AuthPasswordRadio" GroupName="HostAuth" Content="密码"
+                                     Checked="OnAuthPasswordChecked" />
+                        <RadioButton x:Name="AuthKeyRadio" GroupName="HostAuth" Content="私钥"
+                                     Checked="OnAuthKeyChecked" />
+                        <RadioButton x:Name="AuthAgentRadio" GroupName="HostAuth" Content="应用内 Agent"
+                                     Checked="OnAuthAgentChecked" />
+
+                        <StackPanel x:Name="PasswordPanel" Margin="{StaticResource GapSmTop}">
+                            <PasswordBox x:Name="PasswordBox" Header="密码"
+                                         PasswordChanged="OnPasswordChanged" />
+                            <ToggleSwitch x:Name="RememberPasswordSwitch" Header="保存在本机"
+                                          Toggled="OnRememberPasswordToggled" />
+                            <TextBlock Text="开启同步密码后会加密上传"
+                                       Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                        </StackPanel>
+
+                        <StackPanel x:Name="KeyPanel" Margin="{StaticResource GapSmTop}" Visibility="Collapsed">
+                            <ComboBox x:Name="KeyBox" Header="私钥" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Name" SelectionChanged="OnKeyChanged" />
+                            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapXsTop}">
+                                <HyperlinkButton Content="导入" Click="OnImportKey" />
+                                <HyperlinkButton Content="生成" Click="OnGenerateKey"
+                                                 Margin="{StaticResource GapSmLeft}" />
+                            </StackPanel>
+                            <PasswordBox x:Name="PassphraseBox" Header="密码短语"
+                                         Margin="{StaticResource GapSmTop}"
+                                         PasswordChanged="OnPassphraseChanged" />
+                            <ToggleSwitch x:Name="RememberPassphraseSwitch" Header="保存短语"
+                                          Toggled="OnRememberPassphraseToggled" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
             </PivotItem>
             <PivotItem Header="终端">
                 <ScrollViewer>
