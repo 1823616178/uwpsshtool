@@ -57,11 +57,34 @@ namespace SshTool.Core.Tests.Fakes
         public event EventHandler<AuthPromptEventArgs> AuthPrompt;
         public event EventHandler ContentDirty;
 
-        public Task<SshErrorCode> ConnectAsync(SshConnectRequest request)
+        // 非空时 ConnectAsync 先抛 HostKeyCheck 并等待 Accept/Reject。
+        public HostKeyInfo HostKeyOnConnect;
+        public IReadOnlyList<string> KiPrompts;
+
+        public async Task<SshErrorCode> ConnectAsync(SshConnectRequest request)
         {
             Calls.Add("Connect");
             LastConnectRequest = request;
-            return Task.FromResult(ConnectResult);
+            if (HostKeyOnConnect != null && HostKeyCheck != null)
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                var args = new HostKeyCheckEventArgs(HostKeyOnConnect, accept => tcs.TrySetResult(accept));
+                HostKeyCheck.Invoke(this, args);
+                bool accepted = await tcs.Task.ConfigureAwait(false);
+                HostKeyDecision = accepted;
+                if (!accepted)
+                {
+                    FireStateChanged(SessionStateKind.Error, SshErrorCode.HostKeyMismatch);
+                    return SshErrorCode.HostKeyMismatch;
+                }
+            }
+            if (ConnectResult != SshErrorCode.None)
+            {
+                FireStateChanged(SessionStateKind.Error, ConnectResult);
+                return ConnectResult;
+            }
+            FireStateChanged(SessionStateKind.Authenticating);
+            return SshErrorCode.None;
         }
 
         public Task<SshErrorCode> AuthenticatePasswordAsync(string password)
@@ -79,10 +102,28 @@ namespace SshTool.Core.Tests.Fakes
             return Task.FromResult(PublicKeyResult);
         }
 
-        public Task<SshErrorCode> AuthenticateKeyboardInteractiveAsync()
+        public async Task<SshErrorCode> AuthenticateKeyboardInteractiveAsync()
         {
             Calls.Add("AuthKeyboardInteractive");
-            return Task.FromResult(KeyboardInteractiveResult);
+            if (KiPrompts != null && KiPrompts.Count > 0)
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                var echo = new bool[KiPrompts.Count];
+                var args = new AuthPromptEventArgs("", "", KiPrompts, echo,
+                    (answered, answers) =>
+                    {
+                        AuthAnswered = answered;
+                        AuthAnswers = answers;
+                        tcs.TrySetResult(answered);
+                    });
+                AuthPrompt?.Invoke(this, args);
+                bool ok = await tcs.Task.ConfigureAwait(false);
+                if (!ok)
+                {
+                    return SshErrorCode.AuthKeyboardInteractiveFailed;
+                }
+            }
+            return KeyboardInteractiveResult;
         }
 
         public Task<SshErrorCode> OpenShellAsync(int cols, int rows)
@@ -180,9 +221,19 @@ namespace SshTool.Core.Tests.Fakes
         public FakeSshSession Next;
         public readonly List<FakeSshSession> Created = new List<FakeSshSession>();
 
+        public readonly Queue<FakeSshSession> Queue = new Queue<FakeSshSession>();
+
         public ISshSession Create()
         {
-            FakeSshSession session = Next ?? new FakeSshSession();
+            FakeSshSession session;
+            if (Queue.Count > 0)
+            {
+                session = Queue.Dequeue();
+            }
+            else
+            {
+                session = Next ?? new FakeSshSession();
+            }
             Created.Add(session);
             return session;
         }

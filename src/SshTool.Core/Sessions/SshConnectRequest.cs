@@ -16,6 +16,6 @@ namespace SshTool.Core.Sessions
         public int Rows { get; set; } = 24;
         // shell 打开后逐个 setenv（被拒仅忽略，N06 语义）
         public IReadOnlyDictionary<string, string> Env { get; set; }
-        public string JumpSessionId { get; set; } // F05 跳板预留，N09b 未启用
+        public string JumpSessionId { get; set; } = string.Empty; // F05 跳板预留，N09b 未启用
     }
 }
