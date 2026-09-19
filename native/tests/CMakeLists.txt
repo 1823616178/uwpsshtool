@@ -157,7 +157,8 @@ target_link_libraries(snapshot_test PRIVATE ssh_term_host GTest::gtest_main)
 # S03：原生保险库密码学（Argon2 ref.c + OpenSSL；只追加，不动既有条目）。
 add_library(ssh_crypto_host STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/crypto/aad.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../core/crypto/vault.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/crypto/vault.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/crypto/keytool.cpp)
 target_include_directories(ssh_crypto_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core
     PRIVATE ${OPENSSL_DIR}/include)
 target_link_libraries(ssh_crypto_host PUBLIC native_dependencies_host)
@@ -174,6 +175,14 @@ target_link_libraries(vault_ops_test PRIVATE ssh_crypto_host GTest::gtest_main)
 # S04：桌面端互通向量（只追加，不动既有条目）。
 add_executable(desktop_vectors_test desktop_vectors_test.cpp)
 target_link_libraries(desktop_vectors_test PRIVATE ssh_crypto_host GTest::gtest_main)
+
+# K01：原生密钥工具（只追加，不动既有条目）。
+add_executable(keytool_test keytool_test.cpp)
+target_link_libraries(keytool_test PRIVATE ssh_crypto_host GTest::gtest_main)
+# 测试内用绝对路径定位 fixtures/keys（ctest 工作目录是 build/）。
+target_compile_definitions(keytool_test PRIVATE SSH_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+# 单测直连 OpenSSL（ed25519 PKCS#8 运行时构造）；include 不经 crypto 库透传。
+target_include_directories(keytool_test PRIVATE ${OPENSSL_DIR}/include)
 
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
@@ -195,3 +204,4 @@ gtest_discover_tests(aad_test)
 gtest_discover_tests(vault_test)
 gtest_discover_tests(vault_ops_test)
 gtest_discover_tests(desktop_vectors_test)
+gtest_discover_tests(keytool_test)
