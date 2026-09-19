@@ -113,6 +113,18 @@ namespace SshTool.Core.Terminal
             _focus = new CellPos();
         }
 
+        public void BeginCell(int row, int col, ISelectionGrid grid)
+        {
+            if (grid == null)
+            {
+                throw new ArgumentNullException(nameof(grid));
+            }
+            CellPos pos = SnapWideStart(grid, Clamp(grid, row, col));
+            _anchor = pos;
+            _focus = ExpandWideEnd(grid, pos);
+            _active = true;
+        }
+
         public void BeginWord(int row, int col, ISelectionGrid grid)
         {
             if (grid == null)

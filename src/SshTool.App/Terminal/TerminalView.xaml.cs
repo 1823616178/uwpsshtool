@@ -12,9 +12,11 @@ using SshTool.Core.Sessions;
 using SshTool.Core.Terminal;
 using Windows.Foundation;
 using Windows.UI;
+using Windows.UI.Core;
 using Windows.UI.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 
@@ -35,6 +37,8 @@ namespace SshTool.App.Terminal
         private readonly PointerInput _pointer = new PointerInput();
         private bool _draggingSelection;
         private int _pulledOffset = int.MinValue;
+        private bool _ignoreNextTap;
+        private CoreCursor _savedCursor;
         private ISshSession _session;
         private ITerminalScreen _screen;
         private byte[] _cells = new byte[0];
@@ -63,6 +67,8 @@ namespace SshTool.App.Terminal
             this.Holding += OnHolding;
             this.PointerMoved += OnPointerMoved;
             this.PointerReleased += OnPointerReleased;
+            this.PointerEntered += OnPointerEntered;
+            this.PointerExited += OnPointerExited;
             this.SizeChanged += OnSizeChanged;
             _renderer.MetricsInvalidated += OnMetricsInvalidated;
             _resizeTimer.Interval = TimeSpan.FromMilliseconds(100);
@@ -83,6 +89,11 @@ namespace SshTool.App.Terminal
             _pointer.Input += OnPointerBytes;
             _pointer.FontSizeChanging += OnFontSizeChanging;
             _pointer.FontSizeCommitted += OnFontSizeCommitted;
+            _pointer.SelectWord += OnMouseSelectWord;
+            _pointer.SelectLine += OnMouseSelectLine;
+            _pointer.SelectBegin += OnMouseSelectBegin;
+            _pointer.SelectExtend += OnMouseSelectExtend;
+            _pointer.ContextMenu += OnMouseContextMenu;
         }
 
         public event EventHandler<TerminalInputEventArgs> Input;
@@ -406,6 +417,15 @@ namespace SshTool.App.Terminal
 
         private void OnTapped(object sender, TappedRoutedEventArgs e)
         {
+            if (_ignoreNextTap)
+            {
+                _ignoreNextTap = false;
+                return;
+            }
+            if (_screen != null && _screen.MouseMode != 0)
+            {
+                return;
+            }
             if (_selection.IsActive)
             {
                 _selection.Cancel();
@@ -674,6 +694,7 @@ namespace SshTool.App.Terminal
             _pointer.ApplicationCursorKeys = _screen != null && _screen.AppCursorKeys;
             _pointer.CellHeight = _renderer.CellHeight;
             _pointer.CellWidth = _renderer.CellWidth;
+            _pointer.Padding = TerminalPadding;
             _pointer.SelectionActive = _selection.IsActive;
             _pointer.FontSize = _renderer.FontSize;
             _pointer.Cols = _screen != null ? _screen.Cols : 0;
@@ -715,6 +736,128 @@ namespace SshTool.App.Terminal
             if (handler != null)
             {
                 handler(this, EventArgs.Empty);
+            }
+        }
+
+        private void OnMouseSelectWord(object sender, CellHitEventArgs e)
+        {
+            ISelectionGrid grid = CurrentGrid();
+            if (grid == null || e == null)
+            {
+                return;
+            }
+            _ignoreNextTap = true;
+            _selection.BeginWord(e.Row, e.Col, grid);
+            _draggingSelection = true;
+            RefreshSelectionOverlay();
+        }
+
+        private void OnMouseSelectLine(object sender, CellHitEventArgs e)
+        {
+            ISelectionGrid grid = CurrentGrid();
+            if (grid == null || e == null)
+            {
+                return;
+            }
+            _ignoreNextTap = true;
+            _selection.BeginLine(e.Row, grid);
+            _draggingSelection = true;
+            RefreshSelectionOverlay();
+        }
+
+        private void OnMouseSelectBegin(object sender, CellHitEventArgs e)
+        {
+            ISelectionGrid grid = CurrentGrid();
+            if (grid == null || e == null)
+            {
+                return;
+            }
+            _ignoreNextTap = true;
+            _selection.BeginCell(e.Row, e.Col, grid);
+            _draggingSelection = true;
+            RefreshSelectionOverlay();
+        }
+
+        private void OnMouseSelectExtend(object sender, CellHitEventArgs e)
+        {
+            ISelectionGrid grid = CurrentGrid();
+            if (grid == null || e == null || !_selection.IsActive)
+            {
+                return;
+            }
+            _selection.Extend(e.Row, e.Col, grid);
+            RefreshSelectionOverlay();
+        }
+
+        private void OnMouseContextMenu(object sender, Point point)
+        {
+            _ignoreNextTap = true;
+            var flyout = new MenuFlyout();
+            flyout.Items.Add(MenuItem("复制", (s, a) => CopySelection()));
+            flyout.Items.Add(MenuItem("粘贴", (s, a) => PasteFromClipboard()));
+            flyout.Items.Add(MenuItem("全选", (s, a) =>
+            {
+                ISelectionGrid grid = CurrentGrid();
+                if (grid != null)
+                {
+                    _selection.SelectAll(grid);
+                    RefreshSelectionOverlay();
+                }
+            }));
+            flyout.Items.Add(MenuItem("清屏", (s, a) => SendInput(new byte[] { 0x1B, (byte)'[', (byte)'H', 0x1B, (byte)'[', (byte)'2', (byte)'J' })));
+            flyout.Items.Add(MenuItem("发送片段", (s, a) => { }));
+            try
+            {
+                flyout.ShowAt(this, point);
+            }
+            catch (Exception)
+            {
+                flyout.ShowAt(this);
+            }
+        }
+
+        private static MenuFlyoutItem MenuItem(string text, RoutedEventHandler handler)
+        {
+            var item = new MenuFlyoutItem { Text = text };
+            item.Click += handler;
+            return item;
+        }
+
+        private void OnPointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            try
+            {
+                Window window = Window.Current;
+                CoreWindow core = window != null ? window.CoreWindow : null;
+                if (core == null)
+                {
+                    return;
+                }
+                _savedCursor = core.PointerCursor;
+                core.PointerCursor = new CoreCursor(CoreCursorType.IBeam, 1);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void OnPointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            try
+            {
+                Window window = Window.Current;
+                CoreWindow core = window != null ? window.CoreWindow : null;
+                if (core == null)
+                {
+                    return;
+                }
+                if (_savedCursor != null)
+                {
+                    core.PointerCursor = _savedCursor;
+                }
+            }
+            catch (Exception)
+            {
             }
         }
 
