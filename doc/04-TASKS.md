@@ -42,11 +42,11 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 12 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 13 | 与桌面端同账号双向同步、冲突可解 |
-| M6 | 外观系统 | 5 | 4 | 主题、字体、配色可改可导入 |
-| M7 | 密钥、SFTP、转发、跳板 | 11 | 2 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
+| M5 | 云端同步 | 22 | 14 | 与桌面端同账号双向同步、冲突可解 |
+| M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
+| M7 | 密钥、SFTP、转发、跳板 | 11 | 3 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 1 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **83** | |
+| **合计** | | **111** | **86** | |
 
 ### 1.1 关键路径
 
@@ -919,14 +919,14 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] §10.1 Coordinator 7、14、15、16、17、18、21
   - 验证：`dotnet test`
 
-- [ ] **S13 协调器：轮换、历史、错误处理与重试** `M`
+- [x] **S13 协调器：轮换、历史、错误处理与重试** `M`
   - 依赖：S12b
   - 参考：`03-SYNC-PROTOCOL.md §7.2`（Rotate）、`§7.3`（Restore/Clear/MarkDirty）、`§7.4`
   - 产出：`SyncCoordinator` 剩余部分、测试
   - 要点：RotateVaultKey（敏感关闭 / 改同步密码）含失败回滚与 ambiguous 文案；RestoreRevision → SyncNow(use-remote)；ClearRevisions；ListRevisions/Devices 透传；HandleSyncError（终端鉴权、signed_out、offline/error、退避表与 Retry-After、`ITimerFactory`）；MarkDirty 防抖 3000 ms。
   - 验收：
-    - [ ] §10.1 Coordinator 8、10、11、12、13、19
-    - [ ] 退避时间序列断言 1/2/5/10/30/60/300 s，且 Retry-After 优先
+    - [x] §10.1 Coordinator 8、10、11、12、13、19
+    - [x] 退避时间序列断言 1/2/5/10/30/60/300 s，且 Retry-After 优先
   - 验证：`dotnet test`
 
 - [ ] **S14 同步触发器与应用接线** `S` 📱
@@ -1047,7 +1047,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 两种格式各 ≥3 个真实主题文件解析成功；非法 XML/JSON/缺键报错且不抛未处理异常
   - 验证：`dotnet test`
 
-- [ ] **A05 应用主题与强调色设置** `S`
+- [x] **A05 应用主题与强调色设置** `S`
   - 依赖：X03、U14
   - 参考：`02-UI-DESIGN.md §1、§5.15`
   - 产出：SettingsPage 通用 Pivot 补齐、ThemeService 运行时切换
@@ -1080,7 +1080,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 生成 ed25519 → 公钥加入服务器 `authorized_keys` → 用该密钥登录成功
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **K03 应用内 Agent** `S`
+- [x] **K03 应用内 Agent** `S`
   - 依赖：K02、D06
   - 参考：鸿蒙端 `cpp/ssh/agent.*`、`cpp/tests/agent_test.cpp`；`01-DESIGN.md §12.1`
   - 产出：`native/core/ssh/agent.{h,cpp}`、`native/tests/agent_test.cpp`、Bridge 暴露、SessionManager `authType=agent` 流程、设置项「Agent 密钥保留时间」
@@ -1424,3 +1424,6 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | S12b | a7e65ff | **完成**。冲突三分支（initial-import/remote-deletion/merge-conflict）+ SaveConflict 落盘（摘要不含值）+ ResolveConflict 双策略；重启恢复（相位重建 idle，冲突数据完整）。§10.1 Coordinator 7/14/15/16/17/18/21（12 条）。Core 1008；`verify.ps1 -Quick` 全绿。 |
 | 2026-09-19 | A04 | c063fd7 | **完成**。itermcolors（XDocument，DTD 忽略）+ Windows Terminal（单 scheme/数组，多选对话框）+ ThemeImportResult（Id 已分配可直接 Add）；6 真实主题全 20 色位断言 + 非法用例。Core +30（共 1008）。 |
 | 2026-09-19 | K02 | be93216 | **代码完成**。KeyImportService（256KiB/去重/短语/落库双写/生成复检）+ IKeyTool/NativeKeyTool + Keys/Detail 页（改名/复制分享/导出二次确认/引用/删除保护）+ Import/Generate 对话框；HostEdit 占位转真流程。Core +13（共 1008）；`verify.ps1` 全绿。⏳ 📱 密钥登录（已登记待办）。 |
+| 2026-09-19 | S13 | 3665eae | **完成**。RotateVaultKey（新 keyVersion 建料→偏好先行→重加密→POST vault/rotate→版本校验→落基线，失败回滚+ambiguous 文案）+ Restore/Clear/List 透传 + HandleSyncError（终端鉴权/auth_error、无会话/signed_out、offline 退避 1/2/5/10/30/60/300s Retry-After 优先经 ITimerFactory）+ MarkDirty 3000ms 防抖 + Dispose。§10.1 Coordinator 8/10/11/12/13/19（21 条）。Core 1044；`verify.ps1` 全绿。 |
+| 2026-09-19 | A05 | bc1d6f0 | **完成**。ThemeService 运行时补强（CurrentMode+后台线程封送+关强调色回退主题字典色+EffectiveThemeKey）+ StatusBarService.RefreshTheme 收拢 + 设置页说明/Toast；终端配色隔离（只走 Appearance）。手测清单：三档主题即时变色/强调色开关四组合/跟随系统同步/终端不受影响。`verify.ps1` 全绿。另修关强调色残留系统色真 bug。 |
+| 2026-09-19 | K03 | b5db43d | **完成**。native SshAgent（惰性滑动超时、清零、快照）+ session authenticateAgent + Bridge SshAgent（keyId 传递，私钥不出 native）+ SessionManager authType=agent（超时对齐/依次试钥/204-lock/无钥弹框/KI 回退）+ LockAgentKeys（挂起清除）+ 设置 Agent 保留滑杆。移植单元 11/11 + SessionManagerAgentTests 16。native 247；Core 1044；`verify.ps1` 全绿。 |
