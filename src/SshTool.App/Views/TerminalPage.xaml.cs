@@ -2,8 +2,8 @@ using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
 using SshTool.App.ViewModels;
-using SshTool.Core.Hosts;
 using SshTool.Core.Sessions;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -17,6 +17,30 @@ namespace SshTool.App.Views
         {
             ViewModel = new TerminalViewModel();
             this.InitializeComponent();
+            Overlay.Cancel += (s, e) => ViewModel.CloseSessionCommand.Execute(null);
+            Overlay.ReconnectNow += (s, e) =>
+            {
+                if (ViewModel.Session != null && AppServices.Current.Sessions != null)
+                {
+                    AppServices.Current.Sessions.ReconnectNow(ViewModel.Session.SessionId);
+                }
+            };
+            Overlay.StopReconnect += (s, e) => ViewModel.DisconnectCommand.Execute(null);
+            Overlay.Retry += (s, e) =>
+            {
+                if (ViewModel.Session != null && AppServices.Current.Sessions != null)
+                {
+                    AppServices.Current.Sessions.ReconnectNow(ViewModel.Session.SessionId);
+                }
+            };
+            Overlay.CloseSession += (s, e) => ViewModel.CloseSessionCommand.Execute(null);
+            Overlay.EditHost += (s, e) =>
+            {
+                if (ViewModel.Session != null)
+                {
+                    Frame.Navigate(typeof(HostEditPage), HostEditArgs.Edit(ViewModel.Session.HostId));
+                }
+            };
             Keys.Input += (s, e) =>
             {
                 if (Term.Session != null && e != null && e.Data != null)
@@ -60,7 +84,30 @@ namespace SshTool.App.Views
                 TitleText.Text = info.Title ?? string.Empty;
                 AddressText.Text = ViewModel.AddressLine;
                 Dot.State = ToDot(info.State);
+                ApplyOverlay(info);
             };
+            ApplyOverlay(info);
+        }
+
+        private void ApplyOverlay(SessionInfo info)
+        {
+            OverlayModel model = OverlayStateDeriver.Derive(info);
+            Overlay.Apply(model);
+            if (model.Kind == OverlayKind.None)
+            {
+                return;
+            }
+            string text = string.Empty;
+            if (model.Kind == OverlayKind.Reconnecting)
+            {
+                text = "连接已断开，" + model.ReconnectInSeconds.ToString() + " 秒后第 "
+                    + model.ReconnectAttempt.ToString() + " 次重连";
+            }
+            else if (!string.IsNullOrEmpty(model.MessageKey))
+            {
+                text = ResourceLoader.GetForCurrentView().GetString(model.MessageKey);
+            }
+            Overlay.SetMessage(string.IsNullOrEmpty(text) ? model.MessageKey : text);
         }
 
         private static StatusDotState ToDot(SessionUiState state)

@@ -33,5 +33,6 @@
 
         <term:TerminalView x:Name="Term" Grid.Row="1" />
         <controls:KeyBar x:Name="Keys" Grid.Row="2" />
+        <controls:SessionOverlay x:Name="Overlay" Grid.RowSpan="3" />
     </Grid>
 </Page>

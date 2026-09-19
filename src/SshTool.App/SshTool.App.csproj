@@ -236,6 +236,9 @@
     <Compile Include="Controls\HostRow.xaml.cs">
       <DependentUpon>HostRow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\SessionOverlay.xaml.cs">
+      <DependentUpon>SessionOverlay.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\GroupHeader.xaml.cs">
       <DependentUpon>GroupHeader.xaml</DependentUpon>
     </Compile>
@@ -324,6 +327,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\HostRow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\SessionOverlay.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

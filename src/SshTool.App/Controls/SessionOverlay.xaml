@@ -1,0 +1,34 @@
+<UserControl
+    x:Class="SshTool.App.Controls.SessionOverlay"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid x:Name="Root" Background="{ThemeResource OverlayScrimBrush}" Visibility="Collapsed">
+        <Border Background="{ThemeResource AppSurfaceBrush}"
+                Padding="{StaticResource PadMd}"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                MaxWidth="{StaticResource DialogMaxWidth}">
+            <StackPanel>
+                <ProgressRing x:Name="Ring" Width="{StaticResource TouchTargetMin}"
+                              Height="{StaticResource TouchTargetMin}" />
+                <TextBlock x:Name="MessageText" Style="{StaticResource BodyTextStyle}"
+                           TextWrapping="Wrap" TextAlignment="Center"
+                           Margin="{StaticResource GapSmTop}" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                            Margin="{StaticResource GapSmTop}">
+                    <Button x:Name="CancelButton" Content="取消" Click="OnCancel" Visibility="Collapsed" />
+                    <Button x:Name="ReconnectNowButton" Content="立即重连" Click="OnReconnectNow"
+                            Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
+                    <Button x:Name="StopButton" Content="停止" Click="OnStop"
+                            Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
+                    <Button x:Name="RetryButton" Content="重试" Click="OnRetry"
+                            Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
+                    <Button x:Name="EditButton" Content="编辑主机" Click="OnEdit"
+                            Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
+                    <Button x:Name="CloseButton" Content="关闭" Click="OnClose"
+                            Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

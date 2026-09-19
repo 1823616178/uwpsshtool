@@ -44,4 +44,8 @@
   <data name="TestConnect_Ok" xml:space="preserve"><value>Connection succeeded.</value></data>
   <data name="TestConnect_Timeout" xml:space="preserve"><value>Test connection timed out.</value></data>
   <data name="TestConnect_Cancelled" xml:space="preserve"><value>Test connection cancelled.</value></data>
+  <data name="Overlay_Connecting" xml:space="preserve"><value>Connecting…</value></data>
+  <data name="Overlay_Reconnecting" xml:space="preserve"><value>Disconnected, reconnecting</value></data>
+  <data name="Overlay_Closed" xml:space="preserve"><value>Session ended</value></data>
+  <data name="Overlay_PolicyDisconnected" xml:space="preserve"><value>The connection was dropped in the background.</value></data>
 </root>
