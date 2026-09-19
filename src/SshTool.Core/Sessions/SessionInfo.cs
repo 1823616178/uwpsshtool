@@ -92,6 +92,15 @@ namespace SshTool.Core.Sessions
         public int Cols { get; set; }
         public int Rows { get; set; }
         public bool UserClosed { get; set; }
+
+        // P01：被后台策略挂起（405 策略性断开，面孔与窗格绑定保留，回前台原地重连）。
+        // 与 UserClosed 一样是普通字段（State/ErrorMessage 的可观察通知照常走）。
+        public bool PolicySuspended { get; set; }
+
+        // P01：Suspending 时标记「挂起前在线」（Connected/Reconnecting），供
+        // Resuming 时区分「已不可用→重连 / 仍 Established→ProbeNow」（01-DESIGN §10）。
+        // 纯内存标记，不进 sessions.json（冷启动走 U09 的恢复卡片）。
+        public bool WasOnlineBeforeSuspend { get; set; }
         public string HostName { get; set; }
         public int Port { get; set; }
         public string Username { get; set; }

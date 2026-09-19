@@ -112,6 +112,7 @@
     <Compile Include="Platform\UwpHttpTransport.cs" />
     <Compile Include="Platform\LocalSettingsStore.cs" />
     <Compile Include="Platform\NativeSshSession.cs" />
+    <Compile Include="Platform\NativeVaultCrypto.cs" />
     <Compile Include="Platform\NativeTerminalScreen.cs" />
     <Compile Include="Terminal\FrameScheduler.cs" />
     <Compile Include="Terminal\FontMetrics.cs" />
@@ -132,6 +133,8 @@
     <Compile Include="Platform\UwpCredentialPrompter.cs" />
     <Compile Include="Platform\UwpDeviceDescriptorProvider.cs" />
     <Compile Include="Platform\StatusBarService.cs" />
+    <Compile Include="Platform\KeepAwakeService.cs" />
+    <Compile Include="Platform\LifecycleService.cs" />
     <Compile Include="Platform\DispatcherTimerFactory.cs" />
     <Compile Include="Infrastructure\ServiceRegistry.cs" />
     <Compile Include="Infrastructure\AppServices.cs" />
@@ -212,6 +215,9 @@
     </Compile>
     <Compile Include="Views\Debug\DebugConnectPage.xaml.cs">
       <DependentUpon>DebugConnectPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Debug\VaultSelfCheckPage.xaml.cs">
+      <DependentUpon>VaultSelfCheckPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\HostListViewModel.cs" />
@@ -323,6 +329,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Debug\DebugConnectPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Debug\VaultSelfCheckPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -495,6 +505,8 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
+    <!-- S05：保险库自检向量（node:crypto 按桌面端相同原语生成，提交后冻结） -->
+    <Content Include="Assets\sync-vectors\vault-selfcheck-vectors.json" />
     <!-- Q07：磁贴/图标/启动画面共 52 个 PNG，由 tools/assets/generate.ps1 从 icon.svg 生成，用通配符收 -->
     <Content Include="Assets\*.png" />
     <!-- SP04：终端等宽字体（SIL OFL 1.1；由 scripts/fetch-fonts.ps1 按固定 SHA256 抓取） -->

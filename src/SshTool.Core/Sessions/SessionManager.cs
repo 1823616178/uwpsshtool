@@ -216,6 +216,142 @@ namespace SshTool.Core.Sessions
             RaiseChanged();
         }
 
+        // P01：按后台策略挂起全部活会话（01-DESIGN.md §10；对齐鸿蒙端
+        // suspendAllForPolicy）：只断连接、不销毁面孔——SessionInfo 与窗格绑定原样
+        // 保留，状态置 Disconnected、错误码 405、原因写入 ErrorMessage，回前台由
+        // ResumeSuspended 原地重连（SessionId 不变、native 句柄换新）。
+        // 跳过：已关闭/用户已关/已挂起/已是终态（无 native 又无重连计时器，如用户取消
+        // 重连或认证失败——不覆写其终态文案）。幂等，返回被挂起的会话数。
+        // 日志只记计数（reason 是固定文案，安全）。
+        public int SuspendAllForPolicy(string reason)
+        {
+            int count = 0;
+            for (int i = 0; i < _sessions.Count; i++)
+            {
+                SessionInfo info = _sessions[i];
+                if (info.UserClosed || info.PolicySuspended
+                    || info.State == SessionUiState.Closed || !IsAliveForPolicy(info))
+                {
+                    continue;
+                }
+                CancelTimer(info.SessionId);
+                if (info.NativeSession != null)
+                {
+                    ISshSession native = info.NativeSession;
+                    info.NativeSession = null;
+                    native.Close();
+                    native.Dispose();
+                }
+                info.PolicySuspended = true;
+                info.State = SessionUiState.Disconnected;
+                info.ErrorCode = SshErrorCode.PolicyDisconnect;
+                info.ErrorMessage = reason ?? string.Empty;
+                info.ReconnectAttempt = 0;
+                info.ReconnectInSeconds = 0;
+                count++;
+            }
+            if (count > 0)
+            {
+                if (_logger != null)
+                {
+                    _logger.Log(LogLevel.Info, "Session", "policy suspend " + count.ToString());
+                }
+                RaiseChanged();
+            }
+            return count;
+        }
+
+        // P01：恢复被策略挂起的会话（回前台/亮屏）：逐条重新拨号。
+        // 策略性断开不是链路失败，重连计数从零起算，不消耗重试预算。
+        // 幂等，返回被恢复的会话数。
+        public int ResumeSuspended()
+        {
+            int count = 0;
+            for (int i = 0; i < _sessions.Count; i++)
+            {
+                SessionInfo info = _sessions[i];
+                if (!info.PolicySuspended || info.UserClosed
+                    || info.State == SessionUiState.Closed)
+                {
+                    continue;
+                }
+                info.PolicySuspended = false;
+                info.ReconnectAttempt = 0;
+                info.ReconnectInSeconds = 0;
+                info.ErrorCode = SshErrorCode.None;
+                info.ErrorMessage = string.Empty;
+                count++;
+                ReconnectNow(info.SessionId);
+            }
+            if (count > 0 && _logger != null)
+            {
+                _logger.Log(LogLevel.Info, "Session", "policy resume " + count.ToString());
+            }
+            return count;
+        }
+
+        // P01：对仍在线（Connected 且 native 仍在）的会话做一次主动探测
+        //（回前台收敛、切网收敛共用；P02 的 NetworkMonitor 复用本方法）。
+        // 返回被探测的会话数。
+        public int ProbeAll()
+        {
+            int count = 0;
+            for (int i = 0; i < _sessions.Count; i++)
+            {
+                SessionInfo info = _sessions[i];
+                if (info.PolicySuspended || info.UserClosed
+                    || info.State != SessionUiState.Connected || info.NativeSession == null)
+                {
+                    continue;
+                }
+                info.NativeSession.ProbeNow();
+                count++;
+            }
+            if (count > 0 && _logger != null)
+            {
+                _logger.Log(LogLevel.Info, "Session", "probe " + count.ToString());
+            }
+            return count;
+        }
+
+        // P01：Suspending 时标记「挂起前在线」的会话（01-DESIGN.md §10）。
+        public void MarkOnlineBeforeSuspend()
+        {
+            for (int i = 0; i < _sessions.Count; i++)
+            {
+                SessionInfo info = _sessions[i];
+                info.WasOnlineBeforeSuspend = !info.UserClosed && !info.PolicySuspended
+                    && info.State != SessionUiState.Closed
+                    && (info.State == SessionUiState.Connected
+                        || info.State == SessionUiState.Reconnecting);
+            }
+        }
+
+        // P01：Resuming/回前台处理完成后清除标记。
+        public void ClearSuspendMarks()
+        {
+            for (int i = 0; i < _sessions.Count; i++)
+            {
+                _sessions[i].WasOnlineBeforeSuspend = false;
+            }
+        }
+
+        private bool IsAliveForPolicy(SessionInfo info)
+        {
+            // 终态（用户取消重连 / 不可重试的失败 / 重试耗尽）且无待发计时器：
+            // 尊重其终态文案，不覆写为 405。
+            if ((info.State == SessionUiState.Disconnected || info.State == SessionUiState.Error)
+                && !_reconnectTimers.ContainsKey(info.SessionId))
+            {
+                return false;
+            }
+            if (info.NativeSession == null && !_reconnectTimers.ContainsKey(info.SessionId))
+            {
+                return false;
+            }
+            return true;
+        }
+
         public HostListStatus GetStatus(string hostId)
         {
             HostListStatus best = HostListStatus.None;

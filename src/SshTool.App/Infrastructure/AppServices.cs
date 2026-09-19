@@ -45,6 +45,8 @@ namespace SshTool.App.Infrastructure
         public ISecretStore Secrets { get; private set; }
         public ConfigService Config { get; private set; }
         public SessionManager Sessions { get; private set; }
+        public KeepAwakeService KeepAwake { get; private set; }
+        public LifecycleService Lifecycle { get; private set; }
         public List<string> LoadWarnings { get; private set; }
 
         public static AppServices Initialize()
@@ -102,6 +104,15 @@ namespace SshTool.App.Infrastructure
                     new UwpHostKeyPrompter(), new UwpCredentialPrompter(),
                     new DispatcherTimerFactory(), new DispatcherUiDispatcher(), Logger);
                 ServiceRegistry.Register(Sessions);
+            });
+            // P01：屏幕常亮与生命周期服务（依赖 Sessions；Start 由 App.OnLaunched
+            // 在启动完成后调用，以接入 Application 级前后台事件）。
+            Time("Lifecycle", () =>
+            {
+                KeepAwake = new KeepAwakeService(Settings, Sessions, Logger);
+                ServiceRegistry.Register(KeepAwake);
+                Lifecycle = new LifecycleService(Sessions, Settings, KeepAwake, Logger);
+                ServiceRegistry.Register(Lifecycle);
             });
             Logger.Log(LogLevel.Info, "App",
                 "启动完成 " + total.ElapsedMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ms");

@@ -44,6 +44,12 @@ namespace SshTool.App
                 try
                 {
                     await services.StartAsync();
+                    // P01：服务就绪后再接生命周期事件（Start 内部订阅
+                    // EnteredBackground/LeavingBackground/Suspending/Resuming）。
+                    if (services.Lifecycle != null)
+                    {
+                        services.Lifecycle.Start();
+                    }
                 }
                 catch (Exception ex)
                 {

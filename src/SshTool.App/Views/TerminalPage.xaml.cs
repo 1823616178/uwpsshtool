@@ -69,6 +69,12 @@ namespace SshTool.App.Views
         {
             base.OnNavigatedTo(e);
             StatusBarService.Hide();
+            // P01：终端页可见性是屏幕常亮判定的输入之一。
+            Platform.KeepAwakeService keepAwake;
+            if (ServiceRegistry.TryGet(out keepAwake))
+            {
+                keepAwake.SetTerminalVisible(true);
+            }
             await ViewModel.LoadAsync(e.Parameter as TerminalArgs);
             BindSession();
             ViewModel.AttachNative(native => Term.Session = native);
@@ -77,6 +83,12 @@ namespace SshTool.App.Views
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             StatusBarService.ShowThemed();
+            // P01：离开终端页即释放常亮（DisplayRequest 成对，见 KeepAwakeService）。
+            Platform.KeepAwakeService keepAwake;
+            if (ServiceRegistry.TryGet(out keepAwake))
+            {
+                keepAwake.SetTerminalVisible(false);
+            }
             Term.Session = null;
             base.OnNavigatedFrom(e);
         }
