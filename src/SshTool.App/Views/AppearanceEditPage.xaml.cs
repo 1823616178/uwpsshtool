@@ -1,0 +1,509 @@
+using System;
+using System.Globalization;
+using SshTool.App.Controls;
+using SshTool.App.Dialogs;
+using SshTool.App.Infrastructure;
+using SshTool.App.Terminal;
+using SshTool.App.ViewModels;
+using SshTool.Core.Appearance;
+using SshTool.Core.Models;
+using SshTool.Core.Terminal;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Controls.Primitives;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Navigation;
+
+namespace SshTool.App.Views
+{
+    public sealed class AppearanceEditArgs
+    {
+        public string AppearanceId { get; private set; }
+
+        public static AppearanceEditArgs New()
+        {
+            return new AppearanceEditArgs();
+        }
+
+        public static AppearanceEditArgs Edit(string appearanceId)
+        {
+            return new AppearanceEditArgs { AppearanceId = appearanceId };
+        }
+    }
+
+    // A03：外观编辑页（02-UI-DESIGN.md §5.12）。草稿未保存即丢弃（= 还原）；
+    // 每次改动同步重建预览（36×8 格，远 < 100 ms）。
+    public sealed partial class AppearanceEditPage : Page, IBackHandler
+    {
+        private readonly StaticTerminalScreen _screen = new StaticTerminalScreen();
+        private bool _abandonConfirmed;
+        private bool _suppress;
+
+        public AppearanceEditPage()
+        {
+            ViewModel = new AppearanceEditViewModel(AppServices.Current);
+            this.InitializeComponent();
+            FontSizeSlider.Minimum = AppearanceEditViewModel.MinFontSize;
+            FontSizeSlider.Maximum = AppearanceEditViewModel.MaxFontSize;
+            FontSizeSlider.StepFrequency = 1;
+            LineHeightSlider.Minimum = AppearanceEditViewModel.MinLineHeight;
+            LineHeightSlider.Maximum = AppearanceEditViewModel.MaxLineHeight;
+            LineHeightSlider.StepFrequency = 0.05;
+            PaddingSlider.Minimum = AppearanceEditViewModel.MinPadding;
+            PaddingSlider.Maximum = AppearanceEditViewModel.MaxPadding;
+            PaddingSlider.StepFrequency = 1;
+            Preview.Screen = _screen;
+            Preview.Renderer.Focused = true;
+            FgPicker.ColorChanged += (s, e) => SetDraftColor("foreground", FgPicker.Color);
+            BgPicker.ColorChanged += (s, e) => SetDraftColor("background", BgPicker.Color);
+            CursorPicker.ColorChanged += (s, e) => SetDraftColor("cursor", CursorPicker.Color);
+            SelectionPicker.ColorChanged += (s, e) => SetDraftColor("selection", SelectionPicker.Color);
+        }
+
+        public AppearanceEditViewModel ViewModel { get; private set; }
+
+        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RegisterBackHandler(this);
+            }
+            var args = e.Parameter as AppearanceEditArgs;
+            await ViewModel.LoadAsync(args == null ? null : args.AppearanceId);
+            BindLoaded();
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.UnregisterBackHandler(this);
+            }
+            base.OnNavigatedFrom(e);
+        }
+
+        public bool HandleBack()
+        {
+            if (_abandonConfirmed || !ViewModel.IsDirty)
+            {
+                return false;
+            }
+            var ignore = ConfirmAbandonAsync();
+            return true;
+        }
+
+        private async System.Threading.Tasks.Task ConfirmAbandonAsync()
+        {
+            ConfirmDialogResult result = await ConfirmDialog.ShowAsync(
+                "放弃修改？", "未保存的更改将丢失，预览会还原。", "放弃", "继续编辑");
+            if (result.Confirmed)
+            {
+                _abandonConfirmed = true;
+                NavigationService nav;
+                if (ServiceRegistry.TryGet(out nav))
+                {
+                    nav.GoBack();
+                }
+            }
+        }
+
+        private void BindLoaded()
+        {
+            AppearanceProfile draft = ViewModel.Draft;
+            if (draft == null)
+            {
+                return;
+            }
+            _suppress = true;
+            TitleText.Text = ViewModel.Title;
+            NameBox.Text = draft.Name ?? string.Empty;
+            FontSizeSlider.Value = draft.FontSize;
+            LineHeightSlider.Value = draft.LineHeight;
+            PaddingSlider.Value = draft.Padding;
+            BoldWeightSwitch.IsOn = draft.FontWeightBold;
+            BoldBrightSwitch.IsOn = draft.BoldAsBright;
+            CursorBlinkSwitch.IsOn = draft.CursorBlink;
+            UpdateLabels(draft);
+            SetColorButton(FgButton, draft.Foreground);
+            SetColorButton(BgButton, draft.Background);
+            SetColorButton(CursorButton, draft.Cursor);
+            SetColorButton(SelectionButton, draft.Selection);
+            SelectCursorStyle(draft.CursorStyle);
+            RebuildPaletteButtons(draft);
+            _suppress = false;
+            ShowErrors();
+            RefreshPreview();
+        }
+
+        private void UpdateLabels(AppearanceProfile draft)
+        {
+            FontSizeLabel.Text = "字号 " + draft.FontSize.ToString(CultureInfo.InvariantCulture);
+            LineHeightLabel.Text = "行高 " + draft.LineHeight.ToString("0.0", CultureInfo.InvariantCulture);
+            PaddingLabel.Text = "内边距 " + draft.Padding.ToString(CultureInfo.InvariantCulture);
+        }
+
+        private void RefreshPreview()
+        {
+            AppearanceProfile draft = ViewModel.Draft;
+            if (draft == null)
+            {
+                return;
+            }
+            try
+            {
+                SampleScreen sample = SampleScreenBuilder.Build(draft);
+                _screen.SetScreen(sample.Cells, sample.Cols, sample.Rows, sample.CursorRow, sample.CursorCol);
+                Preview.ApplyAppearance(draft);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private void SetColorButton(Button button, string hex)
+        {
+            if (button == null)
+            {
+                return;
+            }
+            button.Background = AppearanceBrushes.FromHex(hex);
+            button.Content = hex ?? string.Empty;
+        }
+
+        private void RebuildPaletteButtons(AppearanceProfile draft)
+        {
+            PaletteGrid.Children.Clear();
+            if (draft.Palette == null)
+            {
+                return;
+            }
+            for (int i = 0; i < draft.Palette.Count && i < 16; i++)
+            {
+                int index = i;
+                var button = new Button
+                {
+                    Background = AppearanceBrushes.FromHex(draft.Palette[index]),
+                    Content = index.ToString(CultureInfo.InvariantCulture),
+                    Width = (double)Application.Current.Resources["SpaceXl"],
+                    Height = (double)Application.Current.Resources["SpaceXl"],
+                    Margin = (Thickness)Application.Current.Resources["BorderThin"],
+                    Padding = (Thickness)Application.Current.Resources["PadNone"],
+                    BorderThickness = (Thickness)Application.Current.Resources["BorderNone"],
+                    Tag = index
+                };
+                var picker = new ColorSwatchPicker
+                {
+                    Color = draft.Palette[index],
+                    OriginalColor = draft.Palette[index]
+                };
+                picker.ColorChanged += (s, e) =>
+                {
+                    if (ViewModel.Draft == null || ViewModel.Draft.Palette == null
+                        || index >= ViewModel.Draft.Palette.Count)
+                    {
+                        return;
+                    }
+                    ViewModel.Draft.Palette[index] = picker.Color;
+                    button.Background = AppearanceBrushes.FromHex(picker.Color);
+                    OnDraftChanged();
+                };
+                button.Flyout = new Flyout { Content = picker };
+                PaletteGrid.Children.Add(button);
+            }
+        }
+
+        private void OnDraftChanged()
+        {
+            if (ViewModel.Draft != null)
+            {
+                UpdateLabels(ViewModel.Draft);
+            }
+            ViewModel.Touch();
+            ViewModel.Validate();
+            ShowErrors();
+            RefreshPreview();
+        }
+
+        private void SetDraftColor(string field, string hex)
+        {
+            if (_suppress || ViewModel.Draft == null || string.IsNullOrEmpty(hex))
+            {
+                return;
+            }
+            if (field == "foreground")
+            {
+                ViewModel.Draft.Foreground = hex;
+                SetColorButton(FgButton, hex);
+            }
+            else if (field == "background")
+            {
+                ViewModel.Draft.Background = hex;
+                SetColorButton(BgButton, hex);
+            }
+            else if (field == "cursor")
+            {
+                ViewModel.Draft.Cursor = hex;
+                SetColorButton(CursorButton, hex);
+            }
+            else if (field == "selection")
+            {
+                ViewModel.Draft.Selection = hex;
+                SetColorButton(SelectionButton, hex);
+            }
+            else
+            {
+                return;
+            }
+            OnDraftChanged();
+        }
+
+        private void SelectCursorStyle(CursorStyle style)
+        {
+            string want = style == CursorStyle.Bar ? "bar" : (style == CursorStyle.Underline ? "underline" : "block");
+            for (int i = 0; i < CursorBox.Items.Count; i++)
+            {
+                var item = CursorBox.Items[i] as ComboBoxItem;
+                if (item != null && string.Equals((string)item.Tag, want, StringComparison.Ordinal))
+                {
+                    CursorBox.SelectedIndex = i;
+                    return;
+                }
+            }
+            CursorBox.SelectedIndex = 0;
+        }
+
+        private async void OnSaveClick(object sender, RoutedEventArgs e)
+        {
+            bool ok = await ViewModel.SaveAsync();
+            if (ok)
+            {
+                NavigationService nav;
+                if (ServiceRegistry.TryGet(out nav))
+                {
+                    nav.GoBack();
+                }
+                return;
+            }
+            ShowErrors();
+            string saveError;
+            if (ViewModel.Errors.TryGetValue("save", out saveError))
+            {
+                await ConfirmDialog.ShowAsync("保存失败", saveError, "确定", "关闭");
+            }
+        }
+
+        private void OnResetClick(object sender, RoutedEventArgs e)
+        {
+            ViewModel.ResetToBaseline();
+            BindLoaded();
+        }
+
+        private async void OnDuplicateClick(object sender, RoutedEventArgs e)
+        {
+            string id = await ViewModel.DuplicateCurrentAsync();
+            if (string.IsNullOrEmpty(id))
+            {
+                ShowErrors();
+                return;
+            }
+            await ViewModel.LoadAsync(id);
+            BindLoaded();
+        }
+
+        private void OnNameChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_suppress || ViewModel.Draft == null)
+            {
+                return;
+            }
+            ViewModel.Draft.Name = NameBox.Text;
+            OnDraftChanged();
+        }
+
+        private void OnFontSizeChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (_suppress || ViewModel.Draft == null)
+            {
+                return;
+            }
+            ViewModel.Draft.FontSize = (int)Math.Round(e.NewValue);
+            OnDraftChanged();
+        }
+
+        private void OnLineHeightChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (_suppress || ViewModel.Draft == null)
+            {
+                return;
+            }
+            ViewModel.Draft.LineHeight = Math.Round(e.NewValue, 2);
+            OnDraftChanged();
+        }
+
+        private void OnPaddingChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (_suppress || ViewModel.Draft == null)
+            {
+                return;
+            }
+            ViewModel.Draft.Padding = (int)Math.Round(e.NewValue);
+            OnDraftChanged();
+        }
+
+        private void OnBoldWeightToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppress || ViewModel.Draft == null)
+            {
+                return;
+            }
+            ViewModel.Draft.FontWeightBold = BoldWeightSwitch.IsOn;
+            OnDraftChanged();
+        }
+
+        private void OnBoldBrightToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppress || ViewModel.Draft == null)
+            {
+                return;
+            }
+            ViewModel.Draft.BoldAsBright = BoldBrightSwitch.IsOn;
+            OnDraftChanged();
+        }
+
+        private void OnCursorBlinkToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppress || ViewModel.Draft == null)
+            {
+                return;
+            }
+            ViewModel.Draft.CursorBlink = CursorBlinkSwitch.IsOn;
+            OnDraftChanged();
+        }
+
+        private void OnCursorStyleChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppress || ViewModel.Draft == null)
+            {
+                return;
+            }
+            var item = CursorBox.SelectedItem as ComboBoxItem;
+            string tag = item == null ? null : (string)item.Tag;
+            if (tag == "bar")
+            {
+                ViewModel.Draft.CursorStyle = CursorStyle.Bar;
+            }
+            else if (tag == "underline")
+            {
+                ViewModel.Draft.CursorStyle = CursorStyle.Underline;
+            }
+            else
+            {
+                ViewModel.Draft.CursorStyle = CursorStyle.Block;
+            }
+            OnDraftChanged();
+        }
+
+        private void OnFgFlyoutOpening(object sender, object e)
+        {
+            SyncPicker(FgPicker, "foreground");
+        }
+
+        private void OnBgFlyoutOpening(object sender, object e)
+        {
+            SyncPicker(BgPicker, "background");
+        }
+
+        private void OnCursorFlyoutOpening(object sender, object e)
+        {
+            SyncPicker(CursorPicker, "cursor");
+        }
+
+        private void OnSelectionFlyoutOpening(object sender, object e)
+        {
+            SyncPicker(SelectionPicker, "selection");
+        }
+
+        private void SyncPicker(ColorSwatchPicker picker, string field)
+        {
+            if (picker == null || ViewModel.Draft == null)
+            {
+                return;
+            }
+            string hex = null;
+            if (field == "foreground")
+            {
+                hex = ViewModel.Draft.Foreground;
+            }
+            else if (field == "background")
+            {
+                hex = ViewModel.Draft.Background;
+            }
+            else if (field == "cursor")
+            {
+                hex = ViewModel.Draft.Cursor;
+            }
+            else if (field == "selection")
+            {
+                hex = ViewModel.Draft.Selection;
+            }
+            if (!string.IsNullOrEmpty(hex))
+            {
+                picker.OriginalColor = hex;
+                picker.Color = hex;
+            }
+        }
+
+        private void ShowErrors()
+        {
+            ClearError(NameError);
+            ClearError(FontError);
+            ClearError(ColorError);
+            ClearError(PaletteError);
+            SetError(NameError, "name");
+            SetError(FontError, "fontSize");
+            SetError(FontError, "lineHeight");
+            SetError(FontError, "padding");
+            SetError(ColorError, "foreground");
+            SetError(ColorError, "background");
+            SetError(ColorError, "cursor");
+            SetError(ColorError, "selection");
+            SetError(PaletteError, "palette");
+        }
+
+        private static void ClearError(TextBlock block)
+        {
+            if (block != null)
+            {
+                block.Text = string.Empty;
+                block.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void SetError(TextBlock block, string field)
+        {
+            if (block == null || ViewModel.Errors == null)
+            {
+                return;
+            }
+            // 同一栏位多条错误时保留第一条（SetError 按字段逐个调用，后调不覆盖已有文案）。
+            if (block.Visibility == Visibility.Visible && block.Text.Length > 0)
+            {
+                return;
+            }
+            string message;
+            if (ViewModel.Errors.TryGetValue(field, out message))
+            {
+                block.Text = message;
+                block.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                block.Text = string.Empty;
+                block.Visibility = Visibility.Collapsed;
+            }
+        }
+    }
+}

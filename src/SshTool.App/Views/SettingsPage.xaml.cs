@@ -28,6 +28,7 @@ namespace SshTool.App.Views
             base.OnNavigatedTo(e);
             ViewModel.RefreshDiagnostics();
             BindAll();
+            RefreshAppearanceName();
         }
 
         private void BindAll()
@@ -122,7 +123,31 @@ namespace SshTool.App.Views
 
         private void OnAppearanceClick(object sender, RoutedEventArgs e)
         {
-            Frame.Navigate(typeof(PlaceholderPage), new PlaceholderArgs("外观", "M6"));
+            Frame.Navigate(typeof(AppearanceListPage));
+        }
+
+        // A03：默认外观显示名称（id 兜底）；从外观列表返回时刷新。
+        private async void RefreshAppearanceName()
+        {
+            try
+            {
+                string id = ViewModel.DefaultAppearanceId;
+                string name = id;
+                System.Collections.Generic.IReadOnlyList<SshTool.Core.Models.AppearanceProfile> all =
+                    await AppServices.Current.AppearanceService.ListAsync().ConfigureAwait(true);
+                for (int i = 0; i < all.Count; i++)
+                {
+                    if (string.Equals(all[i].Id, id, System.StringComparison.Ordinal))
+                    {
+                        name = all[i].Name;
+                        break;
+                    }
+                }
+                AppearanceValue.Text = name;
+            }
+            catch (Exception)
+            {
+            }
         }
 
         private void OnFontChanged(object sender, RangeBaseValueChangedEventArgs e)

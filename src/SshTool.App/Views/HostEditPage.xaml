@@ -104,7 +104,8 @@
                 <ScrollViewer>
                     <StackPanel Padding="{StaticResource PagePadding}">
                         <ComboBox x:Name="AppearanceBox" Header="外观" HorizontalAlignment="Stretch"
-                                  DisplayMemberPath="Name" SelectionChanged="OnAppearanceChanged" />
+                                   DisplayMemberPath="Name" SelectionChanged="OnAppearanceChanged" />
+                        <HyperlinkButton Content="管理外观" Click="OnManageAppearances" />
                         <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
                         <ComboBox x:Name="TermTypeBox" Header="终端类型" HorizontalAlignment="Stretch"
                                   DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"

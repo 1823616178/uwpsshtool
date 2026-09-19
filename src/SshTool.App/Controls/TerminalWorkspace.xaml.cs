@@ -4,6 +4,7 @@ using System.ComponentModel;
 using SshTool.App.Infrastructure;
 using SshTool.App.Terminal;
 using SshTool.App.ViewModels;
+using SshTool.Core.Appearance;
 using SshTool.Core.Models;
 using SshTool.Core.Sessions;
 using SshTool.Core.Terminal;
@@ -36,6 +37,7 @@ namespace SshTool.App.Controls
         private uint _dragPointerId;
         private Point _dragStart;
         private double _dragStartRatio;
+        private bool _appearanceSubscribed;
 
         public TerminalWorkspace()
         {
@@ -63,6 +65,7 @@ namespace SshTool.App.Controls
                 _viewModel.HostPickerRequested += OnHostPickerRequested;
                 Empty.PrimaryCommand = _viewModel.NewTabCommand;
             }
+            SubscribeAppearance();
             Rebuild();
         }
 
@@ -73,6 +76,7 @@ namespace SshTool.App.Controls
                 _viewModel.WorkspaceChanged -= OnWorkspaceChanged;
                 _viewModel.HostPickerRequested -= OnHostPickerRequested;
             }
+            UnsubscribeAppearance();
             // SessionInfo 是 SessionManager 长周期持有：回导航重建本控件时，
             // 旧订阅不摘会导致旧控件/旧视图泄漏。
             foreach (KeyValuePair<string, SessionInfo> pair in _bound)
@@ -266,6 +270,8 @@ namespace SshTool.App.Controls
             catch (Exception)
             {
             }
+            // A03：叶子绑定会话时按主机外观初始化（之后 Changed 事件里刷新）。
+            var ignoreAppearance = AppearanceApplier.ApplyForHostAsync(view, info.HostId);
         }
 
         private void OnSessionPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -295,6 +301,74 @@ namespace SshTool.App.Controls
                     }
                 }
             });
+        }
+
+        // A03：外观变化后刷新所有可见叶子的调色板与字体度量（不重连）。
+        private void SubscribeAppearance()
+        {
+            if (_appearanceSubscribed)
+            {
+                return;
+            }
+            if (AppServices.Current == null || AppServices.Current.AppearanceService == null)
+            {
+                return;
+            }
+            AppServices.Current.AppearanceService.Changed += OnAppearanceChanged;
+            _appearanceSubscribed = true;
+        }
+
+        private void UnsubscribeAppearance()
+        {
+            if (!_appearanceSubscribed)
+            {
+                return;
+            }
+            _appearanceSubscribed = false;
+            if (AppServices.Current != null && AppServices.Current.AppearanceService != null)
+            {
+                AppServices.Current.AppearanceService.Changed -= OnAppearanceChanged;
+            }
+        }
+
+        private void OnAppearanceChanged(object sender, AppearanceChangedEventArgs e)
+        {
+            if (!DispatcherHelper.HasThreadAccess)
+            {
+                DispatcherHelper.Post(() => OnAppearanceChanged(sender, e));
+                return;
+            }
+            foreach (KeyValuePair<string, TerminalView> pair in _views)
+            {
+                if (pair.Value == null)
+                {
+                    continue;
+                }
+                string hostId = HostIdOf(pair.Key);
+                if (!AppearanceApplier.NeedsRefresh(e, hostId))
+                {
+                    continue;
+                }
+                var ignore = AppearanceApplier.ApplyForHostAsync(pair.Value, hostId);
+            }
+        }
+
+        private string HostIdOf(string sessionId)
+        {
+            SessionInfo bound;
+            if (_bound.TryGetValue(sessionId, out bound) && bound != null)
+            {
+                return bound.HostId;
+            }
+            if (_viewModel != null)
+            {
+                SessionInfo info = _viewModel.GetSession(sessionId);
+                if (info != null)
+                {
+                    return info.HostId;
+                }
+            }
+            return null;
         }
 
         private Border BuildChrome(string sessionId, TerminalView view)

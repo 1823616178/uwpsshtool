@@ -3,6 +3,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!-- A03 完整版（02-UI-DESIGN.md §5.12/§6）：预设 24 色 + #RRGGBB 输入 +
+         H/S/V 三滑块 + 新旧对比。尺寸一律 Token；滑块量程在代码里设。 -->
     <StackPanel>
         <VariableSizedWrapGrid x:Name="SwatchGrid" Orientation="Horizontal"
                                MaximumRowsOrColumns="8" ItemWidth="{StaticResource TouchTargetMin}"
@@ -11,5 +13,32 @@
                  TextChanged="OnHexChanged" />
         <TextBlock x:Name="HexError" Style="{StaticResource CaptionTextStyle}"
                    Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+        <TextBlock x:Name="HueLabel" Style="{StaticResource CaptionTextStyle}"
+                   Margin="{StaticResource GapSmTop}" />
+        <Slider x:Name="HueSlider" ValueChanged="OnHsvChanged" />
+        <TextBlock x:Name="SaturationLabel" Style="{StaticResource CaptionTextStyle}"
+                   Margin="{StaticResource GapXsTop}" />
+        <Slider x:Name="SaturationSlider" ValueChanged="OnHsvChanged" />
+        <TextBlock x:Name="ValueLabel" Style="{StaticResource CaptionTextStyle}"
+                   Margin="{StaticResource GapXsTop}" />
+        <Slider x:Name="ValueSlider" ValueChanged="OnHsvChanged" />
+        <Grid Margin="{StaticResource GapSmTop}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <Border x:Name="OldSwatch" Height="{StaticResource SpaceXl}"
+                        BorderBrush="{ThemeResource AppBorderBrush}"
+                        BorderThickness="{StaticResource BorderThin}" />
+                <TextBlock Text="旧" Style="{StaticResource CaptionTextStyle}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="{StaticResource GapSmLeft}">
+                <Border x:Name="NewSwatch" Height="{StaticResource SpaceXl}"
+                        BorderBrush="{ThemeResource AppBorderBrush}"
+                        BorderThickness="{StaticResource BorderThin}" />
+                <TextBlock Text="新" Style="{StaticResource CaptionTextStyle}" />
+            </StackPanel>
+        </Grid>
     </StackPanel>
 </UserControl>

@@ -123,6 +123,7 @@
       <DependentUpon>SelectionLayer.xaml</DependentUpon>
     </Compile>
     <Compile Include="Terminal\TerminalRenderer.cs" />
+    <Compile Include="Terminal\AppearanceApplier.cs" />
     <Compile Include="Terminal\TerminalView.xaml.cs">
       <DependentUpon>TerminalView.xaml</DependentUpon>
     </Compile>
@@ -222,6 +223,8 @@
       <DependentUpon>VaultSelfCheckPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\AppearanceListViewModel.cs" />
+    <Compile Include="ViewModels\AppearanceEditViewModel.cs" />
     <Compile Include="ViewModels\HostListViewModel.cs" />
     <Compile Include="ViewModels\HostEditViewModel.cs" />
     <Compile Include="ViewModels\GroupManageViewModel.cs" />
@@ -270,6 +273,12 @@
     </Compile>
     <Compile Include="Views\HostEditPage.xaml.cs">
       <DependentUpon>HostEditPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\AppearanceListPage.xaml.cs">
+      <DependentUpon>AppearanceListPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\AppearanceEditPage.xaml.cs">
+      <DependentUpon>AppearanceEditPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\HostRow.xaml.cs">
       <DependentUpon>HostRow.xaml</DependentUpon>
@@ -357,6 +366,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\HostEditPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\AppearanceListPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\AppearanceEditPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

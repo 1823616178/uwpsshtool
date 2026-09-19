@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using SshTool.App.Platform;
+using SshTool.Core.Appearance;
 using SshTool.Core.Common;
 using SshTool.Core.Sessions;
 using SshTool.Core.Storage;
@@ -41,6 +42,7 @@ namespace SshTool.App.Infrastructure
         public KeyRepository Keys { get; private set; }
         public SnippetRepository Snippets { get; private set; }
         public AppearanceRepository Appearances { get; private set; }
+        public AppearanceService AppearanceService { get; private set; }
         public KnownHostRepository KnownHosts { get; private set; }
         public ISecretStore Secrets { get; private set; }
         public ConfigService Config { get; private set; }
@@ -90,6 +92,11 @@ namespace SshTool.App.Infrastructure
             CollectWarnings(Snippets.LoadWarnings);
             CollectWarnings(Appearances.LoadWarnings);
             CollectWarnings(KnownHosts.LoadWarnings);
+            Time("Appearance", () =>
+            {
+                AppearanceService = new AppearanceService(Appearances, Hosts, Settings, BuiltInThemes.All);
+                ServiceRegistry.Register(AppearanceService);
+            });
             Time("Theme", () =>
             {
                 ThemeService.UseSystemAccent = Settings.UseSystemAccent;

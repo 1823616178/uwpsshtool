@@ -43,6 +43,9 @@ namespace SshTool.App.Terminal
 
         public event EventHandler<HandleDragEventArgs> HandleDrag;
 
+        // A03：外观 selection 色覆盖；null 时回退到 AppAccentBrush Token。
+        public Brush HighlightBrush { get; set; }
+
         public void Hide()
         {
             HighlightCanvas.Children.Clear();
@@ -63,7 +66,7 @@ namespace SshTool.App.Terminal
             Toolbar.Visibility = Visibility.Visible;
             HighlightCanvas.Children.Clear();
             HandleCanvas.Children.Clear();
-            Brush fill = Brush("AppAccentBrush");
+            Brush fill = HighlightBrush ?? Brush("AppAccentBrush");
             double opacity = TokenDouble("SelectionOverlayOpacity");
             if (opacity <= 0)
             {

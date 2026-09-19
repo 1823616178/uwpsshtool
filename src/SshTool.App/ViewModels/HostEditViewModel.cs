@@ -301,19 +301,6 @@ namespace SshTool.App.ViewModels
                 Groups.Add(new IdNameOption(groups[i].Id, groups[i].Name));
             }
 
-            Appearances.Clear();
-            Appearances.Add(new IdNameOption(string.Empty, "跟随默认"));
-            IReadOnlyList<AppearanceProfile> builtIns = BuiltInThemes.All;
-            for (int i = 0; i < builtIns.Count; i++)
-            {
-                Appearances.Add(new IdNameOption(builtIns[i].Id, builtIns[i].Name));
-            }
-            IReadOnlyList<AppearanceProfile> user = await _services.Appearances.GetAllAsync().ConfigureAwait(true);
-            for (int i = 0; i < user.Count; i++)
-            {
-                Appearances.Add(new IdNameOption(user[i].Id, user[i].Name));
-            }
-
             Tunnels.Clear();
             if (_state.Mode == HostEditMode.Edit && !string.IsNullOrEmpty(_state.HostId))
             {
@@ -327,6 +314,8 @@ namespace SshTool.App.ViewModels
                 }
             }
 
+            await ReloadAppearancesAsync().ConfigureAwait(true);
+
             Keys.Clear();
             Keys.Add(new IdNameOption(string.Empty, "（未选择）"));
             IReadOnlyList<KeyEntry> keys = await _services.Keys.GetAllAsync().ConfigureAwait(true);
@@ -339,6 +328,23 @@ namespace SshTool.App.ViewModels
             }
 
             RefreshJumps();
+        }
+
+        // A03：从外观管理页返回后刷新下拉（保留已选）。
+        public async Task ReloadAppearancesAsync()
+        {
+            Appearances.Clear();
+            Appearances.Add(new IdNameOption(string.Empty, "跟随默认"));
+            IReadOnlyList<AppearanceProfile> builtIns = BuiltInThemes.All;
+            for (int i = 0; i < builtIns.Count; i++)
+            {
+                Appearances.Add(new IdNameOption(builtIns[i].Id, builtIns[i].Name));
+            }
+            IReadOnlyList<AppearanceProfile> user = await _services.Appearances.GetAllAsync().ConfigureAwait(true);
+            for (int i = 0; i < user.Count; i++)
+            {
+                Appearances.Add(new IdNameOption(user[i].Id, user[i].Name));
+            }
         }
 
         private async Task LoadCredentialsAsync()

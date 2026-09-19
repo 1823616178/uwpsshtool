@@ -81,7 +81,7 @@
                                       Toggled="OnPasteConfirmToggled" />
                         <TextBlock Text="光标闪烁跟随外观" Style="{StaticResource BodyTextStyle}"
                                    Margin="{StaticResource GapSmTop}" />
-                        <TextBlock Text="将在外观（A05）中提供"
+                        <TextBlock Text="在外观页中修改"
                                    Style="{StaticResource CaptionTextStyle}" />
                         <HyperlinkButton Content="去外观" Click="OnAppearanceClick" />
                     </StackPanel>

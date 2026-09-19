@@ -199,6 +199,77 @@ namespace SshTool.App.Terminal
             return _softKeyboard.Focus();
         }
 
+        // A03：把外观应用到本视图（调色板 + 字体度量 + 光标 + 选区色），不碰
+        // 会话、不重连。字号/行高变化经 FontMetrics 重测并防抖 Resize（§7.4）。
+        public void ApplyAppearance(AppearanceProfile profile)
+        {
+            if (profile == null)
+            {
+                return;
+            }
+            if (!DispatcherHelper.HasThreadAccess)
+            {
+                AppearanceProfile captured = profile;
+                DispatcherHelper.Post(() => ApplyAppearance(captured));
+                return;
+            }
+            try
+            {
+                _renderer.DefaultFgArgb = TerminalPalette.HexToArgb(profile.Foreground);
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                _renderer.DefaultBgArgb = TerminalPalette.HexToArgb(profile.Background);
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                _renderer.PaletteArgb = TerminalPalette.PaletteToArgb(profile.Palette);
+            }
+            catch (Exception)
+            {
+            }
+            try
+            {
+                _renderer.CursorColor = ToColor(TerminalPalette.HexToArgb(profile.Cursor));
+            }
+            catch (Exception)
+            {
+            }
+            _renderer.BoldAsBright = profile.BoldAsBright;
+            _renderer.FontWeightBold = profile.FontWeightBold;
+            _renderer.CursorStyle = profile.CursorStyle;
+            _renderer.CursorBlink = profile.CursorBlink;
+            _renderer.FontSize = ClampFontSize(profile.FontSize);
+            _renderer.LineHeightFactor = ClampLineHeight((float)profile.LineHeight);
+            if (profile.Padding >= 0 && profile.Padding <= 16)
+            {
+                TerminalPadding = profile.Padding;
+            }
+            if (Selection != null)
+            {
+                try
+                {
+                    Selection.HighlightBrush = new SolidColorBrush(ToColor(TerminalPalette.HexToArgb(profile.Selection)));
+                }
+                catch (Exception)
+                {
+                    Selection.HighlightBrush = null;
+                }
+            }
+            _fullRedraw = true;
+            if (Canvas != null)
+            {
+                Canvas.Invalidate();
+            }
+            FrameScheduler.Instance.Wake();
+        }
+
         public void ToggleSoftKeyboard()
         {
             if (_softKeyboard.IsInputPaneVisible)
@@ -1158,6 +1229,36 @@ namespace SshTool.App.Terminal
                 return 0;
             }
             return value;
+        }
+
+        private static float ClampFontSize(int size)
+        {
+            if (size < TerminalRenderer.MinimumFontSize)
+            {
+                return TerminalRenderer.MinimumFontSize;
+            }
+            if (size > TerminalRenderer.MaximumFontSize)
+            {
+                return TerminalRenderer.MaximumFontSize;
+            }
+            return size;
+        }
+
+        private static float ClampLineHeight(float factor)
+        {
+            if (float.IsNaN(factor) || float.IsInfinity(factor))
+            {
+                return 1.2f;
+            }
+            if (factor < TerminalRenderer.MinimumLineHeightFactor)
+            {
+                return TerminalRenderer.MinimumLineHeightFactor;
+            }
+            if (factor > TerminalRenderer.MaximumLineHeightFactor)
+            {
+                return TerminalRenderer.MaximumLineHeightFactor;
+            }
+            return factor;
         }
     }
 }

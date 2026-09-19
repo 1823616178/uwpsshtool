@@ -68,6 +68,12 @@ namespace SshTool.App.Views
                 SelectById(GroupBox, ViewModel.GroupId);
                 _suppressCombo = false;
             }
+            // A03：从外观管理页返回时刷新下拉（保留当前选择）。
+            await ViewModel.ReloadAppearancesAsync();
+            _suppressCombo = true;
+            AppearanceBox.ItemsSource = ViewModel.Appearances;
+            SelectById(AppearanceBox, ViewModel.AppearanceId);
+            _suppressCombo = false;
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -229,6 +235,12 @@ namespace SshTool.App.Views
         private void OnManageGroups(object sender, RoutedEventArgs e)
         {
             Frame.Navigate(typeof(GroupManagePage));
+        }
+
+        // A03：外观下拉接入外观列表页。
+        private void OnManageAppearances(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(AppearanceListPage));
         }
 
         private void OnGroupChanged(object sender, SelectionChangedEventArgs e)

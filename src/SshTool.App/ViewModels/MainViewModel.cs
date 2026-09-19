@@ -35,7 +35,7 @@ namespace SshTool.App.ViewModels
             KeysCommand = new RelayCommand(() => OpenPlaceholder("密钥", "M7"));
             KnownHostsCommand = new RelayCommand(() => Navigation.Navigate<KnownHostsPage>());
             SnippetsCommand = new RelayCommand(() => Navigation.Navigate<SnippetsPage>(SnippetsArgs.Manage()));
-            AppearanceCommand = new RelayCommand(() => OpenPlaceholder("外观", "M6"));
+            AppearanceCommand = new RelayCommand(() => Navigation.Navigate<AppearanceListPage>());
             AboutCommand = new RelayCommand(() => OpenPlaceholder("关于", "M8"));
         }
 

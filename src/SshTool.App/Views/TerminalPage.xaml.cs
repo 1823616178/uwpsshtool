@@ -2,7 +2,9 @@ using System;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
+using SshTool.App.Terminal;
 using SshTool.App.ViewModels;
+using SshTool.Core.Appearance;
 using SshTool.Core.Sessions;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
@@ -81,6 +83,12 @@ namespace SshTool.App.Views
             await ViewModel.LoadAsync(e.Parameter as TerminalArgs);
             BindSession();
             ViewModel.AttachNative(native => Term.Session = native);
+            ApplyAppearanceForSession();
+            // A03：外观变化后已打开终端刷新调色板与字体度量（不重连）。
+            if (AppServices.Current != null && AppServices.Current.AppearanceService != null)
+            {
+                AppServices.Current.AppearanceService.Changed += OnAppearanceChanged;
+            }
             // P02：省电模式 Banner（事件在系统线程触发，handler 内封送回 UI）。
             _energySaver.Changed += OnEnergySaverChanged;
             _energySaver.Start();
@@ -91,6 +99,10 @@ namespace SshTool.App.Views
         {
             _energySaver.Changed -= OnEnergySaverChanged;
             _energySaver.Stop();
+            if (AppServices.Current != null && AppServices.Current.AppearanceService != null)
+            {
+                AppServices.Current.AppearanceService.Changed -= OnAppearanceChanged;
+            }
             StatusBarService.ShowThemed();
             // P01：离开终端页即释放常亮（DisplayRequest 成对，见 KeepAwakeService）。
             Platform.KeepAwakeService keepAwake;
@@ -190,6 +202,27 @@ namespace SshTool.App.Views
             EnergySaverBanner.Visibility = Visibility.Visible;
         }
 
+        // A03：按会话主机解析有效外观并应用（只动调色板/字体度量，不重连）。
+        private void ApplyAppearanceForSession()
+        {
+            SessionInfo info = ViewModel.Session;
+            if (info == null)
+            {
+                return;
+            }
+            var ignore = AppearanceApplier.ApplyForHostAsync(Term, info.HostId);
+        }
+
+        private void OnAppearanceChanged(object sender, AppearanceChangedEventArgs e)
+        {
+            SessionInfo info = ViewModel.Session;
+            if (info == null || !AppearanceApplier.NeedsRefresh(e, info.HostId))
+            {
+                return;
+            }
+            ApplyAppearanceForSession();
+        }
+
         private static StatusDotState ToDot(SessionUiState state)
         {
             switch (state)
@@ -222,6 +255,7 @@ namespace SshTool.App.Views
             // U13：终端菜单「片段」打开选择器（锚定菜单按钮）。
             FrameworkElement anchor = sender as FrameworkElement;
             flyout.Items.Add(Item("片段", () => OpenSnippetPicker(anchor ?? Term)));
+            flyout.Items.Add(Item("外观", () => Frame.Navigate(typeof(AppearanceListPage))));
             flyout.Items.Add(Item("断开", () => ViewModel.DisconnectCommand.Execute(null)));
             flyout.Items.Add(Item("关闭会话", () => ViewModel.CloseSessionCommand.Execute(null)));
             flyout.ShowAt((FrameworkElement)sender);
