@@ -42,11 +42,11 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 12 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 14 | 与桌面端同账号双向同步、冲突可解 |
+| M5 | 云端同步 | 22 | 15 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
-| M7 | 密钥、SFTP、转发、跳板 | 11 | 3 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
+| M7 | 密钥、SFTP、转发、跳板 | 11 | 5 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 1 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **86** | |
+| **合计** | | **111** | **89** | |
 
 ### 1.1 关键路径
 
@@ -929,13 +929,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 退避时间序列断言 1/2/5/10/30/60/300 s，且 Retry-After 优先
   - 验证：`dotnet test`
 
-- [ ] **S14 同步触发器与应用接线** `S` 📱
+- [x] **S14 同步触发器与应用接线** `S` 📱
   - 依赖：S13、P02
   - 参考：`03-SYNC-PROTOCOL.md §7.5`
   - 产出：`src/SshTool.Core/Sync/SyncTriggers.cs`、组合根接线、MainPage 同步图标绑定 `SyncState`、测试
   - 要点：仓库 Changed（origin=User 且实体为主机/分组/隧道或主机凭据）→ MarkDirty；启动、回前台（>30 s）、网络恢复、前台轮询、手动；后台停止轮询；同步图标映射（UI §5.1）。
   - 验收：
-    - [ ] Triggers 单测：Sync 来源不标脏、片段/外观变化不标脏、前台阈值、轮询启停
+    - [x] Triggers 单测：Sync 来源不标脏、片段/外观变化不标脏、前台阈值、轮询启停
     - [ ] 📱 修改主机约 3 秒后自动同步
   - 验证：`dotnet test`；真机
 
@@ -1089,24 +1089,24 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 移植用例通过（超时清除、多会话复用）
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **S15 私钥同步** `M`
+- [x] **S15 私钥同步** `M`
   - 依赖：K01、S13
   - 参考：`03-SYNC-PROTOCOL.md §4.1 私钥规则、§5.1、§5.2 第 4 条、§9`；桌面端 `src/main/sync/sync-serializer.ts`、`test/sync-serializer.test.ts`
   - 产出：`src/SshTool.Core/Sync/{IPrivateKeyInspector,PrivateKeySyncCodec}.cs`、SyncLocalAdapter 私钥部分、`tools/sync-vectors` 增加私钥指纹向量（用桌面端 `node_modules/ssh2` 的 `utils.parseKey().getPublicSSH()`）、测试、U17 私钥开关启用
   - 要点：出站编码与元数据；入站 header/格式/指纹校验（有短语或未加密时复算）；落库为 KeyEntry 并绑定主机，按指纹去重；关闭开关走轮换流程。
   - 验收：
-    - [ ] 桌面端 `sync-serializer.test.ts` 私钥相关场景的等价用例通过
-    - [ ] 向量：ed25519/rsa/ecdsa × openssh/pem × 加密/未加密 的指纹与桌面端一致
+    - [x] 桌面端 `sync-serializer.test.ts` 私钥相关场景的等价用例通过
+    - [x] 向量：ed25519/rsa/ecdsa × openssh/pem × 加密/未加密 的指纹与桌面端一致
   - 验证：`pwsh scripts/verify.ps1 -Interop`
 
-- [ ] **F01 SFTP 原生层** `M`
+- [x] **F01 SFTP 原生层** `M`
   - 依赖：N06
   - 参考：`01-DESIGN.md §11.1`
   - 产出：`native/core/sftp/{sftp_session,transfer}.{h,cpp}`、`native/tests/sftp_test.cpp`
   - 要点：基于已认证会话打开 SFTP；readdir（名称、类型、大小、权限、mtime、链接目标）；stat/lstat/readlink/mkdir/rename/unlink/rmdir/setstat；分块读写 32 KiB、偏移续传、取消标志；新增 `6xx` SFTP 错误码（同步更新 C# 枚举、resw、对拍脚本、`01-DESIGN.md §6.3`）。
   - 验收：
-    - [ ] 集成（环境变量开启）：上传再下载 50 MB 文件 SHA256 一致；中断后续传一致
-    - [ ] 错误码对拍通过
+    - [x] 集成（环境变量开启）：上传再下载 50 MB 文件 SHA256 一致；中断后续传一致
+    - [x] 错误码对拍通过
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
 - [ ] **F02 SFTP 桥与传输队列** `M`
@@ -1313,6 +1313,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] P01 📱 终端页不自动息屏；切走再回来：仍在线或自动重连
 - [ ] S05 📱 自检全部通过，记录 Argon2id 解锁耗时
 - [ ] P02 📱 Wi-Fi 切蜂窝后 10 s 内会话恢复可用
+- [ ] S14 📱 修改主机约 3 秒后自动同步
 - [ ] A03 📱 修改字号/配色后已打开终端即时生效
 - [ ] K02 📱 生成 ed25519 → 公钥加入服务器 `authorized_keys` → 用该密钥登录成功
 
@@ -1427,3 +1428,6 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | S13 | 3665eae | **完成**。RotateVaultKey（新 keyVersion 建料→偏好先行→重加密→POST vault/rotate→版本校验→落基线，失败回滚+ambiguous 文案）+ Restore/Clear/List 透传 + HandleSyncError（终端鉴权/auth_error、无会话/signed_out、offline 退避 1/2/5/10/30/60/300s Retry-After 优先经 ITimerFactory）+ MarkDirty 3000ms 防抖 + Dispose。§10.1 Coordinator 8/10/11/12/13/19（21 条）。Core 1044；`verify.ps1` 全绿。 |
 | 2026-09-19 | A05 | bc1d6f0 | **完成**。ThemeService 运行时补强（CurrentMode+后台线程封送+关强调色回退主题字典色+EffectiveThemeKey）+ StatusBarService.RefreshTheme 收拢 + 设置页说明/Toast；终端配色隔离（只走 Appearance）。手测清单：三档主题即时变色/强调色开关四组合/跟随系统同步/终端不受影响。`verify.ps1` 全绿。另修关强调色残留系统色真 bug。 |
 | 2026-09-19 | K03 | b5db43d | **完成**。native SshAgent（惰性滑动超时、清零、快照）+ session authenticateAgent + Bridge SshAgent（keyId 传递，私钥不出 native）+ SessionManager authType=agent（超时对齐/依次试钥/204-lock/无钥弹框/KI 回退）+ LockAgentKeys（挂起清除）+ 设置 Agent 保留滑杆。移植单元 11/11 + SessionManagerAgentTests 16。native 247；Core 1044；`verify.ps1` 全绿。 |
+| 2026-09-19 | F01 | 83c37d8 | **完成**。SftpSession 绑已认证会话（open/listDir/stat/lstat/readlink/mkdir/rename/unlink/rmdir/setstat/文件读写 seek/close，I/O 线程纪律+EAGAIN 100ms 切片+取消）；transfer 32KiB 分块、偏移续传、取消标志。6xx 码表 601–606 四处同步（§6.3/C#/resw/error_codes.h，对拍 29 码过）。单测 16 + 集成 4 实测通过（临时 WSL sshd，50MB SHA256 一致 73s、8MiB 续传一致；测后回收）。native 268；`verify.ps1 -Interop` 全绿。 |
+| 2026-09-19 | S14 | 7f21fec | **代码完成**。SyncTriggers（User 源主机/分组/隧道+host:/key: 凭据→MarkDirty；启动/回前台>30s/网络恢复/前台轮询/手动；后台停轮询；永不抛）+ ISyncTriggerTarget/SyncIconMap（UI §5.1）/SecretChangedEventArgs；ISecretStore Changed 事件（下行传 Sync 不标脏）；组合根装配同步栈 + MainPage 同步图标旋转绑定。单测 36（Triggers 26 + IconMap 10，验收已勾）。Core 1119；`verify.ps1 -Interop` 全绿。⏳ 📱 3 秒自动同步（已登记待办）。 |
+| 2026-09-19 | S15 | 88aa642 | **完成**。IPrivateKeyInspector 移新文件并异步化 + PrivateKeySyncCodec（出站三元组/入站复算）+ KeyToolPrivateKeyInspector（文案对桌面端 decodeSyncedPrivateKey）+ 11 夹具指纹向量（ssh2@1.17，PKCS#8 不支持故出站跳过记警告）+ U17 最小启用点（数据层 SetPreferences）。等价用例 24 + 向量 12 + 开关 2（验收已勾）。Core 1119；`verify.ps1 -Interop` 全绿（含 private-keys --check）。 |
