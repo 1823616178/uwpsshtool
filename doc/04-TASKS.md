@@ -40,13 +40,13 @@
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
-| M3 | 数据层与主机管理 | 12 | 5 | 主机/分组增删改、凭据安全保存 |
+| M3 | 数据层与主机管理 | 12 | 6 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **52** | |
+| **合计** | | **111** | **53** | |
 
 ### 1.1 关键路径
 
@@ -588,7 +588,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 单测：定义表与访问器完整性（反射只在测试里用）、非法值回退、默认值写入
   - 验证：`dotnet test`
 
-- [ ] **D05 组合根与启动流程** `S` 📱
+- [x] **D05 组合根与启动流程** `S` 📱
   - 依赖：D02、D03、D04、X05、X07
   - 参考：`01-DESIGN.md §4.1`
   - 产出：`src/SshTool.App/App.xaml.cs`（组合根）、`src/SshTool.App/Infrastructure/AppServices.cs`
@@ -1300,6 +1300,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] T14 📱 普通屏回滚流畅；`less` 中滑动翻页；捏合不抖
 - [ ] T15 📱（Continuum）vim `:set mouse=a` 点击定位、htop 点击、tmux 滚轮正常
 - [ ] D03 📱 真机写入后用设备门户下载 LocalFolder，`secrets.bin` 中搜索不到测试密码明文
+- [ ] D05 👤 x64 Debug 冷启动进入 MainPage，日志含各阶段耗时
+- [ ] D05 📱 ARM Release 冷启动正常
 
 ---
 
@@ -1378,3 +1380,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | T14 | 0e1855a | **代码完成**。`ScrollController` 偏移 0=底部，夹取 [0, scrollback]；底部时新输出跟随，回滚中保持偏移；用户输入回底。`MouseEncoder` 滚轮 SGR/X10；alt-screen 拖动按 `altScreenScroll` 发方向键或滚轮（未开鼠标上报时滚轮回退方向键）。`PointerInput` 平移+惯性+捏合 8–28 与字号气泡；回滚中 `CopyViewport` 且不画光标。Core 单测 +10（共 583）；`verify.ps1` 全绿。⏳ 回滚/`less`/捏合（已登记真机待办）。 |
 | 2026-09-19 | T15 | f3199f9 | **代码完成**。MouseEncoder 四种模式×SGR/默认；SGR 坐标 300 不截断、X10 夹到 223。鼠标左键：上报或本地选择（Shift 强制、双击选词、三击选行）；滚轮在上报开启时发序列。右键复制/粘贴/全选/清屏/片段；悬停 IBeam。Core 单测 +10（共 593）；`verify.ps1` 全绿。⏳ Continuum vim/htop/tmux（已登记真机待办）。 |
 | 2026-09-19 | D03 | 9464eb2 | **代码完成**。InMemorySecretStore + SecretKeys 前缀删除；ISecureFile / InMemorySecureFile；DpapiSecureFile `LOCAL=user` 原子写 `secure/secrets.bin`；DpapiSecretStore 串行 JSON 键值表。Core 单测 +5（共 598）；`verify.ps1` 全绿。⏳ secrets.bin 无明文（已登记真机待办）。 |
+| 2026-09-19 | D05 | b87c415 | **代码完成**。`AppServices` 组合根：配置/设置/七仓库/DPAPI 凭据/ConfigService；启动各阶段耗时写 app.log；挂起 Flush；未处理异常记类型名；LoadWarnings 上 MainPage Banner。`verify.ps1` 全绿（598）。⏳ x64/ARM 冷启动（已登记待办）。 |
