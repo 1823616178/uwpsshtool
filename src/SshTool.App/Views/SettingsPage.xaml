@@ -19,11 +19,13 @@
                 <ScrollViewer>
                     <StackPanel Padding="{StaticResource PagePadding}">
                         <ComboBox x:Name="ThemeBox" Header="主题" HorizontalAlignment="Stretch"
-                                  SelectionChanged="OnThemeChanged">
-                            <ComboBoxItem Content="跟随系统" />
-                            <ComboBoxItem Content="深色" />
-                            <ComboBoxItem Content="浅色" />
-                        </ComboBox>
+                                   SelectionChanged="OnThemeChanged">
+                             <ComboBoxItem Content="跟随系统" />
+                             <ComboBoxItem Content="深色" />
+                             <ComboBoxItem Content="浅色" />
+                         </ComboBox>
+                         <TextBlock Text="切换后立即生效，无需重启"
+                                    Style="{StaticResource CaptionTextStyle}" />
                         <ToggleSwitch x:Name="AccentSwitch" Header="使用系统强调色"
                                       Margin="{StaticResource GapSmTop}"
                                       Toggled="OnAccentToggled" />
@@ -142,8 +144,16 @@
                         <TextBlock Text="连接超时" Style="{StaticResource BodyTextStyle}"
                                    Margin="{StaticResource GapSmTop}" />
                         <Slider x:Name="TimeoutSlider" Minimum="5" Maximum="60"
-                                StepFrequency="1" ValueChanged="OnTimeoutChanged" />
+                                 StepFrequency="1" ValueChanged="OnTimeoutChanged" />
                         <TextBlock x:Name="TimeoutValue" Style="{StaticResource CaptionTextStyle}" />
+                        <!-- K03：Agent 密钥保留时间（分钟，0 = 永不超时） -->
+                        <TextBlock Text="Agent 密钥保留" Style="{StaticResource BodyTextStyle}"
+                                   Margin="{StaticResource GapSmTop}" />
+                        <Slider x:Name="AgentTimeoutSlider" Minimum="0" Maximum="120"
+                                 StepFrequency="5" ValueChanged="OnAgentTimeoutChanged" />
+                        <TextBlock x:Name="AgentTimeoutValue" Style="{StaticResource CaptionTextStyle}" />
+                        <TextBlock Text="解锁后私钥在内存中保留的时长；挂起时立即清除"
+                                   Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
                         <ComboBox x:Name="PollBox" Header="同步轮询间隔"
                                   HorizontalAlignment="Stretch"
                                   Margin="{StaticResource GapSmTop}"

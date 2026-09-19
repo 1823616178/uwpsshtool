@@ -40,6 +40,9 @@ namespace SshTool.App.ViewModels
         public const int MaxConnectTimeout = 60;
         public const int MinReconnectAttempts = 0;
         public const int MaxReconnectAttempts = 10;
+        // K03：Agent 密钥保留时间（分钟，0 = 永不超时；上限 120 即 2 小时）。
+        public const int MinAgentKeyTimeout = 0;
+        public const int MaxAgentKeyTimeout = 120;
 
         private static readonly int[] BackgroundDisconnectOptions = { 0, 5, 15, 30, 60 };
         private static readonly int[] SyncPollOptions = { 0, 60, 300, 900 };
@@ -319,6 +322,18 @@ namespace SshTool.App.ViewModels
                 int clamped = Clamp(value, MinConnectTimeout, MaxConnectTimeout);
                 _settings.Set("connectTimeoutSeconds", clamped);
                 RaisePropertyChanged("ConnectTimeoutSeconds");
+            }
+        }
+
+        // K03：Agent 密钥保留时间（分钟）。0 = 永不超时（native 惰性语义）。
+        public int AgentKeyTimeoutMinutes
+        {
+            get { return SafeGetInt("agentKeyTimeoutMinutes", 15); }
+            set
+            {
+                int clamped = Clamp(value, MinAgentKeyTimeout, MaxAgentKeyTimeout);
+                _settings.Set("agentKeyTimeoutMinutes", clamped);
+                RaisePropertyChanged("AgentKeyTimeoutMinutes");
             }
         }
 
@@ -715,6 +730,7 @@ namespace SshTool.App.ViewModels
             RaisePropertyChanged("BackgroundDisconnectMinutes");
             RaisePropertyChanged("ReconnectMaxAttempts");
             RaisePropertyChanged("ConnectTimeoutSeconds");
+            RaisePropertyChanged("AgentKeyTimeoutMinutes");
             RaisePropertyChanged("SyncPollForegroundSeconds");
             RaisePropertyChanged("LogLevel");
         }

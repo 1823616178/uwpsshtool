@@ -112,6 +112,7 @@
     <Compile Include="Platform\UwpHttpTransport.cs" />
     <Compile Include="Platform\LocalSettingsStore.cs" />
     <Compile Include="Platform\NativeSshSession.cs" />
+    <Compile Include="Platform\NativeSshAgent.cs" />
     <Compile Include="Platform\NativeVaultCrypto.cs" />
     <Compile Include="Platform\NativeKeyTool.cs" />
     <Compile Include="Platform\NativeTerminalScreen.cs" />
@@ -204,6 +205,9 @@
     </Compile>
     <Compile Include="Dialogs\KeyGenerateDialog.xaml.cs">
       <DependentUpon>KeyGenerateDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\AgentUnlockDialog.xaml.cs">
+      <DependentUpon>AgentUnlockDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Dialogs\ThemeSchemePickerDialog.xaml.cs">
       <DependentUpon>ThemeSchemePickerDialog.xaml</DependentUpon>
@@ -562,6 +566,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Dialogs\KeyGenerateDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\AgentUnlockDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

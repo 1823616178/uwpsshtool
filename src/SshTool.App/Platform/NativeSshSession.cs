@@ -18,12 +18,21 @@ namespace SshTool.App.Platform
     {
         private readonly NativeBridge.SshSession _native;
         private readonly NativeTerminalScreen _screen;
+        private readonly NativeSshAgent _agent;
         private bool _disposed;
 
         public NativeSshSession()
+            : this(null)
+        {
+        }
+
+        // K03：agent 句柄由 NativeSshSessionFactory 注入（与 SessionManager 共用
+        // 同一个 NativeSshAgent 实例，多会话复用同一份 native 内存）。
+        public NativeSshSession(NativeSshAgent agent)
         {
             _native = new NativeBridge.SshSession();
             _screen = new NativeTerminalScreen(_native.Screen);
+            _agent = agent;
             _native.StateChanged += OnStateChanged;
             _native.HostKeyCheck += OnHostKeyCheck;
             _native.AuthPrompt += OnAuthPrompt;
@@ -103,6 +112,20 @@ namespace SshTool.App.Platform
         public async Task<SshErrorCode> AuthenticateKeyboardInteractiveAsync()
         {
             int code = await _native.AuthenticateKeyboardInteractiveAsync().AsTask().ConfigureAwait(false);
+            return (SshErrorCode)code;
+        }
+
+        // K03：agent 认证——只传 keyId，私钥材料由 core 直接从 agent 托管内存
+        // 中取，不经过 C# 层。未注入 agent 或 native 未受理时返回 InternalError。
+        public async Task<SshErrorCode> AuthenticateAgentAsync(string keyId)
+        {
+            NativeSshAgent agent = _agent;
+            if (agent == null || agent.Native == null)
+            {
+                return SshErrorCode.InternalError;
+            }
+            int code = await _native.AuthenticateAgentAsync(agent.Native, keyId)
+                .AsTask().ConfigureAwait(false);
             return (SshErrorCode)code;
         }
 

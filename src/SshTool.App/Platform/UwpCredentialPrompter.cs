@@ -40,5 +40,12 @@ namespace SshTool.App.Platform
             }
             return r.Answers;
         }
+
+        // K03：agent 无可用密钥时提示选择密钥解锁（只回传 KeyId，不接触私钥）。
+        public async Task<AgentUnlockResult> PromptAgentUnlockAsync(
+            IReadOnlyList<AgentKeyChoice> choices, string hostDisplay)
+        {
+            return await AgentUnlockDialog.ShowAsync(choices, hostDisplay).ConfigureAwait(true);
+        }
     }
 }

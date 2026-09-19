@@ -47,6 +47,7 @@ namespace SshTool.App.Infrastructure
         public ISecretStore Secrets { get; private set; }
         public ConfigService Config { get; private set; }
         public SessionManager Sessions { get; private set; }
+        public NativeSshAgent Agent { get; private set; }
         public KeepAwakeService KeepAwake { get; private set; }
         public LifecycleService Lifecycle { get; private set; }
         public NetworkMonitor Network { get; private set; }
@@ -67,7 +68,11 @@ namespace SshTool.App.Infrastructure
             ServiceRegistry.Register(services.Secrets);
             ServiceRegistry.Register(services.Hosts);
             ServiceRegistry.Register(services.FileSystem);
-            var sshFactory = new NativeSshSessionFactory();
+            // K03：应用内 agent（单个 native 实例，多会话复用；超时由设置项驱动，
+            // 挂起清除走 LifecycleService→SessionManager.LockAgentKeys）。
+            services.Agent = new NativeSshAgent(services.Logger);
+            services.Agent.SetTimeout(ReadAgentTimeout(services.Settings));
+            var sshFactory = new NativeSshSessionFactory(services.Agent);
             ServiceRegistry.Register(sshFactory);
             ServiceRegistry.Register<SshTool.Core.Sessions.ISshSessionFactory>(sshFactory);
             return services;
@@ -110,8 +115,11 @@ namespace SshTool.App.Infrastructure
                 Sessions = new SessionManager(
                     Hosts, KnownHosts, Keys, Secrets, Settings, factory,
                     new UwpHostKeyPrompter(), new UwpCredentialPrompter(),
-                    new DispatcherTimerFactory(), new DispatcherUiDispatcher(), Logger);
+                    new DispatcherTimerFactory(), new DispatcherUiDispatcher(), Logger, Agent);
                 ServiceRegistry.Register(Sessions);
+                // K03：设置页改动保留时间后即时对齐 agent 超时（下次认证前
+                // SessionManager 也会再次对齐，此处覆盖「改完不连」的空窗）。
+                Settings.Changed += OnAgentTimeoutChanged;
             });
             // P01：屏幕常亮与生命周期服务（依赖 Sessions；Start 由 App.OnLaunched
             // 在启动完成后调用，以接入 Application 级前后台事件）。
@@ -161,6 +169,38 @@ namespace SshTool.App.Infrastructure
             await Appearances.FlushAsync().ConfigureAwait(false);
             await KnownHosts.FlushAsync().ConfigureAwait(false);
             await FileLogger.Instance.FlushAsync().ConfigureAwait(false);
+        }
+
+        // K03：agent 超时设置变更即时对齐 + 读取兜底（非法/缺失 → 默认 15）。
+        private void OnAgentTimeoutChanged(object sender, SettingChangedEventArgs e)
+        {
+            if (e == null || !string.Equals(e.Key, "agentKeyTimeoutMinutes", StringComparison.Ordinal))
+            {
+                return;
+            }
+            try
+            {
+                if (Agent != null)
+                {
+                    Agent.SetTimeout(ReadAgentTimeout(Settings));
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        private static int ReadAgentTimeout(SettingsRepository settings)
+        {
+            try
+            {
+                int minutes = settings.AgentKeyTimeoutMinutes;
+                return minutes < 0 ? 15 : minutes;
+            }
+            catch (Exception)
+            {
+                return 15;
+            }
         }
 
         private void CollectWarnings(IReadOnlyList<string> warnings)

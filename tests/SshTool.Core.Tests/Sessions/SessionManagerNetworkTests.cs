@@ -45,6 +45,12 @@ namespace SshTool.Core.Tests.Sessions
             {
                 return Task.FromResult<System.Collections.Generic.IReadOnlyList<string>>(new[] { "token" });
             }
+
+            public Task<AgentUnlockResult> PromptAgentUnlockAsync(
+                System.Collections.Generic.IReadOnlyList<AgentKeyChoice> choices, string hostDisplay)
+            {
+                return Task.FromResult(new AgentUnlockResult { Cancelled = true });
+            }
         }
 
         private sealed class Fixture

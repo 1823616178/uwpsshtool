@@ -78,6 +78,7 @@ namespace SshTool
             };
 
             ref class SshSession;
+            ref class SshAgent; // K03：前向声明（AuthenticateAgentAsync 参数），避免头循环包含
 
             // core IAuthPromptSink 的桥接实现（native 类）：弱引用回指
             // SshSession。core 在 I/O 线程调用，必须只转发、不阻塞。
@@ -106,6 +107,11 @@ namespace SshTool
                 Windows::Foundation::IAsyncOperation<int>^ AuthenticatePasswordAsync(Platform::String^ password);
                 Windows::Foundation::IAsyncOperation<int>^ AuthenticatePublicKeyAsync(
                     const Platform::Array<uint8>^ privateKeyPem, Platform::String^ passphrase);
+                // K03：应用内 agent 认证——只传 keyId，私钥材料由 core 直接从
+                // agent 托管内存中取（不经过 WinRT/C# 层，C# 侧永不接触明文）。
+                // agent 未解锁/无此 keyId/已超时 → 未受理，返回 InternalError(500)。
+                Windows::Foundation::IAsyncOperation<int>^ AuthenticateAgentAsync(
+                    SshAgent^ agent, Platform::String^ keyId);
                 Windows::Foundation::IAsyncOperation<int>^ AuthenticateKeyboardInteractiveAsync();
                 Windows::Foundation::IAsyncOperation<int>^ OpenShellAsync(int cols, int rows);
                 Windows::Foundation::IAsyncOperation<ExecResult^>^ ExecAsync(Platform::String^ command);

@@ -296,6 +296,15 @@ namespace SshTool.App.Platform
             {
                 _logger?.Log(LogLevel.Warning, "Lifecycle", "mark suspend failed " + ex.GetType().Name);
             }
+            // K03：挂起时清除 agent 内存（§12.1）。只记条数，无敏感内容。
+            try
+            {
+                _sessions.LockAgentKeys();
+            }
+            catch (Exception ex)
+            {
+                _logger?.Log(LogLevel.Warning, "Lifecycle", "agent lock failed " + ex.GetType().Name);
+            }
         }
 
         // P02：切网收敛（线程池线程触发；SessionManager 内部已做 UI 封送，

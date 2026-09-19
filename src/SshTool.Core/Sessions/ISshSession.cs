@@ -37,6 +37,10 @@ namespace SshTool.Core.Sessions
         Task<SshErrorCode> ConnectAsync(SshConnectRequest request);
         Task<SshErrorCode> AuthenticatePasswordAsync(string password);
         Task<SshErrorCode> AuthenticatePublicKeyAsync(byte[] privateKeyPem, string passphrase);
+        // K03：应用内 agent 认证——只传 keyId，私钥材料由 native 直接从 agent
+        // 托管内存中取（不经过 C# 层）。agent 未解锁/无此 keyId/已超时时 native
+        // 拒绝受理，返回 InternalError（上层按不可用处理，换下一个密钥）。
+        Task<SshErrorCode> AuthenticateAgentAsync(string keyId);
         Task<SshErrorCode> AuthenticateKeyboardInteractiveAsync();
         Task<SshErrorCode> OpenShellAsync(int cols, int rows);
         Task<SshExecResult> ExecAsync(string command);

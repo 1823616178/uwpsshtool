@@ -63,6 +63,8 @@ namespace SshTool.App.Views
                 ReconnectValue.Text = ViewModel.ReconnectMaxAttempts.ToString() + " 次";
                 TimeoutSlider.Value = ViewModel.ConnectTimeoutSeconds;
                 TimeoutValue.Text = ViewModel.ConnectTimeoutSeconds.ToString() + " 秒";
+                AgentTimeoutSlider.Value = ViewModel.AgentKeyTimeoutMinutes;
+                AgentTimeoutValue.Text = FormatAgentTimeout(ViewModel.AgentKeyTimeoutMinutes);
                 PollBox.SelectedIndex =
                     SettingsViewModel.SyncPollToIndex(ViewModel.SyncPollForegroundSeconds);
 
@@ -94,6 +96,7 @@ namespace SshTool.App.Views
         {
             if (_suppress) { return; }
             ViewModel.UseSystemAccent = AccentSwitch.IsOn;
+            Toast.Show("已切换强调色");
         }
 
         private void OnSortChanged(object sender, SelectionChangedEventArgs e)
@@ -228,6 +231,20 @@ namespace SshTool.App.Views
             int seconds = (int)Math.Round(e.NewValue);
             ViewModel.ConnectTimeoutSeconds = seconds;
             TimeoutValue.Text = ViewModel.ConnectTimeoutSeconds.ToString() + " 秒";
+        }
+
+        // K03：Agent 密钥保留时间（0 = 永不超时）。
+        private void OnAgentTimeoutChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (_suppress) { return; }
+            int minutes = (int)Math.Round(e.NewValue);
+            ViewModel.AgentKeyTimeoutMinutes = minutes;
+            AgentTimeoutValue.Text = FormatAgentTimeout(ViewModel.AgentKeyTimeoutMinutes);
+        }
+
+        private static string FormatAgentTimeout(int minutes)
+        {
+            return minutes <= 0 ? "永不超时" : minutes.ToString() + " 分钟";
         }
 
         private void OnPollChanged(object sender, SelectionChangedEventArgs e)

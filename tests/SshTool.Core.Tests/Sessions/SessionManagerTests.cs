@@ -66,6 +66,12 @@ namespace SshTool.Core.Tests.Sessions
             {
                 return Task.FromResult(KiAnswers);
             }
+
+            public Task<AgentUnlockResult> PromptAgentUnlockAsync(
+                IReadOnlyList<AgentKeyChoice> choices, string hostDisplay)
+            {
+                return Task.FromResult(new AgentUnlockResult { Cancelled = true });
+            }
         }
 
         private sealed class Fixture

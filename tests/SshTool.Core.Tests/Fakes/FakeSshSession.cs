@@ -18,6 +18,11 @@ namespace SshTool.Core.Tests.Fakes
         public SshErrorCode PasswordResult = SshErrorCode.None;
         public SshErrorCode PublicKeyResult = SshErrorCode.None;
         public SshErrorCode KeyboardInteractiveResult = SshErrorCode.None;
+        // K03：agent 认证脚本化——按 keyId 查表，未命中用 DefaultAgentResult。
+        public SshErrorCode DefaultAgentResult = SshErrorCode.None;
+        public readonly Dictionary<string, SshErrorCode> AgentResults =
+            new Dictionary<string, SshErrorCode>(StringComparer.Ordinal);
+        public readonly List<string> AgentAttempts = new List<string>();
         public SshErrorCode OpenShellResult = SshErrorCode.None;
         public SshExecResult ExecResult = new SshExecResult(0, string.Empty, string.Empty);
         public byte[] PendingOutput = new byte[0];
@@ -106,6 +111,19 @@ namespace SshTool.Core.Tests.Fakes
             LastPrivateKey = privateKeyPem;
             LastPassphrase = passphrase;
             return Task.FromResult(PublicKeyResult);
+        }
+
+        // K03：agent 认证（只收 keyId，与真身一致不接触私钥材料）。
+        public Task<SshErrorCode> AuthenticateAgentAsync(string keyId)
+        {
+            Calls.Add("AuthAgent:" + keyId);
+            AgentAttempts.Add(keyId);
+            SshErrorCode code;
+            if (!AgentResults.TryGetValue(keyId, out code))
+            {
+                code = DefaultAgentResult;
+            }
+            return Task.FromResult(code);
         }
 
         public async Task<SshErrorCode> AuthenticateKeyboardInteractiveAsync()

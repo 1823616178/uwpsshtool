@@ -24,6 +24,7 @@ namespace SshTool.Core.Sessions
         private readonly ITimerFactory _timers;
         private readonly IUiDispatcher _ui;
         private readonly ILogger _logger;
+        private readonly ISshAgent _agent;
         private readonly List<SessionInfo> _sessions = new List<SessionInfo>();
         private readonly Dictionary<string, IDisposable> _reconnectTimers =
             new Dictionary<string, IDisposable>(StringComparer.Ordinal);
@@ -39,7 +40,8 @@ namespace SshTool.Core.Sessions
             ICredentialPrompter credentials,
             ITimerFactory timers,
             IUiDispatcher ui,
-            ILogger logger = null)
+            ILogger logger = null,
+            ISshAgent agent = null)
         {
             if (hosts == null) throw new ArgumentNullException("hosts");
             if (knownHosts == null) throw new ArgumentNullException("knownHosts");
@@ -62,6 +64,11 @@ namespace SshTool.Core.Sessions
             _timers = timers;
             _ui = ui;
             _logger = logger;
+            _agent = agent;
+            if (_agent != null)
+            {
+                _agent.SetTimeout(ReadAgentTimeoutMinutes());
+            }
             _timers.SchedulePeriodic(1000, TickReconnectCountdown);
         }
 
@@ -568,7 +575,7 @@ namespace SshTool.Core.Sessions
                 }
                 if (type == AuthType.Agent)
                 {
-                    return SshErrorCode.NoLocalCredential;
+                    return await AuthenticateAgentAsync(info, host, native).ConfigureAwait(false);
                 }
                 return await AuthenticatePasswordAsync(info, host, native).ConfigureAwait(false);
             }
@@ -668,6 +675,232 @@ namespace SshTool.Core.Sessions
             }
             byte[] bytes = Encoding.UTF8.GetBytes(pem);
             return await native.AuthenticatePublicKeyAsync(bytes, pass ?? string.Empty).ConfigureAwait(false);
+        }
+
+        // K03：应用内 agent 认证（01-DESIGN.md §12.1）：
+        //   1. 每次认证前按设置项 agentKeyTimeoutMinutes 对齐超时；
+        //   2. 依次尝试已解锁密钥（host.KeyId 指定时只试它，否则试全部本机密钥中
+        //      已解锁的）：成功即返回；204（短语错误）→ lock 掉该条目再试下一个
+        //      （有效性只能在首次认证时验证，见 native agent.h 头注）；202（服务
+        //      器拒绝该密钥）→ 试下一个；KI 回退与密码流一致；
+        //   3. 无可用密钥（均锁定或全部失败）→ 提示选择密钥解锁，解锁后只试这
+        //      一把（204 同样 lock 掉并返回，不循环弹框）。
+        // 私钥明文只在 SecretStore→agent 的单程中短暂存在，C# 侧不保留。
+        private async Task<SshErrorCode> AuthenticateAgentAsync(
+            SessionInfo info, Host host, ISshSession native)
+        {
+            ISshAgent agent = _agent;
+            if (agent == null)
+            {
+                return SshErrorCode.NoLocalCredential;
+            }
+            agent.SetTimeout(ReadAgentTimeoutMinutes());
+
+            List<string> candidates = new List<string>();
+            if (host != null && !string.IsNullOrEmpty(host.KeyId))
+            {
+                candidates.Add(host.KeyId);
+            }
+            else
+            {
+                IReadOnlyList<KeyEntry> all = await _keys.GetAllAsync().ConfigureAwait(false);
+                for (int i = 0; i < all.Count; i++)
+                {
+                    if (!string.IsNullOrEmpty(all[i].Id))
+                    {
+                        candidates.Add(all[i].Id);
+                    }
+                }
+            }
+
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                string keyId = candidates[i];
+                if (agent.IsLocked(keyId))
+                {
+                    continue;
+                }
+                SshErrorCode code = await native.AuthenticateAgentAsync(keyId).ConfigureAwait(false);
+                if (code == SshErrorCode.None)
+                {
+                    return SshErrorCode.None;
+                }
+                if (code == SshErrorCode.AuthKeyboardInteractiveFailed)
+                {
+                    return await native.AuthenticateKeyboardInteractiveAsync().ConfigureAwait(false);
+                }
+                if (code == SshErrorCode.PrivateKeyLoadFailed)
+                {
+                    agent.Lock(keyId);
+                    continue;
+                }
+                if (code == SshErrorCode.AuthPublicKeyFailed)
+                {
+                    continue;
+                }
+                return code;
+            }
+
+            AgentUnlockAttempt attempt =
+                await PromptUnlockAndStoreAsync(info, host, agent).ConfigureAwait(false);
+            if (attempt.Cancelled || string.IsNullOrEmpty(attempt.KeyId))
+            {
+                return attempt.Cancelled ? SshErrorCode.NoLocalCredential : SshErrorCode.PrivateKeyLoadFailed;
+            }
+            string unlockedId = attempt.KeyId;
+            SshErrorCode finalCode = await native.AuthenticateAgentAsync(unlockedId).ConfigureAwait(false);
+            if (finalCode == SshErrorCode.PrivateKeyLoadFailed)
+            {
+                agent.Lock(unlockedId);
+            }
+            else if (finalCode == SshErrorCode.AuthKeyboardInteractiveFailed)
+            {
+                return await native.AuthenticateKeyboardInteractiveAsync().ConfigureAwait(false);
+            }
+            return finalCode;
+        }
+
+        // K03：无可用密钥时的解锁流程（见 AgentUnlockAttempt 注释）。
+        // 对话框只做选择；短语复用 PromptPassphraseAsync；私钥/短语送入 agent 后
+        // 立即丢引用（string 无法清零，尽量缩短存活，见 §6.4 纪律）。
+        // K03：无可用密钥时的解锁流程。Cancelled = 用户取消/无选择/无材料；
+        // KeyId 非空 = 成功托管（随后只试这一把）。解锁被拒（格式非法）时
+        // Cancelled=false 且 KeyId 为空 → 调用方报 204（本地密钥不可用）。
+        private sealed class AgentUnlockAttempt
+        {
+            public string KeyId;
+            public bool Cancelled;
+        }
+
+        private async Task<AgentUnlockAttempt> PromptUnlockAndStoreAsync(
+            SessionInfo info, Host host, ISshAgent agent)
+        {
+            IReadOnlyList<KeyEntry> all = await _keys.GetAllAsync().ConfigureAwait(false);
+            if (all.Count == 0)
+            {
+                return new AgentUnlockAttempt { Cancelled = true };
+            }
+            // host.KeyId 指定的密钥排首位，其余保持仓库顺序。
+            List<AgentKeyChoice> choices = new List<AgentKeyChoice>(all.Count);
+            if (host != null && !string.IsNullOrEmpty(host.KeyId))
+            {
+                AddChoiceIfExists(choices, all, host.KeyId, agent);
+            }
+            for (int i = 0; i < all.Count; i++)
+            {
+                bool dup = false;
+                for (int j = 0; j < choices.Count; j++)
+                {
+                    if (string.Equals(choices[j].KeyId, all[i].Id, StringComparison.Ordinal))
+                    {
+                        dup = true;
+                        break;
+                    }
+                }
+                if (!dup)
+                {
+                    AddChoiceIfExists(choices, all, all[i].Id, agent);
+                }
+            }
+            if (choices.Count == 0)
+            {
+                return new AgentUnlockAttempt { Cancelled = true };
+            }
+            AgentUnlockResult pick = await _ui.RunAsync(
+                () => _credentials.PromptAgentUnlockAsync(choices, info.Title)).ConfigureAwait(false);
+            if (pick == null || pick.Cancelled || string.IsNullOrEmpty(pick.KeyId))
+            {
+                return new AgentUnlockAttempt { Cancelled = true };
+            }
+            KeyEntry picked = null;
+            for (int i = 0; i < all.Count; i++)
+            {
+                if (string.Equals(all[i].Id, pick.KeyId, StringComparison.Ordinal))
+                {
+                    picked = all[i];
+                    break;
+                }
+            }
+            if (picked == null)
+            {
+                return new AgentUnlockAttempt { Cancelled = true };
+            }
+            string pem = await _secrets.GetAsync(SecretKeys.KeyPrivate(picked.Id)).ConfigureAwait(false);
+            if (string.IsNullOrEmpty(pem))
+            {
+                return new AgentUnlockAttempt { Cancelled = true };
+            }
+            string pass = await _secrets.GetAsync(SecretKeys.KeyPassphrase(picked.Id)).ConfigureAwait(false);
+            if (picked.Encrypted && string.IsNullOrEmpty(pass))
+            {
+                pass = await _ui.RunAsync(
+                    () => _credentials.PromptPassphraseAsync(picked.Name)).ConfigureAwait(false);
+                if (pass == null)
+                {
+                    return new AgentUnlockAttempt { Cancelled = true };
+                }
+            }
+            bool ok = await agent.UnlockAsync(picked.Id, pem, pass ?? string.Empty).ConfigureAwait(false);
+            if (_logger != null)
+            {
+                _logger.Log(LogLevel.Info, "Session", "agent unlock " + (ok ? "ok" : "rejected"));
+            }
+            if (!ok)
+            {
+                return new AgentUnlockAttempt { Cancelled = false };
+            }
+            return new AgentUnlockAttempt { KeyId = picked.Id };
+        }
+
+        private static void AddChoiceIfExists(
+            List<AgentKeyChoice> choices, IReadOnlyList<KeyEntry> all, string keyId, ISshAgent agent)
+        {
+            for (int i = 0; i < all.Count; i++)
+            {
+                if (string.Equals(all[i].Id, keyId, StringComparison.Ordinal))
+                {
+                    choices.Add(new AgentKeyChoice
+                    {
+                        KeyId = all[i].Id,
+                        Name = all[i].Name,
+                        KeyType = all[i].KeyType,
+                        FingerprintSha256 = all[i].FingerprintSha256,
+                        Unlocked = !agent.IsLocked(all[i].Id)
+                    });
+                    return;
+                }
+            }
+        }
+
+        // K03：应用挂起时清除 agent 内存（§12.1）。幂等；返回清除前托管条数
+        // （仅计数，无敏感内容）。由 LifecycleService.OnSuspending 调用。
+        public int LockAgentKeys()
+        {
+            ISshAgent agent = _agent;
+            if (agent == null)
+            {
+                return 0;
+            }
+            int count = agent.KeyCount;
+            agent.LockAll();
+            if (_logger != null)
+            {
+                _logger.Log(LogLevel.Info, "Session", "agent locked " + count.ToString());
+            }
+            return count;
+        }
+
+        private int ReadAgentTimeoutMinutes()
+        {
+            int minutes = 15;
+            try
+            {
+                minutes = _settings.AgentKeyTimeoutMinutes;
+            }
+            catch (Exception)
+            {
+            }
+            return minutes < 0 ? 15 : minutes;
         }
 
         private async Task AfterSuccessAsync(SessionInfo info, Host host)

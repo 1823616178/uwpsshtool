@@ -2,6 +2,7 @@
 #include "Bridge/SshSession.h"
 
 #include "Bridge/BridgeUtil.h"
+#include "Bridge/SshAgent.h"
 
 #include <cstring>
 
@@ -432,6 +433,28 @@ namespace SshTool
                         return session->authenticateKeyboardInteractive(cb);
                     });
                 });
+            }
+
+            // K03：agent 认证。agent 句柄以 ref 捕获保活至受理完成；core 侧
+            // getKeyMaterial 失败（未解锁/超时）→ 未受理 → DoAuthenticate 按
+            // InternalError 返回（上层 SessionManager 按 500 识别为不可用）。
+            Windows::Foundation::IAsyncOperation<int>^ SshSession::AuthenticateAgentAsync(
+                SshAgent^ agent, Platform::String^ keyId)
+            {
+                if (agent == nullptr || keyId == nullptr)
+                {
+                    throw ref new Platform::NullReferenceException();
+                }
+                const std::string id = ToUtf8(keyId);
+                SshSession^ self = this;
+                return concurrency::create_async(
+                    [self, agent, id]() -> task<int> {
+                        return self->DoAuthenticate(
+                            [agent, k = id](ssh::SshSession* session,
+                                            const ssh::AuthCallback& cb) mutable {
+                                return session->authenticateAgent(k, *agent->Core(), cb);
+                            });
+                    });
             }
 
             // ---------------------------------------------------------------- shell / exec / 数据

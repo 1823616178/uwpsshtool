@@ -28,6 +28,7 @@ class SessionThread;
 namespace ssh {
 
 class SshChannel; // N06: channel.h
+class SshAgent;    // K03: agent.h（应用内密钥托管；仅引用，不包含头）
 
 enum class SshSessionState {
     Idle,
@@ -205,6 +206,15 @@ public:
     // decrypt passes, and passphrase errors still normalize to 204 either way).
     bool authenticatePublicKey(std::string& privateKeyData, std::string& publicKeyData,
                                std::string& passphrase, AuthCallback callback);
+    // K03 应用内 agent 认证（agent.h）：从 agent 取 keyId 托管的私钥/短语快照，
+    // 走 authenticatePublicKey 的同一驱动路径——公钥数据留空，由 libssh2 从私钥
+    // 提取（OpenSSH 格式内嵌公钥；短语错误归一化见 auth.h）。
+    // 受理语义与 authenticatePublicKey 相同：快照复制进 AuthOp 后，agent 侧与
+    // 本方法内的临时副本随即清零。返回 false = 未受理：会话不在 Authenticating /
+    // 已有认证类操作进行中 / agent 未解锁或无此 keyId（含超时已惰性清除）——
+    // agent 侧取钥失败不算一次认证尝试（不消耗 authMaxAttempts），不回调 callback，
+    // 材料快照已在本地清零。
+    bool authenticateAgent(const std::string& keyId, SshAgent& agent, AuthCallback callback);
     // Prompts go to options.authPromptSink; answers come back through
     // submitAuthAnswers(); the prompt wait is bounded by authPromptTimeoutMs.
     bool authenticateKeyboardInteractive(AuthCallback callback);
