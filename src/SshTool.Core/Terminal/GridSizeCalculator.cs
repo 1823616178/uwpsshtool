@@ -48,7 +48,7 @@ namespace SshTool.Core.Terminal
         }
     }
 
-    // 01-DESIGN.md §7.4：可视尺寸扣除 padding/覆盖式键条后，按单元格尺寸向下取整。
+    // 01-DESIGN.md §7.4 / §7.5：可视尺寸扣除 padding、覆盖式键条与 InputPane 遮挡后，按单元格向下取整。
     public static class GridSizeCalculator
     {
         public const int MinimumCols = 20;
@@ -57,7 +57,8 @@ namespace SshTool.Core.Terminal
         public static GridSize Calculate(double viewWidth, double viewHeight,
                                          double cellWidth, double cellHeight,
                                          double padding, double keyBarHeight = 0,
-                                         bool keyBarOverlays = true)
+                                         bool keyBarOverlays = true,
+                                         double occlusionHeight = 0)
         {
             RequirePositiveFinite(cellWidth, nameof(cellWidth));
             RequirePositiveFinite(cellHeight, nameof(cellHeight));
@@ -66,9 +67,10 @@ namespace SshTool.Core.Terminal
             double height = NonNegativeFinite(viewHeight);
             double inset = NonNegativeFinite(padding);
             double coveredHeight = keyBarOverlays ? NonNegativeFinite(keyBarHeight) : 0;
+            double occluded = NonNegativeFinite(occlusionHeight);
 
             double availableWidth = Math.Max(0, width - (2 * inset));
-            double availableHeight = Math.Max(0, height - (2 * inset) - coveredHeight);
+            double availableHeight = Math.Max(0, height - (2 * inset) - coveredHeight - occluded);
             int cols = Math.Max(MinimumCols, FloorToInt(availableWidth / cellWidth));
             int rows = Math.Max(MinimumRows, FloorToInt(availableHeight / cellHeight));
             return new GridSize(cols, rows);

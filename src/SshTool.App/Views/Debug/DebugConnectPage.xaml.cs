@@ -40,10 +40,12 @@ namespace SshTool.App.Views.Debug
             PortBox.Text = LoadSetting("port", DebugSshDefaults.PortText);
             UserBox.Text = LoadSetting("user", DebugSshDefaults.User);
             PasswordBox.Password = DebugSshDefaults.Password;
+            TermView.Input += OnTerminalInput;
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            TermView.Input -= OnTerminalInput;
             ReleaseSession();
             base.OnNavigatedFrom(e);
         }
@@ -155,8 +157,9 @@ namespace SshTool.App.Views.Debug
                 {
                     TermView.Session = session;
                     ConnDot.State = StatusDotState.Connected;
+                    TermView.FocusInput();
                     ShowBanner(BannerSeverity.Success, "已连接",
-                        "可输入 ls --color；耗时 " + ElapsedMs() + " ms");
+                        "点终端弹出键盘；耗时 " + ElapsedMs() + " ms");
                 });
                 FrameScheduler.Instance.Wake();
                 session.Write(Encoding.UTF8.GetBytes(ExecCommand + "\n"));
@@ -219,6 +222,12 @@ namespace SshTool.App.Views.Debug
         {
             AppendLog("ContentDirty");
             FrameScheduler.Instance.Wake();
+        }
+
+        private void OnTerminalInput(object sender, TerminalInputEventArgs e)
+        {
+            int n = e != null && e.Data != null ? e.Data.Length : 0;
+            AppendLog("Input " + n.ToString(CultureInfo.InvariantCulture) + " bytes");
         }
 
         private void OnSendClick(object sender, RoutedEventArgs e)

@@ -6,6 +6,7 @@ using SshTool.App.Infrastructure;
 using SshTool.Core.Models;
 using SshTool.Core.Sessions;
 using SshTool.Core.Terminal;
+using Windows.Foundation;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -14,11 +15,14 @@ using Windows.UI.Xaml.Media;
 
 namespace SshTool.App.Terminal
 {
-    // T06/T07：ITerminalScreen → Win2D；尺寸/字体/DPI 变化后 100 ms 防抖 Resize。
+    // T06/T07/T09：ITerminalScreen → Win2D；尺寸/字体/DPI/SIP 变化后 100 ms 防抖 Resize。
     // CreateResources / DeviceLost 重建行缓存；属性管线在 TerminalRenderer。
     public sealed partial class TerminalView : UserControl
     {
         private readonly TerminalRenderer _renderer = new TerminalRenderer();
+        private readonly SoftKeyboardInput _softKeyboard = new SoftKeyboardInput();
+        private readonly StickyModifiers _sticky = new StickyModifiers();
+        private readonly TerminalModes _modes = new TerminalModes();
         private readonly string _schedulerId = "tv-" + Guid.NewGuid().ToString("N");
         private readonly DispatcherTimer _resizeTimer = new DispatcherTimer();
         private ISshSession _session;
@@ -50,6 +54,33 @@ namespace SshTool.App.Terminal
             _renderer.MetricsInvalidated += OnMetricsInvalidated;
             _resizeTimer.Interval = TimeSpan.FromMilliseconds(100);
             _resizeTimer.Tick += OnResizeTimerTick;
+            _softKeyboard.Sticky = _sticky;
+            _softKeyboard.Modes = _modes;
+            _softKeyboard.Input += OnSoftKeyboardInput;
+            _softKeyboard.OcclusionChanged += OnOcclusionChanged;
+        }
+
+        public event EventHandler<TerminalInputEventArgs> Input;
+
+        public StickyModifiers StickyModifiers
+        {
+            get { return _sticky; }
+        }
+
+        public TerminalModes TerminalModes
+        {
+            get { return _modes; }
+        }
+
+        public bool BackspaceAsBs
+        {
+            get { return _softKeyboard.BackspaceAsBs; }
+            set { _softKeyboard.BackspaceAsBs = value; }
+        }
+
+        public bool FocusInput()
+        {
+            return _softKeyboard.Focus();
         }
 
         public ISshSession Session
@@ -143,6 +174,10 @@ namespace SshTool.App.Terminal
             _loaded = true;
             ApplyTokenColors();
             ApplyCanvasPadding();
+            if (Sentinel != null)
+            {
+                _softKeyboard.Attach(Sentinel);
+            }
             if (!_registered)
             {
                 FrameScheduler.Instance.Register(_schedulerId, OnTick);
@@ -157,6 +192,7 @@ namespace SshTool.App.Terminal
         {
             _loaded = false;
             _resizeTimer.Stop();
+            _softKeyboard.Detach();
             UnsubscribeDeviceLost();
             if (_registered)
             {
@@ -260,7 +296,30 @@ namespace SshTool.App.Terminal
 
         private void OnTapped(object sender, TappedRoutedEventArgs e)
         {
-            this.Focus(FocusState.Pointer);
+            FocusInput();
+        }
+
+        private void OnSoftKeyboardInput(object sender, TerminalInputEventArgs e)
+        {
+            if (e == null || e.Data == null || e.Data.Length == 0)
+            {
+                return;
+            }
+            EventHandler<TerminalInputEventArgs> handler = Input;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+            ISshSession session = _session;
+            if (session != null)
+            {
+                session.Write(e.Data);
+            }
+        }
+
+        private void OnOcclusionChanged(object sender, EventArgs e)
+        {
+            ScheduleResize();
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
@@ -305,7 +364,8 @@ namespace SshTool.App.Terminal
             GridSize size = GridSizeCalculator.Calculate(
                 ActualWidth, ActualHeight,
                 _renderer.CellWidth, _renderer.CellHeight,
-                TerminalPadding, KeyBarHeight, KeyBarOverlays);
+                TerminalPadding, KeyBarHeight, KeyBarOverlays,
+                OcclusionOverlapHeight());
             _gridSize = size;
             Canvas.Width = size.Cols * _renderer.CellWidth;
             Canvas.Height = size.Rows * _renderer.CellHeight;
@@ -432,6 +492,40 @@ namespace SshTool.App.Terminal
         private static Color ToColor(uint argb)
         {
             return Color.FromArgb((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb);
+        }
+
+        private double OcclusionOverlapHeight()
+        {
+            Rect occluded = _softKeyboard.OccludedRect;
+            if (occluded.Height <= 0 || occluded.Width <= 0 || ActualHeight <= 0)
+            {
+                return 0;
+            }
+            try
+            {
+                Window window = Window.Current;
+                UIElement root = window != null ? window.Content : null;
+                if (root == null)
+                {
+                    return occluded.Height;
+                }
+                GeneralTransform transform = TransformToVisual(root);
+                Point origin = transform.TransformPoint(new Point(0, 0));
+                double overlap = origin.Y + ActualHeight - occluded.Y;
+                if (overlap <= 0)
+                {
+                    return 0;
+                }
+                if (overlap > ActualHeight)
+                {
+                    return ActualHeight;
+                }
+                return overlap;
+            }
+            catch (Exception)
+            {
+                return occluded.Height;
+            }
         }
 
         private static double NormalizeNonNegative(double value)

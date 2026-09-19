@@ -59,6 +59,16 @@ namespace SshTool.Core.Tests.Terminal
         }
 
         [Fact]
+        public void Calculate_SubtractsInputPaneOcclusion()
+        {
+            GridSize without = GridSizeCalculator.Calculate(360, 640, 6, 18, 4, 0, true, 0);
+            GridSize with = GridSizeCalculator.Calculate(360, 640, 6, 18, 4, 0, true, 266);
+
+            Assert.Equal(new GridSize(58, 35), without);
+            Assert.Equal(new GridSize(58, 20), with);
+        }
+
+        [Fact]
         public void GridSize_HasValueSemantics()
         {
             var left = new GridSize(80, 24);

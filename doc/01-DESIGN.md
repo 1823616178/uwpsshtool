@@ -176,7 +176,7 @@ UI 帧：FrameScheduler 遍历可见 TerminalView：
 
 **终端输入**
 ```
-软键盘：隐藏 TextBox → InputHandler（组合态过滤、退格/回车识别）→ StickyModifiers → KeyMap → bytes
+软键盘：隐藏 TextBox → SoftKeyboardInput（哨兵差分、组合态、退格/回车识别）→ StickyModifiers → KeyMap → bytes
 物理键：CoreWindow.KeyDown / CharacterReceived / AcceleratorKeyActivated → ShortcutMap（先匹配应用快捷键）→ KeyMap
 键条：KeyBar 按钮 → StickyModifiers → KeyMap
 → 聚焦窗格的 SshSession.Write(bytes)（I/O 线程发送）
@@ -215,7 +215,7 @@ uwpsshtool/
 │   │   ├── Validation/               HostValidator、TunnelValidator、GroupValidator（对齐同步 schema 限制）
 │   │   ├── Storage/                  IFileSystem、JsonStore<T>、各 Repository、Migrations、ISecretStore、SecretKeys
 │   │   ├── Sessions/                 ISshSession、ISshSessionFactory、SshConnectRequest、HostKeyCheck、AuthPrompt、SessionStateKind（SessionInfo、SessionManager、ReconnectPolicy、AutoRun、CredentialResolver 后续）
-│   │   ├── Terminal/                 ITerminalScreen（T03 实现）、KeyMap、ShortcutMap、StickyModifiers、SelectionModel、PaneTree、KeyBarLayout、SnippetTemplate
+│   │   ├── Terminal/                 ITerminalScreen、KeyMap、StickyModifiers、SentinelDiff、GridSizeCalculator、ShortcutMap、SelectionModel、PaneTree、KeyBarLayout、SnippetTemplate
 │   │   ├── Sync/
 │   │   │   ├── Protocol/             SyncConstants、SyncDocumentV1 模型、SyncDocumentReader/Writer（严格校验）
 │   │   │   ├── Api/                  IHttpTransport、ApiClient、ApiError、Dto

@@ -18,7 +18,7 @@
             </Grid.RowDefinitions>
 
             <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
-                <Button Content="返回" Click="OnBackClick" />
+                <Button Content="返回" Click="OnBackClick" AllowFocusOnInteraction="False" />
                 <controls:StatusDot x:Name="ConnDot" VerticalAlignment="Center"
                                     Margin="{StaticResource GapSmLeft}" />
                 <TextBlock Text="N10 调试连接" Style="{StaticResource SectionTitleTextStyle}"

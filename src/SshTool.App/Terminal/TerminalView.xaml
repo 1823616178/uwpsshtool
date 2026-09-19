@@ -3,11 +3,33 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml"
-    IsTabStop="True"
+    IsTabStop="False"
+    AllowFocusOnInteraction="False"
     UseSystemFocusVisuals="False">
 
     <!-- T05：终端画布。尺寸由度量后在代码里设，避免 XAML 魔法数字。 -->
-    <canvas:CanvasControl x:Name="Canvas"
-                          Draw="OnDraw"
-                          CreateResources="OnCreateResources" />
+    <Grid>
+        <canvas:CanvasControl x:Name="Canvas"
+                              IsTabStop="False"
+                              AllowFocusOnInteraction="False"
+                              Draw="OnDraw"
+                              CreateResources="OnCreateResources" />
+        <!-- T09：隐藏哨兵，承接 SIP / IME。IsHitTestVisible=False 让点击落到画布。 -->
+        <TextBox x:Name="Sentinel"
+                 Width="{StaticResource SentinelInputSize}"
+                 Height="{StaticResource SentinelInputSize}"
+                 MinWidth="{StaticResource SentinelInputSize}"
+                 MinHeight="{StaticResource SentinelInputSize}"
+                 Opacity="{StaticResource SentinelInputOpacity}"
+                 Padding="{StaticResource PadNone}"
+                 BorderThickness="{StaticResource BorderNone}"
+                 HorizontalAlignment="Left"
+                 VerticalAlignment="Top"
+                 IsHitTestVisible="False"
+                 IsSpellCheckEnabled="False"
+                 IsTextPredictionEnabled="False"
+                 AcceptsReturn="False"
+                 TextWrapping="NoWrap"
+                 IsTabStop="True" />
+    </Grid>
 </UserControl>
