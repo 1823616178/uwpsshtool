@@ -58,10 +58,7 @@
                 <main:HostsPivot x:Name="HostsPane" />
             </PivotItem>
             <PivotItem Header="会话">
-                <controls:EmptyState
-                    Glyph="{StaticResource IconConnect}"
-                    Title="没有打开的会话"
-                    Description="点主机开始连接。" />
+                <main:SessionsPivot x:Name="SessionsPivotCtl" />
             </PivotItem>
             <PivotItem Header="隧道">
                 <controls:EmptyState

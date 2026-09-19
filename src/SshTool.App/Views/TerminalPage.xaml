@@ -6,6 +6,12 @@
     xmlns:term="using:SshTool.App.Terminal"
     Background="{ThemeResource AppBgBrush}">
 
+    <SplitView x:Name="SessionsSplit" PanePlacement="Left" DisplayMode="Overlay"
+               OpenPaneLength="{StaticResource SessionsPaneWidth}" IsPaneOpen="False">
+        <SplitView.Pane>
+            <controls:SessionsPane x:Name="SessionsPane" />
+        </SplitView.Pane>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -35,4 +41,5 @@
         <controls:KeyBar x:Name="Keys" Grid.Row="2" />
         <controls:SessionOverlay x:Name="Overlay" Grid.RowSpan="3" />
     </Grid>
+    </SplitView>
 </Page>

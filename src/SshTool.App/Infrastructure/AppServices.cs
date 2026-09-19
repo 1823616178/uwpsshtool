@@ -107,6 +107,25 @@ namespace SshTool.App.Infrastructure
                 "启动完成 " + total.ElapsedMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ms");
         }
 
+        // U09：挂起前写 state/sessions.json（未关闭会话的 hostId 列表）。
+        public async Task SaveSessionSnapshotAsync()
+        {
+            if (Sessions == null || FileSystem == null)
+            {
+                return;
+            }
+            var snap = new SessionSnapshot();
+            IReadOnlyList<SessionInfo> all = Sessions.Sessions;
+            for (int i = 0; i < all.Count; i++)
+            {
+                if (!string.IsNullOrEmpty(all[i].HostId) && all[i].State != SessionUiState.Closed)
+                {
+                    snap.HostIds.Add(all[i].HostId);
+                }
+            }
+            await new SessionSnapshotStore(FileSystem).SaveAsync(snap).ConfigureAwait(false);
+        }
+
         public async Task FlushAsync()
         {
             await Hosts.FlushAsync().ConfigureAwait(false);

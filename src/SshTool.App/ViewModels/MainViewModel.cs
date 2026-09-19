@@ -16,6 +16,13 @@ namespace SshTool.App.ViewModels
                 NewHostCommand = Hosts.NewHostCommand;
                 SearchCommand = Hosts.ToggleSearchCommand;
                 SignInCommand = Hosts.SignInCommand;
+                SessionsPaneViewModel sessionsVm;
+                if (!ServiceRegistry.TryGet(out sessionsVm))
+                {
+                    sessionsVm = new SessionsPaneViewModel(services);
+                    ServiceRegistry.Register(sessionsVm);
+                }
+                Sessions = sessionsVm;
             }
             else
             {
@@ -33,6 +40,7 @@ namespace SshTool.App.ViewModels
         }
 
         public HostListViewModel Hosts { get; private set; }
+        public SessionsPaneViewModel Sessions { get; private set; }
 
         public ICommand NewHostCommand { get; private set; }
         public ICommand SearchCommand { get; private set; }

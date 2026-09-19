@@ -48,6 +48,12 @@ namespace SshTool.App.Views
                     Term.Session.Write(e.Data);
                 }
             };
+            // U09：侧栏与会话 Pivot 共用同一个 SessionsPaneViewModel（MainViewModel 注册）。
+            SessionsPaneViewModel paneVm;
+            if (ServiceRegistry.TryGet(out paneVm))
+            {
+                SessionsPane.Attach(paneVm);
+            }
         }
 
         public TerminalViewModel ViewModel { get; private set; }
@@ -81,10 +87,16 @@ namespace SshTool.App.Views
             Term.Session = info.NativeSession;
             info.PropertyChanged += (s, args) =>
             {
-                TitleText.Text = info.Title ?? string.Empty;
-                AddressText.Text = ViewModel.AddressLine;
-                Dot.State = ToDot(info.State);
-                ApplyOverlay(info);
+                // SessionInfo 的通知虽已由 SessionManager 经 IUiDispatcher 封送，
+                // 这里再兜底一次：Title/Dot/Overlay 全是 STA，必须 UI 线程触碰，
+                // 否则 Ellipse 等形状在后台线程更新会抛 0x8001010E。
+                DispatcherHelper.Post(() =>
+                {
+                    TitleText.Text = info.Title ?? string.Empty;
+                    AddressText.Text = ViewModel.AddressLine;
+                    Dot.State = ToDot(info.State);
+                    ApplyOverlay(info);
+                });
             };
             ApplyOverlay(info);
         }
@@ -137,6 +149,7 @@ namespace SshTool.App.Views
         private void OnMenuClick(object sender, RoutedEventArgs e)
         {
             var flyout = new MenuFlyout();
+            flyout.Items.Add(Item("会话", () => SessionsSplit.IsPaneOpen = !SessionsSplit.IsPaneOpen));
             flyout.Items.Add(Item("片段", () => ViewModel.SnippetsCommand.Execute(null)));
             flyout.Items.Add(Item("断开", () => ViewModel.DisconnectCommand.Execute(null)));
             flyout.Items.Add(Item("关闭会话", () => ViewModel.CloseSessionCommand.Execute(null)));

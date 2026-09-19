@@ -218,6 +218,7 @@
     <Compile Include="ViewModels\GroupManageViewModel.cs" />
     <Compile Include="ViewModels\KnownHostsViewModel.cs" />
     <Compile Include="ViewModels\TerminalViewModel.cs" />
+    <Compile Include="ViewModels\SessionsPaneViewModel.cs" />
     <Compile Include="Views\TerminalPage.xaml.cs">
       <DependentUpon>TerminalPage.xaml</DependentUpon>
     </Compile>
@@ -244,6 +245,12 @@
     </Compile>
     <Compile Include="Views\Main\HostsPivot.xaml.cs">
       <DependentUpon>HostsPivot.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Main\SessionsPivot.xaml.cs">
+      <DependentUpon>SessionsPivot.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\SessionsPane.xaml.cs">
+      <DependentUpon>SessionsPane.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
@@ -323,6 +330,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Main\HostsPivot.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Main\SessionsPivot.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\SessionsPane.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

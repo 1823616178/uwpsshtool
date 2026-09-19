@@ -1,0 +1,21 @@
+<UserControl
+    x:Class="SshTool.App.Controls.SessionsPane"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Width="{StaticResource SessionsPaneWidth}" Background="{ThemeResource AppSurfaceBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Button Content="新会话" Click="OnNew" Margin="{StaticResource PagePadding}" />
+        <ListView x:Name="List" Grid.Row="1" IsItemClickEnabled="True" ItemClick="OnItemClick">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}"
+                               Padding="{StaticResource PagePadding}" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</UserControl>

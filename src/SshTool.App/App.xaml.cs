@@ -96,9 +96,10 @@ namespace SshTool.App
             var deferral = e.SuspendingOperation.GetDeferral();
             try
             {
-                // D05 组合根将在此追加仓库刷盘；当前至少保证日志队列落盘（真机靠 app.log 诊断）
+                // U09：先写会话快照，再刷仓库与日志队列（真机靠 app.log 诊断）
                 if (Infrastructure.AppServices.Current != null)
                 {
+                    await Infrastructure.AppServices.Current.SaveSessionSnapshotAsync();
                     await Infrastructure.AppServices.Current.FlushAsync();
                 }
                 else

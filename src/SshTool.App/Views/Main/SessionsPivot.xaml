@@ -1,0 +1,42 @@
+<UserControl
+    x:Class="SshTool.App.Views.Main.SessionsPivot"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Border x:Name="RestoreCard" Background="{ThemeResource AppSurfaceAltBrush}"
+                Padding="{StaticResource PadMd}" Margin="{StaticResource PagePadding}"
+                Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock x:Name="RestoreText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                <Button Content="全部恢复" Click="OnRestore" Margin="{StaticResource GapSmTop}" />
+            </StackPanel>
+        </Border>
+        <ListView x:Name="SessionList" Grid.Row="1" SelectionMode="Single"
+                  IsItemClickEnabled="True" ItemClick="OnItemClick">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <Grid Padding="{StaticResource PagePadding}" MinHeight="{StaticResource ListRowCompactHeight}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}" />
+                            <TextBlock Text="{Binding State}" Style="{StaticResource CaptionTextStyle}" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Content="✕" Click="OnCloseClick" Tag="{Binding}" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <controls:EmptyState x:Name="Empty" Grid.Row="1" Title="没有打开的会话"
+                             Description="点主机开始连接。"
+                             Glyph="{StaticResource IconConnect}" />
+    </Grid>
+</UserControl>

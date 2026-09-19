@@ -24,6 +24,10 @@ namespace SshTool.App.Views
             {
                 HostsPane.Attach(ViewModel.Hosts);
             }
+            if (ViewModel.Sessions != null)
+            {
+                SessionsPivotCtl.Attach(ViewModel.Sessions);
+            }
             ApplyStatusBar();
             ShowLoadWarnings();
             LogBuildInfo();
@@ -74,7 +78,24 @@ namespace SshTool.App.Views
                 MainPivot.SelectedIndex = 0;
                 return true;
             }
+            // U09：有活跃会话时退出应用需确认；确认后 CloseAll 再退出。
+            if (ViewModel.Sessions != null && AppServices.Current != null
+                && AppServices.Current.Sessions != null
+                && AppServices.Current.Sessions.ActiveSessionCount > 0)
+            {
+                var ignoreExit = ConfirmExitAsync();
+                return true;
+            }
             return false;
+        }
+
+        private async System.Threading.Tasks.Task ConfirmExitAsync()
+        {
+            bool exit = await ViewModel.Sessions.ConfirmExitIfNeededAsync();
+            if (exit)
+            {
+                Application.Current.Exit();
+            }
         }
 
         private void ShowLoadWarnings()
