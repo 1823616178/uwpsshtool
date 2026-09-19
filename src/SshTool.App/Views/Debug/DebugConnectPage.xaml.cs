@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
+using SshTool.App.Terminal;
 using SshTool.Core.Common;
 using SshTool.Core.Sessions;
+using SshTool.Core.Terminal;
 using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.UI.Xaml;
@@ -67,7 +69,6 @@ namespace SshTool.App.Views.Debug
             BusyOverlay.IsActive = true;
             BusyOverlay.Message = "连接中…";
             ResultBanner.Visibility = Visibility.Collapsed;
-            OutputBox.Text = string.Empty;
             EventLogBox.Text = string.Empty;
             lock (_logLock) { _log = string.Empty; }
             KeyTypeText.Text = "握手中…";
@@ -127,6 +128,7 @@ namespace SshTool.App.Views.Debug
                 if (connectCode != SshErrorCode.None)
                 {
                     Fail(connectCode, "连接失败");
+                    ReleaseSession();
                     return;
                 }
 
@@ -135,6 +137,7 @@ namespace SshTool.App.Views.Debug
                 if (authCode != SshErrorCode.None)
                 {
                     Fail(authCode, "密码认证失败");
+                    ReleaseSession();
                     return;
                 }
 
@@ -143,47 +146,33 @@ namespace SshTool.App.Views.Debug
                 if (shellCode != SshErrorCode.None)
                 {
                     Fail(shellCode, "打开 shell 失败");
+                    ReleaseSession();
                     return;
                 }
 
-                var dirty = new TaskCompletionSource<bool>();
-                EventHandler onDirty = (s, e) => { dirty.TrySetResult(true); };
-                session.ContentDirty += onDirty;
-                session.Write(Encoding.UTF8.GetBytes(ExecCommand + "\n"));
-                AppendLog("Write " + ExecCommand);
-                var timeout = Task.Delay(4000);
-                await Task.WhenAny(dirty.Task, timeout);
-                session.ContentDirty -= onDirty;
-
-                string output = string.Empty;
-                if (session.Screen != null)
-                {
-                    output = session.Screen.GetText(0, 0, session.Screen.Rows - 1,
-                        session.Screen.Cols - 1, 0);
-                    AppendLog("GetText len=" + output.Length.ToString(CultureInfo.InvariantCulture));
-                }
-
-                string report = DebugReport.EnvironmentHeader()
-                    + "\nN10/T03 调试连接\n目标 " + user + "@" + host + ":"
-                    + port.ToString(CultureInfo.InvariantCulture)
-                    + "\n命令 " + ExecCommand
-                    + "\n耗时 " + ElapsedMs() + " ms"
-                    + "\n\n" + output
-                    + "\n\n事件\n" + EventLogSnapshot();
-                _lastReport = report;
-
                 DispatcherHelper.Post(() =>
                 {
-                    OutputBox.Text = output;
+                    TermView.Screen = session.Screen;
                     ConnDot.State = StatusDotState.Connected;
-                    ShowBanner(BannerSeverity.Success, "屏幕文本",
-                        ElapsedMs() + " ms · " + output.Length.ToString(CultureInfo.InvariantCulture) + " 字");
+                    ShowBanner(BannerSeverity.Success, "已连接",
+                        "可输入 ls --color；耗时 " + ElapsedMs() + " ms");
                 });
+                FrameScheduler.Instance.Wake();
+                session.Write(Encoding.UTF8.GetBytes(ExecCommand + "\n"));
+                AppendLog("Write " + ExecCommand);
+
+                string report = DebugReport.EnvironmentHeader()
+                    + "\nN10/T05 调试连接\n目标 " + user + "@" + host + ":"
+                    + port.ToString(CultureInfo.InvariantCulture)
+                    + "\nOpenShell 80x24 · " + ElapsedMs() + " ms"
+                    + "\n\n事件\n" + EventLogSnapshot();
+                _lastReport = report;
                 await DebugReport.PublishAsync("n10-connect", "N10", report);
             }
-            finally
+            catch
             {
                 ReleaseSession();
+                throw;
             }
         }
 
@@ -228,6 +217,34 @@ namespace SshTool.App.Views.Debug
         private void OnContentDirty(object sender, EventArgs e)
         {
             AppendLog("ContentDirty");
+            FrameScheduler.Instance.Wake();
+        }
+
+        private void OnSendClick(object sender, RoutedEventArgs e)
+        {
+            SendInput();
+        }
+
+        private void OnSendKeyDown(object sender, Windows.UI.Xaml.Input.KeyRoutedEventArgs e)
+        {
+            if (e.Key == Windows.System.VirtualKey.Enter)
+            {
+                SendInput();
+                e.Handled = true;
+            }
+        }
+
+        private void SendInput()
+        {
+            if (_session == null || SendBox == null)
+            {
+                return;
+            }
+            string line = SendBox.Text ?? string.Empty;
+            SendBox.Text = string.Empty;
+            _session.Write(Encoding.UTF8.GetBytes(line + "\n"));
+            AppendLog("Write " + line);
+            FrameScheduler.Instance.Wake();
         }
 
         private async void OnCopyClick(object sender, RoutedEventArgs e)
@@ -260,6 +277,7 @@ namespace SshTool.App.Views.Debug
             session.HostKeyCheck -= OnHostKeyCheck;
             session.AuthPrompt -= OnAuthPrompt;
             session.ContentDirty -= OnContentDirty;
+            DispatcherHelper.Post(() => { TermView.Screen = null; });
             session.Dispose();
         }
 

@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:SshTool.App.Controls"
+    xmlns:term="using:SshTool.App.Terminal"
     mc:Ignorable="d"
     Background="{ThemeResource AppBgBrush}">
 
@@ -48,7 +49,7 @@
                                 <PasswordBox x:Name="PasswordBox" Header="密码" Width="180"
                                              Margin="{StaticResource GapSmLeft}" />
                             </StackPanel>
-                            <Button x:Name="ConnectButton" Content="连接并执行 uname -a; whoami"
+                            <Button x:Name="ConnectButton" Content="连接"
                                     Click="OnConnectClick" Margin="{StaticResource GapSmTop}" />
                         </StackPanel>
                     </Border>
@@ -74,10 +75,18 @@
                             Padding="{StaticResource PadMd}"
                             Margin="{StaticResource GapSmBottom}">
                         <StackPanel>
-                            <TextBlock Text="命令输出" Style="{StaticResource SectionTitleTextStyle}" />
-                            <TextBox x:Name="OutputBox" IsReadOnly="True" AcceptsReturn="True"
-                                     TextWrapping="Wrap" FontFamily="{StaticResource AppMonoFontFamily}"
-                                     MinHeight="80" Margin="{StaticResource GapSmTop}" />
+                            <TextBlock Text="终端" Style="{StaticResource SectionTitleTextStyle}" />
+                            <ScrollViewer HorizontalScrollBarVisibility="Auto"
+                                          VerticalScrollBarVisibility="Auto"
+                                          Margin="{StaticResource GapSmTop}">
+                                <term:TerminalView x:Name="TermView" />
+                            </ScrollViewer>
+                            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                                <TextBox x:Name="SendBox" Width="220" PlaceholderText="输入命令，回车发送"
+                                         KeyDown="OnSendKeyDown" />
+                                <Button x:Name="SendButton" Content="发送" Click="OnSendClick"
+                                        Margin="{StaticResource GapSmLeft}" />
+                            </StackPanel>
                         </StackPanel>
                     </Border>
 

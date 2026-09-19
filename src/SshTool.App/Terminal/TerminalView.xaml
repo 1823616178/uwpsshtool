@@ -1,0 +1,11 @@
+<UserControl
+    x:Class="SshTool.App.Terminal.TerminalView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:canvas="using:Microsoft.Graphics.Canvas.UI.Xaml">
+
+    <!-- T05：终端画布。尺寸由度量后在代码里设，避免 XAML 魔法数字。 -->
+    <canvas:CanvasControl x:Name="Canvas"
+                          Draw="OnDraw"
+                          CreateResources="OnCreateResources" />
+</UserControl>

@@ -112,6 +112,10 @@
     <Compile Include="Platform\NativeSshSession.cs" />
     <Compile Include="Platform\NativeTerminalScreen.cs" />
     <Compile Include="Terminal\FrameScheduler.cs" />
+    <Compile Include="Terminal\TerminalRenderer.cs" />
+    <Compile Include="Terminal\TerminalView.xaml.cs">
+      <DependentUpon>TerminalView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Platform\NativeSshSessionFactory.cs" />
     <Compile Include="Infrastructure\ServiceRegistry.cs" />
     <Compile Include="Infrastructure\DispatcherHelper.cs" />
@@ -212,6 +216,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Debug\PlatformSpikePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Terminal\TerminalView.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
