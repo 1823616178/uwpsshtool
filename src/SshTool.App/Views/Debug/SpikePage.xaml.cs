@@ -11,24 +11,27 @@ namespace SshTool.App.Views.Debug
     {
         private string _lastReport;
 
-        // 连接参数记在 LocalSettings 里，免得每次在手机上重打（密码除外，密码只进内存）
+        // 连接参数记在 LocalSettings 里，免得每次在手机上重打；密码不持久化，
+        // 每次打开页面恢复为 DebugSshDefaults 中的开发调试值。
         private const string SettingPrefix = "debug.sp03.";
 
         public SpikePage()
         {
             this.InitializeComponent();
             Libssh2Text.Text = "libssh2: " + SshTool.Native.SshSpike.Version();
-            HostBox.Text = LoadSetting("host", string.Empty);
-            PortBox.Text = LoadSetting("port", "22");
-            UserBox.Text = LoadSetting("user", string.Empty);
+            HostBox.Text = LoadSetting("host", DebugSshDefaults.Host);
+            PortBox.Text = LoadSetting("port", DebugSshDefaults.PortText);
+            UserBox.Text = LoadSetting("user", DebugSshDefaults.User);
+            PasswordBox.Password = DebugSshDefaults.Password;
             CommandBox.Text = LoadSetting("command", "uname -a");
         }
 
         private static string LoadSetting(string key, string fallback)
         {
             object value;
-            return ApplicationData.Current.LocalSettings.Values.TryGetValue(SettingPrefix + key, out value)
-                ? (value as string) ?? fallback : fallback;
+            string text = ApplicationData.Current.LocalSettings.Values.TryGetValue(SettingPrefix + key, out value)
+                ? value as string : null;
+            return string.IsNullOrWhiteSpace(text) ? fallback : text;
         }
 
         private static void SaveSetting(string key, string value)

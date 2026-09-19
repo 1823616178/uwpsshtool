@@ -14,6 +14,7 @@ namespace SshTool.App.Views.Debug
     /// 种子文件由设备门户/本机直接写入；密码只在文件里短暂停留，读出即删，
     /// 不记日志、不落盘、不入报告（§12.2）。
     /// 格式：{"host":"…","port":22,"user":"…","password":"…","command":"uname -a","udp":true}
+    /// 四个连接键可省略，省略或字符串留空时使用 DebugSshDefaults（见 doc/ENV.md §12）。
     /// </summary>
     internal static class SshAutoTest
     {
@@ -91,10 +92,13 @@ namespace SshTool.App.Views.Debug
             try
             {
                 var seed = JObject.Parse(json);
-                string host = seed.Value<string>("host") ?? string.Empty;
-                int port = seed.Value<int?>("port") ?? 22;
-                string user = seed.Value<string>("user") ?? string.Empty;
-                string password = seed.Value<string>("password") ?? string.Empty;
+                string host = seed.Value<string>("host");
+                int port = seed.Value<int?>("port") ?? DebugSshDefaults.Port;
+                string user = seed.Value<string>("user");
+                string password = seed.Value<string>("password");
+                host = string.IsNullOrWhiteSpace(host) ? DebugSshDefaults.Host : host;
+                user = string.IsNullOrWhiteSpace(user) ? DebugSshDefaults.User : user;
+                password = string.IsNullOrWhiteSpace(password) ? DebugSshDefaults.Password : password;
                 string command = seed.Value<string>("command") ?? "uname -a";
                 bool udp = seed.Value<bool?>("udp") ?? true;
 

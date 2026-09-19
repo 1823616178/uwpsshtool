@@ -226,3 +226,21 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\LocalState\logs"
 - 远端每 10 秒输出 UTC 时间的 1–30 分钟 SSH tick，用于以后批量观察锁屏、切应用和省电模式。
 
 📱 实测结论暂不阻塞编码；结果取得后再回写 `01-DESIGN.md §10`、D10/D11 与 R5/R6。
+
+---
+
+## 12. SSH 调试默认连接参数（2026-09-19）
+
+SP03、SP06、N10 三个调试页面以及 `ssh-autotest.json` 缺省解析统一使用：
+
+| 参数 | 默认值 |
+|---|---|
+| 主机 | `192.168.1.25` |
+| 端口 | `22` |
+| 用户 | `sun` |
+| 密码 | `550312171` |
+
+代码事实来源为 `src/SshTool.App/Views/Debug/DebugSshDefaults.cs`。页面里已保存到
+`LocalSettings` 的主机、端口、用户仍优先；密码不写 `LocalSettings`、日志或报告，
+每次新建调试页面时从上述开发默认值填入。这里是局域网测试凭据，已按调试便利性要求
+明文进入源码、文档与 Git 历史，不能复用于生产环境。

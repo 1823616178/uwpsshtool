@@ -36,9 +36,10 @@ namespace SshTool.App.Views.Debug
         public DebugConnectPage()
         {
             this.InitializeComponent();
-            HostBox.Text = LoadSetting("host", string.Empty);
-            PortBox.Text = LoadSetting("port", "22");
-            UserBox.Text = LoadSetting("user", string.Empty);
+            HostBox.Text = LoadSetting("host", DebugSshDefaults.Host);
+            PortBox.Text = LoadSetting("port", DebugSshDefaults.PortText);
+            UserBox.Text = LoadSetting("user", DebugSshDefaults.User);
+            PasswordBox.Password = DebugSshDefaults.Password;
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -353,8 +354,9 @@ namespace SshTool.App.Views.Debug
         private static string LoadSetting(string key, string fallback)
         {
             object value;
-            return ApplicationData.Current.LocalSettings.Values.TryGetValue(SettingPrefix + key, out value)
-                ? (value as string) ?? fallback : fallback;
+            string text = ApplicationData.Current.LocalSettings.Values.TryGetValue(SettingPrefix + key, out value)
+                ? value as string : null;
+            return string.IsNullOrWhiteSpace(text) ? fallback : text;
         }
 
         private static void SaveSetting(string key, string value)
