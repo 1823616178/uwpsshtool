@@ -36,7 +36,13 @@ namespace SshTool.Core.Common
         // 5xx 内部
         InternalError = 500,
 
-        // 6xx SFTP（F01 定义具体值后补充）
+        // 6xx SFTP（F01；01-DESIGN.md §6.3 定稿）
+        SftpInitFailed = 601,
+        SftpNoSuchFile = 602,
+        SftpPermissionDenied = 603,
+        SftpAlreadyExists = 604,
+        SftpTransferFailed = 605,
+        SftpCancelled = 606,
 
         Unknown = 999
     }

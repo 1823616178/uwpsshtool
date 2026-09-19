@@ -26,6 +26,12 @@
   <data name="Error_404" xml:space="preserve"><value>Keepalive timed out. Connection lost.</value></data>
   <data name="Error_405" xml:space="preserve"><value>Disconnected by policy (server limit reached).</value></data>
   <data name="Error_500" xml:space="preserve"><value>Internal error.</value></data>
+  <data name="Error_601" xml:space="preserve"><value>Failed to open the SFTP subsystem.</value></data>
+  <data name="Error_602" xml:space="preserve"><value>No such file or directory.</value></data>
+  <data name="Error_603" xml:space="preserve"><value>SFTP permission denied.</value></data>
+  <data name="Error_604" xml:space="preserve"><value>Target already exists or directory not empty.</value></data>
+  <data name="Error_605" xml:space="preserve"><value>File transfer failed.</value></data>
+  <data name="Error_606" xml:space="preserve"><value>Transfer cancelled.</value></data>
   <data name="Error_999" xml:space="preserve"><value>Unknown error.</value></data>
   <data name="Validation_Required" xml:space="preserve"><value>Required.</value></data>
   <data name="Validation_NameTooLong" xml:space="preserve"><value>Name too long (max 255).</value></data>

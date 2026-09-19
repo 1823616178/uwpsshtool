@@ -100,6 +100,15 @@ TEST(SshErrorCodeTest, MappingMatchesCSharpTable)
     EXPECT_EQ(codes::kSshErrorCodeUnknownHostKey, 302);
     EXPECT_EQ(codes::kSshErrorCodeSessionTimeout, 402);
     EXPECT_EQ(codes::kSshErrorCodePolicyDisconnect, 405);
+    // 6xx SFTP (F01): produced by the SFTP layer directly as unified codes
+    // (never through SshSessionError); anchored here so the numbers cannot
+    // drift from SshErrorCode.cs (the ps1 check covers the names).
+    EXPECT_EQ(codes::kSshErrorCodeSftpInitFailed, 601);
+    EXPECT_EQ(codes::kSshErrorCodeSftpNoSuchFile, 602);
+    EXPECT_EQ(codes::kSshErrorCodeSftpPermissionDenied, 603);
+    EXPECT_EQ(codes::kSshErrorCodeSftpAlreadyExists, 604);
+    EXPECT_EQ(codes::kSshErrorCodeSftpTransferFailed, 605);
+    EXPECT_EQ(codes::kSshErrorCodeSftpCancelled, 606);
     EXPECT_EQ(codes::kSshErrorCodeUnknown, 999);
 }
 

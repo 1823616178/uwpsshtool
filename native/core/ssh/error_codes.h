@@ -9,8 +9,8 @@
 // boundary (Native -> Core); display resolves messages from the code.
 //
 // Number ranges: 1xx connect & network, 2xx auth, 3xx negotiation & host key,
-// 4xx session, 5xx internal, 999 fallback. 0 is the reserved "no error"
-// value. Constant names mirror the C# member names one-to-one
+// 4xx session, 5xx internal, 6xx SFTP (F01), 999 fallback. 0 is the reserved
+// "no error" value. Constant names mirror the C# member names one-to-one
 // (kSshErrorCode<CsMemberName>) so the contract check compares name=value
 // pairs item by item.
 //
@@ -71,6 +71,15 @@ inline constexpr int kSshErrorCodePolicyDisconnect = 405;  // 策略断开（Cor
 
 // 5xx 内部
 inline constexpr int kSshErrorCodeInternalError = 500; // 内部错误（资源创建失败等）
+
+// 6xx SFTP（F01；01-DESIGN.md §6.3 定稿。SFTP 层直接返回这些统一码，
+// 不经过 SshSessionError；FX 状态映射见 sftp/sftp_session.{h,cpp}）
+inline constexpr int kSshErrorCodeSftpInitFailed = 601;      // SFTP 子系统打开失败
+inline constexpr int kSshErrorCodeSftpNoSuchFile = 602;      // 文件或路径不存在
+inline constexpr int kSshErrorCodeSftpPermissionDenied = 603; // 权限不足
+inline constexpr int kSshErrorCodeSftpAlreadyExists = 604;   // 目标已存在或目录非空
+inline constexpr int kSshErrorCodeSftpTransferFailed = 605;  // 文件传输失败（通用桶）
+inline constexpr int kSshErrorCodeSftpCancelled = 606;       // 传输已取消
 
 // 999 兜底（映射函数只在收到未知枚举强转/未知 libssh2 码时产出）
 inline constexpr int kSshErrorCodeUnknown = 999;

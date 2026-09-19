@@ -25,6 +25,9 @@ namespace sshclient {
 namespace io {
 class SessionThread;
 }
+namespace sftp {
+class SftpSession; // F01: sftp/sftp_session.h（SFTP 子系统；仅引用，不包含头）
+} // namespace sftp
 namespace ssh {
 
 class SshChannel; // N06: channel.h
@@ -257,6 +260,7 @@ public:
 
 private:
     friend class SshChannel; // N06: registration, pump dispatch, handle access
+    friend class sftp::SftpSession; // F01: loop-thread task post, raw handle access
 
     void doConnect();
     void onSocketEvent(SOCKET socket, short events);

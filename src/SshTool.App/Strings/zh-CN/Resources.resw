@@ -26,6 +26,12 @@
   <data name="Error_404" xml:space="preserve"><value>Keepalive 超时，连接已断开</value></data>
   <data name="Error_405" xml:space="preserve"><value>策略性断开（达到服务器限制）</value></data>
   <data name="Error_500" xml:space="preserve"><value>内部错误</value></data>
+  <data name="Error_601" xml:space="preserve"><value>SFTP 子系统打开失败</value></data>
+  <data name="Error_602" xml:space="preserve"><value>文件或目录不存在</value></data>
+  <data name="Error_603" xml:space="preserve"><value>SFTP 操作权限不足</value></data>
+  <data name="Error_604" xml:space="preserve"><value>目标已存在或目录非空</value></data>
+  <data name="Error_605" xml:space="preserve"><value>文件传输失败</value></data>
+  <data name="Error_606" xml:space="preserve"><value>传输已取消</value></data>
   <data name="Error_999" xml:space="preserve"><value>未知错误</value></data>
   <data name="Validation_Required" xml:space="preserve"><value>必填</value></data>
   <data name="Validation_NameTooLong" xml:space="preserve"><value>名称过长（不超过 255 字）</value></data>

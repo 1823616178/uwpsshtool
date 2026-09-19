@@ -191,6 +191,20 @@ target_link_libraries(agent_test PRIVATE ssh_session_host GTest::gtest_main)
 # 测试内用绝对路径定位 fixtures/keys（ctest 工作目录是 build/）。
 target_compile_definitions(agent_test PRIVATE SSH_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
 
+# F01：SFTP 原生层（只追加，不动既有条目）。
+add_library(ssh_sftp_host STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/sftp/sftp_session.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/sftp/transfer.cpp)
+target_include_directories(ssh_sftp_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core)
+target_link_libraries(ssh_sftp_host PUBLIC ssh_session_host)
+
+add_executable(sftp_test sftp_test.cpp)
+target_link_libraries(sftp_test PRIVATE ssh_sftp_host GTest::gtest_main)
+# 测试内用绝对路径定位临时文件目录（ctest 工作目录是 build/）；SHA256 走 OpenSSL。
+target_compile_definitions(sftp_test PRIVATE SSH_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+# 单测直连 OpenSSL（SHA256 对比）；include 不经 sftp 库透传。
+target_include_directories(sftp_test PRIVATE ${OPENSSL_DIR}/include)
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
 gtest_discover_tests(deps_smoke_test)
@@ -213,3 +227,4 @@ gtest_discover_tests(vault_ops_test)
 gtest_discover_tests(desktop_vectors_test)
 gtest_discover_tests(keytool_test)
 gtest_discover_tests(agent_test)
+gtest_discover_tests(sftp_test)

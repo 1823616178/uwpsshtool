@@ -380,8 +380,11 @@ public ref class KeyTool sealed {
 ### 6.3 错误码（C# `SshErrorCode` 与 `native/core/ssh/error_codes.h` 数值完全一致）
 
 沿用鸿蒙端码表：`0` 无错误；`1xx` 连接与网络（101 DNS、102 连接超时、103 拒绝、104 不可达）；`2xx` 认证（201 密码、202 公钥、203 KI、204 私钥短语/加载、205 认证超时、206 本机无凭据）；
-`3xx` 协商与主机密钥（301 算法、302 未知主机密钥、303 主机密钥不匹配、304 握手失败、305 握手超时）；`4xx` 会话（401 远端关闭、402 会话超时、403 socket 错误、404 keepalive 超时、405 策略性断开）；`5xx` 内部；`6xx` SFTP（F01 定义具体值）；`999` 未知。
+`3xx` 协商与主机密钥（301 算法、302 未知主机密钥、303 主机密钥不匹配、304 握手失败、305 握手超时）；`4xx` 会话（401 远端关闭、402 会话超时、403 socket 错误、404 keepalive 超时、405 策略性断开）；`5xx` 内部；`6xx` SFTP（F01 定义，见下）；`999` 未知。
 每个码在 `Strings/*/Resources.resw` 有中文与英文文案（键 `Error_<数值>`）。`scripts/check-error-codes.ps1` 在门禁中对拍两份码表。
+
+**6xx SFTP（F01，2026-09-19 定稿）**：`601` SFTP 子系统打开失败（`SftpInitFailed`）；`602` 文件或路径不存在（`SftpNoSuchFile`，含 `NO_SUCH_FILE/NO_SUCH_PATH/INVALID_HANDLE`）；`603` 权限不足（`SftpPermissionDenied`，含 `PERMISSION_DENIED/WRITE_PROTECT`）；`604` 目标已存在或目录非空（`SftpAlreadyExists`，含 `FILE_ALREADY_EXISTS/DIR_NOT_EMPTY`，`rmdir` 非空目录也落此码，文案携带明细）；`605` 文件传输失败（`SftpTransferFailed`：读写中断、磁盘错误、配额/空间不足等通用桶）；`606` 传输已取消（`SftpCancelled`：调用方取消标志）。
+传输层面的失败复用既有码：socket 超时→402、远端断开→401、收发错误→403。SFTP 状态码 `LIBSSH2_FX_*`→本码表的映射函数 `sftpStatusToCode` 在 `native/core/sftp/sftp_session.{h,cpp}`，单测逐项覆盖。
 
 ### 6.4 内存与安全纪律
 
@@ -687,6 +690,11 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
 - 复用已认证的 SSH 连接新开 SFTP 子系统（native `SftpSession` 挂在 `SshSession` 上），不重复认证。
 - 能力：列目录（名称/大小/权限/mtime/类型/符号链接目标）、进入/返回、新建目录、重命名、删除（目录递归需确认）、chmod、下载（`FileSavePicker` 或「下载」文件夹）、上传（`FileOpenPicker` 多选）、传输队列（进度、速率、取消、失败重试）、断点续传（按远端/本地已写大小续写）。
 - 传输在 native 线程分块 32 KiB，进度事件节流 200 ms。
+- **F01 原生层线程契约（2026-09-19）**：与 `SshChannel` 同纪律——所有 libssh2 调用都在会话 I/O 线程执行。
+  `SftpSession` 的公开 API 是阻塞式的（调用线程等待，禁止在 I/O 线程上调用，超时/取消由内部按 100 ms 切片裁决），
+  内部把整次操作作为一个任务投递到 I/O 线程，EAGAIN 时直接 `WSAPoll` 会话 socket 等待（I/O 线程在此期间不处理其它事件，
+  计时器只会延迟不会丢失）。因此 SFTP 会话建议独占一条 SSH 连接；传输中 `close()` 会排在飞行操作之后执行（有界等待）。
+  销毁契约同通道：先 `close()`（同步等待关闭完成）再析构；未 `close` 的 `File` 句柄由 `SftpSession::close()` 代关并标记孤儿。
 
 ### 11.2 端口转发（F03/F04）
 
