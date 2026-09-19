@@ -39,14 +39,14 @@
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
-| M2 | 终端引擎、渲染与输入 | 15 | 7 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
+| M2 | 终端引擎、渲染与输入 | 15 | 8 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **43** | |
+| **合计** | | **111** | **44** | |
 
 ### 1.1 关键路径
 
@@ -450,13 +450,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 中文与 emoji 对齐正确
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **T07 字体度量与网格尺寸** `S`
+- [x] **T07 字体度量与网格尺寸** `S`
   - 依赖：T06
   - 参考：`01-DESIGN.md §7.4`
   - 产出：`src/SshTool.Core/Terminal/GridSizeCalculator.cs`、`src/SshTool.App/Terminal/FontMetrics.cs`、测试
   - 要点：测 cellW/cellH；`cols/rows` 计算（padding、键条覆盖、最小 20×5）；尺寸变化防抖 100 ms 调 `Resize`；字号/DPI 变化重测。
   - 验收：
-    - [ ] Calculator 单测（多组宽高/字号/padding）
+    - [x] Calculator 单测（多组宽高/字号/padding）
     - [ ] 📱 旋转屏幕后 `stty size` 与显示一致
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1292,6 +1292,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] T05 📱 Lumia 上 TerminalView 显示正确
 - [ ] T06 👤 x64 Debug：连接后执行 `sh` 粘贴或上传 `tools/term-test/attrs.sh`，各属性显示正确并截图记入进度日志
 - [ ] T06 📱 Lumia 上中文与 emoji 对齐正确
+- [ ] T07 📱 Lumia 竖/横屏切换后执行 `stty size`，确认远端行列数与显示网格一致
 
 ---
 
@@ -1361,3 +1362,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | T04 | 6eb4ced | **完成**。`FrameSchedulerCore`：可见集合、Wake、空闲 30 帧退订、530 ms 闪烁（注入时钟）；异常隔离。App `FrameScheduler` 走 `CompositionTarget.Rendering`，Wake 任意线程经 DispatcherHelper 封送。Core 单测 8（共 488）；`verify.ps1` 全绿。 |
 | 2026-09-19 | T05 | 1a93249 | **代码完成**。`TerminalCell`/`CellBufferReader` 小端 16B 解析；`RowRunBuilder` 属性变化拆段、宽字符单独成段、行尾默认空白丢弃。`TerminalRenderer` 一张 RT 脏行重绘 + 块光标（默认色标记换成 Token 前景/背景）。`TerminalView` 挂 FrameScheduler；DebugConnectPage 改交互 shell + 发送框。Core 单测 +10（共 498）；`verify.ps1` 全绿。⏳ x64 `ls --color`、📱 Lumia 显示（已登记真机待办）。 |
 | 2026-09-19 | T06 | 6f67534 | **代码完成**。`TerminalPalette`：标记值→外观色、bold-as-bright 反查 0–7→8–15、reverse 互换、dim 向背景混 50%（§7.3 由「降 alpha」改为与鸿蒙 `applyDim` 一致）。渲染器：粗体字重或 1px 描边、italic/underline/strike/invisible、宽字符 2 格居中；光标 block 反色 / bar / underline + 530 ms 闪烁，失焦空心框；`CreateResources`/`DeviceLost` 重建行缓存。`tools/term-test/attrs.sh`。Core 单测 +12（共 510）；`verify.ps1` 全绿。⏳ x64 attrs.sh 截图、📱 中文/emoji 对齐（已登记真机待办）。 |
+| 2026-09-19 | T07 | cfb4163 | **代码完成**。`GridSizeCalculator` 按可视宽高扣除双边 padding 与覆盖式键条，向下取整并保证 20×5；`FontMetrics` 用 Win2D 测 `M`，按行高系数取整，字号/DPI 变化重测；`TerminalView.Session` 接线并对尺寸变化做 100 ms 防抖 `Resize`。Calculator 单测 +10（Core 共 520）；`verify.ps1 -Arm` 全绿（native 197、x64 Debug、ARM Release/.NET Native）。⏳ Lumia 旋转后 `stty size`（已登记真机待办）。 |
