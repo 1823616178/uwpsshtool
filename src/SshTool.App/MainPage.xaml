@@ -4,12 +4,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:SshTool.App.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource AppBgBrush}">
 
     <!-- X02 骨架页：U01 将替换为 02-UI-DESIGN.md §5.1 的主机 Pivot。
          间距一律走 Gap* Token（W10M 无 StackPanel.Spacing）。 -->
     <Grid>
+        <controls:Banner x:Name="LoadWarningBanner" VerticalAlignment="Top"
+                         Visibility="Collapsed" />
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
             <TextBlock Text="Lumia SSH"
                        Style="{StaticResource PageTitleTextStyle}"

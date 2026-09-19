@@ -205,6 +205,23 @@ namespace SshTool.Core.Storage
             RaiseChanged(origin, changedIds);
         }
 
+        public async Task FlushAsync()
+        {
+            await _gate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                if (_items == null)
+                {
+                    return;
+                }
+                await _store.SaveAsync(_items).ConfigureAwait(false);
+            }
+            finally
+            {
+                _gate.Release();
+            }
+        }
+
         private async Task EnsureLoadedCoreAsync()
         {
             if (_loaded)

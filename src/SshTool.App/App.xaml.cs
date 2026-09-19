@@ -17,11 +17,11 @@ namespace SshTool.App
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
-            // 种子可能在应用被挂起期间才推进来（门户 -Push），恢复时也要检查一次
             this.Resuming += OnResumingCheckSeed;
+            this.UnhandledException += OnUnhandledException;
         }
 
-        protected override void OnLaunched(LaunchActivatedEventArgs e)
+        protected override async void OnLaunched(LaunchActivatedEventArgs e)
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
@@ -32,20 +32,24 @@ namespace SshTool.App
                 Window.Current.Content = rootFrame;
             }
 
-            // 后台线程封送要用的 UI 线程 CoreDispatcher（Window.Current 是线程静态的，后台拿不到）
             Infrastructure.DispatcherHelper.Initialize(Window.Current.Dispatcher);
-            Platform.ThemeService.Initialize();
 
-            // X07：应用基础设施（D05 组合根在后续任务统一接管）。
-            // OnLaunched 可能再次触发（应用在前台时从磁贴/协议重新激活），服务必须复用已注册实例，
-            // 否则旧 NavigationService 仍挂在 BackRequested 上，一次返回被处理两次。
             Infrastructure.NavigationService navigation;
             if (!Infrastructure.ServiceRegistry.TryGet(out navigation))
             {
-                Infrastructure.ServiceRegistry.Register<SshTool.Core.Common.ILogger>(Platform.FileLogger.Instance);
                 Infrastructure.ServiceRegistry.Register(new Infrastructure.DialogService());
                 navigation = new Infrastructure.NavigationService();
                 Infrastructure.ServiceRegistry.Register(navigation);
+                var services = Infrastructure.AppServices.Initialize();
+                try
+                {
+                    await services.StartAsync();
+                }
+                catch (Exception ex)
+                {
+                    Platform.FileLogger.Instance.Log(SshTool.Core.Common.LogLevel.Error, "App",
+                        "启动失败 " + ex.GetType().Name);
+                }
             }
             navigation.Initialize(rootFrame);
 
@@ -58,17 +62,23 @@ namespace SshTool.App
                 Window.Current.Activate();
             }
 
-            // 激活之后再读包内配置：UWP 对激活有超时，启动路径上不做阻塞 IO
-            //（配置只影响日志级别与同步地址，晚一拍无影响）。
-            var ignore = LoadConfigAsync();
-            // SP03：发现 ssh-autotest.json 则跑无人值守 SSH 测试（读后即删，详见该类注释）
             var ignoreAutoTest = Views.Debug.SshAutoTest.RunIfSeedPresentAsync();
         }
 
-        private static async Task LoadConfigAsync()
+        private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            await Platform.AppConfig.LoadAsync();
-            Platform.FileLogger.Instance.Log(SshTool.Core.Common.LogLevel.Info, "App", "应用启动");
+            try
+            {
+                SshTool.Core.Common.ILogger logger;
+                if (Infrastructure.ServiceRegistry.TryGet(out logger))
+                {
+                    logger.Log(SshTool.Core.Common.LogLevel.Error, "App",
+                        "未处理异常 " + e.Exception.GetType().Name);
+                }
+            }
+            catch
+            {
+            }
         }
 
         private void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
@@ -87,7 +97,14 @@ namespace SshTool.App
             try
             {
                 // D05 组合根将在此追加仓库刷盘；当前至少保证日志队列落盘（真机靠 app.log 诊断）
-                await Platform.FileLogger.Instance.FlushAsync();
+                if (Infrastructure.AppServices.Current != null)
+                {
+                    await Infrastructure.AppServices.Current.FlushAsync();
+                }
+                else
+                {
+                    await Platform.FileLogger.Instance.FlushAsync();
+                }
             }
             catch
             {
