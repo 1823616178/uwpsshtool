@@ -37,4 +37,8 @@
   <data name="Validation_DestHostRequired" xml:space="preserve"><value>该转发类型需要目标地址</value></data>
   <data name="Validation_DestServerRequired" xml:space="preserve"><value>relay 转发需要选择存在的目标主机</value></data>
   <data name="Validation_SnippetContentRequired" xml:space="preserve"><value>片段内容不能为空</value></data>
+  <data name="Validation_EnvVarsFormat" xml:space="preserve"><value>环境变量须为合法标识符，且键不重复</value></data>
+  <data name="Validation_JumpSelfLoop" xml:space="preserve"><value>不能把自身设为跳板</value></data>
+  <data name="Validation_JumpCycle" xml:space="preserve"><value>跳板链不能成环</value></data>
+  <data name="Validation_JumpTooDeep" xml:space="preserve"><value>跳板链不能超过 5 级</value></data>
 </root>

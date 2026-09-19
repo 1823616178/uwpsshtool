@@ -39,5 +39,9 @@ namespace SshTool.Core.Validation
         public const string DestHostRequired = "Validation_DestHostRequired";
         public const string DestServerRequired = "Validation_DestServerRequired";
         public const string SnippetContentRequired = "Validation_SnippetContentRequired";
+        public const string EnvVarsFormat = "Validation_EnvVarsFormat";
+        public const string JumpSelfLoop = "Validation_JumpSelfLoop";
+        public const string JumpCycle = "Validation_JumpCycle";
+        public const string JumpTooDeep = "Validation_JumpTooDeep";
     }
 }

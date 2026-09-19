@@ -47,7 +47,7 @@ namespace SshTool.App.ViewModels
             _status = status ?? NullHostStatusProvider.Instance;
             Groups = new ObservableCollection<HostListGroup>();
 
-            NewHostCommand = new RelayCommand(() => OpenPlaceholder("新建主机", "M3"));
+            NewHostCommand = new RelayCommand(() => Navigation.Navigate<HostEditPage>(HostEditArgs.New()));
             SignInCommand = new RelayCommand(() => OpenPlaceholder("登录", "M5"));
             ToggleSearchCommand = new RelayCommand(ToggleSearch);
             QuickConnectCommand = new RelayCommand(QuickConnect, () => QuickConnectParser.TryParse(_quickConnectText, out _));
@@ -193,7 +193,16 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
-            OpenPlaceholder("编辑主机", "M3");
+            Navigation.Navigate<HostEditPage>(HostEditArgs.Edit(row.HostId));
+        }
+
+        public void Duplicate(HostListRow row)
+        {
+            if (row == null)
+            {
+                return;
+            }
+            Navigation.Navigate<HostEditPage>(HostEditArgs.Duplicate(row.HostId));
         }
 
         public void OpenSftp(HostListRow row)
@@ -203,24 +212,6 @@ namespace SshTool.App.ViewModels
                 return;
             }
             OpenPlaceholder("SFTP", "M7");
-        }
-
-        public async Task DuplicateAsync(HostListRow row)
-        {
-            if (row == null)
-            {
-                return;
-            }
-            Host source;
-            if (!_hostById.TryGetValue(row.HostId, out source) || source == null)
-            {
-                return;
-            }
-            Host clone = source.Clone();
-            clone.Id = IdGenerator.NewId();
-            clone.Name = (source.Name ?? string.Empty) + " 副本";
-            clone.LastConnectedAt = null;
-            await _hosts.AddAsync(clone, ChangeOrigin.User).ConfigureAwait(true);
         }
 
         public async Task DeleteAsync(HostListRow row)

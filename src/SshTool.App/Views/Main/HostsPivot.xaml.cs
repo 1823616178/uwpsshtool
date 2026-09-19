@@ -174,7 +174,7 @@ namespace SshTool.App.Views.Main
         {
             if (ViewModel != null)
             {
-                var ignore = ViewModel.DuplicateAsync(RowOf(sender));
+                ViewModel.Duplicate(RowOf(sender));
             }
         }
 

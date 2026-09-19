@@ -1,0 +1,131 @@
+<Page
+    x:Class="SshTool.App.Views.HostEditPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <Page.BottomAppBar>
+        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
+            <AppBarButton Label="保存" Click="OnSaveClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconEdit}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton Label="取消" Click="OnCancelClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconDelete}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+        </CommandBar>
+    </Page.BottomAppBar>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <TextBlock x:Name="TitleText" Style="{StaticResource PageTitleTextStyle}"
+                   Margin="{StaticResource PagePadding}" />
+        <Pivot x:Name="EditPivot" Grid.Row="1">
+            <PivotItem Header="连接">
+                <ScrollViewer>
+                    <StackPanel Padding="{StaticResource PagePadding}">
+                        <TextBox x:Name="NameBox" Header="名称 *" TextChanged="OnNameChanged" />
+                        <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
+                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                        <TextBox x:Name="HostBox" Header="地址 *" Margin="{StaticResource GapSmTop}" TextChanged="OnHostChanged" />
+                        <TextBlock x:Name="HostError" Style="{StaticResource CaptionTextStyle}"
+                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                        <TextBox x:Name="PortBox" Header="端口" InputScope="Number" Margin="{StaticResource GapSmTop}" TextChanged="OnPortChanged" />
+                        <TextBlock x:Name="PortError" Style="{StaticResource CaptionTextStyle}"
+                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                        <TextBox x:Name="UserBox" Header="用户名 *" Margin="{StaticResource GapSmTop}" TextChanged="OnUserChanged" />
+                        <TextBlock x:Name="UserError" Style="{StaticResource CaptionTextStyle}"
+                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                        <ComboBox x:Name="GroupBox" Header="分组" HorizontalAlignment="Stretch"
+                                  DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
+                                  SelectionChanged="OnGroupChanged" />
+                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
+                        <TextBox x:Name="KeepaliveBox" Header="保活间隔(秒)" InputScope="Number"
+                                 Margin="{StaticResource GapSmTop}" TextChanged="OnKeepaliveChanged" />
+                        <TextBlock x:Name="KeepaliveError" Style="{StaticResource CaptionTextStyle}"
+                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                        <TextBlock Text="主机指纹" Style="{StaticResource CaptionTextStyle}" Margin="{StaticResource GapSmTop}" />
+                        <controls:MonoText x:Name="FingerprintText" Compact="True" />
+                        <HyperlinkButton Content="清除" Click="OnClearFingerprint" />
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+            <PivotItem Header="认证">
+                <controls:EmptyState Glyph="{StaticResource IconKey}"
+                                     Title="认证"
+                                     Description="将在 U03b 提供" />
+            </PivotItem>
+            <PivotItem Header="终端">
+                <ScrollViewer>
+                    <StackPanel Padding="{StaticResource PagePadding}">
+                        <ComboBox x:Name="AppearanceBox" Header="外观" HorizontalAlignment="Stretch"
+                                  DisplayMemberPath="Name" SelectionChanged="OnAppearanceChanged" />
+                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
+                        <ComboBox x:Name="TermTypeBox" Header="终端类型" HorizontalAlignment="Stretch"
+                                  DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
+                                  SelectionChanged="OnTermTypeChanged" />
+                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
+                        <ToggleSwitch x:Name="BackspaceSwitch" Header="退格发送 Ctrl+H"
+                                      Margin="{StaticResource GapSmTop}" Toggled="OnBackspaceToggled" />
+                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
+                        <TextBlock Text="环境变量" Style="{StaticResource BodyTextStyle}" Margin="{StaticResource GapSmTop}" />
+                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
+                        <ItemsControl x:Name="EnvList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="{StaticResource GapXsTop}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox PlaceholderText="KEY" Text="{Binding Key, Mode=TwoWay}" />
+                                        <TextBox Grid.Column="1" PlaceholderText="VALUE" Text="{Binding Value, Mode=TwoWay}"
+                                                 Margin="{StaticResource GapSmLeft}" />
+                                        <HyperlinkButton Grid.Column="2" Content="删除" Click="OnRemoveEnv"
+                                                         Margin="{StaticResource GapSmLeft}" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <HyperlinkButton Content="添加变量" Click="OnAddEnv" />
+                        <TextBlock x:Name="EnvError" Style="{StaticResource CaptionTextStyle}"
+                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+            <PivotItem Header="高级">
+                <ScrollViewer>
+                    <StackPanel Padding="{StaticResource PagePadding}">
+                        <ToggleSwitch x:Name="TmuxSwitch" Header="tmux 自动附着" Toggled="OnTmuxToggled" />
+                        <TextBlock Text="断线/被系统挂起后重连回到原现场，推荐开启"
+                                   Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
+                        <TextBox x:Name="TmuxNameBox" Header="tmux 会话名" Margin="{StaticResource GapSmTop}"
+                                 TextChanged="OnTmuxNameChanged" />
+                        <TextBox x:Name="InitBox" Header="连接后执行命令（每行一条）"
+                                 AcceptsReturn="True" TextWrapping="Wrap"
+                                 Margin="{StaticResource GapSmTop}" TextChanged="OnInitChanged" />
+                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
+                        <ComboBox x:Name="JumpBox" Header="跳板主机" HorizontalAlignment="Stretch"
+                                  DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
+                                  SelectionChanged="OnJumpChanged" />
+                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
+                        <TextBlock x:Name="JumpError" Style="{StaticResource CaptionTextStyle}"
+                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                        <TextBlock Text="隧道" Style="{StaticResource BodyTextStyle}" Margin="{StaticResource GapSmTop}" />
+                        <ListView x:Name="TunnelList" DisplayMemberPath="Name" SelectionMode="None" />
+                        <HyperlinkButton Content="添加隧道" Click="OnAddTunnel" />
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+        </Pivot>
+    </Grid>
+</Page>

@@ -37,4 +37,8 @@
   <data name="Validation_DestHostRequired" xml:space="preserve"><value>This tunnel type needs a destination host.</value></data>
   <data name="Validation_DestServerRequired" xml:space="preserve"><value>Relay tunnels need an existing destination server.</value></data>
   <data name="Validation_SnippetContentRequired" xml:space="preserve"><value>Snippet content is required.</value></data>
+  <data name="Validation_EnvVarsFormat" xml:space="preserve"><value>Environment variable keys must be identifiers and unique.</value></data>
+  <data name="Validation_JumpSelfLoop" xml:space="preserve"><value>A host cannot jump through itself.</value></data>
+  <data name="Validation_JumpCycle" xml:space="preserve"><value>Jump chain cannot contain a cycle.</value></data>
+  <data name="Validation_JumpTooDeep" xml:space="preserve"><value>Jump chain cannot exceed 5 hops.</value></data>
 </root>
