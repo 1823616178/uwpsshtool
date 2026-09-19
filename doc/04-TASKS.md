@@ -40,13 +40,13 @@
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
-| M3 | 数据层与主机管理 | 12 | 10 | 主机/分组增删改、凭据安全保存 |
+| M3 | 数据层与主机管理 | 12 | 11 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **57** | |
+| **合计** | | **111** | **58** | |
 
 ### 1.1 关键路径
 
@@ -638,13 +638,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 编辑已保存密码的主机时密码框显示占位「已保存」，不回显明文
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **U04 分组管理** `S`
+- [x] **U04 分组管理** `S`
   - 依赖：U02
   - 参考：`02-UI-DESIGN.md §5.1`（分组头长按）
   - 产出：`src/SshTool.App/Views/GroupManagePage.xaml(.cs)`、`src/SshTool.App/ViewModels/GroupManageViewModel.cs`、`src/SshTool.App/Controls/ColorSwatchPicker.xaml(.cs)`（基础版：24 预设色 + Hex 输入）
   - 要点：新建（默认色 `#4F8CFF`）、重命名、改色、上移/下移（order）、删除（提示受影响主机与隧道数）；HostEdit 分组下拉旁 [管理分组] 入口。
   - 验收：
-    - [ ] 删除分组后主机 groupId 为空、隧道 groupId 为 null（仓库层已单测，UI 手测记录到进度日志）
+    - [x] 删除分组后主机 groupId 为空、隧道 groupId 为 null（仓库层已单测，UI 手测记录到进度日志）
   - 验证：`pwsh scripts/verify.ps1`
 
 - [x] **U05 连接相关对话框组件** `M`
@@ -1386,3 +1386,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | U02 | 08d2467 | **代码完成**。HostListBuilder 分组/name+recent 排序/搜索/折叠 JSON；QuickConnectParser `user@host[:port]` 含 `[::1]:22`；NullHostStatusProvider；HostsPivot + HostRow + 删除确认隧道数；Debug「生成 100 台测试主机」。Core 单测 +35（共 633）。⏳ 100 台滚动（已登记真机待办）。 |
 | 2026-09-19 | U03a | 9d87d4c | **完成**。HostEditPage Pivot 连接/认证占位/终端/高级；HostEditState 脏检查；JumpChainValidator 自环/成环/深度 5；环境变量行编辑、初始命令、仅本机标注；新建/编辑/复制；保存失败跳 Pivot 聚焦。Core 单测 +17（共 650）。 |
 | 2026-09-19 | U03b | 50fe573 | **完成**。CredentialDraft 保存勾选/取消、切换认证清理；SecretStore 写入/删除；密码框「已保存」不回显；导入/生成进 M7 占位。Core 单测 +11（共 661）。 |
+| 2026-09-19 | U04 | 9e5fdb1 | **完成**。GroupManagePage 新建/重命名/24 色板+Hex/上移下移/删除（提示主机与隧道数，ConfigService 清 groupId，仓库层已单测）；HostEdit「管理分组」。verify 全绿（661）。 |
