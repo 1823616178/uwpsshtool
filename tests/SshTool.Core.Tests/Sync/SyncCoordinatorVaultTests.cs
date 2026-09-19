@@ -572,6 +572,53 @@ namespace SshTool.Core.Tests.Sync
             Assert.True(h.Vault.State.Preferences.SyncPasswords);
         }
 
+        // S15：关闭私钥同步同样必须走轮换（与 syncPasswords 同规则，见 §7.2）。
+        [Fact]
+        public async Task SetPreferences_RejectsDisablingPrivateKeySync()
+        {
+            var h = new Harness();
+            await RegisteredAsync(h);
+            await h.Coordinator.SetupVaultAsync("sync-password");
+            await h.Coordinator.SetPreferencesAsync(new SyncPreferences
+            {
+                Enabled = true,
+                AutoSync = true,
+                SyncPasswords = false,
+                SyncPrivateKeys = true
+            });
+            Assert.True(h.Vault.State.Preferences.SyncPrivateKeys);
+
+            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => h.Coordinator.SetPreferencesAsync(new SyncPreferences
+                {
+                    Enabled = true,
+                    AutoSync = true,
+                    SyncPasswords = false,
+                    SyncPrivateKeys = false
+                }));
+            Assert.Contains("密钥轮换", error.Message);
+            Assert.True(h.Vault.State.Preferences.SyncPrivateKeys);
+        }
+
+        // S15 最小启用点（U17 私钥开关的直接入口；U17 未做，开关 UI 落地时调此入口）：
+        // 开启私钥同步经 SetPreferences 直接允许，不走轮换。
+        [Fact]
+        public async Task SetPreferences_AllowsEnablingPrivateKeys()
+        {
+            var h = new Harness();
+            await RegisteredAsync(h);
+            await h.Coordinator.SetupVaultAsync("sync-password");
+            await h.Coordinator.SetPreferencesAsync(new SyncPreferences
+            {
+                Enabled = true,
+                AutoSync = true,
+                SyncPasswords = false,
+                SyncPrivateKeys = true
+            });
+            Assert.True(h.Vault.State.Preferences.SyncPrivateKeys);
+            Assert.True(h.Vault.State.Dirty);
+        }
+
         [Fact]
         public async Task SetPreferences_DisableAll_GoesDisabled()
         {

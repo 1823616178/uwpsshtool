@@ -17,6 +17,8 @@
 
 #include "crypto/keytool.h"
 
+#include "private_key_vectors.h" // S15：桌面端 ssh2 派生的期望指纹（private-keys.mjs 生成）。
+
 #include <gtest/gtest.h>
 
 #include <openssl/bio.h>
@@ -644,4 +646,31 @@ TEST(KeytoolLibssh2Test, LoadDiscriminatorSelfCheck)
     EXPECT_FALSE(KeyLoadable(wrongProbe)) << "rc=" << wrongProbe.rc << " msg=" << wrongProbe.message;
     const LoadProbe rightProbe = TryLoadFromMemory(enc, kFixturePassphrase);
     EXPECT_TRUE(KeyLoadable(rightProbe)) << "rc=" << rightProbe.rc << " msg=" << rightProbe.message;
+}
+
+// ============================================================ S15 桌面端互通
+
+// S15 验收：ed25519/rsa/ecdsa × openssh/pem × 加密/未加密 的指纹与桌面端一致。
+// 期望值由 tools/sync-vectors/private-keys.mjs 经桌面端 node_modules/ssh2 的
+// utils.parseKey(...).getPublicSSH() + SHA256 生成（PKCS#8 两类 ssh2 不支持，
+// 取自 ssh-keygen .pub 的 wire blob，与 getPublicSSH 同物）；此处断言 native
+// 解析的格式/类型/加密标记/指纹与向量逐项一致（正确短语解析）。
+TEST(KeytoolInteropTest, FingerprintsMatchDesktopSsh2Vectors)
+{
+    namespace vectors = sshclient::crypto::privkey_vectors;
+    ASSERT_GT(vectors::kEntryCount, static_cast<std::size_t>(0));
+    for (std::size_t i = 0; i < vectors::kEntryCount; ++i) {
+        const vectors::Entry& e = vectors::kEntries[i];
+        SCOPED_TRACE(e.file);
+        std::string priv;
+        ASSERT_TRUE(ReadTextFile(FixturePath(e.file), priv)) << "missing fixture";
+        keytool::KeyInspectInfo info;
+        ASSERT_TRUE(keytool::InspectPrivateKey(priv, e.encrypted ? kFixturePassphrase : "",
+                                               &info))
+            << "native 无法解析";
+        EXPECT_STREQ(info.format.c_str(), e.format);
+        EXPECT_STREQ(info.keyType.c_str(), e.keyType);
+        EXPECT_EQ(info.encrypted, e.encrypted);
+        EXPECT_STREQ(info.fingerprintSha256.c_str(), e.fingerprint);
+    }
 }

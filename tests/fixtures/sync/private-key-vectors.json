@@ -1,0 +1,119 @@
+{
+  "generator": "tools/sync-vectors/private-keys.mjs (S15)",
+  "desktopSsh2Version": "^1.17.0",
+  "fixtureDir": "native/tests/fixtures/keys",
+  "fixturePassphraseHint": "文件名以 _enc 结尾的加密夹具使用 K01/N05 测试短语解析（测试专用）；JSON 不记录短语本身",
+  "pkcs8Note": "ssh2@1.17 不支持 PKCS#8（见本工具文件头），rsa3072_pkcs8[_enc] 的指纹取自 ssh-keygen .pub；Lumia 出站跳过 PKCS#8",
+  "entries": [
+    {
+      "file": "ecdsa256_openssh",
+      "keyType": "ecdsa-sha2-nistp256",
+      "format": "openssh",
+      "encrypted": false,
+      "ssh2Parseable": true,
+      "fingerprint": "SHA256:UJrZXMGpcZinQmImA1XLqwoMjrDYamoLaGGSwZ96ct4",
+      "fingerprintSource": "ssh2",
+      "sha256Hex": "2edaf99936c908fcec0252886ee12e953a84cb1b87b862f82161095547c030bf"
+    },
+    {
+      "file": "ecdsa256_openssh_enc",
+      "keyType": "ecdsa-sha2-nistp256",
+      "format": "openssh",
+      "encrypted": true,
+      "ssh2Parseable": true,
+      "fingerprint": "SHA256:gnqPGEyDP3LPm3x+AZttdBMV+LHReZEYAx0wZY2k7Rw",
+      "fingerprintSource": "ssh2",
+      "sha256Hex": "8c9a1be73b9026492fd8502b1779d3c1bc7caa749a729dd082e7040afe7fc8e8"
+    },
+    {
+      "file": "ecdsa256_pem",
+      "keyType": "ecdsa-sha2-nistp256",
+      "format": "pem",
+      "encrypted": false,
+      "ssh2Parseable": true,
+      "fingerprint": "SHA256:g8kFBlsvX4TvmTuj95FpX63QNRP5mTA+wS8RDImJYHM",
+      "fingerprintSource": "ssh2",
+      "sha256Hex": "81b9148b2f2aa7ed118ce2bb3ece2c4f3101ff360dd95d055d1476dcf2f04bb3"
+    },
+    {
+      "file": "ed25519_openssh",
+      "keyType": "ssh-ed25519",
+      "format": "openssh",
+      "encrypted": false,
+      "ssh2Parseable": true,
+      "fingerprint": "SHA256:yUjvGHYmmaSO8ZPFpMC28TReVGeR3FkkcVj3rSpFG5o",
+      "fingerprintSource": "ssh2",
+      "sha256Hex": "90a1b8af7b619ce3c801051ab863371c1436b48259aaf6b743e1a9732c6666b2"
+    },
+    {
+      "file": "ed25519_openssh_enc",
+      "keyType": "ssh-ed25519",
+      "format": "openssh",
+      "encrypted": true,
+      "ssh2Parseable": true,
+      "fingerprint": "SHA256:Kt7nAiMYqX3aCxwlk8I6mkpb3+C4NSDAxdGV4xbRuIM",
+      "fingerprintSource": "ssh2",
+      "sha256Hex": "73cce945c8433aef69e58136f5c4a0f0f7c0bab30818751f0c08f77189b95a2e"
+    },
+    {
+      "file": "rsa3072_openssh",
+      "keyType": "ssh-rsa",
+      "format": "openssh",
+      "encrypted": false,
+      "ssh2Parseable": true,
+      "fingerprint": "SHA256:YMyjFtTO5gbh3EkFKgccRHf1C4fpCfuK/Ef6HU+1EX8",
+      "fingerprintSource": "ssh2",
+      "sha256Hex": "0c43bcf779ec4ecee78d7355fab13ad04c87f8d321dc21ddf2cf9ba76ac9db85"
+    },
+    {
+      "file": "rsa3072_openssh_enc",
+      "keyType": "ssh-rsa",
+      "format": "openssh",
+      "encrypted": true,
+      "ssh2Parseable": true,
+      "fingerprint": "SHA256:mTHmshYeYDmV3kbctMKgh8c47tj8hEKE5XBh9Exshks",
+      "fingerprintSource": "ssh2",
+      "sha256Hex": "c66b5ab39c2459d2ef8768997df4f1cf44f8a46b43a85fe0fa150fd53be35908"
+    },
+    {
+      "file": "rsa3072_pem",
+      "keyType": "ssh-rsa",
+      "format": "pem",
+      "encrypted": false,
+      "ssh2Parseable": true,
+      "fingerprint": "SHA256:sbq1ZDO6nyRdE5tVw+RYev/FnGeRurZpfbCIosdvmfU",
+      "fingerprintSource": "ssh2",
+      "sha256Hex": "d3e49cc7ecbcc2a5493c8bd75d57aa1efbad54d6fec329422374369f1ab7f536"
+    },
+    {
+      "file": "rsa3072_pem_enc",
+      "keyType": "ssh-rsa",
+      "format": "pem",
+      "encrypted": true,
+      "ssh2Parseable": true,
+      "fingerprint": "SHA256:lVKB4oa4VrXb6IwrkA2UV7sku1BuL3ILvo1wG6k130s",
+      "fingerprintSource": "ssh2",
+      "sha256Hex": "6e22a4238b006a57c137a131525435a69bbeff1283477270c965b2dda987590c"
+    },
+    {
+      "file": "rsa3072_pkcs8",
+      "keyType": "ssh-rsa",
+      "format": "pem",
+      "encrypted": false,
+      "ssh2Parseable": false,
+      "fingerprint": "SHA256:7B2vS6QZ/8vVkyv4b9VSzgMqrCXmZzMCxEwK0jiubVo",
+      "fingerprintSource": "ssh-keygen-pub",
+      "sha256Hex": "12b7c50448142c5df418a844ea3d02bad1be4b7e17f5bae4b109e3bb2708cc31"
+    },
+    {
+      "file": "rsa3072_pkcs8_enc",
+      "keyType": "ssh-rsa",
+      "format": "pem",
+      "encrypted": true,
+      "ssh2Parseable": false,
+      "fingerprint": "SHA256:oq30y+YjN2/MZuWs6yqQpWQz3B7sFd8XMBjRGfgxD1g",
+      "fingerprintSource": "ssh-keygen-pub",
+      "sha256Hex": "e36aa564b698272ad6589d59a10a12f2ed4e649b6b3408c4f9ae080546946881"
+    }
+  ]
+}

@@ -151,6 +151,8 @@ try {
         Invoke-Step '⑦ 互通向量（S04）' {
             & node tools/sync-vectors/generate.mjs --check
             Assert-ExitOk 'generate --check'
+            & node tools/sync-vectors/private-keys.mjs --check
+            Assert-ExitOk 'private-keys --check（S15）'
             & node tools/sync-vectors/validate-fixtures.mjs
             Assert-ExitOk 'validate-fixtures（原文）'
             $rewritten = @(Get-ChildItem (Join-Path $RepoRoot 'artifacts\sync-interop\*.rewritten.json') -ErrorAction SilentlyContinue)

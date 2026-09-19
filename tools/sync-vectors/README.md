@@ -54,6 +54,8 @@ SPM1 恢复密钥（base64url 无填充 + `SHA256("SPM1"||raw)[0..12]` 大写校
 npm --prefix tools/sync-vectors install
 node tools/sync-vectors/generate.mjs            # 生成全部文件（含桌面端自检）
 node tools/sync-vectors/generate.mjs --check    # 逐字节校验（不写文件；verify 用）
+node tools/sync-vectors/private-keys.mjs        # S15：生成私钥指纹向量
+node tools/sync-vectors/private-keys.mjs --check
 node tools/sync-vectors/validate-fixtures.mjs                       # 校验 3 份文档夹具
 node tools/sync-vectors/validate-fixtures.mjs --file <path>         # 校验单个文件（verify 用它校验 Core 重写输出）
 pwsh scripts/verify.ps1 -Quick -Interop         # 全部门禁（含 native 向量 + Core 重写校验）
@@ -62,6 +64,27 @@ pwsh scripts/verify.ps1 -Quick -Interop         # 全部门禁（含 native 向�
 `verify.ps1 -Interop` 步骤：`generate.mjs --check` → native ctest（含 `desktop_vectors_test`）
 → `dotnet test`（含 `DesktopFixtureTests`，顺带落盘 Core 重写输出到 `artifacts/sync-interop/`）
 → `validate-fixtures.mjs` 校验 3 份原文 + 3 份重写输出。
+
+## S15 私钥指纹向量（private-keys.mjs）
+
+对 `native/tests/fixtures/keys` 下 11 个测试私钥，用桌面端 `node_modules/ssh2`
+（`^1.17.0`，只读）的 `utils.parseKey(buf, passphrase?).getPublicSSH()` 取公钥
+wire blob，`SHA256 → "SHA256:<base64 无填充>"`（与桌面端 `sync-serializer.ts` 的
+`publicKeyFingerprint` 逐行对齐）。文件名以 `_enc` 结尾的 5 个加密夹具用 K01/N05
+测试短语解析。输出 `tests/fixtures/sync/private-key-vectors.json`（C# 测试读）与
+`native/tests/private_key_vectors.h`（`keytool_test` 的 `KeytoolInteropTest` 读，
+断言 native 解析的格式/类型/加密标记/指纹与向量一致）。向量文件一旦提交**禁止修改**。
+
+覆盖：ed25519×openssh×{未加密,加密}、rsa×{openssh,pem,PKCS#8}×{未加密,加密}、
+ecdsa×{openssh×{未加密,加密},pem未加密}。缺 `ecdsa-pem-加密`（无此夹具，不新造密钥
+以保持 K01 冻结）与 `ed25519-pem`（ssh-keygen 造不出传统 PEM 形 ed25519）。
+
+已知互通限制（实测）：ssh2@1.17 的 `parseKey` 不支持 PKCS#8（`BEGIN PRIVATE KEY` /
+`BEGIN ENCRYPTED PRIVATE KEY` 报 `Unsupported key format`），桌面端既不能产生也
+不能消费含 PKCS#8 私钥的文档。因此 Lumia 端**出站跳过 PKCS#8**（见 Core
+`PrivateKeySyncCodec.IsDesktopCompatible`，记警告；本地登录不受影响），
+这两个夹具的向量指纹改取自同目录 `ssh-keygen` 生成的 `.pub`（与 `getPublicSSH`
+同一 blob，已抽查逐字节一致；JSON 中记 `fingerprintSource: ssh-keygen-pub`）。
 
 ## 遗留偏差（S03 范围外，未改协议文档）
 
