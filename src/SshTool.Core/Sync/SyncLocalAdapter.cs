@@ -11,45 +11,8 @@ using SshTool.Core.Sync.Protocol;
 
 namespace SshTool.Core.Sync
 {
-    // 03-SYNC-PROTOCOL.md §9 私钥同步在 S15 落地。S10 只定义接口 + 空实现：
-    // NullPrivateKeyInspector 下 Build 永不输出 privateKey 段、Apply 跳过 KeyEntry 创建，不阻塞。
-    public sealed class InspectedPrivateKey
-    {
-        public string Base64 { get; set; }
-        public string Format { get; set; }      // openssh / pem（PrivateKeyFormat 常量）
-        public string Fingerprint { get; set; } // SHA256:<43 位标准 base64 无填充>
-    }
-
-    public interface IPrivateKeyInspector
-    {
-        // 出站：私钥原文（UTF-8 文本）+ 短语（可为 null）→ 可同步元数据；
-        // 返回 null 表示无法解析，调用方跳过该主机私钥段。
-        InspectedPrivateKey Inspect(string privateKeyText, string passphrase);
-
-        // 入站：校验远端 secrets 私钥段（含 §4.1 结构之外的指纹复算）；
-        // 失败抛 SyncApplyException（整份不应用）；返回私钥原文，返回 null 表示跳过（S15 前）。
-        string DecodeAndVerify(ServerSecrets secrets, string serverId);
-    }
-
-    public sealed class NullPrivateKeyInspector : IPrivateKeyInspector
-    {
-        public static readonly NullPrivateKeyInspector Instance = new NullPrivateKeyInspector();
-
-        private NullPrivateKeyInspector()
-        {
-        }
-
-        public InspectedPrivateKey Inspect(string privateKeyText, string passphrase)
-        {
-            return null;
-        }
-
-        public string DecodeAndVerify(ServerSecrets secrets, string serverId)
-        {
-            return null;
-        }
-    }
-
+    // S15：IPrivateKeyInspector / InspectedPrivateKey / NullPrivateKeyInspector 已移至
+    // IPrivateKeyInspector.cs（异步化以便经由 IKeyTool 解析；命名空间与类型名不变）。
     // 03-SYNC-PROTOCOL.md §5 本地模型 ↔ SyncDocumentV1 映射。
     // 上行出站文档只经 SyncDocumentWriter 序列化（固定键序/排序，见 Writer/SameContent），
     // 下行入站文档由调用方经 SyncDocumentReader 校验后传入（此处再做 Validator 防御性复检）。
@@ -124,9 +87,15 @@ namespace SshTool.Core.Sync
                 SyncPrivateKeys = preferences.SyncPrivateKeys
             };
 
+            int skippedPrivateKeys = 0;
             foreach (var h in hosts)
             {
-                doc.Servers.Add(await BuildServerAsync(h, preferences).ConfigureAwait(false));
+                ServerBuildOutcome outcome = await BuildServerAsync(h, preferences).ConfigureAwait(false);
+                doc.Servers.Add(outcome.Record);
+                if (outcome.PrivateKeySkipped)
+                {
+                    skippedPrivateKeys++;
+                }
             }
 
             int droppedTunnels = 0;
@@ -182,13 +151,26 @@ namespace SshTool.Core.Sync
                     _log.Log(LogLevel.Warning, Tag, "Build 过滤悬空引用 tunnels=" + droppedTunnels
                         + " nulledGroups=" + nulledTunnelGroups);
                 }
+                if (skippedPrivateKeys > 0)
+                {
+                    // §9：拿不到短语/无法解析/桌面不兼容的私钥不同步，在同步状态中给出警告
+                    //（只记数量，不记私钥、短语与指纹内容）。
+                    _log.Log(LogLevel.Warning, Tag, "Build 跳过私钥段 hosts=" + skippedPrivateKeys);
+                }
                 _log.Log(LogLevel.Info, Tag, "Build servers=" + doc.Servers.Count
                     + " tunnels=" + doc.Tunnels.Count + " groups=" + doc.Groups.Count);
             }
             return doc;
         }
 
-        private async Task<ServerRecord> BuildServerAsync(Host h, SyncPreferencesV1 preferences)
+        // 出站单主机组装结果（PrivateKeySkipped：本应同步私钥但检查器返回 null 而跳过）。
+        private sealed class ServerBuildOutcome
+        {
+            public ServerRecord Record;
+            public bool PrivateKeySkipped;
+        }
+
+        private async Task<ServerBuildOutcome> BuildServerAsync(Host h, SyncPreferencesV1 preferences)
         {
             var record = new ServerRecord
             {
@@ -238,13 +220,17 @@ namespace SshTool.Core.Sync
                 }
             }
 
-            // 私钥段 S15 落地：Null 检查器返回 null 即跳过（S10 前此项不输出，见 §5.1）。
+            // 私钥段（S15，见 §5.1/§9）：syncPrivateKeys && key 鉴权 && 有 keyId 时，
+            // 经 IPrivateKeyInspector 解析原文并计算指纹；返回 null 则该主机不同步私钥
+            //（BuildLocalDocumentAsync 计数并记警告，不阻塞整份文档）。
+            bool privateKeySkipped = false;
             if (preferences.SyncPrivateKeys && h.AuthType == AuthType.Key && !string.IsNullOrEmpty(h.KeyId))
             {
                 string privateText = await _secrets.GetAsync(SecretKeys.KeyPrivate(h.KeyId)).ConfigureAwait(false);
                 if (!string.IsNullOrEmpty(privateText))
                 {
-                    InspectedPrivateKey inspected = _inspector.Inspect(privateText, passphrase);
+                    InspectedPrivateKey inspected = await _inspector.InspectAsync(
+                        privateText, passphrase).ConfigureAwait(false);
                     if (inspected != null
                         && !string.IsNullOrEmpty(inspected.Base64)
                         && !string.IsNullOrEmpty(inspected.Format)
@@ -256,11 +242,15 @@ namespace SshTool.Core.Sync
                         secrets.PrivateKeyFormat = inspected.Format;
                         secrets.PrivateKeyFingerprint = inspected.Fingerprint;
                     }
+                    else
+                    {
+                        privateKeySkipped = true;
+                    }
                 }
             }
 
             record.Secrets = secrets;
-            return record;
+            return new ServerBuildOutcome { Record = record, PrivateKeySkipped = privateKeySkipped };
         }
 
         // §5.2 应用远端文档（下行）。任一道保护触发即抛 SyncApplyException，整份不应用。
@@ -373,10 +363,14 @@ namespace SshTool.Core.Sync
                     newHosts.Add(created);
                 }
 
-                // 私钥入站（S10 起结构已由 Reader/Validator 校验；指纹复算与 KeyEntry 落地在 S15）。
+                // 私钥入站（S15）：结构已由 Reader/Validator 校验，此处经检查器做
+                // header/格式/指纹复算；失败抛 SyncApplyException 整份不应用。
+                // 校验通过后落库为 KeyEntry（名称 "<host.name> (synced)"，按指纹去重）
+                // 并绑定主机（见 AssignSyncedKeyAsync）。
                 if (s.Secrets != null && s.Secrets.PrivateKey != null)
                 {
-                    string decoded = _inspector.DecodeAndVerify(s.Secrets, s.Profile.Id);
+                    string decoded = await _inspector.DecodeAndVerifyAsync(
+                        s.Secrets, s.Profile.Id).ConfigureAwait(false);
                     if (decoded != null)
                     {
                         await AssignSyncedKeyAsync(newHosts[newHosts.Count - 1], s.Secrets, decoded).ConfigureAwait(false);
@@ -454,6 +448,7 @@ namespace SshTool.Core.Sync
             await _tunnels.ReplaceAllAsync(newTunnels, ChangeOrigin.Sync).ConfigureAwait(false);
 
             // 凭据「出现即覆盖、缺失即保留」；本机有而远端无的主机清其 host: 凭据（复用 ConfigService 级联）。
+            // 下行写入一律标记 ChangeOrigin.Sync（S14 凭据 Changed 接线据此过滤，不再标脏，避免上传回环）。
             foreach (var s in doc.Servers)
             {
                 var sec = s.Secrets;
@@ -461,21 +456,21 @@ namespace SshTool.Core.Sync
                 if (sec.Password != null)
                 {
                     string key = SecretKeys.HostPassword(s.Profile.Id);
-                    if (sec.Password.Length == 0) await _secrets.RemoveAsync(key).ConfigureAwait(false);
-                    else await _secrets.SetAsync(key, sec.Password).ConfigureAwait(false);
+                    if (sec.Password.Length == 0) await _secrets.RemoveAsync(key, ChangeOrigin.Sync).ConfigureAwait(false);
+                    else await _secrets.SetAsync(key, sec.Password, ChangeOrigin.Sync).ConfigureAwait(false);
                 }
                 if (sec.Passphrase != null)
                 {
                     string key = SecretKeys.HostPassphrase(s.Profile.Id);
-                    if (sec.Passphrase.Length == 0) await _secrets.RemoveAsync(key).ConfigureAwait(false);
-                    else await _secrets.SetAsync(key, sec.Passphrase).ConfigureAwait(false);
+                    if (sec.Passphrase.Length == 0) await _secrets.RemoveAsync(key, ChangeOrigin.Sync).ConfigureAwait(false);
+                    else await _secrets.SetAsync(key, sec.Passphrase, ChangeOrigin.Sync).ConfigureAwait(false);
                 }
             }
             foreach (var h in localHosts)
             {
                 if (!remoteById.ContainsKey(h.Id))
                 {
-                    await _secrets.RemoveByPrefixAsync(SecretKeys.HostPrefix(h.Id)).ConfigureAwait(false);
+                    await _secrets.RemoveByPrefixAsync(SecretKeys.HostPrefix(h.Id), ChangeOrigin.Sync).ConfigureAwait(false);
                 }
             }
 
@@ -515,7 +510,10 @@ namespace SshTool.Core.Sync
                 || p.AuthType != server.AuthType;
         }
 
-        // 入站私钥落地（S15 前仅 Null 检查器跳过；自定义检查器返回原文时按指纹去重建 KeyEntry）。
+        // 入站私钥落地（§5.2 第 4 条）：按指纹去重（已存在则复用并绑定主机），
+        // 否则新建 KeyEntry（名称 "<host.name> (synced)"）并存私钥原文；短语随
+        // secrets.passphrase 走 host: 凭据（下行凭据段已有“出现即覆盖”处理），
+        // 出站时按 key: 优先、host: 其次找回，可往返。ChangeOrigin.Sync。
         private async Task AssignSyncedKeyAsync(Host host, ServerSecrets secrets, string privateText)
         {
             var keys = await _keys.GetAllAsync().ConfigureAwait(false);
@@ -541,7 +539,7 @@ namespace SshTool.Core.Sync
                 Comment = null
             };
             await _keys.AddAsync(entry, ChangeOrigin.Sync).ConfigureAwait(false);
-            await _secrets.SetAsync(SecretKeys.KeyPrivate(entry.Id), privateText).ConfigureAwait(false);
+            await _secrets.SetAsync(SecretKeys.KeyPrivate(entry.Id), privateText, ChangeOrigin.Sync).ConfigureAwait(false);
             host.KeyId = entry.Id;
         }
     }

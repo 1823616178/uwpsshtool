@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
@@ -40,6 +41,9 @@ namespace SshTool.App.Views
             ApplyStatusBar();
             ShowLoadWarnings();
             LogBuildInfo();
+            // S14：同步中图标旋转（SyncIconGlyph/Foreground 走 x:Bind，起停只能走代码）。
+            ViewModel.PropertyChanged += OnViewModelPropertyChanged;
+            UpdateSyncSpin();
 #if DEBUG_PAGES
             DebugConnectItem.Visibility = Visibility.Visible;
             DebugVaultItem.Visibility = Visibility.Visible;
@@ -87,6 +91,35 @@ namespace SshTool.App.Views
                 nav.UnregisterBackHandler(this);
             }
             base.OnNavigatedFrom(e);
+        }
+
+        private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e == null || string.IsNullOrEmpty(e.PropertyName)
+                || string.Equals(e.PropertyName, "IsSyncSpinning", StringComparison.Ordinal))
+            {
+                UpdateSyncSpin();
+            }
+        }
+
+        // S14：syncing 相位持续旋转，其他相位停在 0°。Storyboard 操作一律吞异常：
+        // 页面卸载竞态下不值得为一个装饰动画崩溃。
+        private void UpdateSyncSpin()
+        {
+            try
+            {
+                if (ViewModel != null && ViewModel.IsSyncSpinning)
+                {
+                    SyncSpinStory.Begin();
+                }
+                else
+                {
+                    SyncSpinStory.Stop();
+                }
+            }
+            catch (Exception)
+            {
+            }
         }
 
         // §4 规则 7：非「主机」Pivot 先切回主机；已在主机则交给系统退出。

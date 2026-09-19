@@ -9,12 +9,15 @@ using SshTool.Core.Storage;
 namespace SshTool.App.Platform
 {
     // D03：整个键值表 JSON 经 ISecureFile 加密落盘；串行化访问。
+    // S14：写操作落盘后触发 Changed（只带键名与来源，不带值；凭据 Changed 接线据此标脏）。
     public sealed class DpapiSecretStore : ISecretStore
     {
         private readonly ISecureFile _file;
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(1, 1);
         private Dictionary<string, string> _map;
         private bool _loaded;
+
+        public event EventHandler<SecretChangedEventArgs> Changed;
 
         public DpapiSecretStore()
             : this(new DpapiSecureFile())
@@ -49,7 +52,7 @@ namespace SshTool.App.Platform
             }
         }
 
-        public async Task SetAsync(string key, string value)
+        public async Task SetAsync(string key, string value, ChangeOrigin origin = ChangeOrigin.User)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -73,19 +76,22 @@ namespace SshTool.App.Platform
             {
                 _gate.Release();
             }
+            RaiseChanged(origin, new string[] { key });
         }
 
-        public async Task RemoveAsync(string key)
+        public async Task RemoveAsync(string key, ChangeOrigin origin = ChangeOrigin.User)
         {
             if (string.IsNullOrEmpty(key))
             {
                 return;
             }
+            bool removed;
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
                 await EnsureLoadedAsync().ConfigureAwait(false);
-                if (_map.Remove(key))
+                removed = _map.Remove(key);
+                if (removed)
                 {
                     await PersistAsync().ConfigureAwait(false);
                 }
@@ -94,16 +100,21 @@ namespace SshTool.App.Platform
             {
                 _gate.Release();
             }
+            if (removed)
+            {
+                RaiseChanged(origin, new string[] { key });
+            }
         }
 
-        public async Task RemoveByPrefixAsync(string prefix)
+        public async Task RemoveByPrefixAsync(string prefix, ChangeOrigin origin = ChangeOrigin.User)
         {
             prefix = prefix ?? string.Empty;
+            List<string> doomed;
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
                 await EnsureLoadedAsync().ConfigureAwait(false);
-                var doomed = new List<string>();
+                doomed = new List<string>();
                 foreach (KeyValuePair<string, string> pair in _map)
                 {
                     if (pair.Key.StartsWith(prefix, StringComparison.Ordinal))
@@ -125,6 +136,7 @@ namespace SshTool.App.Platform
             {
                 _gate.Release();
             }
+            RaiseChanged(origin, doomed);
         }
 
         private async Task EnsureLoadedAsync()
@@ -159,6 +171,15 @@ namespace SshTool.App.Platform
             }
             byte[] utf8 = Encoding.UTF8.GetBytes(obj.ToString(Newtonsoft.Json.Formatting.None));
             await _file.WriteAsync(utf8).ConfigureAwait(false);
+        }
+
+        private void RaiseChanged(ChangeOrigin origin, IList<string> changedKeys)
+        {
+            var handler = Changed;
+            if (handler != null && changedKeys != null && changedKeys.Count != 0)
+            {
+                handler(this, new SecretChangedEventArgs(origin, new List<string>(changedKeys)));
+            }
         }
     }
 }

@@ -10,6 +10,8 @@ namespace SshTool.Core.Storage
         private readonly Dictionary<string, string> _map = new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(1, 1);
 
+        public event EventHandler<SecretChangedEventArgs> Changed;
+
         public async Task<string> GetAsync(string key)
         {
             if (string.IsNullOrEmpty(key))
@@ -28,7 +30,7 @@ namespace SshTool.Core.Storage
             }
         }
 
-        public async Task SetAsync(string key, string value)
+        public async Task SetAsync(string key, string value, ChangeOrigin origin = ChangeOrigin.User)
         {
             if (string.IsNullOrEmpty(key))
             {
@@ -50,32 +52,39 @@ namespace SshTool.Core.Storage
             {
                 _gate.Release();
             }
+            RaiseChanged(origin, new string[] { key });
         }
 
-        public async Task RemoveAsync(string key)
+        public async Task RemoveAsync(string key, ChangeOrigin origin = ChangeOrigin.User)
         {
             if (string.IsNullOrEmpty(key))
             {
                 return;
             }
+            bool removed;
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
-                _map.Remove(key);
+                removed = _map.Remove(key);
             }
             finally
             {
                 _gate.Release();
             }
+            if (removed)
+            {
+                RaiseChanged(origin, new string[] { key });
+            }
         }
 
-        public async Task RemoveByPrefixAsync(string prefix)
+        public async Task RemoveByPrefixAsync(string prefix, ChangeOrigin origin = ChangeOrigin.User)
         {
             prefix = prefix ?? string.Empty;
+            List<string> doomed;
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
-                var doomed = new List<string>();
+                doomed = new List<string>();
                 foreach (KeyValuePair<string, string> pair in _map)
                 {
                     if (pair.Key.StartsWith(prefix, StringComparison.Ordinal))
@@ -91,6 +100,19 @@ namespace SshTool.Core.Storage
             finally
             {
                 _gate.Release();
+            }
+            if (doomed.Count != 0)
+            {
+                RaiseChanged(origin, doomed);
+            }
+        }
+
+        private void RaiseChanged(ChangeOrigin origin, IReadOnlyList<string> changedKeys)
+        {
+            var handler = Changed;
+            if (handler != null && changedKeys != null && changedKeys.Count != 0)
+            {
+                handler(this, new SecretChangedEventArgs(origin, changedKeys));
             }
         }
     }

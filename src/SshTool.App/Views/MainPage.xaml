@@ -6,6 +6,16 @@
     xmlns:main="using:SshTool.App.Views.Main"
     Background="{ThemeResource AppBgBrush}">
 
+    <!-- S14：同步图标绑定 SyncState（02-UI-DESIGN.md §5.1，映射见 SyncIconMap）；
+         syncing 时 SyncSpinStory 持续旋转（由 MainPage.xaml.cs 按 IsSyncSpinning 起停）。 -->
+    <Page.Resources>
+        <Storyboard x:Name="SyncSpinStory" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="SyncSpinTransform"
+                             Storyboard.TargetProperty="Angle"
+                             From="0" To="360" Duration="0:0:1" />
+        </Storyboard>
+    </Page.Resources>
+
     <!-- 02-UI-DESIGN.md §5.1：Pivot 主机/会话/隧道 + 底部 CommandBar。
          OverflowButtonVisibility 需 16299，15063 上会 XamlParseException，省略即可（有 SecondaryCommands 时系统会显示 …）。 -->
     <Page.BottomAppBar>
@@ -22,7 +32,14 @@
             </AppBarButton>
             <AppBarButton x:Name="SyncButton" Label="同步" Click="OnSyncClick">
                 <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconSync}" />
+                    <FontIcon x:Name="SyncGlyph"
+                              Glyph="{x:Bind ViewModel.SyncIconGlyph, Mode=OneWay}"
+                              Foreground="{x:Bind ViewModel.SyncIconForeground, Mode=OneWay}"
+                              RenderTransformOrigin="0.5,0.5">
+                        <FontIcon.RenderTransform>
+                            <RotateTransform x:Name="SyncSpinTransform" Angle="0" />
+                        </FontIcon.RenderTransform>
+                    </FontIcon>
                 </AppBarButton.Icon>
             </AppBarButton>
             <CommandBar.SecondaryCommands>

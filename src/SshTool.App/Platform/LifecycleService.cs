@@ -83,6 +83,12 @@ namespace SshTool.App.Platform
             get { lock (_sync) { return _policy.IsInBackground; } }
         }
 
+        // S14：前后台透出事件（同步触发器订阅：回前台补同步 + 开轮询，进后台停轮询）。
+        // 在系统事件收敛完成后触发；订阅方异常被吞掉并记日志，绝不影响会话收敛路径。
+        public event EventHandler ReturnedToForeground;
+
+        public event EventHandler EnteredBackground;
+
         public bool IsPolicySuspended
         {
             get { lock (_sync) { return _policy.IsSuspended; } }
@@ -254,6 +260,7 @@ namespace SshTool.App.Platform
                     await RequestExecutionAsync().ConfigureAwait(true);
                 }
                 _logger?.Log(LogLevel.Info, "Lifecycle", "background sessions=" + SafeActiveCount());
+                RaiseEnteredBackground();
             }
             catch (Exception ex)
             {
@@ -546,6 +553,7 @@ namespace SshTool.App.Platform
                 Run(actions);
                 _sessions.ClearSuspendMarks();
                 _logger?.Log(LogLevel.Info, "Lifecycle", "foreground via " + source);
+                RaiseReturnedToForeground();
             }
             catch (Exception ex)
             {
@@ -624,6 +632,40 @@ namespace SshTool.App.Platform
         }
 
         // ---- 设置与计数快照（读失败即用安全默认，绝不阻断生命周期路径） ----
+
+        private void RaiseReturnedToForeground()
+        {
+            EventHandler handler = ReturnedToForeground;
+            if (handler == null)
+            {
+                return;
+            }
+            try
+            {
+                handler(this, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                _logger?.Log(LogLevel.Warning, "Lifecycle", "foreground listener failed " + ex.GetType().Name);
+            }
+        }
+
+        private void RaiseEnteredBackground()
+        {
+            EventHandler handler = EnteredBackground;
+            if (handler == null)
+            {
+                return;
+            }
+            try
+            {
+                handler(this, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                _logger?.Log(LogLevel.Warning, "Lifecycle", "background listener failed " + ex.GetType().Name);
+            }
+        }
 
         private BackgroundSettings ReadSettings()
         {

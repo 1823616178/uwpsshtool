@@ -8,6 +8,11 @@ using SshTool.Core.Common;
 using SshTool.Core.Sessions;
 using SshTool.Core.Storage;
 using SshTool.Core.Storage.Repositories;
+using SshTool.Core.Sync;
+using SshTool.Core.Sync.Api;
+using SshTool.Core.Sync.Auth;
+using SshTool.Core.Sync.Vault;
+using Windows.Storage;
 
 namespace SshTool.App.Infrastructure
 {
@@ -51,6 +56,14 @@ namespace SshTool.App.Infrastructure
         public KeepAwakeService KeepAwake { get; private set; }
         public LifecycleService Lifecycle { get; private set; }
         public NetworkMonitor Network { get; private set; }
+        // S14：同步栈（任一环节构造失败时保持 null，本地 SSH 功能不受影响；
+        // MainViewModel 与触发器调用方一律做空判断）。
+        public AuthStore Auth { get; private set; }
+        public VaultCacheStore VaultCache { get; private set; }
+        public ApiClient SyncApi { get; private set; }
+        public SyncLocalAdapter SyncLocal { get; private set; }
+        public SyncCoordinator Sync { get; private set; }
+        public SyncTriggers SyncTriggers { get; private set; }
         public List<string> LoadWarnings { get; private set; }
 
         public static AppServices Initialize()
@@ -136,8 +149,94 @@ namespace SshTool.App.Infrastructure
                 Lifecycle.WatchNetwork(Network);
                 Network.Start();
             });
+            // S14：同步栈与触发器接线（03-SYNC-PROTOCOL.md §7.5）。
+            // 构造失败（配置/DPAPI 异常）只记日志：同步是增值功能，绝不阻断本地启动。
+            // 初始化失败同样不阻断：触发器按当前状态门控，未登录/未启用时静默跳过。
+            Time("Sync", () =>
+            {
+                try
+                {
+                    BuildSyncStack();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(LogLevel.Warning, "Sync", "同步栈构造失败 " + ex.GetType().Name);
+                }
+            });
+            if (Sync != null)
+            {
+                try
+                {
+                    await TimeAsync("SyncInit", () => Sync.InitializeAsync()).ConfigureAwait(true);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(LogLevel.Warning, "Sync", "同步初始化失败 " + ex.GetType().Name);
+                }
+            }
+            if (SyncTriggers != null)
+            {
+                SyncTriggers.NotifyStartup();
+                SyncTriggers.NotifyForeground();
+            }
             Logger.Log(LogLevel.Info, "App",
                 "启动完成 " + total.ElapsedMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ms");
+        }
+
+        // S14：构造同步栈并接入触发器。调用方已保证 AppConfig 已加载、仓库已就绪。
+        private void BuildSyncStack()
+        {
+            StorageFolder root = ApplicationData.Current.LocalFolder;
+            Auth = new AuthStore(new DpapiSecureFile(root, AuthStore.RelativePath), logger: Logger);
+            ServiceRegistry.Register(Auth);
+            VaultCache = new VaultCacheStore(new DpapiSecureFile(root, VaultCacheStore.RelativePath), Logger);
+            ServiceRegistry.Register(VaultCache);
+            SyncApi = new ApiClient(
+                AppConfig.Current.SyncApiBaseUrl, Auth, new UwpHttpTransport(), AppConfig.Current.AllowHttp);
+            ServiceRegistry.Register(SyncApi);
+            SyncLocal = new SyncLocalAdapter(Hosts, Groups, Tunnels, Keys, Secrets);
+            ServiceRegistry.Register(SyncLocal);
+            Sync = new SyncCoordinator(
+                Auth, VaultCache, SyncApi, new NativeVaultCrypto(Logger),
+                new UwpDeviceDescriptorProvider(), Logger, timers: new DispatcherTimerFactory());
+            ServiceRegistry.Register(Sync);
+            SyncTriggers = new SyncTriggers(
+                Sync, Hosts, Groups, Tunnels, Secrets, Settings, new DispatcherTimerFactory(), null, Logger);
+            ServiceRegistry.Register(SyncTriggers);
+            SyncTriggers.Start();
+            if (Lifecycle != null)
+            {
+                Lifecycle.ReturnedToForeground += OnSyncForeground;
+                Lifecycle.EnteredBackground += OnSyncBackground;
+            }
+            if (Network != null)
+            {
+                Network.NetworkChanged += OnSyncNetworkRestored;
+            }
+        }
+
+        private void OnSyncForeground(object sender, EventArgs e)
+        {
+            if (SyncTriggers != null)
+            {
+                SyncTriggers.NotifyForeground();
+            }
+        }
+
+        private void OnSyncBackground(object sender, EventArgs e)
+        {
+            if (SyncTriggers != null)
+            {
+                SyncTriggers.NotifyBackground();
+            }
+        }
+
+        private void OnSyncNetworkRestored(object sender, EventArgs e)
+        {
+            if (SyncTriggers != null)
+            {
+                SyncTriggers.NotifyNetworkRestored();
+            }
         }
 
         // U09：挂起前写 state/sessions.json（未关闭会话的 hostId 列表）。

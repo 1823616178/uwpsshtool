@@ -16,22 +16,29 @@ namespace SshTool.Core.Tests.Storage
         {
             public readonly List<string> RemovedPrefixes = new List<string>();
 
+            // S14：ISecretStore 新增 Changed 事件与来源参数；本假实现只记录前缀删除供断言。
+            public event EventHandler<SecretChangedEventArgs> Changed
+            {
+                add { }
+                remove { }
+            }
+
             public Task<string> GetAsync(string key)
             {
                 return Task.FromResult<string>(null);
             }
 
-            public Task SetAsync(string key, string value)
+            public Task SetAsync(string key, string value, ChangeOrigin origin = ChangeOrigin.User)
             {
                 return Task.CompletedTask;
             }
 
-            public Task RemoveAsync(string key)
+            public Task RemoveAsync(string key, ChangeOrigin origin = ChangeOrigin.User)
             {
                 return Task.CompletedTask;
             }
 
-            public Task RemoveByPrefixAsync(string prefix)
+            public Task RemoveByPrefixAsync(string prefix, ChangeOrigin origin = ChangeOrigin.User)
             {
                 RemovedPrefixes.Add(prefix);
                 return Task.CompletedTask;

@@ -70,7 +70,7 @@ namespace SshTool.Core.Sync
     //
     // 日志脱敏：只记相位与 keyVersion/revision 等计数，绝不记录密码、恢复密钥、
     // vaultKey、信封内容与请求体。
-    public sealed class SyncCoordinator : IDisposable
+    public sealed class SyncCoordinator : IDisposable, ISyncTriggerTarget
     {
         private readonly AuthStore _auth;
         private readonly VaultCacheStore _vault;
@@ -175,6 +175,12 @@ namespace SshTool.Core.Sync
                     return _state.Clone();
                 }
             }
+        }
+
+        // S14：ISyncTriggerTarget 的状态入口（与 State 同义；触发器只读快照做门控）。
+        public SyncState CurrentState
+        {
+            get { return State; }
         }
 
         // §7.1 Initialize：读会话 → 绑定缓存 → 重建状态 → 无 vaultId 则安全探测。
@@ -845,6 +851,14 @@ namespace SshTool.Core.Sync
         // 注意：假实现/内存存储下全链路可能同步完成，RunSyncAsync 的 finally 会先于外层
         // 赋值执行；必须用 token 守卫清槽（同 S07 刷新单飞的教训），否则槽里留下已完成的
         // 旧任务，后续调用会复用它而不再同步。
+        //
+        // S14：无参重载是 ISyncTriggerTarget.SyncNowAsync 的实现（与双参重载 strategy=None 同义；
+        // 触发器只做“来一次同一次”，冲突解决策略只由 ResolveConflict 传入）。
+        public Task SyncNowAsync()
+        {
+            return SyncNowAsync(null, default(CancellationToken));
+        }
+
         public Task SyncNowAsync(
             SyncNowInput input = null,
             CancellationToken cancellationToken = default(CancellationToken))
