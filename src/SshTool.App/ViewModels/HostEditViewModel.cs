@@ -11,6 +11,7 @@ using SshTool.Core.Common;
 using SshTool.Core.Hosts;
 using SshTool.Core.Models;
 using SshTool.Core.Mvvm;
+using SshTool.Core.Sessions;
 using SshTool.Core.Storage;
 using SshTool.Core.Storage.Repositories;
 using SshTool.Core.Validation;
@@ -215,6 +216,30 @@ namespace SshTool.App.ViewModels
         }
 
         public bool LastSaveHadErrors { get; private set; }
+
+        public async Task<TestConnectResult> TestAsync()
+        {
+            SyncEnvToState();
+            Host draft = _state.ToHost();
+            ISshSessionFactory factory;
+            if (!ServiceRegistry.TryGet(out factory))
+            {
+                return new TestConnectResult
+                {
+                    Success = false,
+                    MessageKey = "Error_500",
+                    Stage = TestConnectStage.Handshake
+                };
+            }
+            var tester = new ConnectionTester(
+                _services.KnownHosts,
+                _services.Secrets,
+                factory,
+                new DialogHostKeyPrompter(),
+                new DispatcherUiDispatcher());
+            return await tester.RunAsync(draft, Credentials, System.Threading.CancellationToken.None)
+                .ConfigureAwait(true);
+        }
 
         public async Task SaveCoreAsync()
         {
@@ -447,6 +472,23 @@ namespace SshTool.App.ViewModels
             if (ex != null)
             {
                 Logger.Log(LogLevel.Error, "HostEdit", ex.GetType().Name);
+            }
+        }
+
+        private sealed class DialogHostKeyPrompter : IHostKeyPrompter
+        {
+            public async Task<bool> PromptUnknownAsync(HostKeyInfo info, string hostDisplay)
+            {
+                HostKeyDialogResult r = await HostKeyDialog.ShowAsync(
+                    hostDisplay, info.KeyType, info.FingerprintSha256, info.RandomArt).ConfigureAwait(true);
+                return r.Trusted;
+            }
+
+            public async Task<bool> PromptMismatchAsync(HostKeyInfo info, string hostDisplay, string previousFingerprint)
+            {
+                await HostKeyMismatchDialog.ShowAsync(
+                    hostDisplay, previousFingerprint ?? string.Empty, info.FingerprintSha256).ConfigureAwait(true);
+                return false;
             }
         }
     }

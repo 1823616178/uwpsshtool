@@ -60,11 +60,16 @@ namespace SshTool.Core.Tests.Fakes
         // 非空时 ConnectAsync 先抛 HostKeyCheck 并等待 Accept/Reject。
         public HostKeyInfo HostKeyOnConnect;
         public IReadOnlyList<string> KiPrompts;
+        public TaskCompletionSource<SshErrorCode> ConnectHold;
 
         public async Task<SshErrorCode> ConnectAsync(SshConnectRequest request)
         {
             Calls.Add("Connect");
             LastConnectRequest = request;
+            if (ConnectHold != null)
+            {
+                return await ConnectHold.Task.ConfigureAwait(false);
+            }
             if (HostKeyOnConnect != null && HostKeyCheck != null)
             {
                 var tcs = new TaskCompletionSource<bool>();

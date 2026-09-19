@@ -60,7 +60,9 @@ namespace SshTool.App.Infrastructure
             ServiceRegistry.Register(services.Secrets);
             ServiceRegistry.Register(services.Hosts);
             ServiceRegistry.Register(services.FileSystem);
-            ServiceRegistry.Register(new NativeSshSessionFactory());
+            var sshFactory = new NativeSshSessionFactory();
+            ServiceRegistry.Register(sshFactory);
+            ServiceRegistry.Register<SshTool.Core.Sessions.ISshSessionFactory>(sshFactory);
             return services;
         }
 

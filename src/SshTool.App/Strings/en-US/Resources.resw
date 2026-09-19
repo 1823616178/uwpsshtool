@@ -41,4 +41,7 @@
   <data name="Validation_JumpSelfLoop" xml:space="preserve"><value>A host cannot jump through itself.</value></data>
   <data name="Validation_JumpCycle" xml:space="preserve"><value>Jump chain cannot contain a cycle.</value></data>
   <data name="Validation_JumpTooDeep" xml:space="preserve"><value>Jump chain cannot exceed 5 hops.</value></data>
+  <data name="TestConnect_Ok" xml:space="preserve"><value>Connection succeeded.</value></data>
+  <data name="TestConnect_Timeout" xml:space="preserve"><value>Test connection timed out.</value></data>
+  <data name="TestConnect_Cancelled" xml:space="preserve"><value>Test connection cancelled.</value></data>
 </root>

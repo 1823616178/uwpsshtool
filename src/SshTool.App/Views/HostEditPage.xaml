@@ -12,6 +12,11 @@
                     <FontIcon Glyph="{StaticResource IconEdit}" />
                 </AppBarButton.Icon>
             </AppBarButton>
+            <AppBarButton Label="测试连接" Click="OnTestClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconConnect}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
             <AppBarButton Label="取消" Click="OnCancelClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconDelete}" />
@@ -27,6 +32,7 @@
         </Grid.RowDefinitions>
         <TextBlock x:Name="TitleText" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
+        <controls:LoadingOverlay x:Name="TestOverlay" Grid.RowSpan="2" />
         <Pivot x:Name="EditPivot" Grid.Row="1">
             <PivotItem Header="连接">
                 <ScrollViewer>

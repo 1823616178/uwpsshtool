@@ -146,6 +146,24 @@ namespace SshTool.App.Views
             }
         }
 
+        private async void OnTestClick(object sender, RoutedEventArgs e)
+        {
+            TestOverlay.Message = "测试连接…";
+            TestOverlay.IsActive = true;
+            try
+            {
+                SshTool.Core.Sessions.TestConnectResult result = await ViewModel.TestAsync();
+                string text = _loader.GetString(result.MessageKey ?? "Error_500");
+                TestOverlay.IsActive = false;
+                await ConfirmDialog.ShowAsync(result.Success ? "测试连接" : "测试失败",
+                    string.IsNullOrEmpty(text) ? result.MessageKey : text, "确定", "关闭");
+            }
+            finally
+            {
+                TestOverlay.IsActive = false;
+            }
+        }
+
         private async void OnSaveClick(object sender, RoutedEventArgs e)
         {
             await ViewModel.SaveCoreAsync();

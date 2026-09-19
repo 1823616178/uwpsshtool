@@ -135,6 +135,7 @@
     <Compile Include="Infrastructure\NavigationService.cs" />
     <Compile Include="Infrastructure\DialogService.cs" />
     <Compile Include="Infrastructure\ViewModelBase.cs" />
+    <Compile Include="Infrastructure\DispatcherUiDispatcher.cs" />
     <Compile Include="Controls\StatusDot.xaml.cs">
       <DependentUpon>StatusDot.xaml</DependentUpon>
     </Compile>
