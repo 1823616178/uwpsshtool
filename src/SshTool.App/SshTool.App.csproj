@@ -114,6 +114,7 @@
     <Compile Include="Terminal\FrameScheduler.cs" />
     <Compile Include="Terminal\FontMetrics.cs" />
     <Compile Include="Terminal\SoftKeyboardInput.cs" />
+    <Compile Include="Terminal\HardwareKeyboardInput.cs" />
     <Compile Include="Terminal\TerminalRenderer.cs" />
     <Compile Include="Terminal\TerminalView.xaml.cs">
       <DependentUpon>TerminalView.xaml</DependentUpon>

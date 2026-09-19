@@ -41,6 +41,7 @@ namespace SshTool.App.Views.Debug
             UserBox.Text = LoadSetting("user", DebugSshDefaults.User);
             PasswordBox.Password = DebugSshDefaults.Password;
             TermView.Input += OnTerminalInput;
+            TermView.Shortcut += OnTerminalShortcut;
             TermKeyBar.Sticky = TermView.StickyModifiers;
             TermKeyBar.Input += OnKeyBarInput;
             TermKeyBar.Action += OnKeyBarAction;
@@ -49,6 +50,7 @@ namespace SshTool.App.Views.Debug
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             TermView.Input -= OnTerminalInput;
+            TermView.Shortcut -= OnTerminalShortcut;
             TermKeyBar.Input -= OnKeyBarInput;
             TermKeyBar.Action -= OnKeyBarAction;
             ReleaseSession();
@@ -233,6 +235,15 @@ namespace SshTool.App.Views.Debug
         {
             int n = e != null && e.Data != null ? e.Data.Length : 0;
             AppendLog("Input " + n.ToString(CultureInfo.InvariantCulture) + " bytes");
+        }
+
+        private void OnTerminalShortcut(object sender, ShortcutActionEventArgs e)
+        {
+            if (e == null)
+            {
+                return;
+            }
+            AppendLog("Shortcut " + e.Action);
         }
 
         private void OnKeyBarInput(object sender, TerminalInputEventArgs e)

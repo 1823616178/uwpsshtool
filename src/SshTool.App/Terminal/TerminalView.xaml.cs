@@ -21,6 +21,7 @@ namespace SshTool.App.Terminal
     {
         private readonly TerminalRenderer _renderer = new TerminalRenderer();
         private readonly SoftKeyboardInput _softKeyboard = new SoftKeyboardInput();
+        private readonly HardwareKeyboardInput _hardwareKeyboard = new HardwareKeyboardInput();
         private readonly StickyModifiers _sticky = new StickyModifiers();
         private readonly TerminalModes _modes = new TerminalModes();
         private readonly string _schedulerId = "tv-" + Guid.NewGuid().ToString("N");
@@ -58,9 +59,17 @@ namespace SshTool.App.Terminal
             _softKeyboard.Modes = _modes;
             _softKeyboard.Input += OnSoftKeyboardInput;
             _softKeyboard.OcclusionChanged += OnOcclusionChanged;
+            _hardwareKeyboard.Sticky = _sticky;
+            _hardwareKeyboard.Modes = _modes;
+            _hardwareKeyboard.SoftInputHasFocus = () => _softKeyboard.HasFocus;
+            _hardwareKeyboard.Input += OnHardwareInput;
+            _hardwareKeyboard.Shortcut += OnHardwareShortcut;
+            _hardwareKeyboard.HardwareActivity += OnHardwareActivity;
         }
 
         public event EventHandler<TerminalInputEventArgs> Input;
+
+        public event EventHandler<ShortcutActionEventArgs> Shortcut;
 
         public StickyModifiers StickyModifiers
         {
@@ -75,7 +84,17 @@ namespace SshTool.App.Terminal
         public bool BackspaceAsBs
         {
             get { return _softKeyboard.BackspaceAsBs; }
-            set { _softKeyboard.BackspaceAsBs = value; }
+            set
+            {
+                _softKeyboard.BackspaceAsBs = value;
+                _hardwareKeyboard.BackspaceAsBs = value;
+            }
+        }
+
+        public ShortcutMap Shortcuts
+        {
+            get { return _hardwareKeyboard.Shortcuts; }
+            set { _hardwareKeyboard.Shortcuts = value ?? ShortcutMap.Default; }
         }
 
         public bool FocusInput()
@@ -193,6 +212,7 @@ namespace SshTool.App.Terminal
             {
                 _softKeyboard.Attach(Sentinel);
             }
+            _hardwareKeyboard.Attach();
             if (!_registered)
             {
                 FrameScheduler.Instance.Register(_schedulerId, OnTick);
@@ -208,6 +228,7 @@ namespace SshTool.App.Terminal
             _loaded = false;
             _resizeTimer.Stop();
             _softKeyboard.Detach();
+            _hardwareKeyboard.Detach();
             UnsubscribeDeviceLost();
             if (_registered)
             {
@@ -311,7 +332,33 @@ namespace SshTool.App.Terminal
 
         private void OnTapped(object sender, TappedRoutedEventArgs e)
         {
+            if (HardwareKeyboardInput.IsHardwareKeyboardPresent)
+            {
+                this.IsTabStop = true;
+                _softKeyboard.HidePane();
+                this.Focus(FocusState.Programmatic);
+                return;
+            }
             FocusInput();
+        }
+
+        private void OnHardwareInput(object sender, TerminalInputEventArgs e)
+        {
+            SendInput(e != null ? e.Data : null);
+        }
+
+        private void OnHardwareShortcut(object sender, ShortcutActionEventArgs e)
+        {
+            EventHandler<ShortcutActionEventArgs> handler = Shortcut;
+            if (handler != null)
+            {
+                handler(this, e);
+            }
+        }
+
+        private void OnHardwareActivity(object sender, EventArgs e)
+        {
+            _softKeyboard.HidePane();
         }
 
         private void OnSoftKeyboardInput(object sender, TerminalInputEventArgs e)
