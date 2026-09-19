@@ -39,14 +39,14 @@
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
-| M2 | 终端引擎、渲染与输入 | 15 | 12 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
+| M2 | 终端引擎、渲染与输入 | 15 | 13 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **48** | |
+| **合计** | | **111** | **49** | |
 
 ### 1.1 关键路径
 
@@ -510,13 +510,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 长按选词、拖柄扩展、复制到系统剪贴板
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **T13 粘贴与多行确认** `S`
+- [x] **T13 粘贴与多行确认** `S`
   - 依赖：T12、T10
   - 参考：`01-DESIGN.md §7.7`
   - 产出：`src/SshTool.Core/Terminal/PasteProcessor.cs`、`src/SshTool.App/Dialogs/PasteConfirmDialog.xaml(.cs)`、测试
   - 要点：换行归一为 `\r`；bracketed paste 包裹；4 KB 分块；多行确认（设置 `pasteConfirmMultiline`，对话框「不再提示」写回设置——设置仓库在 D04，此处先用接口 + 内存实现）。
   - 验收：
-    - [ ] PasteProcessor 单测（CRLF/LF/CR 混合、包裹、分块边界不切断 UTF-8 多字节字符）
+    - [x] PasteProcessor 单测（CRLF/LF/CR 混合、包裹、分块边界不切断 UTF-8 多字节字符）
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **T14 回滚滚动与捏合缩放** `M`
@@ -1371,3 +1371,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | T10 | 6536c80 | **代码完成**。`KeyBarLayout` 解析逗号布局（未知忽略、去重、空串回退默认，与设置键默认值对拍）；`KeyBar` 横向滚动、修饰键三态（强调色/锁定底+2epx 底边）、方向键 400/60 ms 连发、动作事件；右侧固定 hidekb。`Haptics` 10 ms，`VibrationDevice` + ApiInformation 守卫。调试连接页接入同一 `StickyModifiers`。Core 单测 +13（共 545）；`verify.ps1` 全绿。⏳ 单手 Ctrl+C/Z、Esc、Tab、锁定 Ctrl（已登记真机待办）。 |
 | 2026-09-19 | T11 | 84a081b | **代码完成**。`ShortcutMap` 默认 §5.16（Ctrl+Shift 复制/新标签等，不抢 Ctrl+C）；JSON 对象覆盖、未知键忽略、非法 JSON 回退默认、冲突检测先命中先赢。`HardwareKeyboardInput`：哨兵聚焦时不抢可打印/回车/退格；Alt 走 AcceleratorKey（不用 Character 事件的 VirtualKey）；快捷键先于 KeyMap。有物理键盘时点终端隐藏 SIP 并把焦点留在 TerminalView。Core 单测 +9（共 554）；`verify.ps1` 全绿。⏳ 蓝牙/Continuum Ctrl+C、Alt+B、方向、F1–F12（已登记真机待办）。 |
 | 2026-09-19 | T12 | 21a4d0e | **代码完成**。`SelectionModel` 选词（字母数字+`-_./~`）、选行、全选、宽字符边界、反向拖动、软换行不插换行、行尾空白裁剪；回滚区用绝对行。`SelectionLayer` 高亮/拖柄/工具条；`ClipboardService` 写系统剪贴板。复制轻震 + TransientToast「已复制」。Core 单测 +12（共 566）；`verify.ps1` 全绿。⏳ 长按选词/拖柄/剪贴板（已登记真机待办）。 |
+| 2026-09-19 | T13 | edfb682 | **完成**（无 📱 项）。`PasteProcessor` 把 CRLF/LF/CR 归一为 `\r`，可选 `ESC[200~…ESC[201~]` 包裹，4 KiB UTF-8 分块不切断多字节。多行且 `PasteConfirmMultiline` 时弹确认框（前 5 行预览，「不再提示」关掉确认）。键条 paste 走同一路径。Core 单测 +7（共 573）；`verify.ps1` 全绿。 |
