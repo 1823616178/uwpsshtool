@@ -347,6 +347,17 @@ namespace SshTool.App.ViewModels
             get { return Credentials != null && Credentials.HasSavedPassphrase ? "已保存" : string.Empty; }
         }
 
+        public async Task ReloadGroupsAsync()
+        {
+            Groups.Clear();
+            Groups.Add(new IdNameOption(string.Empty, "未分组"));
+            IReadOnlyList<HostGroup> groups = await _services.Groups.GetAllAsync().ConfigureAwait(true);
+            for (int i = 0; i < groups.Count; i++)
+            {
+                Groups.Add(new IdNameOption(groups[i].Id, groups[i].Name));
+            }
+        }
+
         public async Task PersistSecretsAsync(string hostId)
         {
             IReadOnlyList<SecretMutation> mutations = Credentials.BuildMutations(hostId);

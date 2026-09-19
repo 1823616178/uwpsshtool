@@ -46,6 +46,7 @@
                         <ComboBox x:Name="GroupBox" Header="分组" HorizontalAlignment="Stretch"
                                   DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
                                   SelectionChanged="OnGroupChanged" />
+                        <HyperlinkButton Content="管理分组" Click="OnManageGroups" />
                         <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
                         <TextBox x:Name="KeepaliveBox" Header="保活间隔(秒)" InputScope="Number"
                                  Margin="{StaticResource GapSmTop}" TextChanged="OnKeepaliveChanged" />

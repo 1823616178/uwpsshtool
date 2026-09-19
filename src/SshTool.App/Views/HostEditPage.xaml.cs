@@ -55,8 +55,19 @@ namespace SshTool.App.Views
             {
                 nav.RegisterBackHandler(this);
             }
-            await ViewModel.LoadAsync(e.Parameter as HostEditArgs);
-            BindLoaded();
+            if (e.NavigationMode == NavigationMode.New)
+            {
+                await ViewModel.LoadAsync(e.Parameter as HostEditArgs);
+                BindLoaded();
+            }
+            else
+            {
+                await ViewModel.ReloadGroupsAsync();
+                _suppressCombo = true;
+                GroupBox.ItemsSource = ViewModel.Groups;
+                SelectById(GroupBox, ViewModel.GroupId);
+                _suppressCombo = false;
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -195,6 +206,11 @@ namespace SshTool.App.Views
         private void OnTmuxNameChanged(object sender, TextChangedEventArgs e)
         {
             ViewModel.TmuxSessionName = TmuxNameBox.Text;
+        }
+
+        private void OnManageGroups(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(GroupManagePage));
         }
 
         private void OnGroupChanged(object sender, SelectionChangedEventArgs e)

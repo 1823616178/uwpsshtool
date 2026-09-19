@@ -210,6 +210,13 @@
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\HostListViewModel.cs" />
     <Compile Include="ViewModels\HostEditViewModel.cs" />
+    <Compile Include="ViewModels\GroupManageViewModel.cs" />
+    <Compile Include="Views\GroupManagePage.xaml.cs">
+      <DependentUpon>GroupManagePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\ColorSwatchPicker.xaml.cs">
+      <DependentUpon>ColorSwatchPicker.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\HostEditPage.xaml.cs">
       <DependentUpon>HostEditPage.xaml</DependentUpon>
     </Compile>
@@ -280,6 +287,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\HostEditPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\GroupManagePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\ColorSwatchPicker.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

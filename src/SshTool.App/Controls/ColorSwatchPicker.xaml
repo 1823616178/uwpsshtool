@@ -1,0 +1,15 @@
+<UserControl
+    x:Class="SshTool.App.Controls.ColorSwatchPicker"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel>
+        <VariableSizedWrapGrid x:Name="SwatchGrid" Orientation="Horizontal"
+                               MaximumRowsOrColumns="8" ItemWidth="{StaticResource TouchTargetMin}"
+                               ItemHeight="{StaticResource TouchTargetMin}" />
+        <TextBox x:Name="HexBox" Header="#RRGGBB" Margin="{StaticResource GapSmTop}"
+                 TextChanged="OnHexChanged" />
+        <TextBlock x:Name="HexError" Style="{StaticResource CaptionTextStyle}"
+                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+    </StackPanel>
+</UserControl>
