@@ -48,6 +48,9 @@ namespace SshTool.App.Terminal
         private bool _fullRedraw = true;
         private bool _registered;
         private bool _loaded;
+        // U12：工作区不可见窗格（非活动标签/窄屏非聚焦叶）置 false：OnTick 直接返回，
+        // 不拉取不绘制；FrameScheduler 视其为不可见，空闲 30 帧后退订。
+        private bool _renderingActive = true;
         private CanvasDevice _watchedDevice;
         private GridSize _gridSize;
         private int _lastResizeCols;
@@ -149,6 +152,42 @@ namespace SshTool.App.Terminal
         public void PasteFromClipboard()
         {
             PasteClipboard();
+        }
+
+        // U12：宽屏复制快捷键（Ctrl+Shift+C）入口；复用选择工具条同一份拷贝逻辑。
+        public void CopySelectionToClipboard()
+        {
+            if (!DispatcherHelper.HasThreadAccess)
+            {
+                DispatcherHelper.Post(CopySelectionToClipboard);
+                return;
+            }
+            if (!_selection.IsActive)
+            {
+                return;
+            }
+            CopySelection();
+        }
+
+        // U12：不可见窗格不绘制/退订 FrameScheduler（TerminalWorkspace 调用）。
+        public void SetRenderingActive(bool active)
+        {
+            if (!DispatcherHelper.HasThreadAccess)
+            {
+                DispatcherHelper.Post(() => SetRenderingActive(active));
+                return;
+            }
+            if (_renderingActive == active)
+            {
+                return;
+            }
+            _renderingActive = active;
+            FrameScheduler.Instance.SetVisible(_schedulerId, active);
+            if (active)
+            {
+                _fullRedraw = true;
+                FrameScheduler.Instance.Wake();
+            }
         }
 
         public bool FocusInput()
@@ -286,7 +325,7 @@ namespace SshTool.App.Terminal
                 FrameScheduler.Instance.Register(_schedulerId, OnTick);
                 _registered = true;
             }
-            FrameScheduler.Instance.SetVisible(_schedulerId, true);
+            FrameScheduler.Instance.SetVisible(_schedulerId, _renderingActive);
             ScheduleResize();
             FrameScheduler.Instance.Wake();
         }
@@ -342,6 +381,10 @@ namespace SshTool.App.Terminal
 
         private bool OnTick()
         {
+            if (!_renderingActive)
+            {
+                return false;
+            }
             if (_screen == null || Canvas == null)
             {
                 return false;

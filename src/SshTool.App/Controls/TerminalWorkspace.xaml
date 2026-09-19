@@ -1,0 +1,21 @@
+<UserControl
+    x:Class="SshTool.App.Controls.TerminalWorkspace"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls">
+
+    <!-- U12：宽屏会话区（02-UI-DESIGN.md §5.7）。窗格按 PaneLayout 绝对定位在 PaneHost 中。 -->
+    <Grid Background="{ThemeResource AppBgBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <controls:TabStrip x:Name="Strip" />
+        <Canvas x:Name="PaneHost" Grid.Row="1" Background="{ThemeResource AppBgBrush}" />
+        <controls:EmptyState x:Name="Empty" Grid.Row="1"
+                             Glyph="{StaticResource IconTerminal}"
+                             Title="没有打开的标签"
+                             Description="在左侧选择主机，或新建一个标签开始。"
+                             PrimaryText="新建标签" />
+    </Grid>
+</UserControl>

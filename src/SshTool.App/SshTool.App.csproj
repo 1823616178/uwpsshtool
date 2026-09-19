@@ -130,6 +130,7 @@
     <Compile Include="Platform\NativeSshSessionFactory.cs" />
     <Compile Include="Platform\UwpHostKeyPrompter.cs" />
     <Compile Include="Platform\UwpCredentialPrompter.cs" />
+    <Compile Include="Platform\UwpDeviceDescriptorProvider.cs" />
     <Compile Include="Platform\StatusBarService.cs" />
     <Compile Include="Platform\DispatcherTimerFactory.cs" />
     <Compile Include="Infrastructure\ServiceRegistry.cs" />
@@ -219,6 +220,7 @@
     <Compile Include="ViewModels\KnownHostsViewModel.cs" />
     <Compile Include="ViewModels\TerminalViewModel.cs" />
     <Compile Include="ViewModels\SessionsPaneViewModel.cs" />
+    <Compile Include="ViewModels\WorkspaceViewModel.cs" />
     <Compile Include="Views\TerminalPage.xaml.cs">
       <DependentUpon>TerminalPage.xaml</DependentUpon>
     </Compile>
@@ -251,6 +253,12 @@
     </Compile>
     <Compile Include="Controls\SessionsPane.xaml.cs">
       <DependentUpon>SessionsPane.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\TabStrip.xaml.cs">
+      <DependentUpon>TabStrip.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\TerminalWorkspace.xaml.cs">
+      <DependentUpon>TerminalWorkspace.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
@@ -338,6 +346,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\SessionsPane.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\TabStrip.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\TerminalWorkspace.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -1,3 +1,4 @@
+using System;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
@@ -48,6 +49,9 @@ namespace SshTool.App.Views
                     Term.Session.Write(e.Data);
                 }
             };
+            // U12：物理键盘快捷键的视图局部动作（复制/粘贴/字号）；标签/分屏类动作是
+            // 工作区概念，单窗格本页忽略（Continuum 下用 MainPage 宽屏）。
+            Term.Shortcut += OnTermShortcut;
             // U09：侧栏与会话 Pivot 共用同一个 SessionsPaneViewModel（MainViewModel 注册）。
             SessionsPaneViewModel paneVm;
             if (ServiceRegistry.TryGet(out paneVm))
@@ -150,10 +154,53 @@ namespace SshTool.App.Views
         {
             var flyout = new MenuFlyout();
             flyout.Items.Add(Item("会话", () => SessionsSplit.IsPaneOpen = !SessionsSplit.IsPaneOpen));
+            flyout.Items.Add(Item("键条", ToggleKeyBar));
             flyout.Items.Add(Item("片段", () => ViewModel.SnippetsCommand.Execute(null)));
             flyout.Items.Add(Item("断开", () => ViewModel.DisconnectCommand.Execute(null)));
             flyout.Items.Add(Item("关闭会话", () => ViewModel.CloseSessionCommand.Execute(null)));
             flyout.ShowAt((FrameworkElement)sender);
+        }
+
+        // U12：宽屏默认隐藏键条后可手动打开/关闭。
+        private void ToggleKeyBar()
+        {
+            Keys.Visibility = Keys.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+        }
+
+        private void OnTermShortcut(object sender, SshTool.Core.Terminal.ShortcutActionEventArgs e)
+        {
+            if (e == null)
+            {
+                return;
+            }
+            switch (e.Action)
+            {
+                case SshTool.Core.Terminal.ShortcutAction.Copy:
+                    Term.CopySelectionToClipboard();
+                    break;
+                case SshTool.Core.Terminal.ShortcutAction.Paste:
+                    Term.PasteFromClipboard();
+                    break;
+                case SshTool.Core.Terminal.ShortcutAction.FontIncrease:
+                    Term.Renderer.FontSize = Term.Renderer.FontSize + 1;
+                    break;
+                case SshTool.Core.Terminal.ShortcutAction.FontDecrease:
+                    Term.Renderer.FontSize = Term.Renderer.FontSize - 1;
+                    break;
+                case SshTool.Core.Terminal.ShortcutAction.FontReset:
+                    try
+                    {
+                        Term.Renderer.FontSize = (float)SshTool.Core.Models.Defaults.DefaultAppearance().FontSize;
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         private static MenuFlyoutItem Item(string text, System.Action action)

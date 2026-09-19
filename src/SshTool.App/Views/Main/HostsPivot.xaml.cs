@@ -18,6 +18,10 @@ namespace SshTool.App.Views.Main
 
         public HostListViewModel ViewModel { get; private set; }
 
+        // U12：宽屏主从布局时由 MainPage 赋值：主机行「连接」改为在右侧工作区开标签，
+        // 不跳页。返回 true 表示已接管，ViewModel.Connect 不再导航到 TerminalPage。
+        public System.Func<HostListRow, bool> WorkspaceOpen { get; set; }
+
         public void Attach(HostListViewModel viewModel)
         {
             if (ViewModel != null)
@@ -148,9 +152,15 @@ namespace SshTool.App.Views.Main
 
         private void OnConnectRequested(object sender, EventArgs e)
         {
+            HostListRow row = RowOf(sender);
+            System.Func<HostListRow, bool> open = WorkspaceOpen;
+            if (open != null && row != null && open(row))
+            {
+                return;
+            }
             if (ViewModel != null)
             {
-                ViewModel.Connect(RowOf(sender));
+                ViewModel.Connect(row);
             }
         }
 

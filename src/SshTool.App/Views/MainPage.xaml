@@ -67,5 +67,58 @@
                     Description="隧道将在后续里程碑提供。" />
             </PivotItem>
         </Pivot>
+
+        <!-- U12：宽屏主从（02-UI-DESIGN.md §3、§5.7）。左主机列表（可折叠 Inline）+ 右 TerminalWorkspace。
+             窄屏回退上面的 Pivot 单页导航；窗格树由 WorkspaceViewModel 持有，不随显隐销毁。 -->
+        <Grid x:Name="WideGrid" Grid.Row="1" Visibility="Collapsed">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid Background="{ThemeResource AppSurfaceBrush}"
+                  Height="{StaticResource TerminalInfoBarHeight}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button x:Name="PaneToggleButton" Content="☰" Click="OnPaneToggleClick"
+                        MinWidth="{StaticResource TouchTargetMin}"
+                        Height="{StaticResource TerminalInfoBarHeight}"
+                        Padding="{StaticResource PadNone}"
+                        BorderThickness="{StaticResource BorderNone}"
+                        Background="{ThemeResource AppSurfaceBrush}"
+                        Foreground="{ThemeResource AppTextBrush}" />
+                <TextBlock Grid.Column="1" Text="LUMIA SSH"
+                           Style="{StaticResource BodyTextStyle}"
+                           VerticalAlignment="Center"
+                           Margin="{StaticResource PagePadding}" />
+            </Grid>
+            <SplitView x:Name="WideSplit" Grid.Row="1"
+                       PanePlacement="Left" DisplayMode="Inline"
+                       OpenPaneLength="{StaticResource MasterPaneWidth}"
+                       IsPaneOpen="True">
+                <SplitView.Pane>
+                    <main:HostsPivot x:Name="HostsPaneWide" />
+                </SplitView.Pane>
+                <SplitView.Content>
+                    <controls:TerminalWorkspace x:Name="Workspace" />
+                </SplitView.Content>
+            </SplitView>
+        </Grid>
+
+        <VisualStateManager.VisualStateGroups>
+            <!-- U12：默认即窄屏单页；窗宽 ≥720（WideBreakpoint）时切主从。 -->
+            <VisualStateGroup>
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="{StaticResource WideBreakpoint}" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="MainPivot.Visibility" Value="Collapsed" />
+                        <Setter Target="WideGrid.Visibility" Value="Visible" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 </Page>

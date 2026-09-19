@@ -1,0 +1,33 @@
+<UserControl
+    x:Class="SshTool.App.Controls.TabStrip"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- U12：宽屏标签栏（02-UI-DESIGN.md §5.7）。标签项在代码里生成；新建按钮固定最右。 -->
+    <Grid Background="{ThemeResource AppSurfaceBrush}"
+          Height="{StaticResource TabStripHeight}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <ScrollViewer x:Name="TabsScroller"
+                      HorizontalScrollBarVisibility="Hidden"
+                      VerticalScrollBarVisibility="Disabled"
+                      HorizontalScrollMode="Enabled"
+                      VerticalScrollMode="Disabled">
+            <StackPanel x:Name="TabsPanel" Orientation="Horizontal" />
+        </ScrollViewer>
+        <Button x:Name="AddButton"
+                Grid.Column="1"
+                Click="OnAddClick"
+                MinWidth="{StaticResource TouchTargetMin}"
+                Height="{StaticResource TabStripHeight}"
+                Padding="{StaticResource PadNone}"
+                Margin="{StaticResource GapSmLeft}"
+                Background="{ThemeResource AppSurfaceBrush}"
+                Foreground="{ThemeResource AppTextBrush}"
+                BorderThickness="{StaticResource BorderNone}">
+            <FontIcon Glyph="{StaticResource IconAdd}" />
+        </Button>
+    </Grid>
+</UserControl>

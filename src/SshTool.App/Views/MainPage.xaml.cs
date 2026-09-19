@@ -23,11 +23,20 @@ namespace SshTool.App.Views
             if (ViewModel.Hosts != null)
             {
                 HostsPane.Attach(ViewModel.Hosts);
+                HostsPaneWide.Attach(ViewModel.Hosts);
+                // U12 宽屏：左侧选主机即在右侧开标签，不跳页。
+                HostsPaneWide.WorkspaceOpen = row =>
+                {
+                    WorkspaceViewModel workspace = EnsureWorkspace();
+                    var ignore = workspace.OpenHostInNewTabAsync(row.HostId);
+                    return true;
+                };
             }
             if (ViewModel.Sessions != null)
             {
                 SessionsPivotCtl.Attach(ViewModel.Sessions);
             }
+            Workspace.Attach(EnsureWorkspace());
             ApplyStatusBar();
             ShowLoadWarnings();
             LogBuildInfo();
@@ -44,6 +53,19 @@ namespace SshTool.App.Views
         }
 
         public MainViewModel ViewModel { get; private set; }
+
+        // U12：工作区单例经 ServiceRegistry 共享：切到终端页再回来 MainPage 重建，
+        // 标签与窗格树不能丢（会话在 SessionManager 里，标签/树在这里）。
+        private static WorkspaceViewModel EnsureWorkspace()
+        {
+            WorkspaceViewModel workspace;
+            if (!ServiceRegistry.TryGet(out workspace))
+            {
+                workspace = new WorkspaceViewModel();
+                ServiceRegistry.Register(workspace);
+            }
+            return workspace;
+        }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -156,6 +178,12 @@ namespace SshTool.App.Views
         private void OnNewClick(object sender, RoutedEventArgs e)
         {
             ViewModel.NewHostCommand.Execute(null);
+        }
+
+        // U12：宽屏主机列表折叠（§5.7 SplitView Inline）。
+        private void OnPaneToggleClick(object sender, RoutedEventArgs e)
+        {
+            WideSplit.IsPaneOpen = !WideSplit.IsPaneOpen;
         }
 
         private void OnSearchClick(object sender, RoutedEventArgs e)

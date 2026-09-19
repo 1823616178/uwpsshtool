@@ -40,6 +40,20 @@
         <term:TerminalView x:Name="Term" Grid.Row="1" />
         <controls:KeyBar x:Name="Keys" Grid.Row="2" />
         <controls:SessionOverlay x:Name="Overlay" Grid.RowSpan="3" />
+
+        <!-- U12：窄屏回退单窗格（本页即单窗格）；宽屏（Continuum/鼠标）键条默认隐藏，可从菜单手动打开。 -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="{StaticResource WideBreakpoint}" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="Keys.Visibility" Value="Collapsed" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
     </SplitView>
 </Page>
