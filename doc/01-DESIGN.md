@@ -215,7 +215,7 @@ uwpsshtool/
 │   │   ├── Validation/               HostValidator、TunnelValidator、GroupValidator（对齐同步 schema 限制）
 │   │   ├── Storage/                  IFileSystem、JsonStore<T>、各 Repository、Migrations、ISecretStore、SecretKeys
 │   │   ├── Sessions/                 ISshSession、ISshSessionFactory、SshConnectRequest、HostKeyCheck、AuthPrompt、SessionStateKind（SessionInfo、SessionManager、ReconnectPolicy、AutoRun、CredentialResolver 后续）
-│   │   ├── Terminal/                 ITerminalScreen、KeyMap、StickyModifiers、SentinelDiff、KeyBarLayout、GridSizeCalculator、ShortcutMap、SelectionModel、PaneTree、SnippetTemplate
+│   │   ├── Terminal/                 ITerminalScreen、KeyMap、StickyModifiers、SentinelDiff、KeyBarLayout、GridSizeCalculator、ShortcutMap、SelectionModel、ScrollController、MouseEncoder、PaneTree、SnippetTemplate
 │   │   ├── Sync/
 │   │   │   ├── Protocol/             SyncConstants、SyncDocumentV1 模型、SyncDocumentReader/Writer（严格校验）
 │   │   │   ├── Api/                  IHttpTransport、ApiClient、ApiError、Dto

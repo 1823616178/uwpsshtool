@@ -53,6 +53,8 @@ namespace SshTool.App.Terminal
         public Color CursorColor { get; set; }
         public bool Focused { get; set; }
 
+        public bool SuppressCursor { get; set; }
+
         private float _fontSize = 12f;
         private float _lineHeightFactor = 1.2f;
         private bool _fontWeightBold;
@@ -204,7 +206,10 @@ namespace SshTool.App.Terminal
             }
 
             ds.DrawImage(_surface, 0, 0);
-            DrawCursor(ds, screen, cells, blinkOn);
+            if (!SuppressCursor)
+            {
+                DrawCursor(ds, screen, cells, blinkOn);
+            }
         }
 
         public void Dispose()

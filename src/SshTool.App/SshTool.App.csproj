@@ -115,6 +115,7 @@
     <Compile Include="Terminal\FontMetrics.cs" />
     <Compile Include="Terminal\SoftKeyboardInput.cs" />
     <Compile Include="Terminal\HardwareKeyboardInput.cs" />
+    <Compile Include="Terminal\PointerInput.cs" />
     <Compile Include="Terminal\SelectionLayer.xaml.cs">
       <DependentUpon>SelectionLayer.xaml</DependentUpon>
     </Compile>

@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
@@ -31,7 +32,9 @@ namespace SshTool.App.Terminal
         private readonly string _schedulerId = "tv-" + Guid.NewGuid().ToString("N");
         private readonly DispatcherTimer _resizeTimer = new DispatcherTimer();
         private readonly SelectionModel _selection = new SelectionModel();
+        private readonly PointerInput _pointer = new PointerInput();
         private bool _draggingSelection;
+        private int _pulledOffset = int.MinValue;
         private ISshSession _session;
         private ITerminalScreen _screen;
         private byte[] _cells = new byte[0];
@@ -74,9 +77,17 @@ namespace SshTool.App.Terminal
             _hardwareKeyboard.Input += OnHardwareInput;
             _hardwareKeyboard.Shortcut += OnHardwareShortcut;
             _hardwareKeyboard.HardwareActivity += OnHardwareActivity;
+            _pointer.SyncHost = SyncPointerHost;
+            _pointer.Scroll.OffsetChanged += OnScrollChanged;
+            _pointer.ScrollChanged += OnScrollChanged;
+            _pointer.Input += OnPointerBytes;
+            _pointer.FontSizeChanging += OnFontSizeChanging;
+            _pointer.FontSizeCommitted += OnFontSizeCommitted;
         }
 
         public event EventHandler<TerminalInputEventArgs> Input;
+
+        public event EventHandler FontSizeCommitted;
 
         public event EventHandler<ShortcutActionEventArgs> Shortcut;
 
@@ -107,6 +118,22 @@ namespace SshTool.App.Terminal
         }
 
         public bool PasteConfirmMultiline { get; set; } = true;
+
+        public string AltScreenScroll
+        {
+            get { return _pointer.AltScreenScroll; }
+            set { _pointer.AltScreenScroll = string.IsNullOrEmpty(value) ? "arrows" : value; }
+        }
+
+        public ScrollController Scroll
+        {
+            get { return _pointer.Scroll; }
+        }
+
+        public int CurrentFontSize
+        {
+            get { return (int)_renderer.FontSize; }
+        }
 
         public void PasteFromClipboard()
         {
@@ -229,6 +256,7 @@ namespace SshTool.App.Terminal
                 _softKeyboard.Attach(Sentinel);
             }
             _hardwareKeyboard.Attach();
+            _pointer.Attach(this);
             if (Selection != null)
             {
                 Selection.ToolbarAction += OnSelectionToolbar;
@@ -250,6 +278,7 @@ namespace SshTool.App.Terminal
             _resizeTimer.Stop();
             _softKeyboard.Detach();
             _hardwareKeyboard.Detach();
+            _pointer.Detach();
             if (Selection != null)
             {
                 Selection.ToolbarAction -= OnSelectionToolbar;
@@ -309,8 +338,13 @@ namespace SshTool.App.Terminal
             bool pulled = false;
             if (_screen.Revision != _lastRevision)
             {
+                _pointer.Scroll.OnOutput(_screen.ScrollbackCount);
                 pulled = Pull();
                 _lastRevision = _screen.Revision;
+            }
+            else if (_pointer.Scroll.Offset != _pulledOffset)
+            {
+                pulled = Pull();
             }
             if (pulled || blinkChanged || _fullRedraw)
             {
@@ -340,13 +374,27 @@ namespace SshTool.App.Terminal
                 _dirty = new byte[dirtyBytes];
             }
 
-            bool changed = _screen.CopyDirtyRows(_cells, _dirty);
-            if (!changed)
+            int offset = _pointer.Scroll.Offset;
+            _pointer.Scroll.SetScrollbackCount(_screen.ScrollbackCount);
+            _renderer.SuppressCursor = offset > 0;
+            bool changed;
+            if (offset == 0)
             {
-                _screen.CopyViewport(0, _cells);
+                changed = _screen.CopyDirtyRows(_cells, _dirty);
+                if (!changed)
+                {
+                    _screen.CopyViewport(0, _cells);
+                    _fullRedraw = true;
+                    changed = true;
+                }
+            }
+            else
+            {
+                _screen.CopyViewport(offset, _cells);
                 _fullRedraw = true;
                 changed = true;
             }
+            _pulledOffset = offset;
 
             if (_renderer.CellWidth > 0)
             {
@@ -610,10 +658,63 @@ namespace SshTool.App.Terminal
             {
                 handler(this, e);
             }
+            _pointer.Scroll.OnUserInput();
             ISshSession session = _session;
             if (session != null)
             {
                 session.Write(e.Data);
+            }
+        }
+
+        private void SyncPointerHost()
+        {
+            _pointer.AltScreen = _screen != null && _screen.AltScreen;
+            _pointer.MouseMode = _screen != null ? _screen.MouseMode : 0;
+            _pointer.MouseSgr = _screen != null && _screen.MouseSgr;
+            _pointer.ApplicationCursorKeys = _screen != null && _screen.AppCursorKeys;
+            _pointer.CellHeight = _renderer.CellHeight;
+            _pointer.CellWidth = _renderer.CellWidth;
+            _pointer.SelectionActive = _selection.IsActive;
+            _pointer.FontSize = _renderer.FontSize;
+            _pointer.Cols = _screen != null ? _screen.Cols : 0;
+            _pointer.Rows = _screen != null ? _screen.Rows : 0;
+        }
+
+        private void OnScrollChanged(object sender, EventArgs e)
+        {
+            if (_screen == null)
+            {
+                return;
+            }
+            Pull();
+            FrameScheduler.Instance.Wake();
+        }
+
+        private void OnPointerBytes(object sender, TerminalInputEventArgs e)
+        {
+            SendInput(e != null ? e.Data : null);
+        }
+
+        private void OnFontSizeChanging(object sender, EventArgs e)
+        {
+            _renderer.FontSize = _pointer.FontSize;
+            if (FontSizeBubble != null && FontSizeBubbleText != null)
+            {
+                FontSizeBubbleText.Text = ((int)_renderer.FontSize).ToString(CultureInfo.InvariantCulture);
+                FontSizeBubble.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void OnFontSizeCommitted(object sender, EventArgs e)
+        {
+            if (FontSizeBubble != null)
+            {
+                FontSizeBubble.Visibility = Visibility.Collapsed;
+            }
+            EventHandler handler = FontSizeCommitted;
+            if (handler != null)
+            {
+                handler(this, EventArgs.Empty);
             }
         }
 

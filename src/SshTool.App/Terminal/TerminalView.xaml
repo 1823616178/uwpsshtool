@@ -19,6 +19,18 @@
         <local:SelectionLayer x:Name="Selection"
                               Visibility="Collapsed" />
         <controls:TransientToast x:Name="CopiedToast" />
+        <Border x:Name="FontSizeBubble"
+                Visibility="Collapsed"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="{ThemeResource AppSurfaceBrush}"
+                BorderBrush="{ThemeResource AppBorderBrush}"
+                BorderThickness="{StaticResource BorderThin}"
+                CornerRadius="{StaticResource RadiusSm}"
+                Padding="{StaticResource PadMd}"
+                IsHitTestVisible="False">
+            <TextBlock x:Name="FontSizeBubbleText" Style="{StaticResource SectionTitleTextStyle}" />
+        </Border>
         <!-- T09：隐藏哨兵，承接 SIP / IME。IsHitTestVisible=False 让点击落到画布。 -->
         <TextBox x:Name="Sentinel"
                  Width="{StaticResource SentinelInputSize}"
