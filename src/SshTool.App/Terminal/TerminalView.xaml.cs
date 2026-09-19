@@ -176,6 +176,14 @@ namespace SshTool.App.Terminal
             get { return _session; }
             set
             {
+                // WRONG_THREAD：AttachNative 的 NativeSession 变更通知可能仍在后台线程
+                // 到达（SessionInfo 已封送，但防御性兜底）；DispatcherTimer/Canvas 必须 UI 线程。
+                if (!DispatcherHelper.HasThreadAccess)
+                {
+                    ISshSession captured = value;
+                    DispatcherHelper.Post(() => { Session = captured; });
+                    return;
+                }
                 if (ReferenceEquals(_session, value))
                 {
                     return;
@@ -703,6 +711,13 @@ namespace SshTool.App.Terminal
 
         private void OnScrollChanged(object sender, EventArgs e)
         {
+            // ScrollController.OffsetChanged 可能被后台线程的 OnUserInput 间接触发；
+            // Pull 会碰 Canvas.Width/Height，必须回 UI 线程。
+            if (!DispatcherHelper.HasThreadAccess)
+            {
+                DispatcherHelper.Post(() => OnScrollChanged(sender, e));
+                return;
+            }
             if (_screen == null)
             {
                 return;
@@ -873,6 +888,11 @@ namespace SshTool.App.Terminal
 
         private void OnMetricsInvalidated(object sender, EventArgs e)
         {
+            if (!DispatcherHelper.HasThreadAccess)
+            {
+                DispatcherHelper.Post(() => OnMetricsInvalidated(sender, e));
+                return;
+            }
             _fullRedraw = true;
             ScheduleResize();
             if (Canvas != null)
@@ -885,6 +905,11 @@ namespace SshTool.App.Terminal
         {
             if (!_loaded)
             {
+                return;
+            }
+            if (!DispatcherHelper.HasThreadAccess)
+            {
+                DispatcherHelper.Post(ScheduleResize);
                 return;
             }
             _resizeTimer.Stop();

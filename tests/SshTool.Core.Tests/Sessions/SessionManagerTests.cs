@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -395,6 +396,70 @@ namespace SshTool.Core.Tests.Sessions
             Assert.Equal(HostListStatus.Connected, fx.Manager.GetStatus(host.Id));
             info.State = SessionUiState.Reconnecting;
             Assert.Equal(HostListStatus.Reconnecting, fx.Manager.GetStatus(host.Id));
+        }
+
+        // WRONG_THREAD 回归：后台线程改 SessionInfo 时字段同步更新、通知必须经
+        // IUiDispatcher 封送，否则 XAML（StatusDot 的 Ellipse 等 STA 对象）在后台线程
+        // 被触碰会抛 RPC_E_WRONG_THREAD（0x8001010E，栈顶常见 CanvasFigureSegmentOptions）。
+        private sealed class RecordingDispatcher : IUiDispatcher
+        {
+            public int PostCount;
+            public void Post(Action action)
+            {
+                PostCount++;
+                if (action != null)
+                {
+                    action();
+                }
+            }
+
+            public Task RunAsync(Func<Task> action)
+            {
+                return action == null ? Task.FromResult(0) : action();
+            }
+
+            public Task<T> RunAsync<T>(Func<Task<T>> action)
+            {
+                return action();
+            }
+        }
+
+        [Fact]
+        public async Task SessionInfo_NotifyViaDispatcher_FieldSync()
+        {
+            var fs = new InMemoryFileSystem();
+            var hosts = new HostRepository(fs);
+            var known = new KnownHostRepository(fs);
+            var keys = new KeyRepository(fs);
+            var secrets = new InMemorySecretStore();
+            var settings = new SettingsRepository(new InMemorySettingsStore());
+            var factory = new FakeSshSessionFactory();
+            var dispatcher = new RecordingDispatcher();
+            var manager = new SessionManager(
+                hosts, known, keys, secrets, settings, factory,
+                new FakeHostKeyPrompter(), new FakeCredentialPrompter(),
+                new ManualTimerFactory(), dispatcher);
+
+            Host host = Defaults.NewHost();
+            host.Name = "web";
+            host.HostName = "10.0.0.1";
+            host.Port = 22;
+            host.Username = "root";
+            host.AuthType = AuthType.Password;
+            await hosts.AddAsync(host);
+            factory.Queue.Enqueue(ReadySession());
+
+            SessionInfo info = await manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            Assert.Equal(SessionUiState.Connected, info.State);
+
+            int before = dispatcher.PostCount;
+            string raised = null;
+            info.PropertyChanged += (s, e) => raised = e.PropertyName;
+            // 模拟 I/O/线程池线程改属性：字段必须立即可见，通知走 dispatcher.Post。
+            await Task.Run(() => { info.State = SessionUiState.Reconnecting; });
+            Assert.Equal(SessionUiState.Reconnecting, info.State);
+            Assert.True(dispatcher.PostCount > before);
+            Assert.Equal("State", raised);
         }
     }
 }

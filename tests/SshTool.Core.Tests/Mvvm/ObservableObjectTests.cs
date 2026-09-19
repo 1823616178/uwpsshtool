@@ -37,5 +37,30 @@ namespace SshTool.Core.Tests.Mvvm
             vm.Name = "a";
             vm.PropertyChanged -= h;
         }
+
+        [Fact]
+        public void SetProperty_WithDispatcherPost_FieldSyncNotifyViaPost()
+        {
+            var vm = new Vm();
+            int postCount = 0;
+            vm.SetDispatcherPost(a => { postCount++; a(); });
+            string raised = null;
+            vm.PropertyChanged += (s, e) => raised = e.PropertyName;
+            vm.Name = "kim";
+            // 字段同步更新，通知走 dispatcher（后台线程改 UI 绑定属性时不直接跨线程抛 0x8001010E）
+            Assert.Equal("kim", vm.Name);
+            Assert.Equal(1, postCount);
+            Assert.Equal("Name", raised);
+        }
+
+        [Fact]
+        public void SetProperty_WithoutDispatcher_SyncRaise()
+        {
+            var vm = new Vm();
+            string raised = null;
+            vm.PropertyChanged += (s, e) => raised = e.PropertyName;
+            vm.Name = "x";
+            Assert.Equal("Name", raised);
+        }
     }
 }

@@ -145,6 +145,10 @@ namespace SshTool.Core.Sessions
                 Port = port,
                 Username = user
             };
+            // D06/WRONG_THREAD：ConnectCoreAsync 后续在线程池里改 info.*；
+            // 字段同步更新、PropertyChanged 经 _ui 回 UI 线程，否则 XAML 绑定
+            //（如 StatusDot 的 Ellipse）会在后台线程触碰 STA 对象而抛 0x8001010E。
+            info.SetDispatcherPost(_ui.Post);
             _sessions.Add(info);
             RaiseChanged();
             var ignore = ConnectCoreAsync(info, host, false).ContinueWith(t =>

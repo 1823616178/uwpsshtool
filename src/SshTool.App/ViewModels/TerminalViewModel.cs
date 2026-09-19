@@ -115,11 +115,17 @@ namespace SshTool.App.ViewModels
                 attach(_session.NativeSession);
                 _session.PropertyChanged += (s, e) =>
                 {
-                    if (e.PropertyName == "NativeSession")
+                    // NativeSession 切换会进 TerminalView.Session（碰 Canvas/DispatcherTimer），
+                    // 必须回 UI 线程；SessionInfo 已封送一次，这里是双保险
+                    //（DispatcherHelper.Post 在 UI 线程是同步直行，无开销）。
+                    DispatcherHelper.Post(() =>
                     {
-                        attach(_session.NativeSession);
-                    }
-                    RaisePropertyChanged("AddressLine");
+                        if (e.PropertyName == "NativeSession" || string.IsNullOrEmpty(e.PropertyName))
+                        {
+                            attach(_session.NativeSession);
+                        }
+                        RaisePropertyChanged("AddressLine");
+                    });
                 };
             }
         }
