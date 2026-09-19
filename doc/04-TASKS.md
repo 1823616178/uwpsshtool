@@ -42,11 +42,11 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 12 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 12 | 与桌面端同账号双向同步、冲突可解 |
-| M6 | 外观系统 | 5 | 3 | 主题、字体、配色可改可导入 |
-| M7 | 密钥、SFTP、转发、跳板 | 11 | 1 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
+| M5 | 云端同步 | 22 | 13 | 与桌面端同账号双向同步、冲突可解 |
+| M6 | 外观系统 | 5 | 4 | 主题、字体、配色可改可导入 |
+| M7 | 密钥、SFTP、转发、跳板 | 11 | 2 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 1 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **80** | |
+| **合计** | | **111** | **83** | |
 
 ### 1.1 关键路径
 
@@ -910,13 +910,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] §10.1 Coordinator 6、9、20，以及「上传期间本地又改动 → dirty 保持并 250 ms 后再同步」
   - 验证：`dotnet test`
 
-- [ ] **S12b 协调器：冲突、首次导入与远端删除** `M`
+- [x] **S12b 协调器：冲突、首次导入与远端删除** `M`
   - 依赖：S12a
   - 参考：`03-SYNC-PROTOCOL.md §7.3`（SaveConflict、RemoteDeletionConflicts、ResolveConflict）
   - 产出：`SyncCoordinator` 冲突部分、测试
   - 要点：initial-import（无 baseDocument）、remote-deletion（干净设备）、merge-conflict；冲突摘要持久化并在重启后恢复；ResolveConflict 两种策略。
   - 验收：
-    - [ ] §10.1 Coordinator 7、14、15、16、17、18、21
+    - [x] §10.1 Coordinator 7、14、15、16、17、18、21
   - 验证：`dotnet test`
 
 - [ ] **S13 协调器：轮换、历史、错误处理与重试** `M`
@@ -1038,13 +1038,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 修改字号/配色后已打开终端即时生效
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **A04 配色导入** `S`
+- [x] **A04 配色导入** `S`
   - 依赖：A03
   - 参考：`02-UI-DESIGN.md §5.12`
   - 产出：`src/SshTool.Core/Appearance/{ITermColorsParser,WindowsTerminalSchemeParser}.cs`、`tests/fixtures/themes/*`、导入按钮接线、测试
   - 要点：`.itermcolors`（plist XML，`Ansi 0 Color`…`Ansi 15 Color`、`Foreground/Background/Cursor/Selection Color`，分量 0–1）；Windows Terminal（单个 scheme 对象或含 `schemes` 数组的 settings.json，键 `black…brightWhite/foreground/background/cursorColor/selectionBackground`）；多个 scheme 时让用户选择；非法文件给出明确错误。
   - 验收：
-    - [ ] 两种格式各 ≥3 个真实主题文件解析成功；非法 XML/JSON/缺键报错且不抛未处理异常
+    - [x] 两种格式各 ≥3 个真实主题文件解析成功；非法 XML/JSON/缺键报错且不抛未处理异常
   - 验证：`dotnet test`
 
 - [ ] **A05 应用主题与强调色设置** `S`
@@ -1070,13 +1070,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 生成的 ed25519 私钥能被 libssh2 `publickey_frommemory` 加载（单测内校验）
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
-- [ ] **K02 密钥管理页面** `M` 📱
+- [x] **K02 密钥管理页面** `M` 📱
   - 依赖：K01、D03、U03b
   - 参考：`02-UI-DESIGN.md §5.10`
   - 产出：`src/SshTool.App/Views/Keys/{KeysPage,KeyDetailPage}.xaml(.cs)`、`src/SshTool.App/Dialogs/{KeyImportDialog,KeyGenerateDialog}.xaml(.cs)`、`src/SshTool.App/ViewModels/Keys/*.cs`、`src/SshTool.Core/Keys/KeyImportService.cs`、测试
   - 要点：导入（文件/粘贴，≤256 KiB，加密时要短语，按指纹去重提示）；生成；详情（改名、复制/分享公钥、导出私钥二次确认、使用它的主机）；删除保护；启用 HostEdit 的 [导入]/[生成]。
   - 验收：
-    - [ ] KeyImportService 单测（大小上限、重复指纹、短语错误）
+    - [x] KeyImportService 单测（大小上限、重复指纹、短语错误）
     - [ ] 📱 生成 ed25519 → 公钥加入服务器 `authorized_keys` → 用该密钥登录成功
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1314,6 +1314,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] S05 📱 自检全部通过，记录 Argon2id 解锁耗时
 - [ ] P02 📱 Wi-Fi 切蜂窝后 10 s 内会话恢复可用
 - [ ] A03 📱 修改字号/配色后已打开终端即时生效
+- [ ] K02 📱 生成 ed25519 → 公钥加入服务器 `authorized_keys` → 用该密钥登录成功
 
 ---
 
@@ -1420,3 +1421,6 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | S12a | 3924c8f | **完成**。SyncNow 单飞 + PerformSync ①–④ 非冲突路径 + Upload（先落盘 pending、确定性错误清除、generation 竞争 + 250ms 复同步）+ CommitRemote；冲突分支占位抛 NotSupported（S12b 接）。修单飞槽竞态（finally 先于赋值，token 守卫清槽）。§10.1 Coordinator 6/9/20 + 上传期改动复同步（15 条）。Core 953；`verify.ps1 -Quick` 全绿。 |
 | 2026-09-19 | A03 | 8d9c1e3 | **代码完成**。SampleScreenBuilder（36×8 样例屏）+ HsvColor/Comparer + StaticTerminalScreen；AppearanceList/EditPage（实时预览<100ms、内置复制、脏确认、设默认）+ ColorSwatchPicker 完整版（HSV+新旧对比）；TerminalView.ApplyAppearance（不重连）+ 刷新链路（Changed 按主机重应用）；HostEdit/设置/菜单接入。Core +32（共 953，样例屏验收已勾）；`verify.ps1` 全绿。⏳ 📱 即时生效与观感（已登记待办）。 |
 | 2026-09-19 | K01 | fbd5444 | **完成**。keytool 生成 ed25519（手写 openssh-key-v1）/RSA3072/4096 + 解析三格式 + 导出公钥行 + SHA256 指纹；WinRT KeyTool/KeyInfo 桥；14 夹具 + 12 用例（指纹硬编码=`ssh-keygen -lf`、libssh2 加载校验）。修 Bridge/obj 大小写覆盖（Core 组 IntDir 隔离）与 ECDSA/PEM 空行 bug。native 233；v141 x64/ARM 构建 ✓；`verify.ps1 -Quick` 全绿。遗留：KeyInfo 多 Comment 属性未回写 §6.2（K02 可补）。 |
+| 2026-09-19 | S12b | a7e65ff | **完成**。冲突三分支（initial-import/remote-deletion/merge-conflict）+ SaveConflict 落盘（摘要不含值）+ ResolveConflict 双策略；重启恢复（相位重建 idle，冲突数据完整）。§10.1 Coordinator 7/14/15/16/17/18/21（12 条）。Core 1008；`verify.ps1 -Quick` 全绿。 |
+| 2026-09-19 | A04 | c063fd7 | **完成**。itermcolors（XDocument，DTD 忽略）+ Windows Terminal（单 scheme/数组，多选对话框）+ ThemeImportResult（Id 已分配可直接 Add）；6 真实主题全 20 色位断言 + 非法用例。Core +30（共 1008）。 |
+| 2026-09-19 | K02 | be93216 | **代码完成**。KeyImportService（256KiB/去重/短语/落库双写/生成复检）+ IKeyTool/NativeKeyTool + Keys/Detail 页（改名/复制分享/导出二次确认/引用/删除保护）+ Import/Generate 对话框；HostEdit 占位转真流程。Core +13（共 1008）；`verify.ps1` 全绿。⏳ 📱 密钥登录（已登记待办）。 |
