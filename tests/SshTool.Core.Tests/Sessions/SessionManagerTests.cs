@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using SshTool.Core.Common;
 using SshTool.Core.Hosts;
@@ -460,6 +461,69 @@ namespace SshTool.Core.Tests.Sessions
             Assert.Equal(SessionUiState.Reconnecting, info.State);
             Assert.True(dispatcher.PostCount > before);
             Assert.Equal("State", raised);
+        }
+
+        // U10：shell 打开后自动执行 tmux 附着 + 初始命令（每条追加 \r）。
+        [Fact]
+        public async Task Open_WithTmuxAndInitCommands_SendsAutoRunAfterOpenShell()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            host.TmuxAutoAttach = true;
+            host.TmuxSessionName = "my sess";
+            host.InitCommands = new List<string> { "cd /srv", "", "htop" };
+            await fx.Hosts.UpdateAsync(host, ChangeOrigin.User);
+            FakeSshSession native = fx.Enqueue(ReadySession());
+
+            SessionInfo info = await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+
+            Assert.Equal(SessionUiState.Connected, info.State);
+            int openShellIndex = native.Calls.IndexOf("OpenShell");
+            Assert.True(openShellIndex >= 0);
+            Assert.Equal(3, native.Writes.Count);
+            Assert.True(native.Calls.IndexOf("Write") > openShellIndex);
+            Assert.Equal("tmux new-session -A -s my_sess\r", Encoding.UTF8.GetString(native.Writes[0]));
+            Assert.Equal("cd /srv\r", Encoding.UTF8.GetString(native.Writes[1]));
+            Assert.Equal("htop\r", Encoding.UTF8.GetString(native.Writes[2]));
+        }
+
+        // U10：全部关闭时不发送任何自动执行命令。
+        [Fact]
+        public async Task Open_NoAutoRunConfig_NoWrite()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            FakeSshSession native = fx.Enqueue(ReadySession());
+
+            SessionInfo info = await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+
+            Assert.Equal(SessionUiState.Connected, info.State);
+            Assert.Empty(native.Writes);
+        }
+
+        // U10：重连后再次发送，靠 tmux 附着找回现场。
+        [Fact]
+        public async Task Reconnect_SendsAutoRunAgain()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            host.TmuxAutoAttach = true;
+            host.TmuxSessionName = "main";
+            await fx.Hosts.UpdateAsync(host, ChangeOrigin.User);
+            FakeSshSession first = fx.Enqueue(ReadySession());
+            FakeSshSession second = fx.Enqueue(ReadySession());
+
+            SessionInfo info = await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            Assert.Single(first.Writes);
+
+            first.FireStateChanged(SessionStateKind.Disconnected, SshErrorCode.RemoteClosed);
+            fx.Timers.FirePending();
+            await Task.Yield();
+
+            Assert.Equal(SessionUiState.Connected, info.State);
+            Assert.Same(second, info.NativeSession);
+            Assert.Single(second.Writes);
+            Assert.Equal("tmux new-session -A -s main\r", Encoding.UTF8.GetString(second.Writes[0]));
         }
     }
 }

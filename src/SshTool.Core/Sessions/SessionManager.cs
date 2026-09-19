@@ -305,6 +305,9 @@ namespace SshTool.Core.Sessions
                 return;
             }
 
+            // U10：每次（含重连）shell 打开后发送自动执行命令，靠 tmux 附着找回现场。
+            SendAutoRun(native, host);
+
             info.State = SessionUiState.Connected;
             info.ErrorCode = SshErrorCode.None;
             info.ReconnectAttempt = 0;
@@ -313,6 +316,23 @@ namespace SshTool.Core.Sessions
             CancelTimer(info.SessionId);
             RaiseChanged();
             await AfterSuccessAsync(info, host).ConfigureAwait(false);
+        }
+
+        private void SendAutoRun(ISshSession native, Host host)
+        {
+            IList<string> commands = AutoRun.BuildCommands(host);
+            if (commands.Count == 0)
+            {
+                return;
+            }
+            for (int i = 0; i < commands.Count; i++)
+            {
+                native.Write(Encoding.UTF8.GetBytes(commands[i] + "\r"));
+            }
+            if (_logger != null)
+            {
+                _logger.Log(LogLevel.Info, "Session", "autorun " + commands.Count.ToString());
+            }
         }
 
         private void HandleHostKey(SessionInfo info, KnownHost known, string hostFp, HostKeyCheckEventArgs e)

@@ -32,6 +32,7 @@ namespace SshTool.Core.Tests.Fakes
         public string LastPassphrase;
         public string LastExecCommand;
         public byte[] LastWritten;
+        public readonly List<byte[]> Writes = new List<byte[]>();
         public int LastOpenShellCols;
         public int LastOpenShellRows;
         public int LastResizeCols;
@@ -150,6 +151,7 @@ namespace SshTool.Core.Tests.Fakes
         {
             Calls.Add("Write");
             LastWritten = data;
+            Writes.Add(data);
         }
 
         public void Resize(int cols, int rows)
