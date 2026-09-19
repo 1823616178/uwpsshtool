@@ -86,6 +86,48 @@ namespace SshTool.Core.Storage
             RaiseChanged(origin, changedIds);
         }
 
+        public async Task AddManyAsync(IReadOnlyList<T> items, ChangeOrigin origin = ChangeOrigin.User)
+        {
+            if (items == null)
+            {
+                throw new ArgumentNullException("items");
+            }
+            List<string> changedIds = null;
+            await _gate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                await EnsureLoadedCoreAsync().ConfigureAwait(false);
+                var next = new List<T>(_items);
+                var batchIds = new HashSet<string>(StringComparer.Ordinal);
+                for (int i = 0; i < items.Count; i++)
+                {
+                    string id = IdOf(items[i]);
+                    if (string.IsNullOrEmpty(id))
+                    {
+                        throw new InvalidOperationException("实体 id 为空");
+                    }
+                    if (FindIndex(id) >= 0 || batchIds.Contains(id))
+                    {
+                        throw new InvalidOperationException("实体 id 重复: " + id);
+                    }
+                    next.Add(items[i]);
+                    batchIds.Add(id);
+                }
+                if (batchIds.Count == 0)
+                {
+                    return;
+                }
+                await _store.SaveAsync(next).ConfigureAwait(false);
+                _items = next;
+                changedIds = new List<string>(batchIds);
+            }
+            finally
+            {
+                _gate.Release();
+            }
+            RaiseChanged(origin, changedIds);
+        }
+
         public async Task<bool> UpdateAsync(T item, ChangeOrigin origin = ChangeOrigin.User)
         {
             return await UpdateManyAsync(new List<T> { item }, origin).ConfigureAwait(false);

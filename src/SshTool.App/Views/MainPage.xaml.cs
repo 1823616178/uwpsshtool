@@ -20,8 +20,10 @@ namespace SshTool.App.Views
         {
             ViewModel = new MainViewModel();
             this.InitializeComponent();
-            HostsEmpty.PrimaryCommand = ViewModel.NewHostCommand;
-            HostsEmpty.SecondaryCommand = ViewModel.SignInCommand;
+            if (ViewModel.Hosts != null)
+            {
+                HostsPane.Attach(ViewModel.Hosts);
+            }
             ApplyStatusBar();
             ShowLoadWarnings();
             LogBuildInfo();
@@ -33,6 +35,7 @@ namespace SshTool.App.Views
             DebugInputItem.Visibility = Visibility.Visible;
             DebugPlatformItem.Visibility = Visibility.Visible;
             DebugBuildItem.Visibility = Visibility.Visible;
+            DebugGenerateHostsItem.Visibility = Visibility.Visible;
 #endif
         }
 
@@ -62,6 +65,10 @@ namespace SshTool.App.Views
         // §4 规则 7：非「主机」Pivot 先切回主机；已在主机则交给系统退出。
         public bool HandleBack()
         {
+            if (ViewModel.Hosts != null && ViewModel.Hosts.CloseSearch())
+            {
+                return true;
+            }
             if (MainPivot.SelectedIndex != 0)
             {
                 MainPivot.SelectedIndex = 0;
@@ -208,6 +215,14 @@ namespace SshTool.App.Views
         private void OnBuildInfoClick(object sender, RoutedEventArgs e)
         {
             Frame.Navigate(typeof(SshTool.App.MainPage));
+        }
+
+        private void OnGenerateHostsClick(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.Hosts != null && ViewModel.Hosts.GenerateTestHostsCommand.CanExecute(null))
+            {
+                ViewModel.Hosts.GenerateTestHostsCommand.Execute(null);
+            }
         }
     }
 }

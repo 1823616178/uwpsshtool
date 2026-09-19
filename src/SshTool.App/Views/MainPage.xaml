@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:SshTool.App.Controls"
+    xmlns:main="using:SshTool.App.Views.Main"
     Background="{ThemeResource AppBgBrush}">
 
     <!-- 02-UI-DESIGN.md §5.1：Pivot 主机/会话/隧道 + 底部 CommandBar。
@@ -39,6 +40,7 @@
                 <AppBarButton x:Name="DebugInputItem" Label="SP05 输入采集" Click="OnInputSpikeClick" Visibility="Collapsed" />
                 <AppBarButton x:Name="DebugPlatformItem" Label="SP06 平台 Spike" Click="OnPlatformSpikeClick" Visibility="Collapsed" />
                 <AppBarButton x:Name="DebugBuildItem" Label="构建信息" Click="OnBuildInfoClick" Visibility="Collapsed" />
+                <AppBarButton x:Name="DebugGenerateHostsItem" Label="生成 100 台测试主机" Click="OnGenerateHostsClick" Visibility="Collapsed" />
             </CommandBar.SecondaryCommands>
         </CommandBar>
     </Page.BottomAppBar>
@@ -53,13 +55,7 @@
 
         <Pivot x:Name="MainPivot" Grid.Row="1" Title="LUMIA SSH">
             <PivotItem Header="主机">
-                <controls:EmptyState
-                    x:Name="HostsEmpty"
-                    Glyph="{StaticResource IconTerminal}"
-                    Title="还没有主机"
-                    Description="添加一台主机，或登录同步已有配置。"
-                    PrimaryText="添加主机"
-                    SecondaryText="登录同步" />
+                <main:HostsPivot x:Name="HostsPane" />
             </PivotItem>
             <PivotItem Header="会话">
                 <controls:EmptyState

@@ -1,0 +1,75 @@
+<UserControl
+    x:Class="SshTool.App.Views.Main.HostsPivot"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls">
+
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="GroupedHosts" x:Name="GroupedHosts"
+                              IsSourceGrouped="True" ItemsPath="Rows" />
+        <DataTemplate x:Key="HostItemTemplate">
+            <controls:HostRow ConnectRequested="OnConnectRequested"
+                              NewSessionRequested="OnNewSessionRequested"
+                              EditRequested="OnEditRequested"
+                              DuplicateRequested="OnDuplicateRequested"
+                              SftpRequested="OnSftpRequested"
+                              DeleteRequested="OnDeleteRequested" />
+        </DataTemplate>
+        <DataTemplate x:Key="GroupHeaderTemplate">
+            <controls:GroupHeader Tapped="OnGroupHeaderTapped" />
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <AutoSuggestBox x:Name="SearchBox"
+                        PlaceholderText="搜索主机、地址、用户"
+                        QueryIcon="Find"
+                        TextChanged="OnSearchTextChanged"
+                        Margin="{StaticResource PagePadding}"
+                        Visibility="Collapsed" />
+
+        <Grid x:Name="QuickConnectCard" Grid.Row="1"
+              Background="{ThemeResource AppSurfaceAltBrush}"
+              Padding="{StaticResource PadMd}"
+              Margin="{StaticResource PagePadding}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="QuickConnectBox"
+                     PlaceholderText="user@host[:port]"
+                     Header="快速连接"
+                     TextChanged="OnQuickConnectTextChanged" />
+            <Button Grid.Column="1" Content="连接" Click="OnQuickConnectClick"
+                    VerticalAlignment="Bottom" Margin="{StaticResource GapSmLeft}" />
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <controls:EmptyState x:Name="Empty"
+                                 Glyph="{StaticResource IconTerminal}"
+                                 Title="还没有主机"
+                                 Description="添加一台主机，或登录同步已有配置。"
+                                 PrimaryText="添加主机"
+                                 SecondaryText="登录同步"
+                                 Visibility="Collapsed" />
+            <controls:EmptyState x:Name="NoMatches"
+                                 Glyph="{StaticResource IconSearch}"
+                                 Title="没有匹配的主机"
+                                 Visibility="Collapsed" />
+            <ListView x:Name="HostList"
+                      ItemTemplate="{StaticResource HostItemTemplate}"
+                      SelectionMode="None"
+                      IsItemClickEnabled="False">
+                <ListView.GroupStyle>
+                    <GroupStyle HidesIfEmpty="False" HeaderTemplate="{StaticResource GroupHeaderTemplate}" />
+                </ListView.GroupStyle>
+            </ListView>
+        </Grid>
+    </Grid>
+</UserControl>

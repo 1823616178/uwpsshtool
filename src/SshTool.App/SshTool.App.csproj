@@ -208,6 +208,16 @@
       <DependentUpon>DebugConnectPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\HostListViewModel.cs" />
+    <Compile Include="Controls\HostRow.xaml.cs">
+      <DependentUpon>HostRow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\GroupHeader.xaml.cs">
+      <DependentUpon>GroupHeader.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Main\HostsPivot.xaml.cs">
+      <DependentUpon>HostsPivot.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -262,6 +272,18 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\PlaceholderPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Main\HostsPivot.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\HostRow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\GroupHeader.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

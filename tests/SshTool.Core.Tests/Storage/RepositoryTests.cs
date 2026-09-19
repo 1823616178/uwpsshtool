@@ -54,6 +54,20 @@ namespace SshTool.Core.Tests.Storage
         }
 
         [Fact]
+        public async Task AddMany_PersistsOnceAndRaisesSingleChanged()
+        {
+            var fs = new InMemoryFileSystem();
+            var repo = new HostRepo(fs);
+            var events = Watch(repo);
+
+            await repo.AddManyAsync(new[] { NewHost("h1"), NewHost("h2") });
+
+            Assert.Single(events);
+            Assert.Equal(2, events[0].ChangedIds.Count);
+            Assert.Equal(2, (await repo.GetAllAsync()).Count);
+        }
+
+        [Fact]
         public async Task Add_DuplicateId_Throws()
         {
             var repo = new HostRepo(new InMemoryFileSystem());

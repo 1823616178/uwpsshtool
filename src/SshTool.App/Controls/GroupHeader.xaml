@@ -1,0 +1,26 @@
+<UserControl
+    x:Class="SshTool.App.Controls.GroupHeader"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Background="Transparent"
+          MinHeight="{StaticResource GroupHeaderHeight}"
+          Padding="{StaticResource PagePadding}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock x:Name="Chevron" Style="{StaticResource CaptionTextStyle}"
+                   VerticalAlignment="Center" />
+        <TextBlock x:Name="TitleText" Grid.Column="1" Style="{StaticResource CaptionTextStyle}"
+                   VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
+        <Border x:Name="ColorSwatch" Grid.Column="2"
+                Width="{StaticResource StatusDotSize}"
+                Height="{StaticResource StatusDotSize}"
+                CornerRadius="{StaticResource RadiusSm}"
+                VerticalAlignment="Center"
+                Margin="{StaticResource GapSmLeft}"
+                Visibility="Collapsed" />
+    </Grid>
+</UserControl>

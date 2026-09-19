@@ -9,8 +9,20 @@ namespace SshTool.App.ViewModels
     {
         public MainViewModel()
         {
-            NewHostCommand = new RelayCommand(() => OpenPlaceholder("新建主机", "M3"));
-            SearchCommand = new RelayCommand(() => OpenPlaceholder("搜索", "M3"));
+            AppServices services = AppServices.Current;
+            if (services != null)
+            {
+                Hosts = new HostListViewModel(services);
+                NewHostCommand = Hosts.NewHostCommand;
+                SearchCommand = Hosts.ToggleSearchCommand;
+                SignInCommand = Hosts.SignInCommand;
+            }
+            else
+            {
+                NewHostCommand = new RelayCommand(() => OpenPlaceholder("新建主机", "M3"));
+                SearchCommand = new RelayCommand(() => OpenPlaceholder("搜索", "M3"));
+                SignInCommand = new RelayCommand(() => OpenPlaceholder("登录", "M5"));
+            }
             SyncCommand = new RelayCommand(() => OpenPlaceholder("同步", "M5"));
             SettingsCommand = new RelayCommand(() => OpenPlaceholder("设置", "M6"));
             KeysCommand = new RelayCommand(() => OpenPlaceholder("密钥", "M7"));
@@ -18,8 +30,9 @@ namespace SshTool.App.ViewModels
             SnippetsCommand = new RelayCommand(() => OpenPlaceholder("片段", "M4"));
             AppearanceCommand = new RelayCommand(() => OpenPlaceholder("外观", "M6"));
             AboutCommand = new RelayCommand(() => OpenPlaceholder("关于", "M8"));
-            SignInCommand = new RelayCommand(() => OpenPlaceholder("登录", "M5"));
         }
+
+        public HostListViewModel Hosts { get; private set; }
 
         public ICommand NewHostCommand { get; private set; }
         public ICommand SearchCommand { get; private set; }
