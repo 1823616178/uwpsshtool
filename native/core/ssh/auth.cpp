@@ -1,4 +1,5 @@
 #include "auth.h"
+#include "debug_log.h"
 
 #include <chrono>
 #include <cstdio>
@@ -12,11 +13,7 @@
 
 #include "io/SessionThread.h"
 
-#define SSH_LOG(...)                                  \
-    do {                                              \
-        std::fprintf(stderr, "[ssh] " __VA_ARGS__);  \
-        std::fprintf(stderr, "\n");                  \
-    } while (0)
+#define SSH_LOG(...) sshclient::diagnostics::debugLog("ssh", __VA_ARGS__)
 
 namespace sshclient {
 namespace ssh {

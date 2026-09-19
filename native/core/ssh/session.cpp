@@ -1,6 +1,7 @@
 #include "session.h"
 
 #include "channel.h"
+#include "debug_log.h"
 #include "io/SessionThread.h"
 
 #include <libssh2.h>
@@ -13,11 +14,7 @@
 #include <mutex>
 #include <utility>
 
-#define SSH_LOG(...)                                  \
-    do {                                              \
-        std::fprintf(stderr, "[ssh] " __VA_ARGS__);  \
-        std::fprintf(stderr, "\n");                  \
-    } while (0)
+#define SSH_LOG(...) sshclient::diagnostics::debugLog("ssh", __VA_ARGS__)
 
 namespace sshclient {
 namespace ssh {

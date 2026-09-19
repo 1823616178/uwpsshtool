@@ -238,6 +238,7 @@ namespace SshTool.Core.Tests.Sessions
             Assert.Equal("xterm-256color", request.TermType);
             Assert.Equal(80, request.Cols);
             Assert.Equal(24, request.Rows);
+            Assert.Equal(string.Empty, request.JumpSessionId);
         }
     }
 }

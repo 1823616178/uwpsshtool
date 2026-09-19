@@ -1,4 +1,5 @@
 #include "EventLoop.h"
+#include "debug_log.h"
 
 #include <ws2tcpip.h>
 #include <windows.h>
@@ -9,11 +10,7 @@
 #include <thread>
 #include <utility>
 
-#define IO_LOG(...)                                  \
-    do {                                             \
-        std::fprintf(stderr, "[io] " __VA_ARGS__);  \
-        std::fprintf(stderr, "\n");                 \
-    } while (0)
+#define IO_LOG(...) sshclient::diagnostics::debugLog("io", __VA_ARGS__)
 
 namespace sshclient {
 namespace io {

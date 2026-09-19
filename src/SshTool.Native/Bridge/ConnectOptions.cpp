@@ -15,6 +15,7 @@ namespace SshTool
                 TermType = L"xterm-256color";
                 Cols = 80;
                 Rows = 24;
+                JumpSessionId = L"";
             }
         }
     }

@@ -66,7 +66,8 @@ namespace SshTool.App.Platform
                 TermType = request.TermType,
                 Cols = request.Cols,
                 Rows = request.Rows,
-                JumpSessionId = request.JumpSessionId,
+                // WinRT Platform::String^ 属性不接收托管 null；F05 尚未启用时传空串。
+                JumpSessionId = request.JumpSessionId ?? string.Empty,
             };
             if (request.Env != null)
             {
