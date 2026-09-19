@@ -41,12 +41,12 @@
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
-| M4 | 终端页与会话 | 12 | 8 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 7 | 与桌面端同账号双向同步、冲突可解 |
+| M4 | 终端页与会话 | 12 | 9 | **完整可用的本地 SSH 客户端**（无同步） |
+| M5 | 云端同步 | 22 | 8 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
-| M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **68** | |
+| M8 | 打磨与发布 | 10 | 1 | 性能/安全报告、可侧载安装包 v1.0.0 |
+| **合计** | | **111** | **71** | |
 
 ### 1.1 关键路径
 
@@ -750,13 +750,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 Continuum 下同上；断开 Continuum 回到手机后会话与布局完好
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **U13 命令片段** `M`
+- [x] **U13 命令片段** `M`
   - 依赖：D02、U07
   - 参考：`02-UI-DESIGN.md §5.9`
   - 产出：`src/SshTool.Core/Terminal/SnippetTemplate.cs`、`src/SshTool.App/Views/{SnippetsPage,SnippetEditPage}.xaml(.cs)`、`src/SshTool.App/Controls/SnippetPickerFlyout.xaml(.cs)`、`src/SshTool.App/Dialogs/SnippetVariableDialog.xaml(.cs)`、ViewModels、测试
   - 要点：内置变量 `${host} ${user} ${port} ${name}`，其他 `${xxx}` 视为待填变量，`$${` 转义；发送后是否回车；按分组名分组；终端菜单与键条 `snippets` 键打开选择器。
   - 验收：
-    - [ ] SnippetTemplate 单测（替换、未知变量收集、转义、多次出现）
+    - [x] SnippetTemplate 单测（替换、未知变量收集、转义、多次出现）
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **P01 屏幕常亮、应用生命周期与后台策略** `M` 📱
@@ -813,15 +813,15 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 同一文档两次写出字节相同
   - 验证：`dotnet test`
 
-- [ ] **S03 原生保险库密码学** `M`
+- [x] **S03 原生保险库密码学** `M`
   - 依赖：N01
   - 参考：`03-SYNC-PROTOCOL.md §3`；鸿蒙端 `cpp/crypto/{sync_params.h,aad.*,vault.*}`、`cpp/tests/{aad_test,vault_test,vault_ops_test}.cpp`、`vault_golden_vectors.h`；桌面端 `src/main/security/crypto-vault.ts`
   - 产出：`native/core/crypto/{sync_params.h,aad.hpp,aad.cpp,vault.hpp,vault.cpp}`、`native/tests/{aad_test,vault_test,vault_ops_test}.cpp`、`native/tests/vault_golden_vectors.h`（原样复制）
   - 要点：KDF 参数作为入参并做范围校验；解包/解密失败统一返回 false；解密前常量时间比对 ciphertextHash；Base64 规范性检查；恢复密钥校验段大小写不敏感比较；所有密钥材料清零。
   - 验收：
-    - [ ] 黄金向量通过；恢复密钥 10000 次随机往返与逐字符篡改被拒
-    - [ ] 篡改 ciphertext / hash / AAD 字段（vaultId、keyVersion）均解密失败
-    - [ ] 非法 KDF 参数被拒
+    - [x] 黄金向量通过；恢复密钥 10000 次随机往返与逐字符篡改被拒
+    - [x] 篡改 ciphertext / hash / AAD 字段（vaultId、keyVersion）均解密失败
+    - [x] 非法 KDF 参数被拒
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
 - [ ] **S04 跨端测试向量工具** `M`
@@ -1222,7 +1222,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 许可清单与实际 NuGet / vendored 版本一致
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **Q07 图标、磁贴与启动画面** `S` 📱
+- [x] **Q07 图标、磁贴与启动画面** `S` 📱
   - 依赖：X02
   - 产出：`tools/assets/{icon.svg,generate.ps1}`、`src/SshTool.App/Assets/*` 全尺寸资源、清单更新
   - 要点：Square44x44（含 targetsize-16/24/32/48 与 altform-unplated）、Square71x71、Square150x150、Wide310x150、Square310x310、StoreLogo、SplashScreen，各 scale-100/125/150/200/400；深浅开始屏幕都清晰；启动画面背景色 = 深色 `AppBgBrush`。
@@ -1404,3 +1404,6 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | U12 | 905bd3d | **代码完成**。TerminalWorkspace 按 PaneLayout 绝对定位+拖动改 ratio（释放后防抖 Resize）、焦点边框、窄屏聚焦叶树不销毁、不可见窗格退订渲染；TabStrip 新建/关闭/右键菜单；WorkspaceViewModel 多标签经 ServiceRegistry 单例；MainPage AdaptiveTrigger≥720 主从、TerminalPage 宽屏键条默认隐藏。⏳ x64 四窗格/stty 与 📱 Continuum（已登记待办）。Core 754；`verify.ps1` 全绿（含 -Arm）。 |
 | 2026-09-19 | S08 | a2635ab | **完成**。AuthStore 基于 ISecureFile（secure/auth.bin，手写 JObject，损坏按未登录）实现 ITokenStore；AuthService 注册/登录防重复、登出失败也清本地、改密成功清本地、拒绝撤销本机；UwpDeviceDescriptorProvider（FriendlyName/平台/包版本，ApiInformation 守卫）。Core 单测 +26（共 754，含持久化/uncertain/重复登录/撤销本机/改密）；`verify.ps1` 全绿。 |
 | 2026-09-19 | S10 | 36f0661 | **完成**。SyncLocalAdapter：Build 按 preferences 输出 secrets（NullPrivateKeyInspector 预留 S15）、悬空引用过滤、Writer 零偏差门禁；Apply 指纹变化与运行中隧道两道保护（整份拒）、🏠字段保留、凭据出现覆盖缺失保留、删除级联、ChangeOrigin.Sync。Core 单测 +12（共 754，覆盖 7 项验收）；`verify.ps1 -Quick` 全绿。 |
+| 2026-09-19 | U13 | b8e9ec3 | **完成**。SnippetTemplate 纯函数（内置 ${host}/${user}/${port}/${name}、其余按序收集、`$$` 转义、缺值为空、内置优先）+ 发送整形（换行归一 `\r`、SendEnter 补 `\r`，经 ISshSession.Write）；SnippetsPage（搜索+分组）/SnippetEditPage（分组联想+变量说明+脏确认）/SnippetPickerFlyout/SnippetVariableDialog；终端菜单与键条 snippets 接入。Core 单测 +15（共 769）；`verify.ps1` 全绿。 |
+| 2026-09-19 | S03 | fc87d52 | **完成**。native AAD/保险库：KDF 入参+范围校验、解密前 hash 常量时间比对、规范 Base64、恢复密钥校验段大小写不敏感、HKDF 手工实现、OPENSSL_cleanse 清零；黄金向量 5 值命中、恢复密钥 10000 次往返+61 点篡改全拒、篡改/非法 KDF 全拒。native 218（+21）；v141 x64/Win32/ARM Release 构建 ✓；`verify.ps1 -Quick` 全绿。遗留：§3.5 kCiphertextHash 与冻结头不一致（c74d… vs 7642…），S03 范围外未改，需后续回改。 |
+| 2026-09-19 | Q07 | 0d904f5 | **代码完成**。核对 52 PNG 逐个尺寸正确（重跑字节一致）；补上 cffad50 漏合的清单项：Square71x71/Square310x310、SplashScreen BackgroundColor #000000（=深色 AppBgBrush）；generate.ps1 -List 计数 45→52。⏳ 📱 磁贴观感（已在待办）。`verify.ps1` 全绿，无 APPX1619/WMC0151。 |
