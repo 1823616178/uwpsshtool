@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using System.Threading;
@@ -48,16 +49,14 @@ namespace SshTool.Core.Sync
 
     // 03-SYNC-PROTOCOL.md §7.1 初始化与认证 + §7.2 保险库操作（不含 Rotate）
     // + §7.3 同步主流程与上传（S12a：单飞 SyncNow、pendingUpload 重放、HEAD 分支、
-    // 无新版本上传条件、有新版本干净应用/脏合并上传、Upload/CommitRemote）。
+    // 无新版本上传条件、有新版本干净应用/脏合并上传、Upload/CommitRemote；
+    // S12b：SaveConflict/initial-import/remote-deletion/RemoteDeletionConflicts/ResolveConflict）。
     // S11 范围（第一部分）：Initialize、注册/登录后流程、ProbeVault、
     // SetupVault（先落盘 pending 再 POST）、Unlock、Lock、DeleteVault、
     // SetPreferences（拒绝直接关闭敏感开关）、Logout、ChangeAccountPassword、
     // DeleteAccount 与 StateChanged 事件。
     //
-    // 不在 S12a（S12b 落地）：SaveConflict/initial-import/remote-deletion/
-    // RemoteDeletionConflicts/ResolveConflict——冲突条件命中时抛 NotSupportedException
-    //（HandleSyncError 照常记 error 并上抛，调用方可忽略）。
-    // 不在 S12a（S13 落地）：Rotate/Restore/Clear、退避重试与 ITimerFactory、
+    // 不在 S12b（S13 落地）：Rotate/Restore/Clear、退避重试与 ITimerFactory、
     // MarkDirty 防抖（此处只有无防抖的 NotifyLocalChanged 供 Upload 竞争检测与 S13 复用）。
     // SetupVault/Unlock 成功后只把 dirty=true（或就绪）记入缓存并转 idle/ready，
     // 首次加密上传由 SyncNow 完成（与桌面端 setupVault 尾部 syncNow 对齐）。
@@ -921,10 +920,24 @@ namespace SshTool.Core.Sync
                     remoteResponse, active.VaultKeyBase64, active.VaultId).ConfigureAwait(false);
                 if (active.BaseDocument == null && strategy == SyncNowStrategy.None)
                 {
-                    await RequireConflictHandlingAsync("initial-import").ConfigureAwait(false);
+                    await SaveConflictAsync(
+                        local, remote, remoteResponse.Revision,
+                        SingleField(SyncConflictEntity.Settings, "initial-import"),
+                        SyncConflictReason.InitialImport).ConfigureAwait(false);
                     return;
                 }
-                // 注：干净设备的远端删除确认（remote-deletion 检查）在 S12b 插入到此处之前。
+                if (!active.Dirty && strategy == SyncNowStrategy.None && active.BaseDocument != null)
+                {
+                    List<SyncConflictField> deletions =
+                        RemoteDeletionConflicts(active.BaseDocument, remote);
+                    if (deletions.Count != 0)
+                    {
+                        await SaveConflictAsync(
+                            local, remote, remoteResponse.Revision,
+                            deletions, SyncConflictReason.RemoteDeletion).ConfigureAwait(false);
+                        return;
+                    }
+                }
                 if (!active.Dirty || strategy == SyncNowStrategy.UseRemote)
                 {
                     await _local.ApplyDocumentAsync(remote).ConfigureAwait(false);
@@ -934,13 +947,19 @@ namespace SshTool.Core.Sync
                 }
                 if (active.BaseDocument == null)
                 {
-                    await RequireConflictHandlingAsync("initial-import").ConfigureAwait(false);
+                    await SaveConflictAsync(
+                        local, remote, remoteResponse.Revision,
+                        SingleField(SyncConflictEntity.Settings, "initial"),
+                        SyncConflictReason.InitialImport).ConfigureAwait(false);
                     return;
                 }
                 SyncMergeResult merged = SyncMerge.Merge(active.BaseDocument, local, remote);
                 if (merged.Conflicts.Count != 0)
                 {
-                    await RequireConflictHandlingAsync("merge-conflict").ConfigureAwait(false);
+                    await SaveConflictAsync(
+                        local, remote, remoteResponse.Revision,
+                        ToConflictFields(merged.Conflicts),
+                        SyncConflictReason.MergeConflict).ConfigureAwait(false);
                     return;
                 }
                 await _local.ApplyDocumentAsync(merged.Document).ConfigureAwait(false);
@@ -1210,11 +1229,261 @@ namespace SshTool.Core.Sync
             }
         }
 
-        // S12b 占位：initial-import / merge-conflict 的冲突摘要持久化与解决。
-        // S12a 只走非冲突路径；命中时抛 NotSupportedException（S12b 替换为 SaveConflict）。
-        private Task RequireConflictHandlingAsync(string reason)
+        // ---------- S12b：冲突、首次导入与远端删除（§7.3 SaveConflict/RemoteDeletionConflicts/ResolveConflict） ----------
+
+        // §7.3 ResolveConflict：use-remote 落本地基线并 synced；
+        // keep-local 以远端 revision 为基准脏上传（SyncNow(keep-local) 走 ③ 强制上传）。
+        // 无待处理冲突 → 抛（与桌面端 resolveConflict 同文案）。
+        public async Task ResolveConflictAsync(
+            SyncNowStrategy strategy,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotSupportedException("冲突处理（" + reason + "）在 S12b 实现");
+            if (strategy != SyncNowStrategy.UseRemote && strategy != SyncNowStrategy.KeepLocal)
+            {
+                throw new ArgumentException("冲突解决策略必须为 use-remote 或 keep-local", nameof(strategy));
+            }
+            VaultCacheState cache = _vault.State;
+            SyncDocumentV1 remote = cache.ConflictRemoteDocument;
+            string revision = cache.ConflictRemoteRevision;
+            if (remote == null || string.IsNullOrEmpty(revision))
+            {
+                throw new InvalidOperationException("没有待处理的同步冲突");
+            }
+            if (strategy == SyncNowStrategy.UseRemote)
+            {
+                await _local.ApplyDocumentAsync(remote.Clone()).ConfigureAwait(false);
+                await CommitRemoteAsync(remote, revision).ConfigureAwait(false);
+                Info("冲突已解决（use-remote）revision=" + revision);
+                return;
+            }
+            await _vault.UpdateAsync(next =>
+            {
+                next.Revision = revision;
+                next.Dirty = true;
+                next.Conflict = null;
+                next.ConflictRemoteDocument = null;
+                next.ConflictRemoteRevision = null;
+            }).ConfigureAwait(false);
+            PatchState(next =>
+            {
+                next.Phase = SyncPhase.Idle;
+                next.Revision = revision;
+                next.Dirty = true;
+                next.Conflict = null;
+                next.Message = "";
+            });
+            Info("冲突已解决（keep-local），以远端 revision 为基准上传 revision=" + revision);
+            await SyncNowAsync(
+                new SyncNowInput { Strategy = SyncNowStrategy.KeepLocal }, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        // §7.3 SaveConflict：摘要 + 远端文档 + 远端 revision 一起落 VaultCache
+        // （重启后恢复，见 VaultCacheState.conflict* 三字段），相位进 conflict。
+        // 脱敏：摘要只有实体/id/字段名/是否敏感与远端计数，绝不含字段值。
+        private async Task SaveConflictAsync(
+            SyncDocumentV1 local,
+            SyncDocumentV1 remote,
+            string remoteRevision,
+            List<SyncConflictField> fields,
+            SyncConflictReason reason)
+        {
+            VaultCacheState cache = _vault.State;
+            var summary = new SyncConflictSummary
+            {
+                Reason = reason,
+                LocalRevision = cache.Revision,
+                RemoteRevision = remoteRevision,
+                LocalUpdatedAt = local.UpdatedAt,
+                RemoteUpdatedAt = remote.UpdatedAt,
+                RemoteSummary = BuildRemoteSummary(remote),
+                Fields = fields
+            };
+            SyncConflictSummary stateSummary = summary.Clone();
+            SyncDocumentV1 remoteSnapshot = remote.Clone();
+            await _vault.UpdateAsync(next =>
+            {
+                next.Conflict = summary;
+                next.ConflictRemoteDocument = remoteSnapshot;
+                next.ConflictRemoteRevision = remoteRevision;
+            }).ConfigureAwait(false);
+            PatchState(next =>
+            {
+                next.Phase = SyncPhase.Conflict;
+                next.Conflict = stateSummary;
+                next.Message = ConflictMessage(reason);
+            });
+            Info("检测到同步冲突 reason=" + SyncConflictSummary.ReasonToJson(reason)
+                + " fields=" + fields.Count.ToString(CultureInfo.InvariantCulture));
+        }
+
+        private static string ConflictMessage(SyncConflictReason reason)
+        {
+            switch (reason)
+            {
+                case SyncConflictReason.InitialImport:
+                    return "已解锁云端配置，请选择首次同步方式";
+                case SyncConflictReason.RemoteDeletion:
+                    return "云端包含删除操作，请确认后再应用";
+                default:
+                    return "检测到需要确认的同步冲突";
+            }
+        }
+
+        // §7.3 RemoteDeletionConflicts：base 中有、remote 中没有的 server/tunnel/group。
+        // server 删标记敏感（含潜在凭据指向），tunnel/group 不敏感；field 恒为 "*"。
+        private static List<SyncConflictField> RemoteDeletionConflicts(
+            SyncDocumentV1 baseDocument, SyncDocumentV1 remote)
+        {
+            var fields = new List<SyncConflictField>();
+            var remoteServerIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var server in remote.Servers)
+            {
+                if (server != null && server.Profile != null)
+                {
+                    remoteServerIds.Add(server.Profile.Id);
+                }
+            }
+            foreach (var server in baseDocument.Servers)
+            {
+                if (server == null || server.Profile == null)
+                {
+                    continue;
+                }
+                if (!remoteServerIds.Contains(server.Profile.Id))
+                {
+                    fields.Add(new SyncConflictField
+                    {
+                        Entity = SyncConflictEntity.Server,
+                        Id = server.Profile.Id,
+                        Field = "*",
+                        Sensitive = true
+                    });
+                }
+            }
+            var remoteTunnelIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var tunnel in remote.Tunnels)
+            {
+                if (tunnel != null)
+                {
+                    remoteTunnelIds.Add(tunnel.Id);
+                }
+            }
+            foreach (var tunnel in baseDocument.Tunnels)
+            {
+                if (tunnel == null)
+                {
+                    continue;
+                }
+                if (!remoteTunnelIds.Contains(tunnel.Id))
+                {
+                    fields.Add(new SyncConflictField
+                    {
+                        Entity = SyncConflictEntity.Tunnel,
+                        Id = tunnel.Id,
+                        Field = "*",
+                        Sensitive = false
+                    });
+                }
+            }
+            var remoteGroupIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var group in remote.Groups)
+            {
+                if (group != null)
+                {
+                    remoteGroupIds.Add(group.Id);
+                }
+            }
+            foreach (var group in baseDocument.Groups)
+            {
+                if (group == null)
+                {
+                    continue;
+                }
+                if (!remoteGroupIds.Contains(group.Id))
+                {
+                    fields.Add(new SyncConflictField
+                    {
+                        Entity = SyncConflictEntity.Group,
+                        Id = group.Id,
+                        Field = "*",
+                        Sensitive = false
+                    });
+                }
+            }
+            return fields;
+        }
+
+        private static SyncRemoteSummary BuildRemoteSummary(SyncDocumentV1 remote)
+        {
+            bool includesPasswords = false;
+            bool includesPrivateKeys = false;
+            foreach (var server in remote.Servers)
+            {
+                if (server == null || server.Secrets == null)
+                {
+                    continue;
+                }
+                if (!string.IsNullOrEmpty(server.Secrets.Password)
+                    || !string.IsNullOrEmpty(server.Secrets.Passphrase))
+                {
+                    includesPasswords = true;
+                }
+                if (!string.IsNullOrEmpty(server.Secrets.PrivateKey))
+                {
+                    includesPrivateKeys = true;
+                }
+            }
+            return new SyncRemoteSummary
+            {
+                Servers = remote.Servers.Count,
+                Tunnels = remote.Tunnels.Count,
+                Groups = remote.Groups.Count,
+                IncludesPasswords = includesPasswords,
+                IncludesPrivateKeys = includesPrivateKeys
+            };
+        }
+
+        private static List<SyncConflictField> SingleField(SyncConflictEntity entity, string id)
+        {
+            return new List<SyncConflictField>
+            {
+                new SyncConflictField
+                {
+                    Entity = entity,
+                    Id = id,
+                    Field = "*",
+                    Sensitive = false
+                }
+            };
+        }
+
+        private static List<SyncConflictField> ToConflictFields(
+            IReadOnlyList<SyncMergeConflict> conflicts)
+        {
+            var fields = new List<SyncConflictField>(conflicts.Count);
+            foreach (var conflict in conflicts)
+            {
+                fields.Add(new SyncConflictField
+                {
+                    Entity = ToConflictEntity(conflict.Entity),
+                    Id = conflict.Id,
+                    Field = conflict.Field,
+                    Sensitive = conflict.Sensitive
+                });
+            }
+            return fields;
+        }
+
+        private static SyncConflictEntity ToConflictEntity(SyncMergeEntity entity)
+        {
+            switch (entity)
+            {
+                case SyncMergeEntity.Server: return SyncConflictEntity.Server;
+                case SyncMergeEntity.Tunnel: return SyncConflictEntity.Tunnel;
+                case SyncMergeEntity.Group: return SyncConflictEntity.Group;
+                default: return SyncConflictEntity.Settings;
+            }
         }
 
         private static EncryptedDocumentData ToDocumentData(EncryptedDocumentEnvelope envelope)
