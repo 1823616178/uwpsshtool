@@ -39,14 +39,14 @@
 |---|---|---|---|---|
 | M0 | 基座与技术验证 | 13 | 13 | 空应用在 Lumia 运行并调用 native；6 个 Spike 结论入档 |
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
-| M2 | 终端引擎、渲染与输入 | 15 | 8 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
+| M2 | 终端引擎、渲染与输入 | 15 | 9 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 4 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 1 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **44** | |
+| **合计** | | **111** | **45** | |
 
 ### 1.1 关键路径
 
@@ -470,13 +470,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] StickyModifiers 状态机单测 ≥8 条
   - 验证：`dotnet test`
 
-- [ ] **T09 软键盘输入通路** `M`
+- [x] **T09 软键盘输入通路** `M`
   - 依赖：T07、T08、SP05
   - 参考：`01-DESIGN.md §7.5`（以 SP05 回写后的版本为准）
   - 产出：`src/SshTool.Core/Terminal/SentinelDiff.cs`、`src/SshTool.App/Terminal/SoftKeyboardInput.cs`、TerminalView 集成、测试
   - 要点：哨兵差分纯函数（新增文本 / 删除个数）；组合态处理；回车；InputPane 遮挡 → 终端可视区收缩并 resize；点击终端弹键盘；TerminalView 暴露 `Input` 事件（bytes）。
   - 验收：
-    - [ ] SentinelDiff 单测（新增、删除、替换、多字符提交、哨兵被整体删除后恢复）
+    - [x] SentinelDiff 单测（新增、删除、替换、多字符提交、哨兵被整体删除后恢复）
     - [ ] 📱 英文、退格、回车、中文拼音「你好」均正确送达远端
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1293,6 +1293,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] T06 👤 x64 Debug：连接后执行 `sh` 粘贴或上传 `tools/term-test/attrs.sh`，各属性显示正确并截图记入进度日志
 - [ ] T06 📱 Lumia 上中文与 emoji 对齐正确
 - [ ] T07 📱 Lumia 竖/横屏切换后执行 `stty size`，确认远端行列数与显示网格一致
+- [ ] T09 📱 英文、退格、回车、中文拼音「你好」均正确送达远端（MainPage DEBUG「N10 调试连接」，点终端区域弹键盘）
 
 ---
 
@@ -1363,3 +1364,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | T05 | 1a93249 | **代码完成**。`TerminalCell`/`CellBufferReader` 小端 16B 解析；`RowRunBuilder` 属性变化拆段、宽字符单独成段、行尾默认空白丢弃。`TerminalRenderer` 一张 RT 脏行重绘 + 块光标（默认色标记换成 Token 前景/背景）。`TerminalView` 挂 FrameScheduler；DebugConnectPage 改交互 shell + 发送框。Core 单测 +10（共 498）；`verify.ps1` 全绿。⏳ x64 `ls --color`、📱 Lumia 显示（已登记真机待办）。 |
 | 2026-09-19 | T06 | 6f67534 | **代码完成**。`TerminalPalette`：标记值→外观色、bold-as-bright 反查 0–7→8–15、reverse 互换、dim 向背景混 50%（§7.3 由「降 alpha」改为与鸿蒙 `applyDim` 一致）。渲染器：粗体字重或 1px 描边、italic/underline/strike/invisible、宽字符 2 格居中；光标 block 反色 / bar / underline + 530 ms 闪烁，失焦空心框；`CreateResources`/`DeviceLost` 重建行缓存。`tools/term-test/attrs.sh`。Core 单测 +12（共 510）；`verify.ps1` 全绿。⏳ x64 attrs.sh 截图、📱 中文/emoji 对齐（已登记真机待办）。 |
 | 2026-09-19 | T07 | cfb4163 | **代码完成**。`GridSizeCalculator` 按可视宽高扣除双边 padding 与覆盖式键条，向下取整并保证 20×5；`FontMetrics` 用 Win2D 测 `M`，按行高系数取整，字号/DPI 变化重测；`TerminalView.Session` 接线并对尺寸变化做 100 ms 防抖 `Resize`。Calculator 单测 +10（Core 共 520）；`verify.ps1 -Arm` 全绿（native 197、x64 Debug、ARM Release/.NET Native）。⏳ Lumia 旋转后 `stty size`（已登记真机待办）。 |
+| 2026-09-19 | T09 | cabcf6b | **代码完成**。`SentinelDiff` 对两个 U+200B 做新增/删除差分（有新增不把哨兵缺失当远端退格）；`SoftKeyboardInput` 按 SP05 五条规则：焦点在哨兵只走 TextBox、非组合态 TextChanged 发新增、组合结束走完整差分、Enter 去重发 `\r`、非组合 Backspace 走 KeyDown。点击终端 `Focus(Programmatic)` 弹 SIP；`InputPane.Showing` 每次读 OccludedRect 并 `EnsuredFocusedElementInView`，与视图相交高度并入网格计算。TerminalView 暴露 `Input` 并写入 `ISshSession.Write`。Core 单测 +12（共 532）；`verify.ps1` 全绿。⏳ 英文/退格/回车/拼音「你好」真机送达（已登记真机待办）。 |
