@@ -211,6 +211,10 @@
     <Compile Include="ViewModels\HostListViewModel.cs" />
     <Compile Include="ViewModels\HostEditViewModel.cs" />
     <Compile Include="ViewModels\GroupManageViewModel.cs" />
+    <Compile Include="ViewModels\KnownHostsViewModel.cs" />
+    <Compile Include="Views\KnownHostsPage.xaml.cs">
+      <DependentUpon>KnownHostsPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\GroupManagePage.xaml.cs">
       <DependentUpon>GroupManagePage.xaml</DependentUpon>
     </Compile>
@@ -291,6 +295,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\GroupManagePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\KnownHostsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

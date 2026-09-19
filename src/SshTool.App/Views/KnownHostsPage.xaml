@@ -1,0 +1,38 @@
+<Page
+    x:Class="SshTool.App.Views.KnownHostsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <TextBlock Text="已知主机" Style="{StaticResource PageTitleTextStyle}"
+                   Margin="{StaticResource PagePadding}" />
+        <AutoSuggestBox x:Name="SearchBox" Grid.Row="1" PlaceholderText="搜索主机、类型、指纹"
+                        QueryIcon="Find" TextChanged="OnSearchChanged"
+                        Margin="{StaticResource PagePadding}" />
+        <ListView x:Name="HostList" Grid.Row="2" SelectionMode="Single"
+                  SelectionChanged="OnSelectionChanged">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Padding="{StaticResource PagePadding}">
+                        <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}" />
+                        <TextBlock Text="{Binding Subtitle}" Style="{StaticResource CaptionTextStyle}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        <StackPanel x:Name="Detail" Grid.Row="3" Padding="{StaticResource PagePadding}"
+                    Background="{ThemeResource AppSurfaceBrush}" Visibility="Collapsed">
+            <controls:MonoText x:Name="FingerprintText" Compact="True" />
+            <controls:RandomArtView x:Name="ArtView" Margin="{StaticResource GapSmTop}" />
+            <Button Content="删除" Click="OnDeleteClick" Margin="{StaticResource GapSmTop}" />
+        </StackPanel>
+    </Grid>
+</Page>
