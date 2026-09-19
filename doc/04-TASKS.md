@@ -41,12 +41,12 @@
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
-| M4 | 终端页与会话 | 12 | 3 | **完整可用的本地 SSH 客户端**（无同步） |
+| M4 | 终端页与会话 | 12 | 4 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **61** | |
+| **合计** | | **111** | **62** | |
 
 ### 1.1 关键路径
 
@@ -692,7 +692,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 单测：各阶段失败的结果文案键、超时、取消
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **U07 终端页（单窗格）** `M` 📱
+- [x] **U07 终端页（单窗格）** `M` 📱
   - 依赖：D06、T10、T11、T13、T14、U05
   - 参考：`02-UI-DESIGN.md §5.5`；鸿蒙端 `pages/TerminalPage.ets`
   - 产出：`src/SshTool.App/Views/TerminalPage.xaml(.cs)`、`src/SshTool.App/ViewModels/TerminalViewModel.cs`、`src/SshTool.App/Platform/{UwpHostKeyPrompter,UwpCredentialPrompter,StatusBarService}.cs`
@@ -1304,6 +1304,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] D05 📱 ARM Release 冷启动正常
 - [ ] U02 📱 100 台主机滚动流畅
 - [ ] U06 「删除后再次连接会重新弹 TOFU」在 D06 后回归
+- [ ] U07 x64：从主机列表到出现提示符，vim/htop 可用
+- [ ] U07 📱 同上，且无白屏跳变；旋转屏幕后布局与 `stty size` 正确
 
 ---
 
@@ -1391,3 +1393,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | U06 | 52f0ec1 | **代码完成**。KnownHostsPage 列表/搜索/指纹+randomart 详情/删除确认。MainPage 更多→已知主机。⏳ 删除后再次连接 TOFU 待 D06 回归（已登记待办）。verify 全绿（661）。 |
 | 2026-09-19 | D06 | b81535f | **完成**。SessionManager 按 §9.2 编排 TOFU/KnownHost/同步指纹、密码重试 3 次/KI、退避重连、CloseAll、迟到事件丢弃；实现 IHostStatusProvider。Core 单测 +19（共 680）。 |
 | 2026-09-19 | D07 | 11523ed | **完成**。ConnectionTester 草稿测连、阶段失败文案键、15s 超时/取消、不开 shell；HostEdit 测试连接。Core 单测 +7（共 687）。 |
+| 2026-09-19 | U07 | 9e25ef9 | **代码完成**。TerminalPage 信息条/TerminalView/KeyBar；UwpHostKey/CredentialPrompter；StatusBar 隐藏恢复；主机列表进会话。⏳ x64/📱 提示符与旋转（已登记待办）。 |
