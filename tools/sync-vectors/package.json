@@ -1,0 +1,19 @@
+{
+  "name": "sync-vectors",
+  "version": "1.0.0",
+  "private": true,
+  "description": "S04 跨端测试向量工具：用与桌面端 crypto-vault.ts 相同原语生成固定向量，并用 tsx 只读导入桌面端做自检/校验",
+  "type": "module",
+  "engines": {
+    "node": ">=20 <25"
+  },
+  "dependencies": {
+    "hash-wasm": "4.12.0",
+    "tsx": "4.23.13"
+  },
+  "scripts": {
+    "generate": "node generate.mjs",
+    "check": "node generate.mjs --check",
+    "validate": "node validate-fixtures.mjs"
+  }
+}

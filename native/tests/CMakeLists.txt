@@ -171,6 +171,10 @@ target_link_libraries(vault_test PRIVATE ssh_crypto_host GTest::gtest_main)
 add_executable(vault_ops_test vault_ops_test.cpp)
 target_link_libraries(vault_ops_test PRIVATE ssh_crypto_host GTest::gtest_main)
 
+# S04：桌面端互通向量（只追加，不动既有条目）。
+add_executable(desktop_vectors_test desktop_vectors_test.cpp)
+target_link_libraries(desktop_vectors_test PRIVATE ssh_crypto_host GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
 gtest_discover_tests(deps_smoke_test)
@@ -190,3 +194,4 @@ gtest_discover_tests(snapshot_test)
 gtest_discover_tests(aad_test)
 gtest_discover_tests(vault_test)
 gtest_discover_tests(vault_ops_test)
+gtest_discover_tests(desktop_vectors_test)

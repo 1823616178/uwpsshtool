@@ -2,11 +2,13 @@
 #   pwsh scripts/verify.ps1           全量：① dotnet test ② native ctest ③ 错误码对拍 ④ 魔法数字 ⑤ App x64 Debug（含 WMC0151 契约检查）
 #   pwsh scripts/verify.ps1 -Quick    只跑 ①②
 #   pwsh scripts/verify.ps1 -Arm      追加 ARM Release（.NET Native）构建
+#   pwsh scripts/verify.ps1 -Quick -Interop  追加 ⑦ S04 互通向量（generate --check + 桌面端 zod 校验）
 # 每步计时；某步失败即打印汇总并指出该步骤，以非 0 退出。
 [CmdletBinding()]
 param(
     [switch]$Quick,
-    [switch]$Arm
+    [switch]$Arm,
+    [switch]$Interop
 )
 
 $ErrorActionPreference = 'Stop'
@@ -137,6 +139,25 @@ try {
                 Assert-ExitOk 'Native ARM Release'
                 & $msbuildSln SshTool.sln -p:Configuration=Release -p:Platform=ARM -v:m -nologo -nr:false
                 Assert-ExitOk 'sln ARM Release'
+            }
+        }
+    }
+
+    # S04：跨端互通向量（只追加，不动既有步骤；-Quick 下同样执行）。
+    # ⑦ generate.mjs --check（向量逐字节一致 + tsx 只读导入桌面端自检解包解密）
+    # → validate-fixtures.mjs（桌面端 syncDocumentV1Schema 校验 3 份原文）
+    # → 同一 schema 校验 Core Reader→Writer 的 3 份重写输出（DesktopFixtureTests 落盘）。
+    if ($Interop) {
+        Invoke-Step '⑦ 互通向量（S04）' {
+            & node tools/sync-vectors/generate.mjs --check
+            Assert-ExitOk 'generate --check'
+            & node tools/sync-vectors/validate-fixtures.mjs
+            Assert-ExitOk 'validate-fixtures（原文）'
+            $rewritten = @(Get-ChildItem (Join-Path $RepoRoot 'artifacts\sync-interop\*.rewritten.json') -ErrorAction SilentlyContinue)
+            if ($rewritten.Count -lt 3) { throw "Core 重写输出缺失（应为 3 份，实际 $($rewritten.Count)）：确认步骤① dotnet test 已跑过 DesktopFixtureTests" }
+            foreach ($f in $rewritten) {
+                & node tools/sync-vectors/validate-fixtures.mjs --file $f.FullName
+                Assert-ExitOk ("validate " + $f.Name)
             }
         }
     }

@@ -1,0 +1,86 @@
+{
+  "generator": "tools/sync-vectors/generate.mjs (S04)",
+  "hashWasm": "4.12.0",
+  "desktopLockHashWasm": "4.12.0",
+  "syncPassword": "S04-desktop-sync-password",
+  "vaultId": "s04-desktop-vault",
+  "schemaVersion": 1,
+  "keyVersion": 1,
+  "kdfParameters": {
+    "algorithm": "argon2id",
+    "memory": 65536,
+    "iterations": 3,
+    "parallelism": 1
+  },
+  "kdfSalt": "oKGio6SlpqeoqaqrrK2urw==",
+  "kdfSaltHex": "a0a1a2a3a4a5a6a7a8a9aaabacadaeaf",
+  "vaultKeyHex": "404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f",
+  "vaultKeyB64": "QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl8=",
+  "recoveryRawHex": "606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f",
+  "recoveryKey": "SPM1-YGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn8-0F621092518E",
+  "passwordWrapNonce": "sLGys7S1tre4ubq7",
+  "passwordWrapNonceHex": "b0b1b2b3b4b5b6b7b8b9babb",
+  "recoveryWrapNonce": "wMHCw8TFxsfIycrL",
+  "recoveryWrapNonceHex": "c0c1c2c3c4c5c6c7c8c9cacb",
+  "envelope": {
+    "keyVersion": 1,
+    "passwordWrappedKey": "wvfApdXNSXei/V00tGz/lpdCC7/VmTwq37RcduvBsbMfF04eFeLcItWGCRAm6TYN",
+    "passwordWrapNonce": "sLGys7S1tre4ubq7",
+    "recoveryWrappedKey": "TGiVQLsaYBaOX01iN2sEX4XZkZBBAd0MGn9lBY7t0THGgnxFddb5IQz/mzQ0EhQQ",
+    "recoveryWrapNonce": "wMHCw8TFxsfIycrL",
+    "kdfSalt": "oKGio6SlpqeoqaqrrK2urw==",
+    "kdfParameters": {
+      "algorithm": "argon2id",
+      "memory": 65536,
+      "iterations": 3,
+      "parallelism": 1
+    }
+  },
+  "documents": {
+    "empty": {
+      "plaintextSha256": "ab4f1ed7c1dd3ab0ca881ea8cb046bd10a976176653243ea0f07952e24bfdccc",
+      "nonce": "0NHS09TV1tfY2drb",
+      "nonceHex": "d0d1d2d3d4d5d6d7d8d9dadb",
+      "ciphertext": "pO6ltJ4yiDKnLlj8ySKLWJaQ8JQxUV6KqCfmDfNs/FlWqAodaI4dysT4AM/LJkaVXMbQM4/oDVkGm3uWzTTtP+ztNaRW4X9ePdVJpOqKvp6dnzNovcALXU4uHgSC3Sptac/dczPSDWsQqzklyxvqQDb8RqBzPfvd8ER2bQzZo3G85iUuK8O2fbF4tNcnKjx5z8iezGkFQpHAhW7o7wYCZXmmb94BwcamhO2dbDEe",
+      "ciphertextHash": "b130f1a8caabd61fdbbcacb8e60837b58d628295e61e3e679856ac9725487ddd",
+      "envelope": {
+        "schemaVersion": 1,
+        "keyVersion": 1,
+        "algorithm": "AES-256-GCM",
+        "nonce": "0NHS09TV1tfY2drb",
+        "ciphertext": "pO6ltJ4yiDKnLlj8ySKLWJaQ8JQxUV6KqCfmDfNs/FlWqAodaI4dysT4AM/LJkaVXMbQM4/oDVkGm3uWzTTtP+ztNaRW4X9ePdVJpOqKvp6dnzNovcALXU4uHgSC3Sptac/dczPSDWsQqzklyxvqQDb8RqBzPfvd8ER2bQzZo3G85iUuK8O2fbF4tNcnKjx5z8iezGkFQpHAhW7o7wYCZXmmb94BwcamhO2dbDEe",
+        "ciphertextHash": "b130f1a8caabd61fdbbcacb8e60837b58d628295e61e3e679856ac9725487ddd"
+      }
+    },
+    "typical": {
+      "plaintextSha256": "87ca0ffa7fa5ead331df52f83cd85dcc72f9f7c93258a825b2b85a3c3131bf1b",
+      "nonce": "4OHi4+Tl5ufo6err",
+      "nonceHex": "e0e1e2e3e4e5e6e7e8e9eaeb",
+      "ciphertext": "1Pq6CrJq2bHDpoSUo9B5SrEHzL2zRd6e4nvMbRS90E7KcJaWT6QkvbJ5sXj1huSwJ1Qwr8yotg6mTOB2F2pR/E0LAE8xw4r83+yUcUFpXj9BER9lN4Wmh+6735vzISrv+r1ZP6JaMDiWEAEE901d9qtXzFofEXLUXbIjNdjqcYTp+Y+qt0k/MirzM+YAf3DpjqBRxGRE31V3ANAeEeD7uBb2Nf3Ea7As5XvHJJiIn+CmMZKqPvvr1rNbE1QAkMo7yiuIrucSEouKb9cisjCKXCFjUXrTm5w59b7MzI7o+hSyZCpNAEeQJJj7liEVAkzDPptklw8kk4xjjsx9FoTnCmDf2GF/RX6xDewG3rHtVvl2KyTDgtcwm1IigfezFNZ4sekG1OUhAQzzE+hGrNoPXAqIXh91UM9PoRCvnR+CK5d+XmkgJaT1KJx2TidQxeuHRZTQzEAsOPMFySz0KlnDbZJ2sX/nIPvIlZ1PR6R41t49nRqW2Um3xT0e0LIFFH3awtjUpginKJUl5L4FxMyVyZxrachrJxVTuJ5UoojGimYHd4TffO8qniTJ1Cbm9Bsew2zAz9jgbAx3tI+Au8h0GDiIL5pRvQLQGWgdmqJbI0rIaeB/LXGH4z2Ti9Ma3w7jd9idZLwyifnlR6uLibWiONax6reW7YUTsshJlJy+SH2BDev5GdAbYjw+Km9ZdYJ85Eqg7t2dbbs2gLSGM7s2NCh6l4X1kXyK/Y4MB/dseae6EhNEYT34knldww/lmf/XOrnHaYzwalDQOAp8I+eBo55mIlwOsTTm2trRBzEkzumxd/XX7tkF7fVNJiaS+TusEQcGUZSwm3FEptn+8+/qA2Zp222DZJd0OZPI/Ds9JYf6ooie26rD0z2+MFb0wdSuCJi2YzswelBebePKgeOaed036wgRXN2Yl2mwu/DTYEr/x7X2vEvjCUM8LBTloruTFk/lC8WWyFoD0PcRSdo/D6R56JAZ2MBsObnBME39gl3/6ACVwTLZHNWDFtpAMLv3B2dlSwwLQ6ZYz+cLXDb7u+anQBkOUVp6XMGKxoFdldpoQeiJ7TXKZpVsLPD0icvPspzxB+yIEC0t60NUCnAVlbnc+TaBYuPMFxMGrdSllkUGX4834tAvZ8qt+ztIgQXRnxZinPKIEM2UQOIaxJhwCzLMTi7wVnylaiuiTnd2I0udu0pU49GRpb7qCRHoptSqiSUHywepUJRrVXa4BlQWCvPq1ty6LVaDfGtBDtzTFYxjUsaJOwkdkHGzGB/cvYtONERe5FTuJl/ek4s0rgq3mz3tflcs2sAkboONjirHK6+S119MHlF/MkwMZQb2k1E4s6JdcYoMLxPJTFEI3+e9ijIY5MYzicAjurKOJVx7UyI+",
+      "ciphertextHash": "87f89566cc61bec292877f4870abb814dd36a367315b3f93d0535f86efa3678c",
+      "envelope": {
+        "schemaVersion": 1,
+        "keyVersion": 1,
+        "algorithm": "AES-256-GCM",
+        "nonce": "4OHi4+Tl5ufo6err",
+        "ciphertext": "1Pq6CrJq2bHDpoSUo9B5SrEHzL2zRd6e4nvMbRS90E7KcJaWT6QkvbJ5sXj1huSwJ1Qwr8yotg6mTOB2F2pR/E0LAE8xw4r83+yUcUFpXj9BER9lN4Wmh+6735vzISrv+r1ZP6JaMDiWEAEE901d9qtXzFofEXLUXbIjNdjqcYTp+Y+qt0k/MirzM+YAf3DpjqBRxGRE31V3ANAeEeD7uBb2Nf3Ea7As5XvHJJiIn+CmMZKqPvvr1rNbE1QAkMo7yiuIrucSEouKb9cisjCKXCFjUXrTm5w59b7MzI7o+hSyZCpNAEeQJJj7liEVAkzDPptklw8kk4xjjsx9FoTnCmDf2GF/RX6xDewG3rHtVvl2KyTDgtcwm1IigfezFNZ4sekG1OUhAQzzE+hGrNoPXAqIXh91UM9PoRCvnR+CK5d+XmkgJaT1KJx2TidQxeuHRZTQzEAsOPMFySz0KlnDbZJ2sX/nIPvIlZ1PR6R41t49nRqW2Um3xT0e0LIFFH3awtjUpginKJUl5L4FxMyVyZxrachrJxVTuJ5UoojGimYHd4TffO8qniTJ1Cbm9Bsew2zAz9jgbAx3tI+Au8h0GDiIL5pRvQLQGWgdmqJbI0rIaeB/LXGH4z2Ti9Ma3w7jd9idZLwyifnlR6uLibWiONax6reW7YUTsshJlJy+SH2BDev5GdAbYjw+Km9ZdYJ85Eqg7t2dbbs2gLSGM7s2NCh6l4X1kXyK/Y4MB/dseae6EhNEYT34knldww/lmf/XOrnHaYzwalDQOAp8I+eBo55mIlwOsTTm2trRBzEkzumxd/XX7tkF7fVNJiaS+TusEQcGUZSwm3FEptn+8+/qA2Zp222DZJd0OZPI/Ds9JYf6ooie26rD0z2+MFb0wdSuCJi2YzswelBebePKgeOaed036wgRXN2Yl2mwu/DTYEr/x7X2vEvjCUM8LBTloruTFk/lC8WWyFoD0PcRSdo/D6R56JAZ2MBsObnBME39gl3/6ACVwTLZHNWDFtpAMLv3B2dlSwwLQ6ZYz+cLXDb7u+anQBkOUVp6XMGKxoFdldpoQeiJ7TXKZpVsLPD0icvPspzxB+yIEC0t60NUCnAVlbnc+TaBYuPMFxMGrdSllkUGX4834tAvZ8qt+ztIgQXRnxZinPKIEM2UQOIaxJhwCzLMTi7wVnylaiuiTnd2I0udu0pU49GRpb7qCRHoptSqiSUHywepUJRrVXa4BlQWCvPq1ty6LVaDfGtBDtzTFYxjUsaJOwkdkHGzGB/cvYtONERe5FTuJl/ek4s0rgq3mz3tflcs2sAkboONjirHK6+S119MHlF/MkwMZQb2k1E4s6JdcYoMLxPJTFEI3+e9ijIY5MYzicAjurKOJVx7UyI+",
+        "ciphertextHash": "87f89566cc61bec292877f4870abb814dd36a367315b3f93d0535f86efa3678c"
+      }
+    },
+    "secrets": {
+      "plaintextSha256": "6582875b136ae13f6fa13ee83a460dc8546474311507ccb50f0f6c9a3d699edc",
+      "nonce": "8PHy8/T19vf4+fr7",
+      "nonceHex": "f0f1f2f3f4f5f6f7f8f9fafb",
+      "ciphertext": "qB8FYZc3vJkm2OqKxNfAeNVGnnkPhDViIFKh2virfkxhrlWlSuQaQ+SV8MImzzODe8hFA9qhzL42ESV1gxGd9860yBj4v9+BpJqKpjKeDnqnBt3qxOJwsig34pJn8ptqiQ7JwAilYL9A8iGaXWEYuijoSon4X9010gOVATWutV8/h3rL5yyMTeIeVALtm1a6G+/LA3r+0e59AlOryKZFgqoyxO9/xAFOg1FV6fhQPaKrVZHnECAOP1zWzDZNWabVVgUydsXQolDxFgHj8GoSxjPg3lriQOey23Ux4BFATM+cNCaXNEO8kLQPY6k8/QrCKwLn0m5kwym8vwAUuSHI5vhLCHKgB0ITzagY/w7jl9O7ex8eeIAWALSkeThEcMuE0dIk4E830GOI0YkiYlJG8wZxjz18nZ3X1kMNbbVgvsYVVQXM4q/DZ4eFQf5CRl3u7kBzEOJTbFQx35y9i1gm5xOZSYQ24KVLYc1c6Fn43OmmCd46qMwRvPRBVt3ba4Va6iR1UI3VShWgE9H2P3RVboX+cMIXmgV7yHLY0CL625MbgoExgOGRBzx0tzIh",
+      "ciphertextHash": "293f170e392e8ecb77bca3f8fe0a3e2af7d678ac40c0a827fa14d26abf1e3473",
+      "envelope": {
+        "schemaVersion": 1,
+        "keyVersion": 1,
+        "algorithm": "AES-256-GCM",
+        "nonce": "8PHy8/T19vf4+fr7",
+        "ciphertext": "qB8FYZc3vJkm2OqKxNfAeNVGnnkPhDViIFKh2virfkxhrlWlSuQaQ+SV8MImzzODe8hFA9qhzL42ESV1gxGd9860yBj4v9+BpJqKpjKeDnqnBt3qxOJwsig34pJn8ptqiQ7JwAilYL9A8iGaXWEYuijoSon4X9010gOVATWutV8/h3rL5yyMTeIeVALtm1a6G+/LA3r+0e59AlOryKZFgqoyxO9/xAFOg1FV6fhQPaKrVZHnECAOP1zWzDZNWabVVgUydsXQolDxFgHj8GoSxjPg3lriQOey23Ux4BFATM+cNCaXNEO8kLQPY6k8/QrCKwLn0m5kwym8vwAUuSHI5vhLCHKgB0ITzagY/w7jl9O7ex8eeIAWALSkeThEcMuE0dIk4E830GOI0YkiYlJG8wZxjz18nZ3X1kMNbbVgvsYVVQXM4q/DZ4eFQf5CRl3u7kBzEOJTbFQx35y9i1gm5xOZSYQ24KVLYc1c6Fn43OmmCd46qMwRvPRBVt3ba4Va6iR1UI3VShWgE9H2P3RVboX+cMIXmgV7yHLY0CL625MbgoExgOGRBzx0tzIh",
+        "ciphertextHash": "293f170e392e8ecb77bca3f8fe0a3e2af7d678ac40c0a827fa14d26abf1e3473"
+      }
+    }
+  }
+}
