@@ -128,6 +128,10 @@
     <Compile Include="Platform\Haptics.cs" />
     <Compile Include="Platform\ClipboardService.cs" />
     <Compile Include="Platform\NativeSshSessionFactory.cs" />
+    <Compile Include="Platform\UwpHostKeyPrompter.cs" />
+    <Compile Include="Platform\UwpCredentialPrompter.cs" />
+    <Compile Include="Platform\StatusBarService.cs" />
+    <Compile Include="Platform\DispatcherTimerFactory.cs" />
     <Compile Include="Infrastructure\ServiceRegistry.cs" />
     <Compile Include="Infrastructure\AppServices.cs" />
     <Compile Include="Infrastructure\DispatcherHelper.cs" />
@@ -213,6 +217,10 @@
     <Compile Include="ViewModels\HostEditViewModel.cs" />
     <Compile Include="ViewModels\GroupManageViewModel.cs" />
     <Compile Include="ViewModels\KnownHostsViewModel.cs" />
+    <Compile Include="ViewModels\TerminalViewModel.cs" />
+    <Compile Include="Views\TerminalPage.xaml.cs">
+      <DependentUpon>TerminalPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\KnownHostsPage.xaml.cs">
       <DependentUpon>KnownHostsPage.xaml</DependentUpon>
     </Compile>
@@ -300,6 +308,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\KnownHostsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\TerminalPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

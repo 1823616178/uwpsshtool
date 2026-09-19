@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using SshTool.App.Platform;
 using SshTool.Core.Common;
+using SshTool.Core.Sessions;
 using SshTool.Core.Storage;
 using SshTool.Core.Storage.Repositories;
 
@@ -43,6 +44,7 @@ namespace SshTool.App.Infrastructure
         public KnownHostRepository KnownHosts { get; private set; }
         public ISecretStore Secrets { get; private set; }
         public ConfigService Config { get; private set; }
+        public SessionManager Sessions { get; private set; }
         public List<string> LoadWarnings { get; private set; }
 
         public static AppServices Initialize()
@@ -90,6 +92,16 @@ namespace SshTool.App.Infrastructure
                 ThemeService.UseSystemAccent = Settings.UseSystemAccent;
                 ThemeService.Initialize();
                 ThemeService.Apply(ParseTheme(Settings.ThemeMode));
+            });
+            Time("Sessions", () =>
+            {
+                ISshSessionFactory factory;
+                ServiceRegistry.TryGet(out factory);
+                Sessions = new SessionManager(
+                    Hosts, KnownHosts, Keys, Secrets, Settings, factory,
+                    new UwpHostKeyPrompter(), new UwpCredentialPrompter(),
+                    new DispatcherTimerFactory(), new DispatcherUiDispatcher(), Logger);
+                ServiceRegistry.Register(Sessions);
             });
             Logger.Log(LogLevel.Info, "App",
                 "启动完成 " + total.ElapsedMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ms");

@@ -90,6 +90,16 @@ namespace SshTool.Core.Sessions
 
         public async Task<SessionInfo> OpenAsync(SessionOpenRequest request)
         {
+            SessionInfo info = await StartOpenAsync(request).ConfigureAwait(false);
+            while (info.State == SessionUiState.Connecting || info.State == SessionUiState.Authenticating)
+            {
+                await Task.Delay(5).ConfigureAwait(false);
+            }
+            return info;
+        }
+
+        public async Task<SessionInfo> StartOpenAsync(SessionOpenRequest request)
+        {
             if (request == null)
             {
                 throw new ArgumentNullException("request");
@@ -137,7 +147,14 @@ namespace SshTool.Core.Sessions
             };
             _sessions.Add(info);
             RaiseChanged();
-            await ConnectCoreAsync(info, host, false).ConfigureAwait(false);
+            var ignore = ConnectCoreAsync(info, host, false).ContinueWith(t =>
+            {
+                if (t.IsFaulted && !info.UserClosed
+                    && (info.State == SessionUiState.Connecting || info.State == SessionUiState.Authenticating))
+                {
+                    Fail(info, SshErrorCode.InternalError, false);
+                }
+            });
             return info;
         }
 

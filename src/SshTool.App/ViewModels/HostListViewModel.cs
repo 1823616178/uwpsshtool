@@ -44,7 +44,12 @@ namespace SshTool.App.ViewModels
             _tunnels = services.Tunnels;
             _config = services.Config;
             _settings = services.Settings;
-            _status = status ?? NullHostStatusProvider.Instance;
+            IHostStatusProvider resolved = status;
+            if (resolved == null && services.Sessions != null)
+            {
+                resolved = services.Sessions;
+            }
+            _status = resolved ?? NullHostStatusProvider.Instance;
             Groups = new ObservableCollection<HostListGroup>();
 
             NewHostCommand = new RelayCommand(() => Navigation.Navigate<HostEditPage>(HostEditArgs.New()));
@@ -175,7 +180,7 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
-            OpenPlaceholder("连接 " + row.Name, "M4");
+            Navigation.Navigate<TerminalPage>(new TerminalArgs { HostId = row.HostId });
         }
 
         public void NewSession(HostListRow row)
@@ -184,7 +189,7 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
-            OpenPlaceholder("新会话 " + row.Name, "M4");
+            Navigation.Navigate<TerminalPage>(new TerminalArgs { HostId = row.HostId });
         }
 
         public void Edit(HostListRow row)
@@ -282,7 +287,7 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
-            OpenPlaceholder("快速连接 " + target.Username + "@" + target.HostName, "M4");
+            Navigation.Navigate<TerminalPage>(new TerminalArgs { Quick = target });
         }
 
         private void QuickConnectFromSearch()
@@ -292,7 +297,7 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
-            OpenPlaceholder("快速连接 " + target.Username + "@" + target.HostName, "M4");
+            Navigation.Navigate<TerminalPage>(new TerminalArgs { Quick = target });
         }
 
         private async Task GenerateTestHostsAsync()
