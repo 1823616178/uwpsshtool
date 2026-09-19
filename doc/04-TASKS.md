@@ -41,12 +41,12 @@
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
-| M4 | 终端页与会话 | 12 | 5 | **完整可用的本地 SSH 客户端**（无同步） |
+| M4 | 终端页与会话 | 12 | 6 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **63** | |
+| **合计** | | **111** | **64** | |
 
 ### 1.1 关键路径
 
@@ -712,13 +712,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 断网后看到倒计时，「立即重连」可用
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **U09 会话列表、侧栏与会话恢复** `S`
+- [x] **U09 会话列表、侧栏与会话恢复** `S`
   - 依赖：U07
   - 参考：`02-UI-DESIGN.md §5.2、§5.5`；`01-DESIGN.md §10`
   - 产出：`src/SshTool.App/Views/Main/SessionsPivot.xaml(.cs)`、`src/SshTool.App/Controls/SessionsPane.xaml(.cs)`、`src/SshTool.App/ViewModels/SessionsPaneViewModel.cs`、`src/SshTool.Core/Sessions/SessionSnapshotStore.cs`、测试
   - 要点：会话 Pivot 与终端页 SplitView 侧栏共用 ViewModel；关闭/切换/新建；Suspending 时写 `state/sessions.json`（hostId 列表 + 窗格布局）；冷启动显示「上次未关闭的会话」卡片与 [全部恢复]；有活跃会话时退出应用确认。
   - 验收：
-    - [ ] SnapshotStore 单测（往返、主机已删除时过滤）
+    - [x] SnapshotStore 单测（往返、主机已删除时过滤）
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **U10 连接后自动执行：tmux 附着、初始命令、环境变量** `S` 📱
@@ -1396,3 +1396,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | D07 | 11523ed | **完成**。ConnectionTester 草稿测连、阶段失败文案键、15s 超时/取消、不开 shell；HostEdit 测试连接。Core 单测 +7（共 687）。 |
 | 2026-09-19 | U07 | 9e25ef9 | **代码完成**。TerminalPage 信息条/TerminalView/KeyBar；UwpHostKey/CredentialPrompter；StatusBar 隐藏恢复；主机列表进会话。⏳ x64/📱 提示符与旋转（已登记待办）。 |
 | 2026-09-19 | U08 | 09694a6 | **代码完成**。OverlayStateDeriver 全状态组合；SessionOverlay 淡入按钮接 SessionManager。⏳ 断网倒计时（已登记待办）。Core 单测 +9（共 696）。 |
+| 2026-09-19 | U09 | 6e9d60f | **完成**（无 📱 项）。接手上一会话留下的半成品（文件已建但未进 csproj、未接线）：SessionSnapshotStore 写/读 `state/sessions.json`（现存主机过滤、损坏按空）；SessionsPaneViewModel 经 ServiceRegistry 共享给会话 Pivot 与终端页 SplitView 侧栏；关闭/切换/新建；冷启动恢复卡片 + [全部恢复]（首个导航、其余后台开）；MainPage 返回退出时有活跃会话弹确认（确认后 CloseAll 再 Exit）。修半成品 bug：关闭按钮 Grid.Column 越界、EmptyState 未分行、Reload 不通知 UI、退出确认结果被忽略、RestoreAll 原实现会连开 N 个 TerminalPage（改为只导航一次）。另把同批未提交的真机联调改动单独入库（5b5df0d：debug_log.h UWP 走 OutputDebugString、JumpSessionId 空值兜底、包 0.1.0.10）。Core 单测 +3（共 699）；`verify.ps1` 全绿。 |
