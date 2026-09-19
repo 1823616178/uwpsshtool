@@ -34,6 +34,7 @@
                 <AppBarButton Label="关于" Click="OnAboutClick" />
                 <AppBarButton Label="登录" Click="OnSignInClick" />
                 <AppBarButton x:Name="DebugConnectItem" Label="N10 调试连接" Click="OnDebugConnectClick" Visibility="Collapsed" />
+                <AppBarButton x:Name="DebugVaultItem" Label="S05 保险库自检" Click="OnDebugVaultClick" Visibility="Collapsed" />
                 <AppBarButton x:Name="DebugSpikeItem" Label="SP01 JSON Spike" Click="OnSpikeClick" Visibility="Collapsed" />
                 <AppBarButton x:Name="DebugTokenItem" Label="X03 Token 画廊" Click="OnTokenGalleryClick" Visibility="Collapsed" />
                 <AppBarButton x:Name="DebugRenderItem" Label="SP04 渲染压测" Click="OnRenderSpikeClick" Visibility="Collapsed" />

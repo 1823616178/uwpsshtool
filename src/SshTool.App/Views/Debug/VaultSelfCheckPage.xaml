@@ -1,0 +1,45 @@
+<Page
+    x:Class="SshTool.App.Views.Debug.VaultSelfCheckPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- S05：保险库自检。Views/Debug 豁免魔法数字门禁；仍走 Token。
+         不用高于 15063 的 API，无需 ApiInformation 守卫。 -->
+    <Grid>
+        <Grid Margin="{StaticResource PagePadding}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                <Button Content="返回" Click="OnBackClick" AllowFocusOnInteraction="False" />
+                <TextBlock Text="S05 保险库自检" Style="{StaticResource SectionTitleTextStyle}"
+                           VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1" Margin="{StaticResource GapMdTop}">
+                <StackPanel>
+                    <TextBlock Text="跑黄金向量（native 解密已知答案）与桌面向量，显示 Argon2 耗时。测试口令只进内存，不写日志、不落盘。"
+                               Style="{StaticResource CaptionTextStyle}"
+                               TextWrapping="Wrap" Margin="{StaticResource GapSmBottom}" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="RunButton" Content="运行自检" Click="OnRunClick" />
+                        <Button x:Name="CopyButton" Content="复制报告" Click="OnCopyClick"
+                                Margin="{StaticResource GapSmLeft}" IsEnabled="False" />
+                    </StackPanel>
+                    <TextBlock x:Name="StatusText" Style="{StaticResource CaptionTextStyle}"
+                               TextWrapping="Wrap" Margin="{StaticResource GapSmTop}"
+                               Text="结果会自动存到 LocalFolder\spike-reports 并复制到剪贴板" />
+                    <TextBlock x:Name="ReportText" FontFamily="{StaticResource AppMonoFontFamily}"
+                               TextWrapping="Wrap" IsTextSelectionEnabled="True"
+                               Margin="{StaticResource GapSmTop}" Text="尚未运行" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Page>

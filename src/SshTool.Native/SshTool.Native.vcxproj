@@ -163,6 +163,10 @@
     <ClInclude Include="Bridge\StateChangedEventArgs.h" />
     <ClInclude Include="Bridge\SshSession.h" />
     <ClInclude Include="Bridge\TerminalScreen.h" />
+    <ClInclude Include="Bridge\VaultCrypto.h" />
+    <ClInclude Include="Bridge\VaultEnvelope.h" />
+    <ClInclude Include="Bridge\VaultSetupResult.h" />
+    <ClInclude Include="Bridge\DocumentEnvelope.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp">
@@ -179,6 +183,10 @@
     <ClCompile Include="Bridge\TerminalScreen.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Bridge\VaultCrypto.cpp" />
+    <ClCompile Include="Bridge\VaultEnvelope.cpp" />
+    <ClCompile Include="Bridge\VaultSetupResult.cpp" />
+    <ClCompile Include="Bridge\DocumentEnvelope.cpp" />
   </ItemGroup>
   <Import Project="..\..\native\core\NativeCore.vcxitems" Label="Shared" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

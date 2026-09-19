@@ -1,0 +1,29 @@
+{
+  "_note": "S05 保险库自检向量：node:crypto 按桌面端 crypto-vault.ts 相同原语生成（固定 key/nonce，明文含 ASCII 与 CJK+emoji）。生成器为一次性脚本（见 S05 实现记录），本文件提交后禁止修改。",
+  "vectors": [
+    {
+      "name": "typical-doc-kv1",
+      "vaultKeyB64": "o9g01UADfb5l7Xxj802vAaN934ZRMRzARDWzS9K0EiI=",
+      "vaultId": "vault-selfcheck",
+      "plaintextB64": "eyJzY2hlbWFWZXJzaW9uIjoxLCJ1cGRhdGVkQXQiOiIyMDI2LTA5LTE5VDAwOjAwOjAwLjAwMFoiLCJwcmVmZXJlbmNlcyI6eyJzeW5jUGFzc3dvcmRzIjpmYWxzZSwic3luY1ByaXZhdGVLZXlzIjpmYWxzZX0sInNlcnZlcnMiOltdLCJ0dW5uZWxzIjpbXSwiZ3JvdXBzIjpbXX0=",
+      "schemaVersion": 1,
+      "keyVersion": 1,
+      "algorithm": "AES-256-GCM",
+      "nonce": "oKGio6Slpqeoqaqr",
+      "ciphertext": "5N+FF+8FdvkIWI7T2TQKaDDSizcZenR/5O2ztdm+3gevrT9Z34RshobvPRo6tkEZO0BED7grSUoZDFrvnNPSwjewj6RgeIW3xLXnGN/xtv/A1DAR4SXS06ft20lSreYhQJYX6aVZW4DhTxfkDZbb8MybmULR113wavUVMG43sJwcXAnrpy54d0+J/wu4HVCbjTM2F8I0CQdj1jfxywE9KGhBismjUPUEQWu1YtAO",
+      "ciphertextHash": "f9f5ea527d1f02833c8eeddc52e0b0ad771d1b54159d7b4f8ad816aa240c30af"
+    },
+    {
+      "name": "unicode-doc-kv2",
+      "vaultKeyB64": "R3TjjpEoYe0WLs+/SHwL4sACAh4WbJzGcQLSQX+J29Q=",
+      "vaultId": "vault-selfcheck",
+      "plaintextB64": "eyJoZWxsbyI6IuS9oOWlvSDwn46JIiwibm90ZSI6Ikx1bWlhIFNTSCDoh6rmo4AifQ==",
+      "schemaVersion": 1,
+      "keyVersion": 2,
+      "algorithm": "AES-256-GCM",
+      "nonce": "AQIDBAUGBwgJCgsM",
+      "ciphertext": "E0jhReYmGxbbQsZyrMvVliNFawVJUtxhbChiGKlDjYKZj+K12S8A2ADP+WreQRSG6fCGpNZE1ZJr+R9TF3xDN6k=",
+      "ciphertextHash": "e3d40575d746ed151406f4d07c1e289ddb8ff385ce04b3678393ec990c824386"
+    }
+  ]
+}

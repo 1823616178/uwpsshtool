@@ -42,6 +42,7 @@ namespace SshTool.App.Views
             LogBuildInfo();
 #if DEBUG_PAGES
             DebugConnectItem.Visibility = Visibility.Visible;
+            DebugVaultItem.Visibility = Visibility.Visible;
             DebugSpikeItem.Visibility = Visibility.Visible;
             DebugTokenItem.Visibility = Visibility.Visible;
             DebugRenderItem.Visibility = Visibility.Visible;
@@ -234,6 +235,11 @@ namespace SshTool.App.Views
         private void OnDebugConnectClick(object sender, RoutedEventArgs e)
         {
             Frame.Navigate(typeof(DebugConnectPage));
+        }
+
+        private void OnDebugVaultClick(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(VaultSelfCheckPage));
         }
 
         private void OnSpikeClick(object sender, RoutedEventArgs e)
