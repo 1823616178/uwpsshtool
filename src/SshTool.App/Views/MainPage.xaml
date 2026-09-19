@@ -1,0 +1,78 @@
+<Page
+    x:Class="SshTool.App.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- 02-UI-DESIGN.md §5.1：Pivot 主机/会话/隧道 + 底部 CommandBar。
+         OverflowButtonVisibility 需 16299，15063 上会 XamlParseException，省略即可（有 SecondaryCommands 时系统会显示 …）。 -->
+    <Page.BottomAppBar>
+        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
+            <AppBarButton x:Name="NewButton" Label="新建" Click="OnNewClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconAdd}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton x:Name="SearchButton" Label="搜索" Click="OnSearchClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconSearch}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton x:Name="SyncButton" Label="同步" Click="OnSyncClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconSync}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Label="设置" Click="OnSettingsClick" />
+                <AppBarButton Label="密钥" Click="OnKeysClick" />
+                <AppBarButton Label="已知主机" Click="OnKnownHostsClick" />
+                <AppBarButton Label="片段" Click="OnSnippetsClick" />
+                <AppBarButton Label="外观" Click="OnAppearanceClick" />
+                <AppBarButton Label="关于" Click="OnAboutClick" />
+                <AppBarButton Label="登录" Click="OnSignInClick" />
+                <AppBarButton x:Name="DebugConnectItem" Label="N10 调试连接" Click="OnDebugConnectClick" Visibility="Collapsed" />
+                <AppBarButton x:Name="DebugSpikeItem" Label="SP01 JSON Spike" Click="OnSpikeClick" Visibility="Collapsed" />
+                <AppBarButton x:Name="DebugTokenItem" Label="X03 Token 画廊" Click="OnTokenGalleryClick" Visibility="Collapsed" />
+                <AppBarButton x:Name="DebugRenderItem" Label="SP04 渲染压测" Click="OnRenderSpikeClick" Visibility="Collapsed" />
+                <AppBarButton x:Name="DebugInputItem" Label="SP05 输入采集" Click="OnInputSpikeClick" Visibility="Collapsed" />
+                <AppBarButton x:Name="DebugPlatformItem" Label="SP06 平台 Spike" Click="OnPlatformSpikeClick" Visibility="Collapsed" />
+                <AppBarButton x:Name="DebugBuildItem" Label="构建信息" Click="OnBuildInfoClick" Visibility="Collapsed" />
+            </CommandBar.SecondaryCommands>
+        </CommandBar>
+    </Page.BottomAppBar>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:Banner x:Name="LoadWarningBanner" Visibility="Collapsed" />
+
+        <Pivot x:Name="MainPivot" Grid.Row="1" Title="LUMIA SSH">
+            <PivotItem Header="主机">
+                <controls:EmptyState
+                    x:Name="HostsEmpty"
+                    Glyph="{StaticResource IconTerminal}"
+                    Title="还没有主机"
+                    Description="添加一台主机，或登录同步已有配置。"
+                    PrimaryText="添加主机"
+                    SecondaryText="登录同步" />
+            </PivotItem>
+            <PivotItem Header="会话">
+                <controls:EmptyState
+                    Glyph="{StaticResource IconConnect}"
+                    Title="没有打开的会话"
+                    Description="点主机开始连接。" />
+            </PivotItem>
+            <PivotItem Header="隧道">
+                <controls:EmptyState
+                    Glyph="{StaticResource IconTunnel}"
+                    Title="没有隧道"
+                    Description="隧道将在后续里程碑提供。" />
+            </PivotItem>
+        </Pivot>
+    </Grid>
+</Page>
