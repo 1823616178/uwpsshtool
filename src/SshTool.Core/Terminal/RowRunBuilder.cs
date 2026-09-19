@@ -84,7 +84,7 @@ namespace SshTool.Core.Terminal
                     Length = col - start,
                     FgArgb = fg,
                     BgArgb = bg,
-                    Attrs = style,
+                    Attrs = (ushort)(cell.Attrs & ~TerminalCell.AttrSoftWrap),
                     Text = text.ToString()
                 });
             }
@@ -120,7 +120,7 @@ namespace SshTool.Core.Terminal
                     Length = col - start,
                     FgArgb = fg,
                     BgArgb = bg,
-                    Attrs = style,
+                    Attrs = (ushort)(cell.Attrs & ~TerminalCell.AttrSoftWrap),
                     Text = string.Empty
                 });
             }
@@ -135,7 +135,7 @@ namespace SshTool.Core.Terminal
                 Length = length,
                 FgArgb = cell.FgArgb,
                 BgArgb = cell.BgArgb,
-                Attrs = (ushort)(cell.Attrs & StyleMask),
+                Attrs = (ushort)(cell.Attrs & ~TerminalCell.AttrSoftWrap),
                 Text = text ?? string.Empty
             };
         }

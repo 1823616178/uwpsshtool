@@ -61,6 +61,7 @@ namespace SshTool.Core.Tests.Terminal
             Assert.Equal("你", runs[1].Text);
             Assert.Equal(2, runs[1].Length);
             Assert.Equal(1, runs[1].StartCol);
+            Assert.Equal(TerminalCell.AttrWide, runs[1].Attrs & TerminalCell.AttrWide);
             Assert.Equal("B", runs[2].Text);
             Assert.Equal(3, runs[2].StartCol);
         }

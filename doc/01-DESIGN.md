@@ -424,7 +424,8 @@ public ref class KeyTool sealed {
   3. **每画布实际上限约 30 draw/s**：tick 稳定 60/s，但 `CanvasControl` 的 Invalidate→Draw 每两个 vsync 才走一次，
      单画布 30、双画布各 30（合计 60）。帧调度器（T04）按 30 fps/窗格设计即可，不要指望 60。
 - 设备丢失：处理 `CreateResources` 与 `CanvasDevice.DeviceLost`，重建行缓存并全量重绘。
-- 属性：bold 用粗体字重（字体无粗体则描边加粗），bold-as-bright 可选；underline/strike 画线；dim 降 alpha；reverse 交换前景背景；invisible 不画字。
+- 属性：bold 用粗体字重（`fontWeightBold`；否则水平偏移 1px 描边加粗），bold-as-bright 可选（ANSI 0–7 反查调色板映到 8–15，仅前景）；underline/strike 画线；dim 前景 RGB 向背景混合 50%（保留前景 alpha，与鸿蒙端 `applyDim` 一致）；reverse 交换前景背景；invisible 不画字。
+- 光标：`block` 反色（原前景填块、原背景画字，宽字符覆盖 2 格）；`bar` / `underline` 用外观 cursor 色；闪烁受 `FrameScheduler` 530 ms 相位与 `cursorBlink` 控制；失焦画空心框、不闪。
 
 ### 7.4 字体与度量
 
