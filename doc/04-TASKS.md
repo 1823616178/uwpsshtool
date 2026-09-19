@@ -41,12 +41,12 @@
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
-| M4 | 终端页与会话 | 12 | 7 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 5 | 与桌面端同账号双向同步、冲突可解 |
+| M4 | 终端页与会话 | 12 | 8 | **完整可用的本地 SSH 客户端**（无同步） |
+| M5 | 云端同步 | 22 | 7 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 0 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **65** | |
+| **合计** | | **111** | **68** | |
 
 ### 1.1 关键路径
 
@@ -740,7 +740,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 移植 16 条用例 + 布局计算与方向导航 ≥6 条（鸿蒙端仓库不在本机：按要点等价覆盖 16 条结构用例 + 10 条布局/导航）
   - 验证：`dotnet test`
 
-- [ ] **U12 宽屏：主从布局、多标签与分屏** `M` 📱
+- [x] **U12 宽屏：主从布局、多标签与分屏** `M` 📱
   - 依赖：U11、U09、T15
   - 参考：`02-UI-DESIGN.md §3、§5.7、§5.16`
   - 产出：`src/SshTool.App/Controls/{TerminalWorkspace,TabStrip}.xaml(.cs)`、MainPage/TerminalPage 自适应状态、`src/SshTool.App/ViewModels/WorkspaceViewModel.cs`
@@ -865,13 +865,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] §10.1 ApiClient 3–8 全部用例
   - 验证：`dotnet test`
 
-- [ ] **S08 认证存储与账号服务** `S`
+- [x] **S08 认证存储与账号服务** `S`
   - 依赖：S07、D03
   - 参考：`03-SYNC-PROTOCOL.md §6.1、§7.1`；桌面端 `src/main/security/auth-store.ts`
   - 产出：`src/SshTool.Core/Sync/Auth/{AuthState,AuthStore,AuthService,IDeviceDescriptorProvider}.cs`、`src/SshTool.App/Platform/UwpDeviceDescriptorProvider.cs`、测试
   - 要点：AuthStore 基于 `ISecureFile`（`secure/auth.bin`）：`Session`、`Tokens`、`Save`、`MarkRefreshUncertain`、`CanRefresh`、`Clear`；AuthService：注册/登录（已登录时拒绝重复登录）、登出（服务端失败也清本地）、全部登出、改登录密码（成功后清本地）、注销账号、设备列表/改名/撤销（拒绝撤销本机）；设备描述：名称默认 `EasClientDeviceInformation.FriendlyName`，平台 `windows-mobile-arm` / `windows-uwp-<arch>`，版本取包版本。
   - 验收：
-    - [ ] 单测：持久化往返、uncertain 规则、重复登录保护、撤销本机被拒、改密后清本地
+    - [x] 单测：持久化往返、uncertain 规则、重复登录保护、撤销本机被拒、改密后清本地
   - 验证：`dotnet test`
 
 - [x] **S09 三方合并** `M`
@@ -883,13 +883,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] §10.1 Merge 1–5，另加：preferences 冲突、secrets 部分键新增、两边删除同一实体
   - 验证：`dotnet test`
 
-- [ ] **S10 本地适配器（文档 ↔ 仓库）** `M`
+- [x] **S10 本地适配器（文档 ↔ 仓库）** `M`
   - 依赖：S02、D02、D03
   - 参考：`03-SYNC-PROTOCOL.md §5`；桌面端 `src/main/sync/sync-coordinator.ts` 末尾 `createLocalAdapter`
   - 产出：`src/SshTool.Core/Sync/{SyncLocalAdapter,ITunnelBusyProbe,SyncApplyException}.cs`、测试
   - 要点：Build（按 preferences 输出 secrets，私钥部分预留接口，S15 实现）；Apply 的两道保护、主机/分组/隧道本机专有字段保留、凭据「出现即覆盖、缺失即保留」、删除级联、`ChangeOrigin.Sync`。
   - 验收：
-    - [ ] 单测：B 端独有凭据保留、🏠 字段全部保留、分组删除清引用、relay 与 autoStart 保留、指纹变化拒绝、运行中隧道变更拒绝、未开启开关时文档不含 secrets
+    - [x] 单测：B 端独有凭据保留、🏠 字段全部保留、分组删除清引用、relay 与 autoStart 保留、指纹变化拒绝、运行中隧道变更拒绝、未开启开关时文档不含 secrets
   - 验证：`dotnet test`
 
 - [ ] **S11 保险库缓存与协调器：账号与保险库流程** `M`
@@ -1308,6 +1308,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] U07 📱 同上，且无白屏跳变；旋转屏幕后布局与 `stty size` 正确
 - [ ] U08 📱 断网后看到倒计时，「立即重连」可用
 - [ ] U10 📱 开启 tmux 的主机断网重连后回到原 tmux 现场
+- [ ] U12 x64 大窗口：4 窗格同时输出互不串扰，拖分隔条后每个窗格 `stty size` 各自正确
+- [ ] U12 📱 Continuum 下同上；断开 Continuum 回到手机后会话与布局完好
 
 ---
 
@@ -1399,3 +1401,6 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | U08 | 09694a6 | **代码完成**。OverlayStateDeriver 全状态组合；SessionOverlay 淡入按钮接 SessionManager。⏳ 断网倒计时（已登记待办）。Core 单测 +9（共 696）。 |
 | 2026-09-19 | U09 | 6e9d60f | **完成**（无 📱 项）。接手上一会话留下的半成品（文件已建但未进 csproj、未接线）：SessionSnapshotStore 写/读 `state/sessions.json`（现存主机过滤、损坏按空）；SessionsPaneViewModel 经 ServiceRegistry 共享给会话 Pivot 与终端页 SplitView 侧栏；关闭/切换/新建；冷启动恢复卡片 + [全部恢复]（首个导航、其余后台开）；MainPage 返回退出时有活跃会话弹确认（确认后 CloseAll 再 Exit）。修半成品 bug：关闭按钮 Grid.Column 越界、EmptyState 未分行、Reload 不通知 UI、退出确认结果被忽略、RestoreAll 原实现会连开 N 个 TerminalPage（改为只导航一次）。另把同批未提交的真机联调改动单独入库（5b5df0d：debug_log.h UWP 走 OutputDebugString、JumpSessionId 空值兜底、包 0.1.0.10）。Core 单测 +3（共 699）；`verify.ps1` 全绿。 |
 | 2026-09-19 | U10 | d1a9058 | **代码完成**。`AutoRun` 纯函数：tmux 附着在前（名只留 `[A-Za-z0-9_.-]` 其余换 `_`，空名 `main`）、初始命令逐条在后（空行跳过）；SessionManager 每次（含重连）`OpenShell` 成功后逐条加 `\r` 发送，日志只记条数。环境变量经 `SshConnectRequest.Env` 传 native（D06 已接线，本次只补测试覆盖）。⏳ 📱 tmux 断网重连回现场（已登记待办）。Core 单测 +14（共 716）；`verify.ps1` 全绿。 |
+| 2026-09-19 | U12 | 905bd3d | **代码完成**。TerminalWorkspace 按 PaneLayout 绝对定位+拖动改 ratio（释放后防抖 Resize）、焦点边框、窄屏聚焦叶树不销毁、不可见窗格退订渲染；TabStrip 新建/关闭/右键菜单；WorkspaceViewModel 多标签经 ServiceRegistry 单例；MainPage AdaptiveTrigger≥720 主从、TerminalPage 宽屏键条默认隐藏。⏳ x64 四窗格/stty 与 📱 Continuum（已登记待办）。Core 754；`verify.ps1` 全绿（含 -Arm）。 |
+| 2026-09-19 | S08 | a2635ab | **完成**。AuthStore 基于 ISecureFile（secure/auth.bin，手写 JObject，损坏按未登录）实现 ITokenStore；AuthService 注册/登录防重复、登出失败也清本地、改密成功清本地、拒绝撤销本机；UwpDeviceDescriptorProvider（FriendlyName/平台/包版本，ApiInformation 守卫）。Core 单测 +26（共 754，含持久化/uncertain/重复登录/撤销本机/改密）；`verify.ps1` 全绿。 |
+| 2026-09-19 | S10 | 36f0661 | **完成**。SyncLocalAdapter：Build 按 preferences 输出 secrets（NullPrivateKeyInspector 预留 S15）、悬空引用过滤、Writer 零偏差门禁；Apply 指纹变化与运行中隧道两道保护（整份拒）、🏠字段保留、凭据出现覆盖缺失保留、删除级联、ChangeOrigin.Sync。Core 单测 +12（共 754，覆盖 7 项验收）；`verify.ps1 -Quick` 全绿。 |
