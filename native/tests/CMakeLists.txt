@@ -154,6 +154,23 @@ target_link_libraries(scrollback_test PRIVATE ssh_term_host GTest::gtest_main)
 add_executable(snapshot_test snapshot_test.cpp)
 target_link_libraries(snapshot_test PRIVATE ssh_term_host GTest::gtest_main)
 
+# S03：原生保险库密码学（Argon2 ref.c + OpenSSL；只追加，不动既有条目）。
+add_library(ssh_crypto_host STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/crypto/aad.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/crypto/vault.cpp)
+target_include_directories(ssh_crypto_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core
+    PRIVATE ${OPENSSL_DIR}/include)
+target_link_libraries(ssh_crypto_host PUBLIC native_dependencies_host)
+
+add_executable(aad_test aad_test.cpp)
+target_link_libraries(aad_test PRIVATE ssh_crypto_host GTest::gtest_main)
+
+add_executable(vault_test vault_test.cpp)
+target_link_libraries(vault_test PRIVATE ssh_crypto_host GTest::gtest_main)
+
+add_executable(vault_ops_test vault_ops_test.cpp)
+target_link_libraries(vault_ops_test PRIVATE ssh_crypto_host GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
 gtest_discover_tests(deps_smoke_test)
@@ -170,3 +187,6 @@ gtest_discover_tests(term_grid_test)
 gtest_discover_tests(vterm_screen_test)
 gtest_discover_tests(scrollback_test)
 gtest_discover_tests(snapshot_test)
+gtest_discover_tests(aad_test)
+gtest_discover_tests(vault_test)
+gtest_discover_tests(vault_ops_test)
