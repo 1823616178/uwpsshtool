@@ -41,12 +41,12 @@
 | M1 | 原生 SSH 内核 | 11 | 11 | 调试页在 Lumia 上连服务器执行命令看到输出 |
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
-| M4 | 终端页与会话 | 12 | 9 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 8 | 与桌面端同账号双向同步、冲突可解 |
+| M4 | 终端页与会话 | 12 | 10 | **完整可用的本地 SSH 客户端**（无同步） |
+| M5 | 云端同步 | 22 | 10 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 2 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 0 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 1 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **71** | |
+| **合计** | | **111** | **74** | |
 
 ### 1.1 关键路径
 
@@ -759,13 +759,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] SnippetTemplate 单测（替换、未知变量收集、转义、多次出现）
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **P01 屏幕常亮、应用生命周期与后台策略** `M` 📱
+- [x] **P01 屏幕常亮、应用生命周期与后台策略** `M` 📱
   - 依赖：U07、SP06
   - 参考：`01-DESIGN.md §10`（以 SP06 回写后的版本为准）；鸿蒙端 `service/background/BackgroundPolicy.ets`、`service/ScreenAwake.ets` 与其测试
   - 产出：`src/SshTool.Core/Lifecycle/{KeepAwakePolicy,BackgroundPolicy}.cs`、`src/SshTool.App/Platform/{KeepAwakeService,LifecycleService}.cs`、测试
   - 要点：`KeepAwakePolicy.ShouldKeepScreenOn(mode, terminalVisible, activeSessions)`；DisplayRequest 成对调用计数保护；`BackgroundPolicy` 纯状态机：输入（进入后台、扩展执行授予/拒绝/撤销、回前台、计时到期、会话数变化）→ 输出动作（请求扩展执行、策略性断开、恢复重连、探测、释放）；接线 EnteredBackground/LeavingBackground/Suspending/Resuming；405 策略断开保留会话面孔。
   - 验收：
-    - [ ] KeepAwakePolicy 全组合单测；BackgroundPolicy ≥15 条
+    - [x] KeepAwakePolicy 全组合单测；BackgroundPolicy ≥15 条
     - [ ] 📱 终端页不自动息屏；切走再回来：仍在线或自动重连
   - 验证：`dotnet test`；真机
 
@@ -824,7 +824,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 非法 KDF 参数被拒
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
-- [ ] **S04 跨端测试向量工具** `M`
+- [x] **S04 跨端测试向量工具** `M`
   - 依赖：S03、S02
   - 参考：`03-SYNC-PROTOCOL.md §3.5、§10.1 Serializer 5`
   - 产出：`tools/sync-vectors/{package.json,generate.mjs,validate-fixtures.mjs,README.md}`、`native/tests/desktop_vectors.h`、`tests/fixtures/sync/desktop-vectors.json`、`tests/fixtures/sync/desktop-document-*.json`、`native/tests/desktop_vectors_test.cpp`、`tests/SshTool.Core.Tests/Sync/DesktopFixtureTests.cs`、`scripts/verify.ps1` 增加 `-Interop`
@@ -833,17 +833,17 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. 生成 3 份文档夹具（空文档、含 relay 与分组的典型文档、含 secrets 密码的文档），`validate-fixtures.mjs` 导入桌面端 `syncDocumentV1Schema` 校验通过。
     3. 同时输出 JSON（C# 用）与 C++ 头（native 用）。
   - 验收：
-    - [ ] native：用向量解包与解密成功；相同 nonce/salt 加密结果逐字节等于向量
-    - [ ] Core：夹具经 Reader→Writer 后，`node tools/sync-vectors/validate-fixtures.mjs --file <输出>` 通过（`verify.ps1 -Interop` 执行）
+    - [x] native：用向量解包与解密成功；相同 nonce/salt 加密结果逐字节等于向量
+    - [x] Core：夹具经 Reader→Writer 后，`node tools/sync-vectors/validate-fixtures.mjs --file <输出>` 通过（`verify.ps1 -Interop` 执行）
   - 验证：`node tools/sync-vectors/generate.mjs --check`；`pwsh scripts/verify.ps1 -Quick -Interop`
 
-- [ ] **S05 VaultCrypto 桥与 C# 适配** `S` 📱
+- [x] **S05 VaultCrypto 桥与 C# 适配** `S` 📱
   - 依赖：S03、N09a
   - 参考：`01-DESIGN.md §6.2`
   - 产出：`src/SshTool.Native/Bridge/{VaultCrypto,VaultEnvelope,VaultSetupResult,DocumentEnvelope}.{h,cpp}`、`src/SshTool.Core/Sync/Vault/{IVaultCrypto,VaultKeyEnvelope,EncryptedDocumentEnvelope}.cs`、`src/SshTool.App/Platform/NativeVaultCrypto.cs`、`tests/SshTool.Core.Tests/Fakes/FakeVaultCrypto.cs`、调试页「保险库自检」
   - 要点：所有方法在后台线程执行，失败返回 null；FakeVaultCrypto 用可逆编码模拟并能模拟「密码错误」；自检页在真机跑黄金向量与桌面向量并显示 Argon2 耗时。
   - 验收：
-    - [ ] ARM/x64 构建通过
+    - [x] ARM/x64 构建通过
     - [ ] 📱 自检全部通过，记录 Argon2id 解锁耗时
   - 验证：`pwsh scripts/verify.ps1 -Arm`；真机
 
@@ -1310,6 +1310,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] U10 📱 开启 tmux 的主机断网重连后回到原 tmux 现场
 - [ ] U12 x64 大窗口：4 窗格同时输出互不串扰，拖分隔条后每个窗格 `stty size` 各自正确
 - [ ] U12 📱 Continuum 下同上；断开 Continuum 回到手机后会话与布局完好
+- [ ] P01 📱 终端页不自动息屏；切走再回来：仍在线或自动重连
+- [ ] S05 📱 自检全部通过，记录 Argon2id 解锁耗时
 
 ---
 
@@ -1407,3 +1409,6 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | U13 | b8e9ec3 | **完成**。SnippetTemplate 纯函数（内置 ${host}/${user}/${port}/${name}、其余按序收集、`$$` 转义、缺值为空、内置优先）+ 发送整形（换行归一 `\r`、SendEnter 补 `\r`，经 ISshSession.Write）；SnippetsPage（搜索+分组）/SnippetEditPage（分组联想+变量说明+脏确认）/SnippetPickerFlyout/SnippetVariableDialog；终端菜单与键条 snippets 接入。Core 单测 +15（共 769）；`verify.ps1` 全绿。 |
 | 2026-09-19 | S03 | fc87d52 | **完成**。native AAD/保险库：KDF 入参+范围校验、解密前 hash 常量时间比对、规范 Base64、恢复密钥校验段大小写不敏感、HKDF 手工实现、OPENSSL_cleanse 清零；黄金向量 5 值命中、恢复密钥 10000 次往返+61 点篡改全拒、篡改/非法 KDF 全拒。native 218（+21）；v141 x64/Win32/ARM Release 构建 ✓；`verify.ps1 -Quick` 全绿。遗留：§3.5 kCiphertextHash 与冻结头不一致（c74d… vs 7642…），S03 范围外未改，需后续回改。 |
 | 2026-09-19 | Q07 | 0d904f5 | **代码完成**。核对 52 PNG 逐个尺寸正确（重跑字节一致）；补上 cffad50 漏合的清单项：Square71x71/Square310x310、SplashScreen BackgroundColor #000000（=深色 AppBgBrush）；generate.ps1 -List 计数 45→52。⏳ 📱 磁贴观感（已在待办）。`verify.ps1` 全绿，无 APPX1619/WMC0151。 |
+| 2026-09-19 | P01 | 11ea517 | **代码完成**。KeepAwakePolicy 三参纯函数（108 格全组合 25 条）+ DisplayRequest 计数保护；BackgroundPolicy 纯状态机 29 条（EE 授予/拒绝/撤销、回前台、计时、会话数 → 请求/断开405/重连/探测/释放）；SessionManager SuspendAllForPolicy/ResumeSuspended/ProbeAll（405 保留面孔原地重连）；LifecycleService 接四事件。⏳ 📱 常亮与切后台（已登记待办）。Core 853；`verify.ps1 -Interop` 全绿。 |
+| 2026-09-19 | S04 | 59d93c8 | **完成**。tools/sync-vectors（hash-wasm 4.12.0 锁定，固定 salt/nonce/密码/明文，独立原语生成 + tsx 只读自检桌面端解密）；3 文档夹具经桌面端 zod 校验；JSON+C++ 头双输出；verify.ps1 -Interop 步骤⑦。Core +4（共 853）；native +3（共 221）；generate --check 与重写 zod 全过。遗留：§3.5 kCiphertextHash 旧值偏差（见 S03）。 |
+| 2026-09-19 | S05 | 0e5d216 | **代码完成**。WinRT VaultCrypto 桥（后台线程，失败 null）+ IVaultCrypto/NativeVaultCrypto + FakeVaultCrypto（可逆模拟+密码错误）+ 调试页保险库自检（含 Argon2 耗时与桌面向量）。Core +20（共 853）；`verify.ps1 -Arm` 7 步全绿。⏳ 📱 自检与耗时（已登记待办）。 |
