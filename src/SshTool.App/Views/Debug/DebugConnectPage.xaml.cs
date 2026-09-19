@@ -152,7 +152,7 @@ namespace SshTool.App.Views.Debug
 
                 DispatcherHelper.Post(() =>
                 {
-                    TermView.Screen = session.Screen;
+                    TermView.Session = session;
                     ConnDot.State = StatusDotState.Connected;
                     ShowBanner(BannerSeverity.Success, "已连接",
                         "可输入 ls --color；耗时 " + ElapsedMs() + " ms");
@@ -277,7 +277,7 @@ namespace SshTool.App.Views.Debug
             session.HostKeyCheck -= OnHostKeyCheck;
             session.AuthPrompt -= OnAuthPrompt;
             session.ContentDirty -= OnContentDirty;
-            DispatcherHelper.Post(() => { TermView.Screen = null; });
+            DispatcherHelper.Post(() => { TermView.Session = null; });
             session.Dispose();
         }
 

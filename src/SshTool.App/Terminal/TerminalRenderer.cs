@@ -9,7 +9,7 @@ using Windows.UI.Text;
 
 namespace SshTool.App.Terminal
 {
-    // T06：行缓存 + 脏行重绘 + 属性管线 + 光标样式 + DeviceLost（01-DESIGN.md §7.3）。
+    // T06/T07：行缓存、属性管线与光标；字体度量委托给 FontMetrics（§7.3–7.4）。
     // SP04：绝不逐格 FillRectangle+DrawText；宽字符单独 2 格居中。
     public sealed class TerminalRenderer : IDisposable
     {
@@ -24,8 +24,13 @@ namespace SshTool.App.Terminal
         private const float CursorUnderlineFraction = 0.12f;
         private const float CursorMinPx = 1.5f;
         private const float FakeBoldOffset = 1f;
+        public const float MinimumFontSize = 8f;
+        public const float MaximumFontSize = 28f;
+        public const float MinimumLineHeightFactor = 1f;
+        public const float MaximumLineHeightFactor = 1.6f;
 
         private CanvasRenderTarget _surface;
+        private readonly FontMetrics _fontMetrics = new FontMetrics();
         private CanvasTextFormat _regular;
         private CanvasTextFormat _italic;
         private CanvasTextFormat _bold;
@@ -34,7 +39,8 @@ namespace SshTool.App.Terminal
         private int _rows;
         private float _dpi;
         private bool _formatsDirty = true;
-        private bool _disposed;
+
+        public event EventHandler MetricsInvalidated;
 
         public float CellWidth { get; private set; }
         public float CellHeight { get; private set; }
@@ -48,6 +54,7 @@ namespace SshTool.App.Terminal
         public bool Focused { get; set; }
 
         private float _fontSize = 12f;
+        private float _lineHeightFactor = 1.2f;
         private bool _fontWeightBold;
 
         public float FontSize
@@ -55,10 +62,28 @@ namespace SshTool.App.Terminal
             get { return _fontSize; }
             set
             {
-                if (_fontSize != value)
+                float next = Clamp(value, MinimumFontSize, MaximumFontSize, 12f);
+                if (_fontSize != next)
                 {
-                    _fontSize = value;
+                    _fontSize = next;
                     _formatsDirty = true;
+                    _fontMetrics.Invalidate();
+                    OnMetricsInvalidated();
+                }
+            }
+        }
+
+        public float LineHeightFactor
+        {
+            get { return _lineHeightFactor; }
+            set
+            {
+                float next = Clamp(value, MinimumLineHeightFactor, MaximumLineHeightFactor, 1.2f);
+                if (_lineHeightFactor != next)
+                {
+                    _lineHeightFactor = next;
+                    _fontMetrics.Invalidate();
+                    OnMetricsInvalidated();
                 }
             }
         }
@@ -95,10 +120,16 @@ namespace SshTool.App.Terminal
                 return false;
             }
             EnsureFormats();
-            using (var layout = new CanvasTextLayout(canvas, "M", _regular, 0, 0))
+            long revision = _fontMetrics.Revision;
+            if (!_fontMetrics.Ensure(canvas, _regular, FontSize, LineHeightFactor))
             {
-                CellWidth = (float)Math.Ceiling(layout.LayoutBounds.Width);
-                CellHeight = (float)Math.Ceiling(layout.LayoutBounds.Height);
+                return false;
+            }
+            CellWidth = _fontMetrics.CellWidth;
+            CellHeight = _fontMetrics.CellHeight;
+            if (_fontMetrics.Revision != revision)
+            {
+                InvalidateSurface();
             }
             return CellWidth > 0 && CellHeight > 0;
         }
@@ -118,11 +149,14 @@ namespace SshTool.App.Terminal
         public void NotifyDeviceLost()
         {
             InvalidateSurface();
+            _fontMetrics.Invalidate();
         }
 
         public void InvalidateFormats()
         {
             _formatsDirty = true;
+            _fontMetrics.Invalidate();
+            OnMetricsInvalidated();
         }
 
         public void Paint(CanvasControl canvas, CanvasDrawingSession ds, ITerminalScreen screen,
@@ -175,11 +209,6 @@ namespace SshTool.App.Terminal
 
         public void Dispose()
         {
-            if (_disposed)
-            {
-                return;
-            }
-            _disposed = true;
             InvalidateSurface();
             DisposeFormats();
         }
@@ -378,6 +407,24 @@ namespace SshTool.App.Terminal
             if (_bold != null) { _bold.Dispose(); _bold = null; }
             if (_boldItalic != null) { _boldItalic.Dispose(); _boldItalic = null; }
             _formatsDirty = true;
+        }
+
+        private void OnMetricsInvalidated()
+        {
+            EventHandler handler = MetricsInvalidated;
+            if (handler != null)
+            {
+                handler(this, EventArgs.Empty);
+            }
+        }
+
+        private static float Clamp(float value, float minimum, float maximum, float fallback)
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value))
+            {
+                return fallback;
+            }
+            return Math.Max(minimum, Math.Min(maximum, value));
         }
 
         private static bool TryReadCell(byte[] cells, int row, int col, int cols, out TerminalCell cell)

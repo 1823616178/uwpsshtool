@@ -112,6 +112,7 @@
     <Compile Include="Platform\NativeSshSession.cs" />
     <Compile Include="Platform\NativeTerminalScreen.cs" />
     <Compile Include="Terminal\FrameScheduler.cs" />
+    <Compile Include="Terminal\FontMetrics.cs" />
     <Compile Include="Terminal\TerminalRenderer.cs" />
     <Compile Include="Terminal\TerminalView.xaml.cs">
       <DependentUpon>TerminalView.xaml</DependentUpon>

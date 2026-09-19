@@ -4,6 +4,7 @@ using Microsoft.Graphics.Canvas.UI;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Models;
+using SshTool.Core.Sessions;
 using SshTool.Core.Terminal;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -13,12 +14,14 @@ using Windows.UI.Xaml.Media;
 
 namespace SshTool.App.Terminal
 {
-    // T06：ITerminalScreen → Win2D。CreateResources / DeviceLost 重建行缓存；
-    // 失焦空心光标；属性管线在 TerminalRenderer。
+    // T06/T07：ITerminalScreen → Win2D；尺寸/字体/DPI 变化后 100 ms 防抖 Resize。
+    // CreateResources / DeviceLost 重建行缓存；属性管线在 TerminalRenderer。
     public sealed partial class TerminalView : UserControl
     {
         private readonly TerminalRenderer _renderer = new TerminalRenderer();
         private readonly string _schedulerId = "tv-" + Guid.NewGuid().ToString("N");
+        private readonly DispatcherTimer _resizeTimer = new DispatcherTimer();
+        private ISshSession _session;
         private ITerminalScreen _screen;
         private byte[] _cells = new byte[0];
         private byte[] _dirty = new byte[0];
@@ -26,7 +29,14 @@ namespace SshTool.App.Terminal
         private bool _lastBlink = true;
         private bool _fullRedraw = true;
         private bool _registered;
+        private bool _loaded;
         private CanvasDevice _watchedDevice;
+        private GridSize _gridSize;
+        private int _lastResizeCols;
+        private int _lastResizeRows;
+        private double _terminalPadding = 4;
+        private double _keyBarHeight;
+        private bool _keyBarOverlays;
 
         public TerminalView()
         {
@@ -36,6 +46,27 @@ namespace SshTool.App.Terminal
             this.GotFocus += OnGotFocus;
             this.LostFocus += OnLostFocus;
             this.Tapped += OnTapped;
+            this.SizeChanged += OnSizeChanged;
+            _renderer.MetricsInvalidated += OnMetricsInvalidated;
+            _resizeTimer.Interval = TimeSpan.FromMilliseconds(100);
+            _resizeTimer.Tick += OnResizeTimerTick;
+        }
+
+        public ISshSession Session
+        {
+            get { return _session; }
+            set
+            {
+                if (ReferenceEquals(_session, value))
+                {
+                    return;
+                }
+                _session = value;
+                _lastResizeCols = 0;
+                _lastResizeRows = 0;
+                Screen = value != null ? value.Screen : null;
+                ScheduleResize();
+            }
         }
 
         public ITerminalScreen Screen
@@ -60,20 +91,72 @@ namespace SshTool.App.Terminal
             get { return _renderer; }
         }
 
+        public GridSize GridSize
+        {
+            get { return _gridSize; }
+        }
+
+        public double TerminalPadding
+        {
+            get { return _terminalPadding; }
+            set
+            {
+                double next = NormalizeNonNegative(value);
+                if (_terminalPadding != next)
+                {
+                    _terminalPadding = next;
+                    ApplyCanvasPadding();
+                    ScheduleResize();
+                }
+            }
+        }
+
+        public double KeyBarHeight
+        {
+            get { return _keyBarHeight; }
+            set
+            {
+                double next = NormalizeNonNegative(value);
+                if (_keyBarHeight != next)
+                {
+                    _keyBarHeight = next;
+                    ScheduleResize();
+                }
+            }
+        }
+
+        public bool KeyBarOverlays
+        {
+            get { return _keyBarOverlays; }
+            set
+            {
+                if (_keyBarOverlays != value)
+                {
+                    _keyBarOverlays = value;
+                    ScheduleResize();
+                }
+            }
+        }
+
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
+            _loaded = true;
             ApplyTokenColors();
+            ApplyCanvasPadding();
             if (!_registered)
             {
                 FrameScheduler.Instance.Register(_schedulerId, OnTick);
                 _registered = true;
             }
             FrameScheduler.Instance.SetVisible(_schedulerId, true);
+            ScheduleResize();
             FrameScheduler.Instance.Wake();
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
+            _loaded = false;
+            _resizeTimer.Stop();
             UnsubscribeDeviceLost();
             if (_registered)
             {
@@ -91,13 +174,11 @@ namespace SshTool.App.Terminal
         private void OnCreateResources(CanvasControl sender, CanvasCreateResourcesEventArgs args)
         {
             ApplyTokenColors();
-            object size = Application.Current.Resources["FontCaption"];
-            if (size is double)
-            {
-                _renderer.FontSize = (float)(double)size;
-            }
             _renderer.NotifyDeviceLost();
-            _renderer.EnsureMetrics(sender);
+            if (_renderer.EnsureMetrics(sender))
+            {
+                ScheduleResize();
+            }
             SubscribeDeviceLost(sender != null ? sender.Device : null);
             _fullRedraw = true;
         }
@@ -182,6 +263,71 @@ namespace SshTool.App.Terminal
             this.Focus(FocusState.Pointer);
         }
 
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            ScheduleResize();
+        }
+
+        private void OnMetricsInvalidated(object sender, EventArgs e)
+        {
+            _fullRedraw = true;
+            ScheduleResize();
+            if (Canvas != null)
+            {
+                Canvas.Invalidate();
+            }
+        }
+
+        private void ScheduleResize()
+        {
+            if (!_loaded)
+            {
+                return;
+            }
+            _resizeTimer.Stop();
+            _resizeTimer.Start();
+        }
+
+        private void OnResizeTimerTick(object sender, object e)
+        {
+            _resizeTimer.Stop();
+            UpdateGridAndResize();
+        }
+
+        private void UpdateGridAndResize()
+        {
+            if (Canvas == null || ActualWidth <= 0 || ActualHeight <= 0
+                || !_renderer.EnsureMetrics(Canvas))
+            {
+                return;
+            }
+
+            GridSize size = GridSizeCalculator.Calculate(
+                ActualWidth, ActualHeight,
+                _renderer.CellWidth, _renderer.CellHeight,
+                TerminalPadding, KeyBarHeight, KeyBarOverlays);
+            _gridSize = size;
+            Canvas.Width = size.Cols * _renderer.CellWidth;
+            Canvas.Height = size.Rows * _renderer.CellHeight;
+
+            ISshSession session = _session;
+            if (session != null
+                && (size.Cols != _lastResizeCols || size.Rows != _lastResizeRows))
+            {
+                _lastResizeCols = size.Cols;
+                _lastResizeRows = size.Rows;
+                session.Resize(size.Cols, size.Rows);
+            }
+        }
+
+        private void ApplyCanvasPadding()
+        {
+            if (Canvas != null)
+            {
+                Canvas.Margin = new Thickness(TerminalPadding);
+            }
+        }
+
         private void OnGotFocus(object sender, RoutedEventArgs e)
         {
             _renderer.Focused = true;
@@ -254,6 +400,9 @@ namespace SshTool.App.Terminal
                 _renderer.CursorBlink = appearance.CursorBlink;
                 _renderer.BoldAsBright = appearance.BoldAsBright;
                 _renderer.FontWeightBold = appearance.FontWeightBold;
+                _renderer.FontSize = appearance.FontSize;
+                _renderer.LineHeightFactor = (float)appearance.LineHeight;
+                TerminalPadding = appearance.Padding;
             }
             catch (Exception)
             {
@@ -283,6 +432,15 @@ namespace SshTool.App.Terminal
         private static Color ToColor(uint argb)
         {
             return Color.FromArgb((byte)(argb >> 24), (byte)(argb >> 16), (byte)(argb >> 8), (byte)argb);
+        }
+
+        private static double NormalizeNonNegative(double value)
+        {
+            if (double.IsNaN(value) || double.IsInfinity(value) || value < 0)
+            {
+                return 0;
+            }
+            return value;
         }
     }
 }
