@@ -214,7 +214,9 @@ namespace SshTool.Core.Terminal
             Add(map, Action("paste", "\u7C98\u8D34", KeyBarAction.Paste));
             Add(map, Action("copy", "\u590D\u5236", KeyBarAction.Copy));
             Add(map, Action("snippets", "\u7247\u6BB5", KeyBarAction.Snippets));
-            Add(map, Action("hidekb", "\u2328", KeyBarAction.HideKeyboard));
+            // V01a 评审回补：hidekb 键面是 App 层 IconKeyboard 字形按钮（终端页固定按钮），
+            // Core 不出文案；编辑器行首改显示 resw 语义文本（KeyBarLayoutEditorPage.DisplayLabel）。
+            Add(map, Action("hidekb", string.Empty, KeyBarAction.HideKeyboard));
             return map;
         }
 

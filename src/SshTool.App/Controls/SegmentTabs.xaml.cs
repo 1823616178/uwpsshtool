@@ -46,6 +46,8 @@ namespace SshTool.App.Controls
             ((SegmentTabs)d).Rebuild();
         }
 
+        // V01a 评审回补：代码设置 SelectedIndex 只刷新视觉（UpdateVisual），不触发 SelectionChanged；
+        // 事件仅由用户点击段（OnSegmentClick）触发——消费方据此区分「用户切换」与「程序化同步」。
         private static void OnSelectionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             ((SegmentTabs)d).UpdateVisual();

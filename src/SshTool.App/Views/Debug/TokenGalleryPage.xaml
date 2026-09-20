@@ -228,7 +228,8 @@
                     </Button>
                 </StackPanel>
 
-                <TextBlock Text="V01a 新增图标键" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <!-- V01a 评审回补：区标题走 resw；六个键名保持字面（资源键名，评审允许，同上图标区先例） -->
+                <TextBlock x:Uid="Gallery_V2IconKeys" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
                     <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconGlobalNav}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="GlobalNav" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
                     <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconChevronRight}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="ChevronR" Style="{StaticResource CaptionTextStyle}" /></StackPanel>

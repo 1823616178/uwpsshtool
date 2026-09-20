@@ -272,4 +272,8 @@
   <data name="Gallery_IconButtonDemo.Text" xml:space="preserve"><value>IconButtonStyle: normal / disabled (AutomationProperties.Name required)</value></data>
   <data name="Gallery_DemoIconSettings.AutomationProperties.Name" xml:space="preserve"><value>Settings</value></data>
   <data name="Gallery_DemoIconSync.AutomationProperties.Name" xml:space="preserve"><value>Sync (disabled demo)</value></data>
+
+  <!-- V01a review follow-up: semantic label for the hidekb editor row (Core key face has no text) + gallery icon-keys section title -->
+  <data name="KeyBar_HideKeyboardLabel" xml:space="preserve"><value>Hide keyboard</value></data>
+  <data name="Gallery_V2IconKeys.Text" xml:space="preserve"><value>New icon keys (V01a)</value></data>
 </root>

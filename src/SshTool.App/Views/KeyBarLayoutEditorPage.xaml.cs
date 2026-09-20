@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Storage;
 using SshTool.Core.Terminal;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -115,6 +116,17 @@ namespace SshTool.App.Views
 
         public ObservableCollection<KeyBarKeyItem> Selected { get; private set; }
 
+        // V01a 评审回补：hidekb 键面是 IconKeyboard 字形，Core 目录 Label 留空；
+        // 编辑器行首改显示语义化文本（resw 双语），不再渲染 ⌨。
+        private static string DisplayLabel(KeyBarKey key)
+        {
+            if (key.Action == KeyBarAction.HideKeyboard)
+            {
+                return ResourceLoader.GetForCurrentView().GetString("KeyBar_HideKeyboardLabel");
+            }
+            return key.Label;
+        }
+
         private void Reload()
         {
             Available.Clear();
@@ -136,7 +148,7 @@ namespace SshTool.App.Views
                 Selected.Add(new KeyBarKeyItem
                 {
                     Id = selectedKeys[i].Id,
-                    Label = selectedKeys[i].Label,
+                    Label = DisplayLabel(selectedKeys[i]),
                     Description = KeyBarKeyNames.Describe(selectedKeys[i])
                 });
             }
@@ -153,7 +165,7 @@ namespace SshTool.App.Views
                     Available.Add(new KeyBarKeyItem
                     {
                         Id = key.Id,
-                        Label = key.Label,
+                        Label = DisplayLabel(key),
                         Description = KeyBarKeyNames.Describe(key)
                     });
                 }

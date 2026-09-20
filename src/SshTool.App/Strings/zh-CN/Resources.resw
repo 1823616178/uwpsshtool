@@ -272,4 +272,8 @@
   <data name="Gallery_IconButtonDemo.Text" xml:space="preserve"><value>IconButtonStyle：normal / disabled（使用点须配无障碍名）</value></data>
   <data name="Gallery_DemoIconSettings.AutomationProperties.Name" xml:space="preserve"><value>设置</value></data>
   <data name="Gallery_DemoIconSync.AutomationProperties.Name" xml:space="preserve"><value>同步（禁用演示）</value></data>
+
+  <!-- V01a 评审回补：hidekb 编辑器行首语义文本（Core 键面无文案）+ 画廊图标键区标题 -->
+  <data name="KeyBar_HideKeyboardLabel" xml:space="preserve"><value>隐藏键盘</value></data>
+  <data name="Gallery_V2IconKeys.Text" xml:space="preserve"><value>V01a 新增图标键</value></data>
 </root>
