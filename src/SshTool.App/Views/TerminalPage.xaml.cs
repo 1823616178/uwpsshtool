@@ -125,8 +125,12 @@ namespace SshTool.App.Views
             catch (Exception ex)
             {
                 // 加载失败留下半装配状态：End 反序拆掉已登记订阅（幂等，离开时再调安全）。
+                // 世代守卫：过期世代的迟到异常（新导航已 Begin）不得拆除当前世代的订阅。
                 AppLog.Error("Terminal", "终端页加载失败", ex);
-                _lifetime.End();
+                if (_lifetime.IsCurrent(generation))
+                {
+                    _lifetime.End();
+                }
             }
         }
 

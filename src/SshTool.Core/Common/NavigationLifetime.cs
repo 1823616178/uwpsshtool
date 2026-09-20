@@ -7,6 +7,8 @@ namespace SshTool.Core.Common
     // R01 (C-02)：页面导航世代生命周期。OnNavigatedTo 调 Begin 开新世代（旧异步链随之
     // 失效），OnNavigatedFrom 调 End：取消 Token、按注册反序执行 Track 的拆除动作并清空。
     // End 幂等（重复 GoBack / Frame 重复回调下安全）；Begin 自带一次 End，重复进入安全。
+    // Token 预留给可取消加载链（把 CancellationToken 传入底层异步）；当前失效判定一律
+    // 以世代号（IsCurrent）为准，尚无生产消费方订阅 Token。
     public sealed class NavigationLifetime
     {
         private readonly List<Action> _teardowns = new List<Action>();
@@ -31,13 +33,9 @@ namespace SshTool.Core.Common
                 return;
             }
             _ended = true;
-            try
-            {
-                _cts.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-            }
+            // _cts 从不 Dispose（Token 持有者可能在 End 后读状态），Cancel 不会抛
+            // ObjectDisposedException，不做死防御。
+            _cts.Cancel();
             // 反序：后订阅的先拆，与「成对资源后申请先释放」一致。
             for (int i = _teardowns.Count - 1; i >= 0; i--)
             {

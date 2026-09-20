@@ -16,9 +16,11 @@ namespace SshTool.App.Infrastructure
             }
             try
             {
+                // 脱敏惯例（同 AppServices 启动日志）：相位 + 异常类型名。
+                // ex.Message 可能含主机名/用户名/路径，LogRedactor 不剥离这些，不进日志。
                 string detail = ex == null
                     ? string.Empty
-                    : "：" + ex.GetType().Name + " " + ex.Message;
+                    : "：" + ex.GetType().Name;
                 log.Log(LogLevel.Error, tag, message + detail);
             }
             catch (Exception)

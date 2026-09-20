@@ -111,5 +111,28 @@ namespace SshTool.Core.Tests.Common
             life.Track(() => ran = true);
             Assert.True(ran);
         }
+
+        [Fact]
+        public void Begin_WithoutExplicitEnd_RunsPreviousTeardownsOnce()
+        {
+            var life = new NavigationLifetime();
+            life.Begin();
+            int calls = 0;
+            life.Track(() => calls++);
+            // Begin 隐含一次 End：旧世代拆除动作执行且只执行一次。
+            life.Begin();
+            life.End();
+            Assert.Equal(1, calls);
+        }
+
+        [Fact]
+        public void Track_Null_IsIgnored()
+        {
+            var life = new NavigationLifetime();
+            life.Begin();
+            life.Track(null);
+            // 静默忽略不抛；End 同样正常。
+            life.End();
+        }
     }
 }
