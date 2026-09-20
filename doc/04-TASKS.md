@@ -1319,6 +1319,9 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] K02 📱 生成 ed25519 → 公钥加入服务器 `authorized_keys` → 用该密钥登录成功
 - [ ] U16 👤 x64：在已由桌面端创建保险库的账号上用同步密码解锁成功（本机无桌面端建库账号，待提供后经 LoginPage→登录→VaultUnlockPage 实测）
 - [ ] U16 📱 真机创建或解锁成功（注册→建库→RecoveryKeyDialog 勾选保存→首次同步；或对已建库账号用同步密码/恢复密钥解锁）
+- [ ] R01 📱 反复进入退出终端 50 次：旧页面可回收、SessionInfo 事件只触发一次、无明显内存增长（fix(R01) d20bf4c 后订阅全部成对可拆，代码结构已支撑）
+- [ ] C-03 📱 终端焦点/SIP 回归：打开菜单后 SIP 回弹、切会话、分屏、旋转、SIP 收起/再弹出；菜单/键条/右键三入口打开片段选择器发送或取消后 SIP 自动回弹（fix(C03) 43ffc0a）
+- [ ] Phase0 📱 UI 重构前截图基线：360×640、640×360、Continuum 三组（05 文档 Phase 0 出口第 4 步）
 
 ---
 
@@ -1438,3 +1441,6 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | F02 | 310436a | **完成**。WinRT SftpSession 桥（会话 I/O 线程串行、SftpCancel consume-once、Shutdown 先拆 SFTP）+ Core Sftp 六件（RemotePath/PermissionBits/RemoteEntry/ISftpClient/TransferItem 速率滑动窗/TransferQueue 单泵）+ NativeSftpClient/StorageFileStreams（IRandomAccessStream 分块）。Core 单测 111（含 FakeSftpClient 供 F03）；`verify.ps1` 全绿。 |
 | 2026-09-19 | U15 | f7db8d3 | **完成**。ApiErrorCatalog（§2.3 全 36 码）+ LoginFormValidator + LoginViewModel/LoginPage（登录注册切换、HTTP Banner、密码≥10+确认、邀请码、三端说明、RateLimited 填秒）；resw +64 键双语一致；Api_<CODE> 覆盖单测。真服务器实测：注册 200→登录 200→GET me 200→登出 200（密码只在内存未落日志；测试账号 u15verify20260920024647@example.com 已登出留服务器，可经注销流程清理）。Core 1163；`verify.ps1` 全绿。 |
 | 2026-09-20 | U16 | 5293799 | **代码任务完成**。Core：RecoveryKeyInput（格式/校验段复算逐字对齐桌面端 decodeRecoveryKey，SHA256 经 System.Security.Cryptography.Algorithms 4.3.0，正文段大小写敏感不动、前缀/校验段归一）+ VaultFormValidator（同步密码≥8+确认、解锁判空）；单测 48 条含桌面向量 SPM1-YGFi…-0F62… 冻结值对拍、3 行展示切分与 resw 双语覆盖。App：VaultSetupPage/VaultUnlockPage（分段解锁、等宽恢复密钥框、LoadingOverlay「正在生成密钥/正在解锁/正在同步」，文案随 Coordinator syncing 相位驱动）+ RecoveryKeyDialog（等宽 3 行、复制、必须勾选「已保存」，返回键关闭会重弹并警告）+ VaultErrorText（ApiError→Api_ resw）+ SyncNavigation.GoAfterAuth（按 vault missing/locked 路由建库/解锁页，导航后剪返回栈失效中间页，修 U15 返回键弹回登录页循环）+ LoginPage 接线；resw +34 键双语一致；csproj 登记（Core 增 System.Security.Cryptography.Algorithms 4.3.0）。`verify.ps1` 六步全绿（Core 1364、native 299、x64 Debug 无 WMC0151）。⏳ 👤 桌面端建库账号解锁、📱 真机建库/解锁（已登记真机待办）。 |
+| 2026-09-20 | Phase0 基线 | 1a1ab79…080de29 | **完成**。05 审查文档入库；脏工作区（U16 完成态 + F03/F05/Q01 开发中 + MainPage 移入 Views/）整理为可复现提交 5293799，基线 verify 全绿。 |
+| 2026-09-20 | R01 | 072eee9…d20bf4c | **完成**（05 工作包：终端订阅释放与导航取消）。C-01：TerminalPage/TerminalViewModel 匿名订阅改命名处理器，AttachNative 幂等、Detach/UnbindSession 成对，全部拆除经 Track 登记按订阅反序执行。C-02：Core 新增 NavigationLifetime（Begin/End/IsCurrent/Token/Track，幂等反序、Begin 隐含 End、Track-after-End 立即执行，单测 11 条），8 个 async void OnNavigatedTo 页面全部薄壳化 + 每个 await 后世代检查 + OnNavigatedFrom 先 End；KeyDetailPage 补 DataTransferManager 长寿订阅解除；新增 AppLog（只记异常类型名，脱敏）。规格+质量两轮评审及复核通过。已知：页面 await 期间返回不取消后台连接（需动 SessionManager API，留待后续）；TerminalWorkspace 的同型订阅/fire-and-forget 归 V03。⏳ 📱 50 次进出回归（已登记待办）。 |
+| 2026-09-20 | C-03 | 16ce518…43ffc0a | **完成**（05 P0：终端控件抢软键盘焦点）。新建 TerminalIconButtonStyle（AllowFocusOnInteraction=False、MinWidth=TouchTargetMin、全 token），终端页更多按钮/TabStrip 新建与动态关闭按钮/Workspace 分屏关闭按钮全部套用；无障碍名 resw 双语 +5 key；菜单与片段选择器关闭后按「开前采样 SIP + 世代守卫 + 物理键盘早退」恢复哨兵焦点，不无条件拉起 SIP；菜单→片段路径透传采样修复评审发现的恒 false 缺陷。规格+质量三轮评审通过。⏳ 📱 SIP/菜单/旋转/片段回弹回归（已登记待办）。 |
