@@ -29,11 +29,13 @@ namespace SshTool.App.Controls
 
         public event EventHandler DismissRequested;
 
-        public static void Show(FrameworkElement anchor, SessionInfo session)
+        // U13：返回创建的 Flyout，调用方可挂 Closed（C-03：TerminalPage 借此在选择器
+        // 关闭后恢复哨兵焦点）。anchor 为空时返回 null。
+        public static Flyout Show(FrameworkElement anchor, SessionInfo session)
         {
             if (anchor == null)
             {
-                return;
+                return null;
             }
             var picker = new SnippetPickerFlyout();
             picker.Attach(session);
@@ -59,6 +61,7 @@ namespace SshTool.App.Controls
             catch (Exception)
             {
             }
+            return flyout;
         }
 
         public void Attach(SessionInfo session)

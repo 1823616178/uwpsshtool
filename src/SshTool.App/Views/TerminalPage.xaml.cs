@@ -400,7 +400,24 @@ namespace SshTool.App.Views
             {
                 anchor = Term;
             }
-            SnippetPickerFlyout.Show(anchor, ViewModel.Session);
+            // C-03（§7.5）：选择器关闭（发送后 DismissRequested 与 light-dismiss 都汇到
+            // Flyout.Closed）后恢复哨兵焦点，守卫与终端菜单同形——仅当打开前 SIP 弹着
+            // 且世代仍有效才恢复，SIP 原本收起则不做事。采样须在 Show 之前：
+            // 选择器一打开焦点就离开哨兵。
+            int generation = _generation;
+            bool restoreSip = Term.IsInputPaneVisible;
+            var flyout = SnippetPickerFlyout.Show(anchor, ViewModel.Session);
+            if (flyout == null)
+            {
+                return;
+            }
+            flyout.Closed += (s, args) =>
+            {
+                if (restoreSip && _lifetime.IsCurrent(generation))
+                {
+                    Term.RestoreInputFocus();
+                }
+            };
         }
 
         private void OnKeyBarAction(object sender, SshTool.Core.Terminal.KeyBarActionEventArgs e)

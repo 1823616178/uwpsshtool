@@ -134,6 +134,7 @@ namespace SshTool.App.Controls
             }
             close.Tag = tab.TabId;
             close.Height = (double)Application.Current.Resources["TabStripHeight"];
+            // C-03：Transparent 是有意覆盖样式的 Surface 底——✕ 直接坐在标签行上，不带自己的底色。
             close.Background = new SolidColorBrush(Windows.UI.Colors.Transparent);
             close.Foreground = Banner.ResolveThemedBrush("AppTextDimBrush");
             close.Click += OnCloseClick;

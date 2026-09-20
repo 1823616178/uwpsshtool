@@ -91,6 +91,9 @@ namespace SshTool.App.Terminal
             return _box.Focus(FocusState.Programmatic);
         }
 
+        // C-03：OccludedRect.Height > 0 只是 SIP 可见性的代理——桌面窗口化模式下 OS
+        // 可能改窗口大小而非遮挡（SIP 在但 Height 为 0）；W10M 永远遮挡故真机无影响，
+        // 桌面场景由 RestoreInputFocus 的物理键盘早退覆盖（TerminalView）。
         public bool IsInputPaneVisible
         {
             get { return OccludedRect.Height > 0; }
