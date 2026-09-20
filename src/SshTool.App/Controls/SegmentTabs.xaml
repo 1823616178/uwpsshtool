@@ -5,7 +5,7 @@
 
     <!-- 05 §5.3：分段选择器，替代松散二/三选一按钮（登录/注册切换那种）。
          容器 Surface2 底 + 细边；选中段 Accent 底 OnAccent 字；未选段 Surface1 底正文字；
-         段在 code-behind 按 ItemsSource 均分构建（15063 无 UniformGrid）。 -->
+         段在 code-behind 按 ItemsSource 均分构建（内置无 UniformGrid，Community Toolkit 才有）。 -->
     <Border x:Name="Container"
             Background="{ThemeResource AppSurfaceAltBrush}"
             BorderBrush="{ThemeResource AppBorderBrush}"

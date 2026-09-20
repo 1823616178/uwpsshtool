@@ -242,6 +242,8 @@
   <data name="Main_PaneToggleButton.AutomationProperties.Name" xml:space="preserve"><value>Show or hide the host list</value></data>
   <data name="KeyBar_HideKeyboardButton.AutomationProperties.Name" xml:space="preserve"><value>Hide keyboard</value></data>
   <data name="Selection_DismissButton.AutomationProperties.Name" xml:space="preserve"><value>Exit selection</value></data>
+  <!-- Quality review: accessibility suffix for the selected SegmentTabs segment ("label, selected"); unselected segments get no suffix. -->
+  <data name="SegmentTabs_SelectedSuffix" xml:space="preserve"><value>, selected</value></data>
 
   <!-- V01a: token gallery V2 component demos (Debug page) -->
   <data name="Gallery_V2Components.Text" xml:space="preserve"><value>V2 components (doc/05 §5.3)</value></data>

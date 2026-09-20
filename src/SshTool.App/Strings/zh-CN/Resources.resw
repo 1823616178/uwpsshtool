@@ -237,11 +237,14 @@
   <data name="Vault_WorkingUnlock" xml:space="preserve"><value>正在解锁…</value></data>
   <data name="Vault_WorkingSync" xml:space="preserve"><value>正在同步…</value></data>
 
-  <!-- V01a：新组件无障碍名（doc/05 §5.3、§7.2） -->
+  <!-- V01a：新组件无障碍名（doc/05 §5.3、§7.2）。评审回补：「隐藏键盘」术语三处统一
+       （此处、KeyBar_HideKeyboardLabel、编辑器键名表）。 -->
   <data name="AppPageHeader_BackButton.AutomationProperties.Name" xml:space="preserve"><value>返回</value></data>
   <data name="Main_PaneToggleButton.AutomationProperties.Name" xml:space="preserve"><value>显示或隐藏主机列表</value></data>
-  <data name="KeyBar_HideKeyboardButton.AutomationProperties.Name" xml:space="preserve"><value>收起键盘</value></data>
+  <data name="KeyBar_HideKeyboardButton.AutomationProperties.Name" xml:space="preserve"><value>隐藏键盘</value></data>
   <data name="Selection_DismissButton.AutomationProperties.Name" xml:space="preserve"><value>退出选择</value></data>
+  <!-- 质量评审：SegmentTabs 选中段无障碍名后缀（「标签，已选」），未选段不拼。 -->
+  <data name="SegmentTabs_SelectedSuffix" xml:space="preserve"><value>，已选</value></data>
 
   <!-- V01a：Token 画廊 V2 组件演示区（Debug 页） -->
   <data name="Gallery_V2Components.Text" xml:space="preserve"><value>V2 组件（doc/05 §5.3）</value></data>

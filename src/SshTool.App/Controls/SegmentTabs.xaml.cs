@@ -1,9 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Windows.ApplicationModel.Resources;
 using Windows.UI;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Automation;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 
 namespace SshTool.App.Controls
@@ -19,12 +22,18 @@ namespace SshTool.App.Controls
 
         private readonly List<Button> _segments = new List<Button>();
 
+        // 质量评审 Important-1：段 Button 内容层不透明 fill 盖住默认模板 Root，模板
+        // PointerOver/Pressed 视觉不可见，改为手动调 fill 不透明度；选中/未选配色不受影响。
+        private const double SegmentHoverOpacity = 0.85;
+        private const double SegmentPressedOpacity = 0.6;
+        private Button _pressedSegment;
+
         public event EventHandler SelectionChanged;
 
         public SegmentTabs()
         {
             this.InitializeComponent();
-            this.Loaded += (s, e) => Rebuild();
+            // 质量评审 Minor-5：去掉 Loaded→Rebuild 与 ItemsSource DP 回调的重复构建，只留后者。
             this.IsEnabledChanged += (s, e) => UpdateVisual();
         }
 
@@ -69,7 +78,7 @@ namespace SshTool.App.Controls
             SegmentsHost.ColumnDefinitions.Clear();
             _segments.Clear();
 
-            double segHeight = (double)Application.Current.Resources["SegmentTabsHeight"];
+            double segHeight = (double)Application.Current.Resources["SegmentHeight"];
             Style textStyle = (Style)Application.Current.Resources["BodyTextStyle"];
             CornerRadius radius = (CornerRadius)Application.Current.Resources["RadiusSm"];
             Thickness noPad = (Thickness)Application.Current.Resources["PadNone"];
@@ -108,6 +117,11 @@ namespace SshTool.App.Controls
                     Tag = i
                 };
                 button.Click += OnSegmentClick;
+                // Button 内部会把指针事件标记 handled，须 handledEventsToo: true 才收得到。
+                button.AddHandler(PointerPressedEvent, new PointerEventHandler(OnSegmentPointerPressed), true);
+                button.AddHandler(PointerReleasedEvent, new PointerEventHandler(OnSegmentPointerReleased), true);
+                button.AddHandler(PointerEnteredEvent, new PointerEventHandler(OnSegmentPointerEntered), true);
+                button.AddHandler(PointerExitedEvent, new PointerEventHandler(OnSegmentPointerExited), true);
                 Grid.SetColumn(button, i);
                 SegmentsHost.Children.Add(button);
                 _segments.Add(button);
@@ -135,12 +149,41 @@ namespace SshTool.App.Controls
             }
         }
 
+        private void OnSegmentPointerEntered(object sender, PointerRoutedEventArgs e)
+        {
+            if (_pressedSegment == null)
+            {
+                ((Border)((Button)sender).Content).Opacity = SegmentHoverOpacity;
+            }
+        }
+
+        private void OnSegmentPointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            _pressedSegment = (Button)sender;
+            ((Border)_pressedSegment.Content).Opacity = SegmentPressedOpacity;
+        }
+
+        private void OnSegmentPointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            _pressedSegment = null;
+            // 松手时指针通常仍在段内，回到悬停态；若已移出，随后的 PointerExited 复原。
+            ((Border)((Button)sender).Content).Opacity = SegmentHoverOpacity;
+        }
+
+        private void OnSegmentPointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            _pressedSegment = null;
+            ((Border)((Button)sender).Content).Opacity = 1.0;
+        }
+
         private void UpdateVisual()
         {
             Brush accent = Banner.ResolveThemedBrush("AppAccentBrush");
             Brush onAccent = Banner.ResolveThemedBrush("AppOnAccentBrush");
             Brush surface = Banner.ResolveThemedBrush("AppSurfaceBrush");
             Brush text = Banner.ResolveThemedBrush("AppTextBrush");
+            // 质量评审 Important-2：选中态进无障碍树——读屏播报「标签，已选」，未选段只报标签。
+            string selectedSuffix = ResourceLoader.GetForCurrentView().GetString("SegmentTabs_SelectedSuffix");
             for (int i = 0; i < _segments.Count; i++)
             {
                 bool selected = i == SelectedIndex;
@@ -148,6 +191,7 @@ namespace SshTool.App.Controls
                 fill.Background = selected ? accent : surface;
                 var label = (TextBlock)fill.Child;
                 label.Foreground = selected ? onAccent : text;
+                AutomationProperties.SetName(_segments[i], selected ? label.Text + selectedSuffix : label.Text);
             }
             Container.Opacity = IsEnabled ? 1.0 : (double)Application.Current.Resources["DisabledOpacity"];
         }

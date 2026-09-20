@@ -60,7 +60,7 @@ namespace SshTool.App.Views
             { "paste", "粘贴操作" },
             { "copy", "复制操作" },
             { "snippets", "片段面板" },
-            { "hidekb", "收起输入法键盘" }
+            { "hidekb", "隐藏键盘" }
         };
 
         private const string CustomName = "自定义按键";

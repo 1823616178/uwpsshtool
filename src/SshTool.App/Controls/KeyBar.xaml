@@ -19,8 +19,9 @@
                       VerticalScrollMode="Disabled">
             <StackPanel x:Name="KeysPanel" Orientation="Horizontal" />
         </ScrollViewer>
-        <!-- V01a：⌨ 换 MDL2 KeyboardClassic（IconKeyboard），补无障碍名（resw）；
-             Rebuild 不再覆盖 Content（图标固定在 XAML，Core 侧 hidekb 文本标签仅作数据）。 -->
+        <!-- V01a：⌨ 换 MDL2 KeyboardClassic（IconKeyboard），无障碍名走 resw（x:Uid）；
+             Rebuild 不再覆盖 Content（图标固定在 XAML）。评审回补：Core 目录 hidekb 的
+             Label 已置空——此按钮无文本，编辑器行首语义文本由 App 层 resw 提供。 -->
         <Button x:Name="HideKeyboardButton"
                 x:Uid="KeyBar_HideKeyboardButton"
                 Grid.Column="1"

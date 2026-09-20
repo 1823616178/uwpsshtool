@@ -19,7 +19,10 @@
                      Width="{StaticResource StatusDotSize}"
                      Height="{StaticResource StatusDotSize}"
                      VerticalAlignment="Center" />
+            <!-- 质量评审：AccessibilityView=Raw，读屏只报根上的 SetName(this, Text)，
+                 不与内部文本重复朗读（同 IconButtonStyle ContentPresenter 手法）。 -->
             <TextBlock x:Name="Label" Style="{StaticResource CaptionTextStyle}"
+                       AutomationProperties.AccessibilityView="Raw"
                        Margin="{StaticResource GapSmLeft}"
                        VerticalAlignment="Center" />
         </StackPanel>

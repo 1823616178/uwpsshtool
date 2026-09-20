@@ -51,8 +51,9 @@
     <x:Double x:Key="GroupHeaderHeight">36</x:Double>
     <x:Double x:Key="StatusDotSize">10</x:Double>
     <x:Double x:Key="TouchTargetMin">40</x:Double>
-    <!-- SegmentTabs 分段选择器高度：触控安全档，与 KeyBarHeight 同刻度。 -->
-    <x:Double x:Key="SegmentTabsHeight">40</x:Double>
+    <!-- SegmentTabs 段高：实际赋给段内填充 Border 的 MinHeight（容器另有 PadXs 内边距与细边，整高更大）；
+         触控安全档，与 KeyBarHeight 同刻度。 -->
+    <x:Double x:Key="SegmentHeight">40</x:Double>
     <!-- 禁用态不透明度（SegmentTabs、IconButtonStyle 的 Disabled 视觉）。 -->
     <x:Double x:Key="DisabledOpacity">0.5</x:Double>
     <x:Double x:Key="KeyBarHeight">40</x:Double>
