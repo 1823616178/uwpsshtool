@@ -8,6 +8,7 @@ using SshTool.App.Terminal;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;
 using SshTool.Core.Common;
+using SshTool.Core.Models;
 using SshTool.Core.Sessions;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
@@ -25,6 +26,8 @@ namespace SshTool.App.Views
         private readonly NavigationLifetime _lifetime = new NavigationLifetime();
         // R01 (C-01)：BindSession 订阅的 SessionInfo（生命周期长于页面），离开时解除。
         private SessionInfo _boundSession;
+        // R01 (C-02)：当前世代号缓存（OnNavigatedTo 写入），供事件路径上的异步守护使用。
+        private int _generation;
 
         public TerminalPage()
         {
@@ -81,6 +84,7 @@ namespace SshTool.App.Views
         {
             base.OnNavigatedTo(e);
             int generation = _lifetime.Begin();
+            _generation = generation;
             StatusBarService.Hide();
             // P01：终端页可见性是屏幕常亮判定的输入之一。
             Platform.KeepAwakeService keepAwake;
@@ -275,7 +279,33 @@ namespace SshTool.App.Views
             {
                 return;
             }
-            var ignore = AppearanceApplier.ApplyForHostAsync(Term, info.HostId);
+            var ignore = ApplyAppearanceAsync(_generation, info.HostId);
+        }
+
+        // R01 (C-02)：外观解析是 fire-and-forget，离场后 continuation 不得再触碰 Term。
+        // 解析完先查世代；Post 回 UI 线程后再查一次（排队期间可能已离开）——UI 线程上的
+        // 这次检查与 OnNavigatedFrom 的 End 串行，是权威判定。
+        private async Task ApplyAppearanceAsync(int generation, string hostId)
+        {
+            AppearanceProfile profile = await AppearanceApplier.ResolveForHostAsync(hostId).ConfigureAwait(false);
+            if (profile == null || !_lifetime.IsCurrent(generation))
+            {
+                return;
+            }
+            DispatcherHelper.Post(() =>
+            {
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
+                try
+                {
+                    Term.ApplyAppearance(profile);
+                }
+                catch (Exception)
+                {
+                }
+            });
         }
 
         private void OnAppearanceChanged(object sender, AppearanceChangedEventArgs e)

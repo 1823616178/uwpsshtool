@@ -24,6 +24,8 @@ namespace SshTool.App.Views.Keys
     {
         // R01 (C-02)：导航世代，离开后加载链不再触碰 UI / Frame。
         private readonly NavigationLifetime _lifetime = new NavigationLifetime();
+        // R01：已订阅 DataRequested 的 DataTransferManager（视图级长寿对象），离开时解除。
+        private DataTransferManager _shareManager;
 
         public KeyDetailPage()
         {
@@ -68,6 +70,7 @@ namespace SshTool.App.Views.Keys
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             _lifetime.End();
+            UnsubscribeShare();
             base.OnNavigatedFrom(e);
         }
 
@@ -132,11 +135,15 @@ namespace SshTool.App.Views.Keys
                     return;
                 }
                 DataTransferManager manager = DataTransferManager.GetForCurrentView();
+                // R01：重复点击先解除旧订阅，避免叠加；引用存字段供离开路径兜底解除。
+                UnsubscribeShare();
+                _shareManager = manager;
                 manager.DataRequested += OnShareDataRequested;
                 DataTransferManager.ShowShareUI();
             }
             catch (Exception)
             {
+                UnsubscribeShare();
                 ViewModel.CopyPublicKey();
                 StatusText.Text = "分享失败，已复制公钥";
             }
@@ -144,9 +151,23 @@ namespace SshTool.App.Views.Keys
 
         private void OnShareDataRequested(DataTransferManager sender, DataRequestedEventArgs args)
         {
-            sender.DataRequested -= OnShareDataRequested;
+            UnsubscribeShare();
             args.Request.Data.SetText(ViewModel.PublicKey);
             args.Request.Data.Properties.Title = ViewModel.Name;
+        }
+
+        // R01：DataTransferManager 是视图级长寿对象；用户取消分享面板时 DataRequested
+        // 不触发，页面引用会挂到视图寿命结束。离开路径（OnNavigatedFrom）必须兜底解除
+        //（-= 未订阅时无操作，幂等）。
+        private void UnsubscribeShare()
+        {
+            DataTransferManager manager = _shareManager;
+            if (manager == null)
+            {
+                return;
+            }
+            _shareManager = null;
+            manager.DataRequested -= OnShareDataRequested;
         }
 
         private void OnHostClick(object sender, ItemClickEventArgs e)
