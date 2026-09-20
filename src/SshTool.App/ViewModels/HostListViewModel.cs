@@ -31,6 +31,7 @@ namespace SshTool.App.ViewModels
         private bool _hasNoMatches;
         private bool _canQuickConnectFromSearch;
         private bool _showQuickConnect = true;
+        private bool _quickConnectExpanded;
         private bool _isListVisible;
 
         public HostListViewModel(AppServices services, IHostStatusProvider status = null)
@@ -57,6 +58,7 @@ namespace SshTool.App.ViewModels
             ToggleSearchCommand = new RelayCommand(ToggleSearch);
             QuickConnectCommand = new RelayCommand(QuickConnect, () => QuickConnectParser.TryParse(_quickConnectText, out _));
             QuickConnectFromSearchCommand = new RelayCommand(QuickConnectFromSearch, () => _canQuickConnectFromSearch);
+            ToggleQuickConnectCommand = new RelayCommand(ToggleQuickConnect);
             GenerateTestHostsCommand = new AsyncCommand(GenerateTestHostsAsync, onError: OnError);
 
             _hosts.Changed += OnRepoChanged;
@@ -73,6 +75,7 @@ namespace SshTool.App.ViewModels
         public ICommand ToggleSearchCommand { get; private set; }
         public ICommand QuickConnectCommand { get; private set; }
         public ICommand QuickConnectFromSearchCommand { get; private set; }
+        public ICommand ToggleQuickConnectCommand { get; private set; }
         public ICommand GenerateTestHostsCommand { get; private set; }
 
         public string SearchText
@@ -135,35 +138,46 @@ namespace SshTool.App.ViewModels
             private set { SetProperty(ref _showQuickConnect, value); }
         }
 
+        // V02（05 §6.1）：快速连接折叠行 ↔ 展开表单。展开态记忆 hostQuickConnectExpanded。
+        public bool QuickConnectExpanded
+        {
+            get { return _quickConnectExpanded; }
+            private set { SetProperty(ref _quickConnectExpanded, value); }
+        }
+
         public bool IsListVisible
         {
             get { return _isListVisible; }
             private set { SetProperty(ref _isListVisible, value); }
         }
 
+        // V02：搜索框常驻（HostsPivot 不再按 IsSearchOpen 显隐），本方法仅为 contract 保留。
         public void ToggleSearch()
         {
             IsSearchOpen = !IsSearchOpen;
-            ShowQuickConnect = _settings.ShowQuickConnect && !IsSearchOpen;
             if (!IsSearchOpen && _searchText.Length > 0)
             {
                 SearchText = string.Empty;
             }
         }
 
+        // V02：搜索框常驻后 back 没有「关闭搜索」可退，只负责清空非空搜索词。
         public bool CloseSearch()
         {
-            if (!IsSearchOpen && _searchText.Length == 0)
+            if (_searchText.Length == 0)
             {
                 return false;
             }
-            IsSearchOpen = false;
-            ShowQuickConnect = _settings.ShowQuickConnect && !IsSearchOpen;
-            if (_searchText.Length > 0)
-            {
-                SearchText = string.Empty;
-            }
+            SearchText = string.Empty;
             return true;
+        }
+
+        // 立即落属性给出反馈，再持久化（Settings.Changed 会触发 Refresh 复读到同值）。
+        public void ToggleQuickConnect()
+        {
+            bool next = !_settings.HostQuickConnectExpanded;
+            QuickConnectExpanded = next;
+            _settings.HostQuickConnectExpanded = next;
         }
 
         public void ToggleGroup(string groupId)
@@ -277,7 +291,8 @@ namespace SshTool.App.ViewModels
             HasNoMatches = snap.HasNoMatches;
             QuickConnectTarget ignored;
             CanQuickConnectFromSearch = snap.HasNoMatches && QuickConnectParser.TryParse(_searchText, out ignored);
-            ShowQuickConnect = _settings.ShowQuickConnect && !IsSearchOpen;
+            ShowQuickConnect = _settings.ShowQuickConnect;
+            QuickConnectExpanded = _settings.HostQuickConnectExpanded;
             IsListVisible = !snap.IsEmpty && !snap.HasNoMatches;
         }
 
@@ -375,7 +390,8 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
-            if (e.Key == "hostGroupCollapsed" || e.Key == "hostSortMode" || e.Key == "showQuickConnect")
+            if (e.Key == "hostGroupCollapsed" || e.Key == "hostSortMode"
+                || e.Key == "showQuickConnect" || e.Key == "hostQuickConnectExpanded")
             {
                 DispatcherHelper.Post(() =>
                 {

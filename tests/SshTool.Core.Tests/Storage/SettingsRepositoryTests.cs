@@ -26,7 +26,7 @@ namespace SshTool.Core.Tests.Storage
                 Assert.True(store.TryGet(def.Key, out value), "缺键: " + def.Key);
                 Assert.Equal(def.DefaultValue, value);
             }
-            Assert.Equal(24, SettingDefinitions.All.Count); // §8.3 表 24 键
+            Assert.Equal(25, SettingDefinitions.All.Count); // §8.3 表 25 键（V02 +hostQuickConnectExpanded）
         }
 
         [Fact]

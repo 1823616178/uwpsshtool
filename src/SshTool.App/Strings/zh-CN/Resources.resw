@@ -315,4 +315,60 @@
   <data name="Gallery_EmptyOffline.Description" xml:space="preserve"><value>网络不可用，显示本机缓存内容。</value></data>
   <data name="Gallery_EmptyFiltered.Title" xml:space="preserve"><value>没有匹配的主机</value></data>
   <data name="Gallery_EmptyFiltered.Description" xml:space="preserve"><value>换个关键词试试。</value></data>
+
+  <!-- V02（05 §6.1）：MainPage 信息架构——页头/Pivot 页签/底栏/隧道占位/加载告警（代码置 Banner.Title） -->
+  <data name="Main_PageHeader.Title" xml:space="preserve"><value>Lumia SSH</value></data>
+  <data name="Main_SyncButton.AutomationProperties.Name" xml:space="preserve"><value>同步</value></data>
+  <data name="Main_PivotHosts.Header" xml:space="preserve"><value>主机</value></data>
+  <data name="Main_PivotSessions.Header" xml:space="preserve"><value>会话</value></data>
+  <data name="Main_PivotTunnels.Header" xml:space="preserve"><value>隧道</value></data>
+  <data name="Main_TunnelsEmpty.Title" xml:space="preserve"><value>暂无隧道</value></data>
+  <data name="Main_TunnelsEmpty.Description" xml:space="preserve"><value>转发在会话后台运行。</value></data>
+  <data name="Main_QuickConnectButton.Label" xml:space="preserve"><value>快速连接</value></data>
+  <data name="Main_NewButton.Label" xml:space="preserve"><value>新建</value></data>
+  <data name="Main_SettingsItem.Label" xml:space="preserve"><value>设置</value></data>
+  <data name="Main_KeysItem.Label" xml:space="preserve"><value>密钥</value></data>
+  <data name="Main_SnippetsItem.Label" xml:space="preserve"><value>片段</value></data>
+  <data name="Main_AppearanceItem.Label" xml:space="preserve"><value>外观</value></data>
+  <data name="Main_KnownHostsItem.Label" xml:space="preserve"><value>已知主机</value></data>
+  <data name="Main_AboutItem.Label" xml:space="preserve"><value>关于</value></data>
+  <data name="Main_SignInItem.Label" xml:space="preserve"><value>登录</value></data>
+  <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>开发工具</value></data>
+  <data name="Main_LoadWarningTitle" xml:space="preserve"><value>数据文件有告警</value></data>
+
+  <!-- V02（05 §6.1）：HostsPivot——常驻搜索行、可折叠快速连接、空状态双 Kind；
+       NoMatches 标题/主按钮由代码拼装（含搜索词），走格式化键。 -->
+  <data name="Hosts_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索主机、地址、用户</value></data>
+  <data name="Hosts_NewHostButton.AutomationProperties.Name" xml:space="preserve"><value>新建主机</value></data>
+  <data name="Hosts_QuickConnectRow.AutomationProperties.Name" xml:space="preserve"><value>展开或收起快速连接</value></data>
+  <data name="Hosts_QuickConnectRowText.Text" xml:space="preserve"><value>快速连接</value></data>
+  <data name="Hosts_QuickConnectBox.PlaceholderText" xml:space="preserve"><value>user@host[:port]</value></data>
+  <data name="Hosts_QuickConnectGo.Content" xml:space="preserve"><value>连接</value></data>
+  <data name="Hosts_Empty.Title" xml:space="preserve"><value>还没有主机</value></data>
+  <data name="Hosts_Empty.Description" xml:space="preserve"><value>添加一台主机，或登录同步已有配置。</value></data>
+  <data name="Hosts_Empty.PrimaryText" xml:space="preserve"><value>添加主机</value></data>
+  <data name="Hosts_Empty.SecondaryText" xml:space="preserve"><value>登录同步</value></data>
+  <data name="Hosts_NoMatchesTitle" xml:space="preserve"><value>没有匹配“{0}”的主机</value></data>
+  <data name="Hosts_NoMatchesPrimary" xml:space="preserve"><value>用它快速连接</value></data>
+
+  <!-- V02（05 §6.1）：HostRow 上下文菜单与尾操作（Chevron 进编辑） -->
+  <data name="HostRow_MenuConnect.Text" xml:space="preserve"><value>连接</value></data>
+  <data name="HostRow_MenuNewSession.Text" xml:space="preserve"><value>新会话</value></data>
+  <data name="HostRow_MenuEdit.Text" xml:space="preserve"><value>编辑</value></data>
+  <data name="HostRow_MenuDuplicate.Text" xml:space="preserve"><value>复制为新主机</value></data>
+  <data name="HostRow_MenuSftp.Text" xml:space="preserve"><value>SFTP</value></data>
+  <data name="HostRow_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
+  <data name="HostRow_EditButton.AutomationProperties.Name" xml:space="preserve"><value>编辑主机</value></data>
+
+  <!-- V02（05 §6.1）：DevToolsPage——Debug 构建的开发工具入口（主页溢出迁入） -->
+  <data name="DevTools_PageHeader.Title" xml:space="preserve"><value>开发工具</value></data>
+  <data name="DevTools_RowDebugConnect.Title" xml:space="preserve"><value>N10 调试连接</value></data>
+  <data name="DevTools_RowVault.Title" xml:space="preserve"><value>S05 保险库自检</value></data>
+  <data name="DevTools_RowSpike.Title" xml:space="preserve"><value>SP01 JSON Spike</value></data>
+  <data name="DevTools_RowToken.Title" xml:space="preserve"><value>X03 Token 画廊</value></data>
+  <data name="DevTools_RowRender.Title" xml:space="preserve"><value>SP04 渲染压测</value></data>
+  <data name="DevTools_RowPerf.Title" xml:space="preserve"><value>Q01 性能基准</value></data>
+  <data name="DevTools_RowInput.Title" xml:space="preserve"><value>SP05 输入采集</value></data>
+  <data name="DevTools_RowPlatform.Title" xml:space="preserve"><value>SP06 平台 Spike</value></data>
+  <data name="DevTools_RowGenHosts.Title" xml:space="preserve"><value>生成 100 台测试主机</value></data>
 </root>

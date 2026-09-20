@@ -40,8 +40,8 @@ namespace SshTool.App.Controls
             {
                 return;
             }
-            NameText.Text = row.Name ?? string.Empty;
-            AddressText.Text = row.AddressLine ?? string.Empty;
+            RowCtl.Title = row.Name ?? string.Empty;
+            RowCtl.Subtitle = row.AddressLine ?? string.Empty;
             Dot.State = ToDot(row.Status);
             KeyBadge.Visibility = row.ShowKey ? Visibility.Visible : Visibility.Collapsed;
             TmuxBadge.Visibility = row.ShowTmux ? Visibility.Visible : Visibility.Collapsed;
@@ -66,12 +66,13 @@ namespace SshTool.App.Controls
             }
         }
 
-        private void OnTapped(object sender, TappedRoutedEventArgs e)
+        // V02：行点按=连接（AppListRow.Click；尾槽 Chevron 的点击不冒泡到这里）。
+        // 长按/右键弹过菜单后抑制紧随的这次点击（同原 OnTapped 的去抖）。
+        private void OnRowClick(object sender, EventArgs e)
         {
             if (_ignoreNextTap)
             {
                 _ignoreNextTap = false;
-                e.Handled = true;
                 return;
             }
             Raise(ConnectRequested);
@@ -89,13 +90,6 @@ namespace SshTool.App.Controls
         }
 
         private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
-        {
-            ShowMenu();
-            _ignoreNextTap = true;
-            e.Handled = true;
-        }
-
-        private void OnMoreTapped(object sender, TappedRoutedEventArgs e)
         {
             ShowMenu();
             _ignoreNextTap = true;

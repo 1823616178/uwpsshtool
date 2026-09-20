@@ -24,45 +24,79 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <AutoSuggestBox x:Name="SearchBox"
-                        PlaceholderText="搜索主机、地址、用户"
-                        QueryIcon="Find"
-                        TextChanged="OnSearchTextChanged"
-                        Margin="{StaticResource PagePadding}"
-                        Visibility="Collapsed" />
-
-        <Grid x:Name="QuickConnectCard" Grid.Row="1"
-              Background="{ThemeResource AppSurfaceAltBrush}"
-              Padding="{StaticResource PadMd}"
-              Margin="{StaticResource PagePadding}">
+        <!-- V02（05 §6.1）：搜索行常驻（原 CommandBar 搜索按钮的职责由底栏「快速连接」取代）；
+             右侧 ＋ 新建主机图标按钮，命令与底栏「新建主机」一致。 -->
+        <Grid Margin="{StaticResource PagePadding}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="QuickConnectBox"
-                     PlaceholderText="user@host[:port]"
-                     Header="快速连接"
+            <AutoSuggestBox x:Name="SearchBox" x:Uid="Hosts_SearchBox"
+                            QueryIcon="Find"
+                            TextChanged="OnSearchTextChanged" />
+            <Button x:Name="NewHostButton" x:Uid="Hosts_NewHostButton" Grid.Column="1"
+                    Style="{StaticResource IconButtonStyle}" Click="OnNewHostClick"
+                    Margin="{StaticResource GapSmLeft}">
+                <FontIcon Glyph="{StaticResource IconAdd}" FontSize="{StaticResource FontBody}" />
+            </Button>
+        </Grid>
+
+        <!-- V02（05 §6.1）：快速连接默认折叠为一行，点击（或底栏「快速连接」命令）展开为表单；
+             展开态记忆 hostQuickConnectExpanded。Chevron 方向跟随展开态（code-behind 赋值）。 -->
+        <Grid x:Name="QuickConnectRow" x:Uid="Hosts_QuickConnectRow" Grid.Row="1"
+              Background="Transparent"
+              MinHeight="{StaticResource ListRowCompactHeight}"
+              Padding="{StaticResource PagePadding}"
+              Tapped="OnQuickConnectRowTapped"
+              Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <FontIcon Glyph="{StaticResource IconConnect}"
+                      FontSize="{StaticResource FontBody}"
+                      Foreground="{ThemeResource AppTextDimBrush}"
+                      VerticalAlignment="Center" />
+            <TextBlock x:Uid="Hosts_QuickConnectRowText" Grid.Column="1"
+                       Style="{StaticResource BodyTextStyle}"
+                       VerticalAlignment="Center"
+                       Margin="{StaticResource GapSmLeft}" />
+            <FontIcon x:Name="QuickConnectChevron" Grid.Column="2"
+                      Glyph="{StaticResource IconChevronDown}"
+                      FontSize="{StaticResource FontCaption}"
+                      Foreground="{ThemeResource AppTextDimBrush}"
+                      VerticalAlignment="Center" />
+        </Grid>
+
+        <Grid x:Name="QuickConnectCard" Grid.Row="2"
+              Background="{ThemeResource AppSurfaceAltBrush}"
+              Padding="{StaticResource PadMd}"
+              Margin="{StaticResource PagePadding}"
+              Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="QuickConnectBox" x:Uid="Hosts_QuickConnectBox"
                      TextChanged="OnQuickConnectTextChanged" />
-            <!-- UI 走查：快速连接为次级入口（主入口在 CommandBar），补触控与层级样式。 -->
-            <Button Grid.Column="1" Content="连接" Click="OnQuickConnectClick"
+            <Button Grid.Column="1" x:Uid="Hosts_QuickConnectGo" Click="OnQuickConnectClick"
                     Style="{StaticResource SecondaryButtonStyle}"
                     VerticalAlignment="Bottom" Margin="{StaticResource GapSmLeft}" />
         </Grid>
 
-        <Grid Grid.Row="2">
-            <controls:EmptyState x:Name="Empty"
+        <Grid Grid.Row="3">
+            <!-- V02：空结果与真正无主机分 Kind——NoMatches=Filtered（默认 IconSearch）、
+                 Empty=Normal（显式 Glyph 优先）。NoMatches 标题/主按钮由 code-behind 按搜索词拼装。 -->
+            <controls:EmptyState x:Name="Empty" x:Uid="Hosts_Empty"
                                  Glyph="{StaticResource IconTerminal}"
-                                 Title="还没有主机"
-                                 Description="添加一台主机，或登录同步已有配置。"
-                                 PrimaryText="添加主机"
-                                 SecondaryText="登录同步"
                                  Visibility="Collapsed" />
             <controls:EmptyState x:Name="NoMatches"
-                                 Glyph="{StaticResource IconSearch}"
-                                 Title="没有匹配的主机"
+                                 Kind="Filtered"
                                  Visibility="Collapsed" />
             <ListView x:Name="HostList"
                       ItemTemplate="{StaticResource HostItemTemplate}"

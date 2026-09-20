@@ -83,6 +83,8 @@ namespace SshTool.Core.Storage
                 new[] { "name", "recent" }),
             new SettingDefinition("useSystemAccent", SettingType.Bool, true),
             new SettingDefinition("showQuickConnect", SettingType.Bool, true),
+            // V02：快速连接展开态（折叠行 ↔ 表单）；showQuickConnect 仍管整个区域显隐。
+            new SettingDefinition("hostQuickConnectExpanded", SettingType.Bool, false),
             new SettingDefinition("language", SettingType.String, "system",
                 new[] { "system", "zh-CN", "en-US" }),
             new SettingDefinition("connectTimeoutSeconds", SettingType.Int, 15),

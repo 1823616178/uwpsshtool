@@ -16,22 +16,54 @@
         </Storyboard>
     </Page.Resources>
 
-    <!-- 02-UI-DESIGN.md §5.1：Pivot 主机/会话/隧道 + 底部 CommandBar。
-         OverflowButtonVisibility 需 16299，15063 上会 XamlParseException，省略即可（有 SecondaryCommands 时系统会显示 …）。 -->
+    <!-- V02（05 §6.1）：底栏重排——主命令=快速连接（切 HostsPivot 展开区）+ 新建主机；
+         溢出=工具与设置组 + 开发工具（仅 DEBUG_PAGES 显示）。搜索按钮移除：搜索行在
+         HostsPivot 常驻。OverflowButtonVisibility 需 16299，15063 上会 XamlParseException，
+         省略即可（有 SecondaryCommands 时系统会显示 …）。 -->
     <Page.BottomAppBar>
         <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton x:Name="NewButton" Label="新建" Click="OnNewClick">
+            <AppBarButton x:Name="QuickConnectButton" x:Uid="Main_QuickConnectButton" Click="OnQuickConnectClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconConnect}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton x:Name="NewButton" x:Uid="Main_NewButton" Click="OnNewClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconAdd}" />
                 </AppBarButton.Icon>
             </AppBarButton>
-            <AppBarButton x:Name="SearchButton" Label="搜索" Click="OnSearchClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconSearch}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton x:Name="SyncButton" Label="同步" Click="OnSyncClick">
-                <AppBarButton.Icon>
+            <CommandBar.SecondaryCommands>
+                <AppBarButton x:Uid="Main_SettingsItem" Click="OnSettingsClick" />
+                <AppBarButton x:Uid="Main_KeysItem" Click="OnKeysClick" />
+                <AppBarButton x:Uid="Main_SnippetsItem" Click="OnSnippetsClick" />
+                <AppBarButton x:Uid="Main_AppearanceItem" Click="OnAppearanceClick" />
+                <AppBarButton x:Uid="Main_KnownHostsItem" Click="OnKnownHostsClick" />
+                <AppBarButton x:Uid="Main_AboutItem" Click="OnAboutClick" />
+                <AppBarButton x:Uid="Main_SignInItem" Click="OnSignInClick" />
+                <AppBarButton x:Name="DevToolsItem" x:Uid="Main_DevToolsItem" Click="OnDevToolsClick" Visibility="Collapsed" />
+            </CommandBar.SecondaryCommands>
+        </CommandBar>
+    </Page.BottomAppBar>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:Banner x:Name="LoadWarningBanner" Visibility="Collapsed" />
+
+        <!-- V02（05 §6.1）：顶行页头（标题走 resw；主页无返回，ShowBackButton 保持 false）。
+             StatusContent 放同步图标按钮——从 CommandBar 挪上来，图标/前景/旋转动画与
+             点击语义（SyncCommand）不变；PrimaryAction 留空（新建已在主底栏）。宽屏同样
+             显示本页头，WideGrid 内不再重复标题。 -->
+        <controls:AppPageHeader x:Name="PageHeader" Grid.Row="1" x:Uid="Main_PageHeader"
+                                Level="Primary">
+            <controls:AppPageHeader.StatusContent>
+                <Button x:Name="SyncButton" x:Uid="Main_SyncButton"
+                        Style="{StaticResource IconButtonStyle}"
+                        Click="OnSyncClick">
                     <FontIcon x:Name="SyncGlyph"
                               Glyph="{x:Bind ViewModel.SyncIconGlyph, Mode=OneWay}"
                               Foreground="{x:Bind ViewModel.SyncIconForeground, Mode=OneWay}"
@@ -40,66 +72,36 @@
                             <RotateTransform x:Name="SyncSpinTransform" Angle="0" />
                         </FontIcon.RenderTransform>
                     </FontIcon>
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <CommandBar.SecondaryCommands>
-                <AppBarButton Label="设置" Click="OnSettingsClick" />
-                <AppBarButton Label="密钥" Click="OnKeysClick" />
-                <AppBarButton Label="已知主机" Click="OnKnownHostsClick" />
-                <AppBarButton Label="片段" Click="OnSnippetsClick" />
-                <AppBarButton Label="外观" Click="OnAppearanceClick" />
-                <AppBarButton Label="关于" Click="OnAboutClick" />
-                <AppBarButton Label="登录" Click="OnSignInClick" />
-                <AppBarButton x:Name="DebugConnectItem" Label="N10 调试连接" Click="OnDebugConnectClick" Visibility="Collapsed" />
-                <AppBarButton x:Name="DebugVaultItem" Label="S05 保险库自检" Click="OnDebugVaultClick" Visibility="Collapsed" />
-                <AppBarButton x:Name="DebugSpikeItem" Label="SP01 JSON Spike" Click="OnSpikeClick" Visibility="Collapsed" />
-                <AppBarButton x:Name="DebugTokenItem" Label="X03 Token 画廊" Click="OnTokenGalleryClick" Visibility="Collapsed" />
-                <AppBarButton x:Name="DebugRenderItem" Label="SP04 渲染压测" Click="OnRenderSpikeClick" Visibility="Collapsed" />
-                <AppBarButton x:Name="DebugPerfItem" Label="Q01 性能基准" Click="OnPerfClick" Visibility="Collapsed" />
-                <AppBarButton x:Name="DebugInputItem" Label="SP05 输入采集" Click="OnInputSpikeClick" Visibility="Collapsed" />
-                <AppBarButton x:Name="DebugPlatformItem" Label="SP06 平台 Spike" Click="OnPlatformSpikeClick" Visibility="Collapsed" />
-                <AppBarButton x:Name="DebugGenerateHostsItem" Label="生成 100 台测试主机" Click="OnGenerateHostsClick" Visibility="Collapsed" />
-            </CommandBar.SecondaryCommands>
-        </CommandBar>
-    </Page.BottomAppBar>
+                </Button>
+            </controls:AppPageHeader.StatusContent>
+        </controls:AppPageHeader>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <controls:Banner x:Name="LoadWarningBanner" Visibility="Collapsed" />
-
-        <Pivot x:Name="MainPivot" Grid.Row="1" Title="LUMIA SSH">
-            <PivotItem Header="主机">
+        <!-- V02：Pivot Title 移除（标题由 AppPageHeader 承担，避免双标题）；页签文字走 resw。 -->
+        <Pivot x:Name="MainPivot" Grid.Row="2">
+            <PivotItem x:Uid="Main_PivotHosts">
                 <main:HostsPivot x:Name="HostsPane" />
             </PivotItem>
-            <PivotItem Header="会话">
+            <PivotItem x:Uid="Main_PivotSessions">
                 <main:SessionsPivot x:Name="SessionsPivotCtl" />
             </PivotItem>
-            <!-- R-C：本页不绑定任何转发数据，说明文字不再承诺「会显示转发状态」。 -->
-            <PivotItem Header="隧道">
-                <controls:EmptyState
-                    Glyph="{StaticResource IconTunnel}"
-                    Title="暂无隧道"
-                    Description="转发在会话后台运行。" />
+            <!-- R-C：本页不绑定任何转发数据，说明文字不再承诺「会显示转发状态」。
+                 V02：F06 之前维持 EmptyState 占位，Glyph/文案资源化。 -->
+            <PivotItem x:Uid="Main_PivotTunnels">
+                <controls:EmptyState x:Uid="Main_TunnelsEmpty"
+                                     Glyph="{StaticResource IconTunnel}" />
             </PivotItem>
         </Pivot>
 
         <!-- U12：宽屏主从（02-UI-DESIGN.md §3、§5.7）。左主机列表（可折叠 Inline）+ 右 TerminalWorkspace。
-             窄屏回退上面的 Pivot 单页导航；窗格树由 WorkspaceViewModel 持有，不随显隐销毁。 -->
-        <Grid x:Name="WideGrid" Grid.Row="1" Visibility="Collapsed">
+             窄屏回退上面的 Pivot 单页导航；窗格树由 WorkspaceViewModel 持有，不随显隐销毁。
+             V02：栏内标题移除（AppPageHeader 统一承担），只留 PaneToggle。 -->
+        <Grid x:Name="WideGrid" Grid.Row="2" Visibility="Collapsed">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
             <Grid Background="{ThemeResource AppSurfaceBrush}"
                   Height="{StaticResource TerminalInfoBarHeight}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
                 <!-- V01a：☰ 换 MDL2 GlobalNavigationButton（IconGlobalNav），补无障碍名（resw）。 -->
                 <Button x:Name="PaneToggleButton" x:Uid="Main_PaneToggleButton" Click="OnPaneToggleClick"
                         MinWidth="{StaticResource TouchTargetMin}"
@@ -110,10 +112,6 @@
                         Foreground="{ThemeResource AppTextBrush}">
                     <FontIcon Glyph="{StaticResource IconGlobalNav}" FontSize="{StaticResource FontBody}" />
                 </Button>
-                <TextBlock Grid.Column="1" Text="LUMIA SSH"
-                           Style="{StaticResource BodyTextStyle}"
-                           VerticalAlignment="Center"
-                           Margin="{StaticResource PagePadding}" />
             </Grid>
             <SplitView x:Name="WideSplit" Grid.Row="1"
                        PanePlacement="Left" DisplayMode="Inline"

@@ -2,6 +2,7 @@ using System;
 using SshTool.App.Controls;
 using SshTool.App.ViewModels;
 using SshTool.Core.Hosts;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
@@ -11,6 +12,8 @@ namespace SshTool.App.Views.Main
 {
     public sealed partial class HostsPivot : UserControl
     {
+        private static readonly ResourceLoader Loader = ResourceLoader.GetForCurrentView();
+
         public HostsPivot()
         {
             this.InitializeComponent();
@@ -42,45 +45,41 @@ namespace SshTool.App.Views.Main
             UpdateChrome();
         }
 
-        private bool _searchFocused;
-
         private void OnVmPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             UpdateChrome();
         }
 
+        // V02：搜索行常驻，不再按 IsSearchOpen 显隐/抢焦点；快速连接折叠行 ↔ 表单两态。
         private void UpdateChrome()
         {
             if (ViewModel == null)
             {
                 return;
             }
-            SearchBox.Visibility = ViewModel.IsSearchOpen ? Visibility.Visible : Visibility.Collapsed;
-            QuickConnectCard.Visibility = ViewModel.ShowQuickConnect ? Visibility.Visible : Visibility.Collapsed;
+            bool showQuick = ViewModel.ShowQuickConnect;
+            QuickConnectRow.Visibility = showQuick ? Visibility.Visible : Visibility.Collapsed;
+            QuickConnectCard.Visibility = showQuick && ViewModel.QuickConnectExpanded
+                ? Visibility.Visible : Visibility.Collapsed;
+            QuickConnectChevron.Glyph = (string)Application.Current.Resources[
+                ViewModel.QuickConnectExpanded ? "IconChevronUp" : "IconChevronDown"];
             Empty.Visibility = ViewModel.IsEmpty ? Visibility.Visible : Visibility.Collapsed;
             NoMatches.Visibility = ViewModel.HasNoMatches ? Visibility.Visible : Visibility.Collapsed;
             HostList.Visibility = ViewModel.IsListVisible ? Visibility.Visible : Visibility.Collapsed;
             if (ViewModel.HasNoMatches)
             {
-                NoMatches.Title = "没有匹配“" + ViewModel.SearchText + "”的主机";
-                NoMatches.PrimaryText = ViewModel.CanQuickConnectFromSearch ? "用它快速连接" : null;
+                NoMatches.Title = string.Format(Loader.GetString("Hosts_NoMatchesTitle"), ViewModel.SearchText);
+                NoMatches.PrimaryText = ViewModel.CanQuickConnectFromSearch
+                    ? Loader.GetString("Hosts_NoMatchesPrimary") : null;
             }
             else
             {
                 NoMatches.PrimaryText = null;
             }
-            if (ViewModel.IsSearchOpen)
+            // VM 侧清空搜索词（如 back）时同步回搜索框；程序赋值不触发 UserInput 分支，不会回环。
+            if (!string.Equals(SearchBox.Text, ViewModel.SearchText, StringComparison.Ordinal))
             {
-                if (!_searchFocused)
-                {
-                    SearchBox.Focus(FocusState.Programmatic);
-                    _searchFocused = true;
-                }
-            }
-            else
-            {
-                _searchFocused = false;
-                SearchBox.Text = string.Empty;
+                SearchBox.Text = ViewModel.SearchText ?? string.Empty;
             }
         }
 
@@ -91,6 +90,25 @@ namespace SshTool.App.Views.Main
                 return;
             }
             ViewModel.SearchText = sender.Text;
+        }
+
+        // 搜索行右侧 ＋：与底栏「新建主机」同一命令。
+        private void OnNewHostClick(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel != null && ViewModel.NewHostCommand.CanExecute(null))
+            {
+                ViewModel.NewHostCommand.Execute(null);
+            }
+        }
+
+        // 折叠行点击 = 底栏「快速连接」命令：切换展开/折叠（态记忆在设置里）。
+        private void OnQuickConnectRowTapped(object sender, TappedRoutedEventArgs e)
+        {
+            if (ViewModel != null && ViewModel.ToggleQuickConnectCommand.CanExecute(null))
+            {
+                ViewModel.ToggleQuickConnectCommand.Execute(null);
+            }
+            e.Handled = true;
         }
 
         private void OnQuickConnectTextChanged(object sender, TextChangedEventArgs e)

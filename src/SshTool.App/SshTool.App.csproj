@@ -248,6 +248,9 @@
     <Compile Include="Views\Debug\VaultSelfCheckPage.xaml.cs">
       <DependentUpon>VaultSelfCheckPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Debug\DevToolsPage.xaml.cs">
+      <DependentUpon>DevToolsPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\AppearanceListViewModel.cs" />
     <Compile Include="ViewModels\AppearanceEditViewModel.cs" />
@@ -429,6 +432,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Debug\VaultSelfCheckPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Debug\DevToolsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

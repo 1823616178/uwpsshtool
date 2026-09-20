@@ -1,0 +1,52 @@
+<Page
+    x:Class="SshTool.App.Views.Debug.DevToolsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- V02（05 §6.1）：开发工具页。主页溢出的 9 个调试入口集中于此；主页只在
+         DEBUG_PAGES 构建显示「开发工具」一项（EnableDebugPages 开关见 csproj）。 -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:AppPageHeader x:Name="PageHeader" x:Uid="DevTools_PageHeader"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnBackRequested" />
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel>
+                <controls:AppListRow x:Uid="DevTools_RowDebugConnect"
+                                     IconGlyph="{StaticResource IconConnect}"
+                                     ShowChevron="True" Click="OnDebugConnectClick" />
+                <controls:AppListRow x:Uid="DevTools_RowVault"
+                                     IconGlyph="{StaticResource IconLock}"
+                                     ShowChevron="True" Click="OnVaultClick" />
+                <controls:AppListRow x:Uid="DevTools_RowSpike"
+                                     IconGlyph="{StaticResource IconDocument}"
+                                     ShowChevron="True" Click="OnSpikeClick" />
+                <controls:AppListRow x:Uid="DevTools_RowToken"
+                                     IconGlyph="{StaticResource IconEdit}"
+                                     ShowChevron="True" Click="OnTokenGalleryClick" />
+                <controls:AppListRow x:Uid="DevTools_RowRender"
+                                     IconGlyph="{StaticResource IconTerminal}"
+                                     ShowChevron="True" Click="OnRenderSpikeClick" />
+                <controls:AppListRow x:Uid="DevTools_RowPerf"
+                                     IconGlyph="{StaticResource IconInfo}"
+                                     ShowChevron="True" Click="OnPerfClick" />
+                <controls:AppListRow x:Uid="DevTools_RowInput"
+                                     IconGlyph="{StaticResource IconKeyboard}"
+                                     ShowChevron="True" Click="OnInputSpikeClick" />
+                <controls:AppListRow x:Uid="DevTools_RowPlatform"
+                                     IconGlyph="{StaticResource IconSettings}"
+                                     ShowChevron="True" Click="OnPlatformSpikeClick" />
+                <controls:AppListRow x:Uid="DevTools_RowGenHosts"
+                                     IconGlyph="{StaticResource IconAdd}"
+                                     ShowChevron="True" Click="OnGenerateHostsClick" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

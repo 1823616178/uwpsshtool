@@ -314,4 +314,60 @@
   <data name="Gallery_EmptyOffline.Description" xml:space="preserve"><value>Network unavailable; showing cached content.</value></data>
   <data name="Gallery_EmptyFiltered.Title" xml:space="preserve"><value>No matching hosts</value></data>
   <data name="Gallery_EmptyFiltered.Description" xml:space="preserve"><value>Try a different keyword.</value></data>
+
+  <!-- V02 (05 §6.1): MainPage information architecture — header/pivot tabs/bottom bar/tunnel placeholder/load warning (Banner.Title set from code) -->
+  <data name="Main_PageHeader.Title" xml:space="preserve"><value>Lumia SSH</value></data>
+  <data name="Main_SyncButton.AutomationProperties.Name" xml:space="preserve"><value>Sync</value></data>
+  <data name="Main_PivotHosts.Header" xml:space="preserve"><value>Hosts</value></data>
+  <data name="Main_PivotSessions.Header" xml:space="preserve"><value>Sessions</value></data>
+  <data name="Main_PivotTunnels.Header" xml:space="preserve"><value>Tunnels</value></data>
+  <data name="Main_TunnelsEmpty.Title" xml:space="preserve"><value>No tunnels yet</value></data>
+  <data name="Main_TunnelsEmpty.Description" xml:space="preserve"><value>Forwards run in the background of active sessions.</value></data>
+  <data name="Main_QuickConnectButton.Label" xml:space="preserve"><value>Quick connect</value></data>
+  <data name="Main_NewButton.Label" xml:space="preserve"><value>New</value></data>
+  <data name="Main_SettingsItem.Label" xml:space="preserve"><value>Settings</value></data>
+  <data name="Main_KeysItem.Label" xml:space="preserve"><value>Keys</value></data>
+  <data name="Main_SnippetsItem.Label" xml:space="preserve"><value>Snippets</value></data>
+  <data name="Main_AppearanceItem.Label" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Main_KnownHostsItem.Label" xml:space="preserve"><value>Known hosts</value></data>
+  <data name="Main_AboutItem.Label" xml:space="preserve"><value>About</value></data>
+  <data name="Main_SignInItem.Label" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>Developer tools</value></data>
+  <data name="Main_LoadWarningTitle" xml:space="preserve"><value>Data file warnings</value></data>
+
+  <!-- V02 (05 §6.1): HostsPivot — always-on search row, collapsible quick connect, two EmptyState kinds;
+       the NoMatches title/primary text are composed in code (they embed the search term) via format keys. -->
+  <data name="Hosts_SearchBox.PlaceholderText" xml:space="preserve"><value>Search hosts, addresses, users</value></data>
+  <data name="Hosts_NewHostButton.AutomationProperties.Name" xml:space="preserve"><value>New host</value></data>
+  <data name="Hosts_QuickConnectRow.AutomationProperties.Name" xml:space="preserve"><value>Expand or collapse quick connect</value></data>
+  <data name="Hosts_QuickConnectRowText.Text" xml:space="preserve"><value>Quick connect</value></data>
+  <data name="Hosts_QuickConnectBox.PlaceholderText" xml:space="preserve"><value>user@host[:port]</value></data>
+  <data name="Hosts_QuickConnectGo.Content" xml:space="preserve"><value>Connect</value></data>
+  <data name="Hosts_Empty.Title" xml:space="preserve"><value>No hosts yet</value></data>
+  <data name="Hosts_Empty.Description" xml:space="preserve"><value>Add a host, or sign in to sync your existing configuration.</value></data>
+  <data name="Hosts_Empty.PrimaryText" xml:space="preserve"><value>Add host</value></data>
+  <data name="Hosts_Empty.SecondaryText" xml:space="preserve"><value>Sign in to sync</value></data>
+  <data name="Hosts_NoMatchesTitle" xml:space="preserve"><value>No hosts matching “{0}”</value></data>
+  <data name="Hosts_NoMatchesPrimary" xml:space="preserve"><value>Connect to it</value></data>
+
+  <!-- V02 (05 §6.1): HostRow context menu and trailing action (chevron opens edit) -->
+  <data name="HostRow_MenuConnect.Text" xml:space="preserve"><value>Connect</value></data>
+  <data name="HostRow_MenuNewSession.Text" xml:space="preserve"><value>New session</value></data>
+  <data name="HostRow_MenuEdit.Text" xml:space="preserve"><value>Edit</value></data>
+  <data name="HostRow_MenuDuplicate.Text" xml:space="preserve"><value>Duplicate as new host</value></data>
+  <data name="HostRow_MenuSftp.Text" xml:space="preserve"><value>SFTP</value></data>
+  <data name="HostRow_MenuDelete.Text" xml:space="preserve"><value>Delete</value></data>
+  <data name="HostRow_EditButton.AutomationProperties.Name" xml:space="preserve"><value>Edit host</value></data>
+
+  <!-- V02 (05 §6.1): DevToolsPage — developer-tool entries for DEBUG_PAGES builds (moved out of the main page overflow) -->
+  <data name="DevTools_PageHeader.Title" xml:space="preserve"><value>Developer tools</value></data>
+  <data name="DevTools_RowDebugConnect.Title" xml:space="preserve"><value>N10 Debug connection</value></data>
+  <data name="DevTools_RowVault.Title" xml:space="preserve"><value>S05 Vault self-check</value></data>
+  <data name="DevTools_RowSpike.Title" xml:space="preserve"><value>SP01 JSON Spike</value></data>
+  <data name="DevTools_RowToken.Title" xml:space="preserve"><value>X03 Token gallery</value></data>
+  <data name="DevTools_RowRender.Title" xml:space="preserve"><value>SP04 Render stress</value></data>
+  <data name="DevTools_RowPerf.Title" xml:space="preserve"><value>Q01 Performance benchmark</value></data>
+  <data name="DevTools_RowInput.Title" xml:space="preserve"><value>SP05 Input capture</value></data>
+  <data name="DevTools_RowPlatform.Title" xml:space="preserve"><value>SP06 Platform spike</value></data>
+  <data name="DevTools_RowGenHosts.Title" xml:space="preserve"><value>Generate 100 test hosts</value></data>
 </root>

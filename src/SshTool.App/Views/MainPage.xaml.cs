@@ -6,6 +6,7 @@ using SshTool.App.ViewModels;
 using SshTool.App.Views.Debug;
 using SshTool.Core;
 using SshTool.Native;
+using Windows.ApplicationModel.Resources;
 using Windows.Foundation.Metadata;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
@@ -17,6 +18,8 @@ namespace SshTool.App.Views
 {
     public sealed partial class MainPage : Page, IBackHandler
     {
+        private static readonly ResourceLoader Loader = ResourceLoader.GetForCurrentView();
+
         public MainPage()
         {
             ViewModel = new MainViewModel();
@@ -45,15 +48,8 @@ namespace SshTool.App.Views
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
             UpdateSyncSpin();
 #if DEBUG_PAGES
-            DebugConnectItem.Visibility = Visibility.Visible;
-            DebugVaultItem.Visibility = Visibility.Visible;
-            DebugSpikeItem.Visibility = Visibility.Visible;
-            DebugTokenItem.Visibility = Visibility.Visible;
-            DebugRenderItem.Visibility = Visibility.Visible;
-            DebugPerfItem.Visibility = Visibility.Visible;
-            DebugInputItem.Visibility = Visibility.Visible;
-            DebugPlatformItem.Visibility = Visibility.Visible;
-            DebugGenerateHostsItem.Visibility = Visibility.Visible;
+            // V02：9 个调试入口集中到 DevToolsPage，主页溢出只留这一个（05 §6.1 Phase 2 出口）。
+            DevToolsItem.Visibility = Visibility.Visible;
 #endif
         }
 
@@ -162,7 +158,7 @@ namespace SshTool.App.Views
                 return;
             }
             LoadWarningBanner.Severity = BannerSeverity.Warning;
-            LoadWarningBanner.Title = "数据文件有告警";
+            LoadWarningBanner.Title = Loader.GetString("Main_LoadWarningTitle");
             LoadWarningBanner.Message = services.LoadWarnings[0];
             LoadWarningBanner.Visibility = Visibility.Visible;
         }
@@ -193,15 +189,20 @@ namespace SshTool.App.Views
             ViewModel.NewHostCommand.Execute(null);
         }
 
+        // V02：底栏「快速连接」切换 HostsPivot 的展开区（窄屏 HostsPane / 宽屏 HostsPaneWide
+        // 共用同一 ViewModel，展开态一致）。
+        private void OnQuickConnectClick(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.ToggleQuickConnectCommand.CanExecute(null))
+            {
+                ViewModel.ToggleQuickConnectCommand.Execute(null);
+            }
+        }
+
         // U12：宽屏主机列表折叠（§5.7 SplitView Inline）。
         private void OnPaneToggleClick(object sender, RoutedEventArgs e)
         {
             WideSplit.IsPaneOpen = !WideSplit.IsPaneOpen;
-        }
-
-        private void OnSearchClick(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SearchCommand.Execute(null);
         }
 
         private void OnSyncClick(object sender, RoutedEventArgs e)
@@ -244,52 +245,9 @@ namespace SshTool.App.Views
             ViewModel.SignInCommand.Execute(null);
         }
 
-        private void OnDebugConnectClick(object sender, RoutedEventArgs e)
+        private void OnDevToolsClick(object sender, RoutedEventArgs e)
         {
-            Frame.Navigate(typeof(DebugConnectPage));
-        }
-
-        private void OnDebugVaultClick(object sender, RoutedEventArgs e)
-        {
-            Frame.Navigate(typeof(VaultSelfCheckPage));
-        }
-
-        private void OnSpikeClick(object sender, RoutedEventArgs e)
-        {
-            Frame.Navigate(typeof(SpikePage));
-        }
-
-        private void OnTokenGalleryClick(object sender, RoutedEventArgs e)
-        {
-            Frame.Navigate(typeof(TokenGalleryPage));
-        }
-
-        private void OnRenderSpikeClick(object sender, RoutedEventArgs e)
-        {
-            Frame.Navigate(typeof(RenderSpikePage));
-        }
-
-        private void OnPerfClick(object sender, RoutedEventArgs e)
-        {
-            Frame.Navigate(typeof(PerfPage));
-        }
-
-        private void OnInputSpikeClick(object sender, RoutedEventArgs e)
-        {
-            Frame.Navigate(typeof(InputSpikePage));
-        }
-
-        private void OnPlatformSpikeClick(object sender, RoutedEventArgs e)
-        {
-            Frame.Navigate(typeof(PlatformSpikePage));
-        }
-
-        private void OnGenerateHostsClick(object sender, RoutedEventArgs e)
-        {
-            if (ViewModel.Hosts != null && ViewModel.Hosts.GenerateTestHostsCommand.CanExecute(null))
-            {
-                ViewModel.Hosts.GenerateTestHostsCommand.Execute(null);
-            }
+            Frame.Navigate(typeof(DevToolsPage));
         }
     }
 }

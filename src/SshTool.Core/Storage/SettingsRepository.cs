@@ -114,6 +114,7 @@ namespace SshTool.Core.Storage
         public string HostSortMode { get { return GetString("hostSortMode"); } set { Set("hostSortMode", value); } }
         public bool UseSystemAccent { get { return GetBool("useSystemAccent"); } set { Set("useSystemAccent", value); } }
         public bool ShowQuickConnect { get { return GetBool("showQuickConnect"); } set { Set("showQuickConnect", value); } }
+        public bool HostQuickConnectExpanded { get { return GetBool("hostQuickConnectExpanded"); } set { Set("hostQuickConnectExpanded", value); } }
         public string Language { get { return GetString("language"); } set { Set("language", value); } }
         public int ConnectTimeoutSeconds { get { return GetInt("connectTimeoutSeconds"); } set { Set("connectTimeoutSeconds", value); } }
         public int ReconnectMaxAttempts { get { return GetInt("reconnectMaxAttempts"); } set { Set("reconnectMaxAttempts", value); } }

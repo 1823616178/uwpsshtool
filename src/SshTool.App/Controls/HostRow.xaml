@@ -4,67 +4,56 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:SshTool.App.Controls"
     Holding="OnHolding"
-    RightTapped="OnRightTapped"
-    Tapped="OnTapped">
+    RightTapped="OnRightTapped">
 
     <UserControl.Resources>
         <MenuFlyout x:Name="RowMenu">
-            <MenuFlyoutItem Text="连接" Click="OnConnectClick" />
-            <MenuFlyoutItem Text="新会话" Click="OnNewSessionClick" />
-            <MenuFlyoutItem Text="编辑" Click="OnEditClick" />
-            <MenuFlyoutItem Text="复制为新主机" Click="OnDuplicateClick" />
-            <MenuFlyoutItem Text="SFTP" Click="OnSftpClick" />
+            <MenuFlyoutItem x:Uid="HostRow_MenuConnect" Click="OnConnectClick" />
+            <MenuFlyoutItem x:Uid="HostRow_MenuNewSession" Click="OnNewSessionClick" />
+            <MenuFlyoutItem x:Uid="HostRow_MenuEdit" Click="OnEditClick" />
+            <MenuFlyoutItem x:Uid="HostRow_MenuDuplicate" Click="OnDuplicateClick" />
+            <MenuFlyoutItem x:Uid="HostRow_MenuSftp" Click="OnSftpClick" />
             <MenuFlyoutSeparator />
             <!-- UI 走查：破坏性项红字，与 ConfirmDialog(isDanger) 呼应 -->
-            <MenuFlyoutItem Text="删除" Click="OnDeleteClick"
+            <MenuFlyoutItem x:Uid="HostRow_MenuDelete" Click="OnDeleteClick"
                             Style="{StaticResource DangerMenuItemStyle}" />
         </MenuFlyout>
     </UserControl.Resources>
 
-    <Grid MinHeight="{StaticResource ListRowHeight}" Padding="{StaticResource PagePadding}"
-          Background="Transparent">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
-
-        <controls:StatusDot x:Name="Dot" VerticalAlignment="Center" />
-
-        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}">
-            <TextBlock x:Name="NameText" Style="{StaticResource BodyTextStyle}" TextWrapping="NoWrap"
-                       TextTrimming="CharacterEllipsis" />
-            <TextBlock x:Name="AddressText" Style="{StaticResource MonoCaptionTextStyle}"
-                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-        </StackPanel>
-
-        <StackPanel x:Name="BadgePanel" Grid.Column="2" Orientation="Horizontal"
-                    VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}">
-            <FontIcon x:Name="KeyBadge" Glyph="{StaticResource IconKey}"
-                      FontSize="{StaticResource FontCaption}"
-                      Foreground="{ThemeResource AppTextDimBrush}"
-                      Visibility="Collapsed" />
-            <TextBlock x:Name="TmuxBadge" Text="tmux" Style="{StaticResource CaptionTextStyle}"
-                       Margin="{StaticResource GapSmLeft}" Visibility="Collapsed" />
-            <!-- V01a：↪ 换 MDL2 Forward（IconForward，E72A）——跳板=连接经跳板机转发到目标。 -->
-            <FontIcon x:Name="JumpBadge" Glyph="{StaticResource IconForward}"
-                      FontSize="{StaticResource FontCaption}"
-                      Foreground="{ThemeResource AppTextDimBrush}"
-                      Margin="{StaticResource GapSmLeft}" Visibility="Collapsed" />
-            <FontIcon x:Name="TunnelBadge" Glyph="{StaticResource IconTunnel}"
-                      FontSize="{StaticResource FontCaption}"
-                      Foreground="{ThemeResource AppTextDimBrush}"
-                      Margin="{StaticResource GapSmLeft}"
-                      Visibility="Collapsed" />
-        </StackPanel>
-
-        <FontIcon Grid.Column="3" Glyph="{StaticResource IconMore}"
-                  FontSize="{StaticResource FontCaption}"
-                  Foreground="{ThemeResource AppTextDimBrush}"
-                  Width="{StaticResource TouchTargetMin}"
-                  Height="{StaticResource TouchTargetMin}"
-                  VerticalAlignment="Center"
-                  Tapped="OnMoreTapped" />
-    </Grid>
+    <!-- V02（05 §6.1）：基于 AppListRow 重做。领先=StatusDot 状态点，主标题=主机名，
+         副标题=user@host:port（状态不只靠颜色），状态槽=徽章，单一尾操作=Chevron 进编辑；
+         行点按=连接（两次点击内连接出口），长按/右键菜单保留全部动作。行名称由
+         AppListRow 根上的 AutomationProperties.Name（=标题）代表。 -->
+    <controls:AppListRow x:Name="RowCtl" Click="OnRowClick">
+        <controls:AppListRow.IconContent>
+            <controls:StatusDot x:Name="Dot" VerticalAlignment="Center" />
+        </controls:AppListRow.IconContent>
+        <controls:AppListRow.StatusContent>
+            <StackPanel x:Name="BadgePanel" Orientation="Horizontal" VerticalAlignment="Center">
+                <FontIcon x:Name="KeyBadge" Glyph="{StaticResource IconKey}"
+                          FontSize="{StaticResource FontCaption}"
+                          Foreground="{ThemeResource AppTextDimBrush}"
+                          Visibility="Collapsed" />
+                <TextBlock x:Name="TmuxBadge" Text="tmux" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapSmLeft}" Visibility="Collapsed" />
+                <!-- V01a：↪ 换 MDL2 Forward（IconForward，E72A）——跳板=连接经跳板机转发到目标。 -->
+                <FontIcon x:Name="JumpBadge" Glyph="{StaticResource IconForward}"
+                          FontSize="{StaticResource FontCaption}"
+                          Foreground="{ThemeResource AppTextDimBrush}"
+                          Margin="{StaticResource GapSmLeft}" Visibility="Collapsed" />
+                <FontIcon x:Name="TunnelBadge" Glyph="{StaticResource IconTunnel}"
+                          FontSize="{StaticResource FontCaption}"
+                          Foreground="{ThemeResource AppTextDimBrush}"
+                          Margin="{StaticResource GapSmLeft}"
+                          Visibility="Collapsed" />
+            </StackPanel>
+        </controls:AppListRow.StatusContent>
+        <controls:AppListRow.TrailingContent>
+            <Button x:Name="EditButton" x:Uid="HostRow_EditButton"
+                    Style="{StaticResource IconButtonStyle}" Click="OnEditClick">
+                <FontIcon Glyph="{StaticResource IconChevronRight}"
+                          FontSize="{StaticResource FontBody}" />
+            </Button>
+        </controls:AppListRow.TrailingContent>
+    </controls:AppListRow>
 </UserControl>
