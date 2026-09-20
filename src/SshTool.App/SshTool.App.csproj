@@ -112,6 +112,8 @@
     <Compile Include="Platform\UwpHttpTransport.cs" />
     <Compile Include="Platform\LocalSettingsStore.cs" />
     <Compile Include="Platform\NativeSshSession.cs" />
+    <Compile Include="Platform\NativeSftpClient.cs" />
+    <Compile Include="Platform\StorageFileStreams.cs" />
     <Compile Include="Platform\NativeSshAgent.cs" />
     <Compile Include="Platform\NativeVaultCrypto.cs" />
     <Compile Include="Platform\NativeKeyTool.cs" />

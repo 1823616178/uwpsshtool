@@ -44,6 +44,13 @@ namespace SshTool.App.Platform
             get { return _native.Id; }
         }
 
+        // F02：供 NativeSftpClient 直通 native SFTP 挂载点（同一程序集内可见，
+        // 不进 Core；模式见 NativeSshAgent.Native）。
+        internal NativeBridge.SshSession Native
+        {
+            get { return _native; }
+        }
+
         public SessionStateKind State
         {
             get { return MapState(_native.State); }

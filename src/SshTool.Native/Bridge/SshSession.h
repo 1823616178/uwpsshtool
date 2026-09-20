@@ -46,6 +46,7 @@
 #include "ssh/session.h"
 
 #include <atomic>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -53,12 +54,27 @@
 #include <utility>
 #include <vector>
 
+// F02：core sftp 结构的前向声明（完整定义只进 cpp，避免把 libssh2 sftp
+// 头带进 WinRT 公开头）。
+namespace sshclient
+{
+    namespace sftp
+    {
+        struct SftpAttrs;
+        struct SftpEntry;
+    }
+}
+
 namespace SshTool
 {
     namespace Native
     {
         namespace Bridge
         {
+            // F02：SFTP 挂载状态（不透明：定义在 SshSession.cpp，持有 core
+            // SftpSession 与远端文件句柄表；放命名空间作用域以便 cpp 的自由
+            // 函数可用，生命周期由 SshSession 管理）。
+            struct SshSessionSftpMount;
             // ExecAsync 结果（要点 5）。打开/传输失败时 ExitCode=-1、
             // Stderr 带诊断文本。
             public ref class ExecResult sealed
@@ -154,8 +170,49 @@ namespace SshTool
                 sshclient::ssh::HostKeyDecision OnCoreHostKey(const sshclient::ssh::HostKeyInfo& info);
                 void OnCoreAuthPrompts(std::vector<sshclient::ssh::KbdIntPrompt> prompts);
 
+                // F02：SFTP 子系统挂载点（供 Bridge.SftpSession 调用）。
+                //
+                // 所有权与寿命：core SftpSession 对象 + 远端文件句柄表由本对象
+                // 持有（PIMPL，见 cpp），与 core SshSession 同寿命；所有调用在
+                // sessionMutex_ 下串行执行（core 调用是阻塞式的，绝不在 I/O
+                // 线程上调用）；Shutdown 在同一锁内先关 SFTP 再释会话，保证
+                // core 引用不悬空。返回值一律为 N08 统一错误码（0 = 成功）。
+                // 取消：SftpCancel 置位原子标志，飞行中的块调用按 100 ms 切片
+                // 中断（报 606）；consume-once——入口若已置位直接报 606 并清位，
+                // 出口清掉中途到达的杂散置位。
+                int SftpOpen(unsigned timeoutMs);
+                void SftpClose();
+                bool SftpIsOpen();
+                int SftpListDir(const std::string& path,
+                                std::vector<sshclient::sftp::SftpEntry>& entries,
+                                unsigned timeoutMs);
+                int SftpStat(const std::string& path, bool followSymlink,
+                             sshclient::sftp::SftpAttrs& attrs, unsigned timeoutMs);
+                int SftpReadLink(const std::string& path, std::string& target,
+                                 unsigned timeoutMs);
+                int SftpMakeDir(const std::string& path, unsigned mode, unsigned timeoutMs);
+                int SftpRename(const std::string& oldPath, const std::string& newPath,
+                               unsigned timeoutMs);
+                int SftpRemoveFile(const std::string& path, unsigned timeoutMs);
+                int SftpRemoveDir(const std::string& path, unsigned timeoutMs);
+                int SftpSetPermissions(const std::string& path, unsigned mode,
+                                       unsigned timeoutMs);
+                int SftpOpenFile(const std::string& path, unsigned long flags, long mode,
+                                 int& fileIdOut, unsigned timeoutMs);
+                int SftpReadFile(int fileId, char* buffer, size_t maxLen,
+                                 size_t& bytesReadOut, unsigned timeoutMs);
+                int SftpWriteFile(int fileId, const char* data, size_t len,
+                                  unsigned timeoutMs);
+                int SftpSeekFile(int fileId, uint64_t offset, unsigned timeoutMs);
+                int SftpCloseFile(int fileId, unsigned timeoutMs);
+                void SftpCancel();
+
             private:
                 void Shutdown(); // 幂等：Close + 停线程(join) + 释放 core 对象
+                // F02 SFTP 拆除与准入（定义在 cpp；调用方持有 sessionMutex_）。
+                void TeardownSftp();
+                void TeardownSftpLocked();
+                bool SftpAdmitted();
                 void OnCoreStateChanged(sshclient::ssh::SshSessionState from,
                                         sshclient::ssh::SshSessionState to,
                                         std::shared_ptr<concurrency::task_completion_event<int>> connectTce);
@@ -206,6 +263,9 @@ namespace SshTool
                 std::mutex outputMutex_;
                 std::string pendingOutput_;
                 TerminalScreen^ screen_;
+
+                // F02：SFTP 挂载状态（构造时创建、Shutdown 时先行拆除）。
+                SshSessionSftpMount* sftpMount_;
             };
         }
     }
