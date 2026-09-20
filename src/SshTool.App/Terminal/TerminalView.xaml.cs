@@ -199,6 +199,28 @@ namespace SshTool.App.Terminal
             return _softKeyboard.Focus();
         }
 
+        // C-03（§7.5）：SIP 当前是否弹出（InputPane 遮挡高度 > 0）。
+        // 宿主在浮出层打开时采样，关闭后据以决定是否恢复哨兵焦点。
+        public bool IsInputPaneVisible
+        {
+            get { return _softKeyboard.IsInputPaneVisible; }
+        }
+
+        // C-03（§7.5）：浮出层关闭后把焦点还给输入哨兵（SIP 随之重新弹出）。
+        // 调用方须先确认浮出层打开前 SIP 是弹出的，否则会把已收起的软键盘反复拉起。
+        // 物理键盘在场时不抢：硬件输入走 CoreWindow 与焦点无关，抢焦点反而唤起 SIP。
+        public void RestoreInputFocus()
+        {
+            if (HardwareKeyboardInput.IsHardwareKeyboardPresent)
+            {
+                return;
+            }
+            if (!_softKeyboard.HasFocus)
+            {
+                FocusInput();
+            }
+        }
+
         // A03：把外观应用到本视图（调色板 + 字体度量 + 光标 + 选区色），不碰
         // 会话、不重连。字号/行高变化经 FontMetrics 重测并防抖 Resize（§7.4）。
         public void ApplyAppearance(AppearanceProfile profile)

@@ -2,6 +2,7 @@ using System;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
 using SshTool.Core.Terminal;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -119,18 +120,20 @@ namespace SshTool.App.Controls
             row.Children.Add(title);
 
             var close = new Button();
-            // UI 走查：✕ 文本换 IconClose 字形并补无障碍名；触控 MinWidth=TouchTargetMin，
-            // 高度受 TabStripHeight=36 行约束不强求 40。
+            // C-03：TerminalIconButtonStyle 统一焦点行为（AllowFocusOnInteraction=False）与
+            // 触控宽（§7.5）；高度受 TabStripHeight=36 行约束；无障碍名走 resw（C# 创建用 ResourceLoader）。
+            close.Style = (Style)Application.Current.Resources["TerminalIconButtonStyle"];
             close.Content = new FontIcon
             {
                 Glyph = (string)Application.Current.Resources["IconClose"]
             };
-            Windows.UI.Xaml.Automation.AutomationProperties.SetName(close, "关闭标签");
+            string closeA11yName = ResourceLoader.GetForCurrentView().GetString("TabStrip_CloseButton_A11yName");
+            if (!string.IsNullOrEmpty(closeA11yName))
+            {
+                Windows.UI.Xaml.Automation.AutomationProperties.SetName(close, closeA11yName);
+            }
             close.Tag = tab.TabId;
-            close.MinWidth = (double)Application.Current.Resources["TouchTargetMin"];
             close.Height = (double)Application.Current.Resources["TabStripHeight"];
-            close.Padding = (Thickness)Application.Current.Resources["PadNone"];
-            close.BorderThickness = (Thickness)Application.Current.Resources["BorderNone"];
             close.Background = new SolidColorBrush(Windows.UI.Colors.Transparent);
             close.Foreground = Banner.ResolveThemedBrush("AppTextDimBrush");
             close.Click += OnCloseClick;

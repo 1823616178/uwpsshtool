@@ -187,6 +187,11 @@
   <data name="Sftp_ErrSessionGone" xml:space="preserve"><value>The session has ended. Reopen SFTP from the host list.</value></data>
   <data name="Sftp_ErrNotConnected" xml:space="preserve"><value>Session not connected. SFTP needs an online session.</value></data>
   <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>Transfer failed (error code {0})</value></data>
+  <data name="Terminal_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>More</value></data>
+  <data name="TabStrip_AddButton.AutomationProperties.Name" xml:space="preserve"><value>New tab</value></data>
+  <data name="TabStrip_CloseButton_A11yName" xml:space="preserve"><value>Close tab</value></data>
+  <data name="Workspace_SplitButton_A11yName" xml:space="preserve"><value>Split pane</value></data>
+  <data name="Workspace_CloseButton_A11yName" xml:space="preserve"><value>Close session</value></data>
   <data name="Dialog_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Dialog_Ok" xml:space="preserve"><value>OK</value></data>
   <data name="Placeholder_Title" xml:space="preserve"><value>Coming soon</value></data>

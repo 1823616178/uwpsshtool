@@ -353,13 +353,31 @@ namespace SshTool.App.Views
             flyout.Items.Add(Item("键条", ToggleKeyBar));
             // U13：终端菜单「片段」打开选择器（锚定菜单按钮）。
             FrameworkElement anchor = sender as FrameworkElement;
-            flyout.Items.Add(Item("片段", () => OpenSnippetPicker(anchor ?? Term)));
+            // C-03（§7.5）：菜单关闭后把焦点还给哨兵。仅当开菜单时 SIP 处于弹出态才恢复——
+            // 否则会把已收起的软键盘反复拉起；「外观/SFTP/关闭会话」等导航项离场后
+            // 世代失效，也不再触碰 Term。「片段」会再开一层 Flyout，此时抢焦点会把
+            // 选择器 light-dismiss，故该项抑制恢复。
+            int generation = _generation;
+            bool restoreSip = Term.IsInputPaneVisible;
+            bool suppressRestore = false;
+            flyout.Items.Add(Item("片段", () =>
+            {
+                suppressRestore = true;
+                OpenSnippetPicker(anchor ?? Term);
+            }));
             // F03：本会话的 SFTP（复用该会话已认证连接挂 SFTP 子系统）。
             flyout.Items.Add(Item("SFTP", OpenSftp));
             flyout.Items.Add(Item("外观", () => Frame.Navigate(typeof(AppearanceListPage))));
             // UI 走查：断开/关闭会话为破坏性项，套红字 DangerMenuItemStyle。
             flyout.Items.Add(DangerItem("断开", () => ViewModel.DisconnectCommand.Execute(null)));
             flyout.Items.Add(DangerItem("关闭会话", () => ViewModel.CloseSessionCommand.Execute(null)));
+            flyout.Closed += (s, args) =>
+            {
+                if (restoreSip && !suppressRestore && _lifetime.IsCurrent(generation))
+                {
+                    Term.RestoreInputFocus();
+                }
+            };
             flyout.ShowAt((FrameworkElement)sender);
         }
 

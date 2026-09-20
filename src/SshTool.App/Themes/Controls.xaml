@@ -68,4 +68,16 @@
     <Style x:Key="DangerMenuItemStyle" TargetType="MenuFlyoutItem">
         <Setter Property="Foreground" Value="{ThemeResource AppDangerBrush}" />
     </Style>
+    <!-- C-03（01-DESIGN.md §7.5）：终端区图标按钮统一。AllowFocusOnInteraction=False
+         防点击抢哨兵焦点、SIP 收起；触控宽 ≥TouchTargetMin。行高受限的使用点
+         （InfoBar 32 / TabStrip 36）各自显式 Height，样式不强求 40 高。
+         无障碍名走 resw（XAML 用 x:Uid，C# 用 ResourceLoader），不进样式。 -->
+    <Style x:Key="TerminalIconButtonStyle" TargetType="Button">
+        <Setter Property="AllowFocusOnInteraction" Value="False" />
+        <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="Padding" Value="{StaticResource PadNone}" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderNone}" />
+        <Setter Property="Background" Value="{ThemeResource AppSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+    </Style>
 </ResourceDictionary>

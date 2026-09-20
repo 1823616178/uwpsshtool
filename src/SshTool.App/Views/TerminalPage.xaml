@@ -39,11 +39,10 @@
                 <TextBlock x:Name="AddressText" Style="{StaticResource CaptionTextStyle}"
                            TextTrimming="CharacterEllipsis" />
             </StackPanel>
-            <!-- UI 走查：⋯ 文本换 IconMore 字形并补无障碍名；无样式按钮保留手写 MinWidth，
-                 高度受 TerminalInfoBarHeight=32 行约束不强求 40。 -->
-            <Button Grid.Column="2" Click="OnMenuClick"
-                    MinWidth="{StaticResource TouchTargetMin}"
-                    AutomationProperties.Name="更多">
+            <!-- C-03：TerminalIconButtonStyle 统一焦点行为（AllowFocusOnInteraction=False）
+                 与触控宽；无障碍名经 x:Uid 走 resw。高度受 TerminalInfoBarHeight=32 行约束不强求 40。 -->
+            <Button x:Uid="Terminal_MoreButton" Grid.Column="2" Click="OnMenuClick"
+                    Style="{StaticResource TerminalIconButtonStyle}">
                 <FontIcon Glyph="{StaticResource IconMore}" />
             </Button>
         </Grid>

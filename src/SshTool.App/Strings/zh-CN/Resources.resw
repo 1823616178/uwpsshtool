@@ -187,6 +187,11 @@
   <data name="Sftp_ErrSessionGone" xml:space="preserve"><value>会话已结束，请从主机列表重新打开 SFTP</value></data>
   <data name="Sftp_ErrNotConnected" xml:space="preserve"><value>会话未连接，SFTP 需要在线会话</value></data>
   <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>传输失败（错误码 {0}）</value></data>
+  <data name="Terminal_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多</value></data>
+  <data name="TabStrip_AddButton.AutomationProperties.Name" xml:space="preserve"><value>新建标签</value></data>
+  <data name="TabStrip_CloseButton_A11yName" xml:space="preserve"><value>关闭标签</value></data>
+  <data name="Workspace_SplitButton_A11yName" xml:space="preserve"><value>分屏</value></data>
+  <data name="Workspace_CloseButton_A11yName" xml:space="preserve"><value>关闭会话</value></data>
   <data name="Dialog_Cancel" xml:space="preserve"><value>取消</value></data>
   <data name="Dialog_Ok" xml:space="preserve"><value>确定</value></data>
   <data name="Placeholder_Title" xml:space="preserve"><value>即将推出</value></data>

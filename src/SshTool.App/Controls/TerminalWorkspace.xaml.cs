@@ -8,6 +8,7 @@ using SshTool.Core.Appearance;
 using SshTool.Core.Models;
 using SshTool.Core.Sessions;
 using SshTool.Core.Terminal;
+using Windows.ApplicationModel.Resources;
 using Windows.Foundation;
 using Windows.UI.Core;
 using Windows.UI.Input;
@@ -406,28 +407,39 @@ namespace SshTool.App.Controls
             bar.Background = Banner.ResolveThemedBrush("AppSurfaceBrush");
             bar.Tag = sessionId;
 
+            // C-03：悬浮条按钮套 TerminalIconButtonStyle（§7.5 AllowFocusOnInteraction=False，
+            // 防抢哨兵焦点）；悬浮条无行高约束，显式给触控高。无障碍名走 resw。
+            Style iconStyle = (Style)Application.Current.Resources["TerminalIconButtonStyle"];
+            double touchSize = (double)Application.Current.Resources["TouchTargetMin"];
+            ResourceLoader loader = ResourceLoader.GetForCurrentView();
+
             var split = new Button();
+            split.Style = iconStyle;
+            split.Height = touchSize;
             split.Content = "⧉";
+            string splitA11yName = loader.GetString("Workspace_SplitButton_A11yName");
+            if (!string.IsNullOrEmpty(splitA11yName))
+            {
+                Windows.UI.Xaml.Automation.AutomationProperties.SetName(split, splitA11yName);
+            }
             split.Tag = sessionId;
-            split.Padding = (Thickness)Application.Current.Resources["PadNone"];
-            split.BorderThickness = (Thickness)Application.Current.Resources["BorderNone"];
-            split.Background = Banner.ResolveThemedBrush("AppSurfaceBrush");
-            split.Foreground = Banner.ResolveThemedBrush("AppTextBrush");
             split.Click += OnPaneSplitClick;
             bar.Children.Add(split);
 
             var close = new Button();
             // UI 走查：✕ 文本换 IconClose 字形并补无障碍名（与 TabStrip/SessionsPivot 一致）。
+            close.Style = iconStyle;
+            close.Height = touchSize;
             close.Content = new FontIcon
             {
                 Glyph = (string)Application.Current.Resources["IconClose"]
             };
-            Windows.UI.Xaml.Automation.AutomationProperties.SetName(close, "关闭会话");
+            string closeA11yName = loader.GetString("Workspace_CloseButton_A11yName");
+            if (!string.IsNullOrEmpty(closeA11yName))
+            {
+                Windows.UI.Xaml.Automation.AutomationProperties.SetName(close, closeA11yName);
+            }
             close.Tag = sessionId;
-            close.Padding = (Thickness)Application.Current.Resources["PadNone"];
-            close.BorderThickness = (Thickness)Application.Current.Resources["BorderNone"];
-            close.Background = Banner.ResolveThemedBrush("AppSurfaceBrush");
-            close.Foreground = Banner.ResolveThemedBrush("AppTextBrush");
             close.Click += OnPaneCloseClick;
             bar.Children.Add(close);
             return bar;
