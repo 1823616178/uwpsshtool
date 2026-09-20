@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using SshTool.App.Dialogs;
 using SshTool.App.Platform;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -23,9 +24,57 @@ namespace SshTool.App.Views.Debug
             "|  .o=+.          |\n" +
             "+----[SHA256]-----+";
 
+        // V01a 演示区：SegmentTabs 选项与结果格式串（resw，随语言切换）
+        private string[] _loginItems;
+        private string _segmentFormat;
+
         public TokenGalleryPage()
         {
             this.InitializeComponent();
+            InitV2Demos();
+        }
+
+        private void InitV2Demos()
+        {
+            ResourceLoader loader = ResourceLoader.GetForCurrentView();
+            _loginItems = new[]
+            {
+                loader.GetString("Gallery_SegmentLogin"),
+                loader.GetString("Gallery_SegmentRegister")
+            };
+            DemoSegmentLogin.ItemsSource = _loginItems;
+            DemoSegmentLogin.SelectionChanged += OnDemoSegmentChanged;
+            DemoSegmentTri.ItemsSource = new[]
+            {
+                loader.GetString("Gallery_SegmentHosts"),
+                loader.GetString("Gallery_SegmentSessions"),
+                loader.GetString("Gallery_SegmentTunnels")
+            };
+            DemoSegmentDisabled.ItemsSource = _loginItems;
+            _segmentFormat = loader.GetString("Gallery_SegmentSelected");
+            UpdateSegmentResult();
+
+            // 四张 SurfaceCard 的示例正文共用一条 resw（避免同文四键）。
+            string cardBody = loader.GetString("Gallery_CardBody.Text");
+            CardBody1.Text = cardBody;
+            CardBody2.Text = cardBody;
+            CardBody3.Text = cardBody;
+            CardBody4.Text = cardBody;
+        }
+
+        private void OnDemoSegmentChanged(object sender, System.EventArgs e)
+        {
+            UpdateSegmentResult();
+        }
+
+        private void UpdateSegmentResult()
+        {
+            int index = DemoSegmentLogin.SelectedIndex;
+            if (_loginItems == null || index < 0 || index >= _loginItems.Length)
+            {
+                return;
+            }
+            SegmentResultText.Text = string.Format(_segmentFormat, _loginItems[index]);
         }
 
         private void OnThemeDark(object sender, RoutedEventArgs e)

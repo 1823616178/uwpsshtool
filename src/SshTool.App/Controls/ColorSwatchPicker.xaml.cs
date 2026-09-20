@@ -28,9 +28,9 @@ namespace SshTool.App.Controls
         // Themes/ 只有 1px（BorderThin）与 0（BorderNone），没有 2px 均匀档，故在此登记；
         // AppearanceEditPage 的 ANSI 调色板色块共用同值（内层圆角 + 让出间隙）。
         internal const double SwatchGap = 2;
-        // 「✓」角标（文本字形，仓库已有 ▶ 先例）；对比色随色块亮度取黑白，与主题无关。
+        // 「✓」角标换成 MDL2 CheckMark 字形（V01a）：文本走 IconCheck token，字体走 AppIconFontFamily
+        // （TextBlock 直出字形必须显式设 MDL2 字体族）；对比色随色块亮度取黑白，与主题无关。
         // 实例字段：Brush 是 DependencyObject，随构造在 UI 线程创建。
-        private const string CheckGlyph = "✓";
         private readonly Brush _onLightSwatch = new SolidColorBrush(Colors.Black);
         private readonly Brush _onDarkSwatch = new SolidColorBrush(Colors.White);
         // 外层触控格的透明填充：Background 为 null 时 Border 不参与命中测试，
@@ -93,12 +93,15 @@ namespace SshTool.App.Controls
             Thickness gap = new Thickness(SwatchGap);
             CornerRadius radius = (CornerRadius)Application.Current.Resources["RadiusSm"];
             double glyphSize = (double)Application.Current.Resources["FontCaption"];
+            string checkGlyph = (string)Application.Current.Resources["IconCheck"];
+            FontFamily iconFont = (FontFamily)Application.Current.Resources["AppIconFontFamily"];
             for (int i = 0; i < Presets.Length; i++)
             {
                 string hex = Presets[i];
                 var check = new TextBlock
                 {
-                    Text = CheckGlyph,
+                    Text = checkGlyph,
+                    FontFamily = iconFont,
                     FontSize = glyphSize,
                     Foreground = _onDarkSwatch,
                     HorizontalAlignment = HorizontalAlignment.Right,

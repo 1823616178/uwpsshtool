@@ -36,13 +36,25 @@
     <Thickness x:Key="PadMd">12</Thickness>
     <Thickness x:Key="PagePadding">12,0,12,0</Thickness>
     <Thickness x:Key="PagePaddingWide">24,0,24,0</Thickness>
+    <!-- V01a（05 §5.2）：卡片内边距手机档（12）；宽松档 16 暂无本批消费方，需要时再加。 -->
+    <Thickness x:Key="PadCard">12</Thickness>
+    <!-- SegmentTabs 容器内边距：选中段圆角块与外框之间让出的间隙。 -->
+    <Thickness x:Key="PadXs">4</Thickness>
+    <!-- StatusPill 内边距（横 8 纵 4）：配合 SpaceXl 的 MinHeight 收成约 24 高胶囊。 -->
+    <Thickness x:Key="PadPill">8,4</Thickness>
     <CornerRadius x:Key="RadiusSm">4</CornerRadius>
     <CornerRadius x:Key="RadiusMd">8</CornerRadius>
+    <!-- StatusPill 外圈全圆角（≈ 胶囊高度一半），只用于短状态标签。 -->
+    <CornerRadius x:Key="RadiusPill">12</CornerRadius>
     <x:Double x:Key="ListRowHeight">64</x:Double>
     <x:Double x:Key="ListRowCompactHeight">48</x:Double>
     <x:Double x:Key="GroupHeaderHeight">36</x:Double>
     <x:Double x:Key="StatusDotSize">10</x:Double>
     <x:Double x:Key="TouchTargetMin">40</x:Double>
+    <!-- SegmentTabs 分段选择器高度：触控安全档，与 KeyBarHeight 同刻度。 -->
+    <x:Double x:Key="SegmentTabsHeight">40</x:Double>
+    <!-- 禁用态不透明度（SegmentTabs、IconButtonStyle 的 Disabled 视觉）。 -->
+    <x:Double x:Key="DisabledOpacity">0.5</x:Double>
     <x:Double x:Key="KeyBarHeight">40</x:Double>
     <x:Double x:Key="KeyBarKeyMinWidth">44</x:Double>
     <Thickness x:Key="KeyBarLockedBorder">0,0,0,2</Thickness>
@@ -61,6 +73,13 @@
     <x:Double x:Key="FontTitle">20</x:Double>
     <x:Double x:Key="FontHeader">28</x:Double>
     <x:Double x:Key="WideBreakpoint">720</x:Double>
+    <!-- 05 §6.5：≥1024 宽屏档（AppPageHeader wide 态加大页边距用）。 -->
+    <x:Double x:Key="ExtraWideBreakpoint">1024</x:Double>
+
+    <!-- 05 §7.1 动效标准（成文，不落 token）：
+         只用 120–200 ms 的透明度/位移 Storyboard；尊重系统动画设置
+         （UISettings.AnimationsEnabled 为关时不播）。连续呼吸/旋转
+         （StatusDot 脉动、同步旋转）属状态指示，不受 120–200 ms 时长限制。 -->
 
     <!-- U05：等宽字形（指纹/公钥/randomart，§2.4）；对话框内 4/8 小间距 -->
     <FontFamily x:Key="AppMonoFontFamily">Consolas</FontFamily>
@@ -68,6 +87,9 @@
     <Thickness x:Key="GapSmTop">0,8,0,0</Thickness>
 
     <!-- §2.3 图标（Segoe MDL2 Assets 字形） -->
+    <!-- MDL2 字体族：仅 TextBlock 直出字形处用（如 ColorSwatchPicker 角标）；
+         FontIcon 默认即此字体，无需设置。 -->
+    <FontFamily x:Key="AppIconFontFamily">Segoe MDL2 Assets</FontFamily>
     <x:String x:Key="IconAdd">&#xE710;</x:String>
     <x:String x:Key="IconSearch">&#xE721;</x:String>
     <x:String x:Key="IconSync">&#xE895;</x:String>
@@ -85,6 +107,18 @@
     <x:String x:Key="IconEdit">&#xE70F;</x:String>
     <x:String x:Key="IconDelete">&#xE74D;</x:String>
     <x:String x:Key="IconClose">&#xE894;</x:String>
+    <!-- GlobalNavigationButton（E700 汉堡）：MainPage 宽屏主机窗格开关。 -->
+    <x:String x:Key="IconGlobalNav">&#xE700;</x:String>
+    <!-- Back（E72B 向左箭头）：AppPageHeader 返回按钮。 -->
+    <x:String x:Key="IconBack">&#xE72B;</x:String>
+    <!-- Forward（E72A 向右箭头）：HostRow 跳板徽章——↪ 的字形直译，
+         语义取「连接经跳板机转发到目标主机」，与 Tunnel/Key 徽章形不撞。 -->
+    <x:String x:Key="IconForward">&#xE72A;</x:String>
+    <!-- CheckMark（E73E 对勾）：ColorSwatchPicker 选中角标等勾选态。 -->
+    <x:String x:Key="IconCheck">&#xE73E;</x:String>
+    <!-- ChevronRight（E76C，与既有 E70D/E70E 同族同粗细）：分组/面板折叠展开。
+         注：E70C 经字形渲染核对实为 RememberedDevice（显示器+星），不是右尖括号。 -->
+    <x:String x:Key="IconChevronRight">&#xE76C;</x:String>
     <x:String x:Key="IconChevronUp">&#xE70E;</x:String>
     <x:String x:Key="IconChevronDown">&#xE70D;</x:String>
     <x:String x:Key="IconCopy">&#xE8C8;</x:String>
@@ -95,6 +129,10 @@
     <x:String x:Key="IconDownload">&#xE896;</x:String>
     <x:String x:Key="IconTunnel">&#xE71B;</x:String>
     <x:String x:Key="IconSnippet">&#xE943;</x:String>
+    <!-- 分屏（E8A9 2×2 窗格阵列）：窗格拆分操作。MDL2 无带方向的分屏字形，
+         经渲染核对 E7FA/E7FB 实为圆角/矩形占位（02 §2.3 自注「SP 阶段核对字形」），
+         故不沿用 IconSplitH/IconSplitV；两个占位键暂留画廊，待后续清理。 -->
+    <x:String x:Key="IconSplit">&#xE8A9;</x:String>
     <x:String x:Key="IconSplitH">&#xE7FA;</x:String>
     <x:String x:Key="IconSplitV">&#xE7FB;</x:String>
     <x:String x:Key="IconKeyboard">&#xE765;</x:String>

@@ -43,7 +43,8 @@ namespace SshTool.App.Controls
             {
                 return;
             }
-            Chevron.Text = group.IsCollapsed ? "▸" : "▾";
+            // V01a：▸/▾ 文本换 MDL2 尖括号（右=E76C 与既有 E70D 下同族）。
+            Chevron.Glyph = (string)Application.Current.Resources[group.IsCollapsed ? "IconChevronRight" : "IconChevronDown"];
             TitleText.Text = (group.Name ?? string.Empty) + " (" + group.HostCount.ToString() + ")";
             Brush brush = TryParseColor(group.Color);
             if (brush != null)

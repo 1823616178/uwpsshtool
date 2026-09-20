@@ -416,7 +416,13 @@ namespace SshTool.App.Controls
             var split = new Button();
             split.Style = iconStyle;
             split.Height = touchSize;
-            split.Content = "⧉";
+            // V01a：⧉ 换 MDL2 字形。MDL2 无带方向的分屏图标（既有 IconSplitH/V 经渲染核对
+            // 是圆角/矩形占位，非分屏），且本按钮弹出「向右/向下」两个方向，语义上是通用
+            // 「分屏」——用 IconSplit（E8A9 2×2 窗格阵列）。字形大小与同条关闭按钮一致（默认）。
+            split.Content = new FontIcon
+            {
+                Glyph = (string)Application.Current.Resources["IconSplit"]
+            };
             string splitA11yName = loader.GetString("Workspace_SplitButton_A11yName");
             if (!string.IsNullOrEmpty(splitA11yName))
             {

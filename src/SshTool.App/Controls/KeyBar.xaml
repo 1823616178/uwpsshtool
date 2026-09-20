@@ -19,7 +19,10 @@
                       VerticalScrollMode="Disabled">
             <StackPanel x:Name="KeysPanel" Orientation="Horizontal" />
         </ScrollViewer>
+        <!-- V01a：⌨ 换 MDL2 KeyboardClassic（IconKeyboard），补无障碍名（resw）；
+             Rebuild 不再覆盖 Content（图标固定在 XAML，Core 侧 hidekb 文本标签仅作数据）。 -->
         <Button x:Name="HideKeyboardButton"
+                x:Uid="KeyBar_HideKeyboardButton"
                 Grid.Column="1"
                 AllowFocusOnInteraction="False"
                 IsTabStop="False"
@@ -30,7 +33,8 @@
                 Margin="{StaticResource GapSmLeft}"
                 Background="{ThemeResource KeyBarKeyBrush}"
                 Foreground="{ThemeResource AppTextBrush}"
-                BorderThickness="{StaticResource BorderNone}"
-                Content="⌨" />
+                BorderThickness="{StaticResource BorderNone}">
+            <FontIcon Glyph="{StaticResource IconKeyboard}" FontSize="{StaticResource FontBody}" />
+        </Button>
     </Grid>
 </UserControl>

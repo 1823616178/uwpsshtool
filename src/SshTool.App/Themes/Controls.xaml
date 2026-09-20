@@ -80,4 +80,59 @@
         <Setter Property="Background" Value="{ThemeResource AppSurfaceBrush}" />
         <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
     </Style>
+
+    <!-- V01a（05 §5.3 IconButton）：通用图标按钮样式，与终端专用的 TerminalIconButtonStyle 区分
+         —— 终端款带 AllowFocusOnInteraction=False 防抢哨兵焦点；本样式不带，用于终端区以外。
+         内容放 FontIcon（Glyph 走 Tokens 的 Icon* 键）；Background 默认透明，需要垫底的使用点
+         覆盖为 AppSurfaceBrush。模板重写成扁平 Border 才有 Pressed=AppPressedBrush
+         （15063 无 Button 的 Pressed 刷色属性，只能换模板）；键盘焦点矩形暂未实现（手机触控优先）。
+         ★ 使用点必须配本地化 AutomationProperties.Name（XAML 用 x:Uid，C# 用 ResourceLoader）。 -->
+    <Style x:Key="IconButtonStyle" TargetType="Button">
+        <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="Padding" Value="{StaticResource PadNone}" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderNone}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="RootBorder"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{StaticResource RadiusSm}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup>
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="RootBorder.Background" Value="{ThemeResource AppSurfaceAltBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="RootBorder.Background" Value="{ThemeResource AppPressedBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="RootBorder.Opacity" Value="{StaticResource DisabledOpacity}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <ContentPresenter x:Name="ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          ContentTransitions="{TemplateBinding ContentTransitions}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          Padding="{TemplateBinding Padding}"
+                                          AutomationProperties.AccessibilityView="Raw" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

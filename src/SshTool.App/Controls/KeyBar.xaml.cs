@@ -115,11 +115,7 @@ namespace SshTool.App.Controls
             StopRepeat();
             KeysPanel.Children.Clear();
             _modifierChrome.Clear();
-            KeyBarKey hideKey;
-            if (HideKeyboardButton != null && KeyBarLayout.TryGet("hidekb", out hideKey))
-            {
-                HideKeyboardButton.Content = hideKey.Label;
-            }
+            // V01a：收起键盘按钮图标固定在 XAML（IconKeyboard 字形），不再从布局表取 ⌨ 文本。
             IReadOnlyList<KeyBarKey> keys = KeyBarLayout.Parse(_layout);
             bool first = true;
             for (int i = 0; i < keys.Count; i++)

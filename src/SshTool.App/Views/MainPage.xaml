@@ -100,13 +100,16 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="PaneToggleButton" Content="☰" Click="OnPaneToggleClick"
+                <!-- V01a：☰ 换 MDL2 GlobalNavigationButton（IconGlobalNav），补无障碍名（resw）。 -->
+                <Button x:Name="PaneToggleButton" x:Uid="Main_PaneToggleButton" Click="OnPaneToggleClick"
                         MinWidth="{StaticResource TouchTargetMin}"
                         Height="{StaticResource TerminalInfoBarHeight}"
                         Padding="{StaticResource PadNone}"
                         BorderThickness="{StaticResource BorderNone}"
                         Background="{ThemeResource AppSurfaceBrush}"
-                        Foreground="{ThemeResource AppTextBrush}" />
+                        Foreground="{ThemeResource AppTextBrush}">
+                    <FontIcon Glyph="{StaticResource IconGlobalNav}" FontSize="{StaticResource FontBody}" />
+                </Button>
                 <TextBlock Grid.Column="1" Text="LUMIA SSH"
                            Style="{StaticResource BodyTextStyle}"
                            VerticalAlignment="Center"

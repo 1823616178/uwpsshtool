@@ -236,4 +236,40 @@
   <data name="Vault_WorkingSetup" xml:space="preserve"><value>Generating keys (a few seconds)…</value></data>
   <data name="Vault_WorkingUnlock" xml:space="preserve"><value>Unlocking…</value></data>
   <data name="Vault_WorkingSync" xml:space="preserve"><value>Syncing…</value></data>
+
+  <!-- V01a: accessibility names for new components (doc/05 §5.3, §7.2) -->
+  <data name="AppPageHeader_BackButton.AutomationProperties.Name" xml:space="preserve"><value>Back</value></data>
+  <data name="Main_PaneToggleButton.AutomationProperties.Name" xml:space="preserve"><value>Show or hide the host list</value></data>
+  <data name="KeyBar_HideKeyboardButton.AutomationProperties.Name" xml:space="preserve"><value>Hide keyboard</value></data>
+  <data name="Selection_DismissButton.AutomationProperties.Name" xml:space="preserve"><value>Exit selection</value></data>
+
+  <!-- V01a: token gallery V2 component demos (Debug page) -->
+  <data name="Gallery_V2Components.Text" xml:space="preserve"><value>V2 components (doc/05 §5.3)</value></data>
+  <data name="Gallery_PageHeaderDemo.Text" xml:space="preserve"><value>AppPageHeader: 320 compact / 760 normal / 1040 wide (with back + status + action)</value></data>
+  <data name="Gallery_HeaderCompact.Title" xml:space="preserve"><value>Hosts</value></data>
+  <data name="Gallery_HeaderNormal.Title" xml:space="preserve"><value>Edit host</value></data>
+  <data name="Gallery_HeaderWide.Title" xml:space="preserve"><value>Hosts</value></data>
+  <data name="Gallery_HeaderPill.Text" xml:space="preserve"><value>Connected</value></data>
+  <data name="Gallery_HeaderSave.Content" xml:space="preserve"><value>Save</value></data>
+  <data name="Gallery_SegmentDemo.Text" xml:space="preserve"><value>SegmentTabs: two options / three options / disabled</value></data>
+  <data name="Gallery_SegmentLogin" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Gallery_SegmentRegister" xml:space="preserve"><value>Register</value></data>
+  <data name="Gallery_SegmentHosts" xml:space="preserve"><value>Hosts</value></data>
+  <data name="Gallery_SegmentSessions" xml:space="preserve"><value>Sessions</value></data>
+  <data name="Gallery_SegmentTunnels" xml:space="preserve"><value>Tunnels</value></data>
+  <data name="Gallery_SegmentSelected" xml:space="preserve"><value>Selected: {0}</value></data>
+  <data name="Gallery_CardDemo.Text" xml:space="preserve"><value>SurfaceCard: normal / pressed / selected / error</value></data>
+  <data name="Gallery_CardNormal.Header" xml:space="preserve"><value>Grouped card</value></data>
+  <data name="Gallery_CardPressed.Header" xml:space="preserve"><value>Pressed card</value></data>
+  <data name="Gallery_CardSelected.Header" xml:space="preserve"><value>Selected card</value></data>
+  <data name="Gallery_CardError.Header" xml:space="preserve"><value>Error card</value></data>
+  <data name="Gallery_CardBody.Text" xml:space="preserve"><value>Content slot: host forms, list rows, or descriptive text.</value></data>
+  <data name="Gallery_PillDemo.Text" xml:space="preserve"><value>StatusPill: neutral / success / warning / danger</value></data>
+  <data name="Gallery_PillNeutral.Text" xml:space="preserve"><value>Offline</value></data>
+  <data name="Gallery_PillSuccess.Text" xml:space="preserve"><value>Connected</value></data>
+  <data name="Gallery_PillWarning.Text" xml:space="preserve"><value>Reconnecting</value></data>
+  <data name="Gallery_PillDanger.Text" xml:space="preserve"><value>Error</value></data>
+  <data name="Gallery_IconButtonDemo.Text" xml:space="preserve"><value>IconButtonStyle: normal / disabled (AutomationProperties.Name required)</value></data>
+  <data name="Gallery_DemoIconSettings.AutomationProperties.Name" xml:space="preserve"><value>Settings</value></data>
+  <data name="Gallery_DemoIconSync.AutomationProperties.Name" xml:space="preserve"><value>Sync (disabled demo)</value></data>
 </root>

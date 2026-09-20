@@ -47,8 +47,11 @@
                       Visibility="Collapsed" />
             <TextBlock x:Name="TmuxBadge" Text="tmux" Style="{StaticResource CaptionTextStyle}"
                        Margin="{StaticResource GapSmLeft}" Visibility="Collapsed" />
-            <TextBlock x:Name="JumpBadge" Text="↪" Style="{StaticResource CaptionTextStyle}"
-                       Margin="{StaticResource GapSmLeft}" Visibility="Collapsed" />
+            <!-- V01a：↪ 换 MDL2 Forward（IconForward，E72A）——跳板=连接经跳板机转发到目标。 -->
+            <FontIcon x:Name="JumpBadge" Glyph="{StaticResource IconForward}"
+                      FontSize="{StaticResource FontCaption}"
+                      Foreground="{ThemeResource AppTextDimBrush}"
+                      Margin="{StaticResource GapSmLeft}" Visibility="Collapsed" />
             <FontIcon x:Name="TunnelBadge" Glyph="{StaticResource IconTunnel}"
                       FontSize="{StaticResource FontCaption}"
                       Foreground="{ThemeResource AppTextDimBrush}"

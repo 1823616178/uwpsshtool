@@ -337,6 +337,18 @@
     <Compile Include="Controls\GroupHeader.xaml.cs">
       <DependentUpon>GroupHeader.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\AppPageHeader.xaml.cs">
+      <DependentUpon>AppPageHeader.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\SegmentTabs.xaml.cs">
+      <DependentUpon>SegmentTabs.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\SurfaceCard.xaml.cs">
+      <DependentUpon>SurfaceCard.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\StatusPill.xaml.cs">
+      <DependentUpon>StatusPill.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Main\HostsPivot.xaml.cs">
       <DependentUpon>HostsPivot.xaml</DependentUpon>
     </Compile>
@@ -508,6 +520,22 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\GroupHeader.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\AppPageHeader.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\SegmentTabs.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\SurfaceCard.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\StatusPill.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

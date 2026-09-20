@@ -1,4 +1,11 @@
-<!-- 02-UI-DESIGN.md §2.1 深色主题（ThemeDictionaries 同名键） -->
+<!-- 02-UI-DESIGN.md §2.1 深色主题（ThemeDictionaries 同名键）。
+     05 §5.1 五层角色归档（键名不变，全工程已在用）：
+       Canvas    = AppBgBrush：页面/终端背景，纯黑省 AMOLED 功耗
+       Surface 1 = AppSurfaceBrush：列表行、普通卡片
+       Surface 2 = AppSurfaceAltBrush / AppPressedBrush：输入、选中、浮层、按压等可交互/提升层级区域
+       Stroke    = AppBorderBrush：分隔线、输入边框；聚焦/选中描边改刷 AppAccentBrush（不另立键）
+       Semantic  = AppSuccess/Warning/Danger/InfoBrush：只表状态（点、图标、细边、短标签），不作大面积装饰
+     其余为辅助角色：Text 三级、Accent/OnAccent、KeyBar 专用、OverlayScrim 遮罩。 -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">

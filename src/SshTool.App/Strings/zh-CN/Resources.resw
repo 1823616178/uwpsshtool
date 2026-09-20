@@ -236,4 +236,40 @@
   <data name="Vault_WorkingSetup" xml:space="preserve"><value>正在生成密钥（约数秒）…</value></data>
   <data name="Vault_WorkingUnlock" xml:space="preserve"><value>正在解锁…</value></data>
   <data name="Vault_WorkingSync" xml:space="preserve"><value>正在同步…</value></data>
+
+  <!-- V01a：新组件无障碍名（doc/05 §5.3、§7.2） -->
+  <data name="AppPageHeader_BackButton.AutomationProperties.Name" xml:space="preserve"><value>返回</value></data>
+  <data name="Main_PaneToggleButton.AutomationProperties.Name" xml:space="preserve"><value>显示或隐藏主机列表</value></data>
+  <data name="KeyBar_HideKeyboardButton.AutomationProperties.Name" xml:space="preserve"><value>收起键盘</value></data>
+  <data name="Selection_DismissButton.AutomationProperties.Name" xml:space="preserve"><value>退出选择</value></data>
+
+  <!-- V01a：Token 画廊 V2 组件演示区（Debug 页） -->
+  <data name="Gallery_V2Components.Text" xml:space="preserve"><value>V2 组件（doc/05 §5.3）</value></data>
+  <data name="Gallery_PageHeaderDemo.Text" xml:space="preserve"><value>AppPageHeader：320 紧凑 / 760 常规 / 1040 宽屏（含返回+状态+主操作）</value></data>
+  <data name="Gallery_HeaderCompact.Title" xml:space="preserve"><value>主机</value></data>
+  <data name="Gallery_HeaderNormal.Title" xml:space="preserve"><value>编辑主机</value></data>
+  <data name="Gallery_HeaderWide.Title" xml:space="preserve"><value>主机</value></data>
+  <data name="Gallery_HeaderPill.Text" xml:space="preserve"><value>已连接</value></data>
+  <data name="Gallery_HeaderSave.Content" xml:space="preserve"><value>保存</value></data>
+  <data name="Gallery_SegmentDemo.Text" xml:space="preserve"><value>SegmentTabs：二选 / 三选 / 禁用</value></data>
+  <data name="Gallery_SegmentLogin" xml:space="preserve"><value>登录</value></data>
+  <data name="Gallery_SegmentRegister" xml:space="preserve"><value>注册</value></data>
+  <data name="Gallery_SegmentHosts" xml:space="preserve"><value>主机</value></data>
+  <data name="Gallery_SegmentSessions" xml:space="preserve"><value>会话</value></data>
+  <data name="Gallery_SegmentTunnels" xml:space="preserve"><value>隧道</value></data>
+  <data name="Gallery_SegmentSelected" xml:space="preserve"><value>选中：{0}</value></data>
+  <data name="Gallery_CardDemo.Text" xml:space="preserve"><value>SurfaceCard：normal / pressed / selected / error</value></data>
+  <data name="Gallery_CardNormal.Header" xml:space="preserve"><value>分组卡片</value></data>
+  <data name="Gallery_CardPressed.Header" xml:space="preserve"><value>按压卡片</value></data>
+  <data name="Gallery_CardSelected.Header" xml:space="preserve"><value>选中卡片</value></data>
+  <data name="Gallery_CardError.Header" xml:space="preserve"><value>错误卡片</value></data>
+  <data name="Gallery_CardBody.Text" xml:space="preserve"><value>卡片内容槽：放表单、列表行或说明文字。</value></data>
+  <data name="Gallery_PillDemo.Text" xml:space="preserve"><value>StatusPill：neutral / success / warning / danger</value></data>
+  <data name="Gallery_PillNeutral.Text" xml:space="preserve"><value>离线</value></data>
+  <data name="Gallery_PillSuccess.Text" xml:space="preserve"><value>已连接</value></data>
+  <data name="Gallery_PillWarning.Text" xml:space="preserve"><value>重连中</value></data>
+  <data name="Gallery_PillDanger.Text" xml:space="preserve"><value>错误</value></data>
+  <data name="Gallery_IconButtonDemo.Text" xml:space="preserve"><value>IconButtonStyle：normal / disabled（使用点须配无障碍名）</value></data>
+  <data name="Gallery_DemoIconSettings.AutomationProperties.Name" xml:space="preserve"><value>设置</value></data>
+  <data name="Gallery_DemoIconSync.AutomationProperties.Name" xml:space="preserve"><value>同步（禁用演示）</value></data>
 </root>

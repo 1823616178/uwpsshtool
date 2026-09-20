@@ -160,6 +160,84 @@
                     <controls:TransientToast x:Name="DemoToast" />
                 </Grid>
 
+                <!-- V01a：Design System V2 组件（doc/05 §5.3）。本区可见文字与无障碍名全部走 resw（x:Uid/ResourceLoader）；
+                     固定宽 Border 用于触发 AppPageHeader 的 compact/normal/wide 态（窄屏会裁切，属调试页可接受）。 -->
+                <TextBlock x:Uid="Gallery_V2Components" Style="{StaticResource SectionTitleTextStyle}" Margin="0,16,0,4" />
+
+                <TextBlock x:Uid="Gallery_PageHeaderDemo" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4" />
+                <Border Width="320" HorizontalAlignment="Left" Background="{ThemeResource AppSurfaceBrush}" Margin="0,0,0,4">
+                    <controls:AppPageHeader x:Uid="Gallery_HeaderCompact" Level="Primary" />
+                </Border>
+                <Border Width="760" HorizontalAlignment="Left" Background="{ThemeResource AppSurfaceBrush}" Margin="0,0,0,4">
+                    <controls:AppPageHeader x:Uid="Gallery_HeaderNormal" Level="Secondary" ShowBackButton="True" />
+                </Border>
+                <Border Width="1040" HorizontalAlignment="Left" Background="{ThemeResource AppSurfaceBrush}" Margin="0,0,0,8">
+                    <controls:AppPageHeader x:Uid="Gallery_HeaderWide" Level="Primary">
+                        <controls:AppPageHeader.StatusContent>
+                            <controls:StatusPill x:Uid="Gallery_HeaderPill" Kind="Success" />
+                        </controls:AppPageHeader.StatusContent>
+                        <controls:AppPageHeader.PrimaryActionContent>
+                            <Button x:Uid="Gallery_HeaderSave" Style="{StaticResource PrimaryButtonStyle}" />
+                        </controls:AppPageHeader.PrimaryActionContent>
+                    </controls:AppPageHeader>
+                </Border>
+
+                <TextBlock x:Uid="Gallery_SegmentDemo" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <controls:SegmentTabs x:Name="DemoSegmentLogin" Width="320" HorizontalAlignment="Left" Margin="0,0,0,4" />
+                <TextBlock x:Name="SegmentResultText" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,4" />
+                <controls:SegmentTabs x:Name="DemoSegmentTri" Width="320" HorizontalAlignment="Left" Margin="0,0,0,4" />
+                <controls:SegmentTabs x:Name="DemoSegmentDisabled" IsEnabled="False" Width="320" HorizontalAlignment="Left" Margin="0,0,0,8" />
+
+                <TextBlock x:Uid="Gallery_CardDemo" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <controls:SurfaceCard x:Uid="Gallery_CardNormal" Margin="0,0,0,4">
+                    <controls:SurfaceCard.CardContent>
+                        <TextBlock x:Name="CardBody1" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                    </controls:SurfaceCard.CardContent>
+                </controls:SurfaceCard>
+                <controls:SurfaceCard x:Uid="Gallery_CardPressed" State="Pressed" Margin="0,0,0,4">
+                    <controls:SurfaceCard.CardContent>
+                        <TextBlock x:Name="CardBody2" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                    </controls:SurfaceCard.CardContent>
+                </controls:SurfaceCard>
+                <controls:SurfaceCard x:Uid="Gallery_CardSelected" State="Selected" Margin="0,0,0,4">
+                    <controls:SurfaceCard.CardContent>
+                        <TextBlock x:Name="CardBody3" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                    </controls:SurfaceCard.CardContent>
+                </controls:SurfaceCard>
+                <controls:SurfaceCard x:Uid="Gallery_CardError" State="Error" Margin="0,0,0,8">
+                    <controls:SurfaceCard.CardContent>
+                        <TextBlock x:Name="CardBody4" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                    </controls:SurfaceCard.CardContent>
+                </controls:SurfaceCard>
+
+                <TextBlock x:Uid="Gallery_PillDemo" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                    <controls:StatusPill x:Uid="Gallery_PillNeutral" Kind="Neutral" />
+                    <controls:StatusPill x:Uid="Gallery_PillSuccess" Kind="Success" Margin="8,0,0,0" />
+                    <controls:StatusPill x:Uid="Gallery_PillWarning" Kind="Warning" Margin="8,0,0,0" />
+                    <controls:StatusPill x:Uid="Gallery_PillDanger" Kind="Danger" Margin="8,0,0,0" />
+                </StackPanel>
+
+                <TextBlock x:Uid="Gallery_IconButtonDemo" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <Button Style="{StaticResource IconButtonStyle}" x:Uid="Gallery_DemoIconSettings">
+                        <FontIcon Glyph="{StaticResource IconSettings}" FontSize="20" />
+                    </Button>
+                    <Button Style="{StaticResource IconButtonStyle}" x:Uid="Gallery_DemoIconSync" IsEnabled="False" Margin="8,0,0,0">
+                        <FontIcon Glyph="{StaticResource IconSync}" FontSize="20" />
+                    </Button>
+                </StackPanel>
+
+                <TextBlock Text="V01a 新增图标键" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconGlobalNav}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="GlobalNav" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconChevronRight}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="ChevronR" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconBack}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Back" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconForward}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Forward" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconCheck}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Check" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconSplit}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Split" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                </StackPanel>
+
                 <TextBlock Text="对话框（U05，02-UI-DESIGN §5.8，结果脱敏显示）" Style="{StaticResource SectionTitleTextStyle}" Margin="0,16,0,4" />
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                     <Button Content="HostKey" Click="OnHostKeyDemo" />

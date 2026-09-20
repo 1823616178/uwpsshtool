@@ -192,8 +192,10 @@
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock x:Name="ChevronText" Text="▸" Style="{StaticResource BodyTextStyle}"
-                                       VerticalAlignment="Center" />
+                            <!-- V01a：▸ 文本换 MDL2 尖括号（Glyph 由 code-behind 按展开态赋值）。 -->
+                            <FontIcon x:Name="ChevronIcon" FontSize="{StaticResource FontBody}"
+                                      Foreground="{ThemeResource AppTextBrush}"
+                                      VerticalAlignment="Center" />
                             <TextBlock x:Name="TransferHeaderText" Grid.Column="1"
                                        Style="{StaticResource BodyTextStyle}" TextTrimming="CharacterEllipsis"
                                        VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />

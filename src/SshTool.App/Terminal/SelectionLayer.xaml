@@ -30,9 +30,12 @@
                 <Button x:Name="ShareButton" Content="分享" Click="OnShareClick"
                         AllowFocusOnInteraction="False" IsTabStop="False"
                         Margin="{StaticResource GapSmLeft}" />
-                <Button x:Name="DismissButton" Content="✕" Click="OnDismissClick"
+                <!-- V01a：✕ 换 MDL2 IconClose 字形（与 TabStrip/SessionsPivot 一致），补无障碍名（resw）。 -->
+                <Button x:Name="DismissButton" x:Uid="Selection_DismissButton" Click="OnDismissClick"
                         AllowFocusOnInteraction="False" IsTabStop="False"
-                        Margin="{StaticResource GapSmLeft}" />
+                        Margin="{StaticResource GapSmLeft}">
+                    <FontIcon Glyph="{StaticResource IconClose}" FontSize="{StaticResource FontBody}" />
+                </Button>
             </StackPanel>
         </Border>
     </Grid>

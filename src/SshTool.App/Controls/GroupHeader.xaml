@@ -11,8 +11,10 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        <TextBlock x:Name="Chevron" Style="{StaticResource CaptionTextStyle}"
-                   VerticalAlignment="Center" />
+        <!-- V01a：▸/▾ 文本换 MDL2 尖括号（Glyph 由 code-behind 按折叠态赋 IconChevronRight/IconChevronDown）。 -->
+        <FontIcon x:Name="Chevron" FontSize="{StaticResource FontCaption}"
+                  Foreground="{ThemeResource AppTextDimBrush}"
+                  VerticalAlignment="Center" />
         <TextBlock x:Name="TitleText" Grid.Column="1" Style="{StaticResource CaptionTextStyle}"
                    VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
         <Border x:Name="ColorSwatch" Grid.Column="2"

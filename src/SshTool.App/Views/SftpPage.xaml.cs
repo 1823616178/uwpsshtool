@@ -116,7 +116,8 @@ namespace SshTool.App.Views
             TransferPanel.Visibility = vm.ShowTransferBar ? Visibility.Visible : Visibility.Collapsed;
             TransferHeaderText.Text = vm.TransferHeader;
             ClearFinishedButton.Content = Loader.GetString("Sftp_ClearFinished");
-            ChevronText.Text = vm.TransfersExpanded ? "▾" : "▸";
+            // V01a：▾/▸ 文本换 MDL2 尖括号（下=E70D / 右=E76C）。
+            ChevronIcon.Glyph = (string)Application.Current.Resources[vm.TransfersExpanded ? "IconChevronDown" : "IconChevronRight"];
             TransferList.Visibility = vm.TransfersExpanded ? Visibility.Visible : Visibility.Collapsed;
             // 面板可见但一行都没有（清除已完成之后、队列回调之前等瞬态）时给空状态说明，
             // 免得只剩一个标题栏。整条面板的显隐条件（ShowTransferBar）不变。
