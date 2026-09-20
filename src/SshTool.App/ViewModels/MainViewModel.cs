@@ -41,7 +41,7 @@ namespace SshTool.App.ViewModels
             {
                 NewHostCommand = new RelayCommand(() => OpenPlaceholder("新建主机", "M3"));
                 SearchCommand = new RelayCommand(() => OpenPlaceholder("搜索", "M3"));
-                SignInCommand = new RelayCommand(() => OpenPlaceholder("登录", "M5"));
+                SignInCommand = new RelayCommand(() => Navigation.Navigate<Views.Sync.LoginPage>());
             }
             // S14：同步按钮=手动触发（U17 建 AccountSyncPage 后再加导航）。
             // 同步栈缺失（设计器/构造失败）时回退到占位页，保持可点击。

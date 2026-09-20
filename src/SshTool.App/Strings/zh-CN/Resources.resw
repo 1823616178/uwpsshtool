@@ -56,4 +56,68 @@
   <data name="Overlay_PolicyDisconnected" xml:space="preserve"><value>应用在后台时连接被系统断开</value></data>
   <data name="EnergySaverBanner_Title" xml:space="preserve"><value>省电模式已开启</value></data>
   <data name="EnergySaverBanner_Message" xml:space="preserve"><value>省电模式下切换到后台时连接会被系统断开，回到应用后会自动重连</value></data>
+  <data name="Api_VALIDATION_ERROR" xml:space="preserve"><value>请求参数无效，请检查输入后重试</value></data>
+  <data name="Api_REGISTRATION_DISABLED" xml:space="preserve"><value>暂未开放注册</value></data>
+  <data name="Api_AUTH_INVITATION_REQUIRED" xml:space="preserve"><value>注册需要邀请码</value></data>
+  <data name="Api_AUTH_INVITATION_INVALID" xml:space="preserve"><value>邀请码无效</value></data>
+  <data name="Api_AUTH_EMAIL_EXISTS" xml:space="preserve"><value>该邮箱已注册，请直接登录</value></data>
+  <data name="Api_AUTH_INVALID_CREDENTIALS" xml:space="preserve"><value>邮箱或密码错误</value></data>
+  <data name="Api_DEVICE_QUOTA_EXCEEDED" xml:space="preserve"><value>设备数已达上限，请在其他设备上撤销旧设备</value></data>
+  <data name="Api_AUTH_TOKEN_EXPIRED" xml:space="preserve"><value>登录已过期，请重新登录</value></data>
+  <data name="Api_AUTH_TOKEN_REUSED" xml:space="preserve"><value>登录状态异常，请重新登录</value></data>
+  <data name="Api_AUTH_DEVICE_REVOKED" xml:space="preserve"><value>本设备已被撤销，请重新登录</value></data>
+  <data name="Api_AUTH_CURRENT_PASSWORD_INVALID" xml:space="preserve"><value>当前密码不正确</value></data>
+  <data name="Api_AUTH_PASSWORD_UNCHANGED" xml:space="preserve"><value>新密码与当前密码相同</value></data>
+  <data name="Api_ACCOUNT_DELETE_CONFLICT" xml:space="preserve"><value>账号删除冲突，请重试</value></data>
+  <data name="Api_DEVICE_NOT_FOUND" xml:space="preserve"><value>设备不存在</value></data>
+  <data name="Api_DEVICE_CURRENT" xml:space="preserve"><value>不能撤销当前设备，请使用退出登录</value></data>
+  <data name="Api_VAULT_EXISTS" xml:space="preserve"><value>云端保险库已存在</value></data>
+  <data name="Api_VAULT_NOT_FOUND" xml:space="preserve"><value>云端保险库不存在</value></data>
+  <data name="Api_VAULT_KEY_VERSION_MISMATCH" xml:space="preserve"><value>密钥版本不一致</value></data>
+  <data name="Api_SYNC_DOCUMENT_NOT_FOUND" xml:space="preserve"><value>云端同步文档不存在</value></data>
+  <data name="Api_SYNC_DOCUMENT_INVALID" xml:space="preserve"><value>云端同步文档无效</value></data>
+  <data name="Api_SYNC_DOCUMENT_TOO_LARGE" xml:space="preserve"><value>同步文档过大</value></data>
+  <data name="Api_SYNC_REVISION_CONFLICT" xml:space="preserve"><value>云端已有新版本，请重试</value></data>
+  <data name="Api_SYNC_REVISION_LIMIT_REACHED" xml:space="preserve"><value>历史版本数已达上限</value></data>
+  <data name="Api_SYNC_REVISION_REQUIRED" xml:space="preserve"><value>缺少版本信息，请重试</value></data>
+  <data name="Api_SYNC_REVISION_NOT_FOUND" xml:space="preserve"><value>历史版本不存在</value></data>
+  <data name="Api_IDEMPOTENCY_KEY_REQUIRED" xml:space="preserve"><value>请求缺少幂等键</value></data>
+  <data name="Api_IDEMPOTENCY_KEY_REUSED" xml:space="preserve"><value>请求重复提交</value></data>
+  <data name="Api_RATE_LIMITED" xml:space="preserve"><value>尝试过于频繁，请 {0} 秒后再试</value></data>
+  <data name="Api_MAINTENANCE_MODE" xml:space="preserve"><value>服务器维护中，请稍后再试</value></data>
+  <data name="Api_AUTH_REQUIRED" xml:space="preserve"><value>尚未登录</value></data>
+  <data name="Api_AUTH_REFRESH_UNAVAILABLE" xml:space="preserve"><value>登录已失效，请重新登录</value></data>
+  <data name="Api_NETWORK_ERROR" xml:space="preserve"><value>无法连接同步服务器，请检查网络</value></data>
+  <data name="Api_REQUEST_TIMEOUT" xml:space="preserve"><value>服务器请求超时，请重试</value></data>
+  <data name="Api_RESPONSE_INVALID" xml:space="preserve"><value>服务器返回了无效数据</value></data>
+  <data name="Api_SYNC_REVISION_INVALID" xml:space="preserve"><value>服务器返回了无效的同步版本</value></data>
+  <data name="Api_SYNC_METADATA_INVALID" xml:space="preserve"><value>服务器返回了无效的同步元数据</value></data>
+  <data name="Login_Title.Text" xml:space="preserve"><value>账号与同步</value></data>
+  <data name="Login_LoginTab.Content" xml:space="preserve"><value>登录</value></data>
+  <data name="Login_RegisterTab.Content" xml:space="preserve"><value>注册</value></data>
+  <data name="Login_EmailBox.Header" xml:space="preserve"><value>邮箱</value></data>
+  <data name="Login_EmailBox.PlaceholderText" xml:space="preserve"><value>you@example.com</value></data>
+  <data name="Login_PasswordBox.Header" xml:space="preserve"><value>密码</value></data>
+  <data name="Login_PasswordBox.PlaceholderText" xml:space="preserve"><value>请输入密码</value></data>
+  <data name="Login_ConfirmBox.Header" xml:space="preserve"><value>确认密码</value></data>
+  <data name="Login_InviteBox.Header" xml:space="preserve"><value>邀请码（可选）</value></data>
+  <data name="Login_InviteBox.PlaceholderText" xml:space="preserve"><value>如需邀请码请填写</value></data>
+  <data name="Login_DeviceBox.Header" xml:space="preserve"><value>设备名称</value></data>
+  <data name="Login_SubmitButton.Content" xml:space="preserve"><value>登录</value></data>
+  <data name="Login_SharedNote.Text" xml:space="preserve"><value>与桌面端 SSH Tool、鸿蒙端使用同一账号，主机与隧道将自动在设备间同步。</value></data>
+  <data name="Login_PasswordHint.Text" xml:space="preserve"><value>注册密码至少 10 位</value></data>
+  <data name="Login_HttpBanner.Title" xml:space="preserve"><value>当前为未加密连接</value></data>
+  <data name="Login_HttpBanner.Message" xml:space="preserve"><value>登录密码可能被同一网络窃听，请仅在可信网络下使用</value></data>
+  <data name="Login_SubmitLogin" xml:space="preserve"><value>登录</value></data>
+  <data name="Login_SubmitRegister" xml:space="preserve"><value>注册</value></data>
+  <data name="Login_WorkingLogin" xml:space="preserve"><value>正在登录…</value></data>
+  <data name="Login_WorkingRegister" xml:space="preserve"><value>正在注册…</value></data>
+  <data name="Login_EmailRequired" xml:space="preserve"><value>请输入邮箱</value></data>
+  <data name="Login_PasswordRequired" xml:space="preserve"><value>请输入密码</value></data>
+  <data name="Login_PasswordTooShort" xml:space="preserve"><value>注册密码至少 10 位</value></data>
+  <data name="Login_PasswordMismatch" xml:space="preserve"><value>两次输入的密码不一致</value></data>
+  <data name="Login_BusyRetry" xml:space="preserve"><value>尝试过于频繁，请稍后再试</value></data>
+  <data name="Login_RequestId" xml:space="preserve"><value>请求 ID：{0}</value></data>
+  <data name="Login_SyncUnavailable" xml:space="preserve"><value>同步组件不可用，请重启应用后重试</value></data>
+  <data name="Login_AlreadySignedIn" xml:space="preserve"><value>已登录，请先退出登录后再继续</value></data>
 </root>

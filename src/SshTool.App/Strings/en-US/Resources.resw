@@ -56,4 +56,68 @@
   <data name="Overlay_PolicyDisconnected" xml:space="preserve"><value>The connection was dropped in the background.</value></data>
   <data name="EnergySaverBanner_Title" xml:space="preserve"><value>Battery saver is on</value></data>
   <data name="EnergySaverBanner_Message" xml:space="preserve"><value>In Battery saver mode, connections are dropped in the background and reconnected when you return.</value></data>
+  <data name="Api_VALIDATION_ERROR" xml:space="preserve"><value>The request is invalid. Check your input and try again.</value></data>
+  <data name="Api_REGISTRATION_DISABLED" xml:space="preserve"><value>Registration is currently disabled.</value></data>
+  <data name="Api_AUTH_INVITATION_REQUIRED" xml:space="preserve"><value>Registration requires an invite code.</value></data>
+  <data name="Api_AUTH_INVITATION_INVALID" xml:space="preserve"><value>The invite code is invalid.</value></data>
+  <data name="Api_AUTH_EMAIL_EXISTS" xml:space="preserve"><value>This email is already registered. Please sign in.</value></data>
+  <data name="Api_AUTH_INVALID_CREDENTIALS" xml:space="preserve"><value>Incorrect email or password.</value></data>
+  <data name="Api_DEVICE_QUOTA_EXCEEDED" xml:space="preserve"><value>Device limit reached. Revoke an old device on another device first.</value></data>
+  <data name="Api_AUTH_TOKEN_EXPIRED" xml:space="preserve"><value>Your session has expired. Please sign in again.</value></data>
+  <data name="Api_AUTH_TOKEN_REUSED" xml:space="preserve"><value>Session state is abnormal. Please sign in again.</value></data>
+  <data name="Api_AUTH_DEVICE_REVOKED" xml:space="preserve"><value>This device has been revoked. Please sign in again.</value></data>
+  <data name="Api_AUTH_CURRENT_PASSWORD_INVALID" xml:space="preserve"><value>The current password is incorrect.</value></data>
+  <data name="Api_AUTH_PASSWORD_UNCHANGED" xml:space="preserve"><value>The new password is the same as the current one.</value></data>
+  <data name="Api_ACCOUNT_DELETE_CONFLICT" xml:space="preserve"><value>Account deletion conflict. Please try again.</value></data>
+  <data name="Api_DEVICE_NOT_FOUND" xml:space="preserve"><value>The device does not exist.</value></data>
+  <data name="Api_DEVICE_CURRENT" xml:space="preserve"><value>You cannot revoke the current device. Sign out instead.</value></data>
+  <data name="Api_VAULT_EXISTS" xml:space="preserve"><value>A cloud vault already exists.</value></data>
+  <data name="Api_VAULT_NOT_FOUND" xml:space="preserve"><value>The cloud vault does not exist.</value></data>
+  <data name="Api_VAULT_KEY_VERSION_MISMATCH" xml:space="preserve"><value>Key version mismatch.</value></data>
+  <data name="Api_SYNC_DOCUMENT_NOT_FOUND" xml:space="preserve"><value>The cloud sync document does not exist.</value></data>
+  <data name="Api_SYNC_DOCUMENT_INVALID" xml:space="preserve"><value>The cloud sync document is invalid.</value></data>
+  <data name="Api_SYNC_DOCUMENT_TOO_LARGE" xml:space="preserve"><value>The sync document is too large.</value></data>
+  <data name="Api_SYNC_REVISION_CONFLICT" xml:space="preserve"><value>The cloud has a newer version. Please try again.</value></data>
+  <data name="Api_SYNC_REVISION_LIMIT_REACHED" xml:space="preserve"><value>The revision history limit has been reached.</value></data>
+  <data name="Api_SYNC_REVISION_REQUIRED" xml:space="preserve"><value>Missing version info. Please try again.</value></data>
+  <data name="Api_SYNC_REVISION_NOT_FOUND" xml:space="preserve"><value>The revision does not exist.</value></data>
+  <data name="Api_IDEMPOTENCY_KEY_REQUIRED" xml:space="preserve"><value>The request is missing an idempotency key.</value></data>
+  <data name="Api_IDEMPOTENCY_KEY_REUSED" xml:space="preserve"><value>The request was submitted twice.</value></data>
+  <data name="Api_RATE_LIMITED" xml:space="preserve"><value>Too many attempts. Try again in {0} seconds.</value></data>
+  <data name="Api_MAINTENANCE_MODE" xml:space="preserve"><value>The server is under maintenance. Please try again later.</value></data>
+  <data name="Api_AUTH_REQUIRED" xml:space="preserve"><value>Not signed in.</value></data>
+  <data name="Api_AUTH_REFRESH_UNAVAILABLE" xml:space="preserve"><value>Your session has expired. Please sign in again.</value></data>
+  <data name="Api_NETWORK_ERROR" xml:space="preserve"><value>Cannot reach the sync server. Check your network.</value></data>
+  <data name="Api_REQUEST_TIMEOUT" xml:space="preserve"><value>The server request timed out. Please try again.</value></data>
+  <data name="Api_RESPONSE_INVALID" xml:space="preserve"><value>The server returned invalid data.</value></data>
+  <data name="Api_SYNC_REVISION_INVALID" xml:space="preserve"><value>The server returned an invalid sync revision.</value></data>
+  <data name="Api_SYNC_METADATA_INVALID" xml:space="preserve"><value>The server returned invalid sync metadata.</value></data>
+  <data name="Login_Title.Text" xml:space="preserve"><value>Account &amp; Sync</value></data>
+  <data name="Login_LoginTab.Content" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Login_RegisterTab.Content" xml:space="preserve"><value>Sign up</value></data>
+  <data name="Login_EmailBox.Header" xml:space="preserve"><value>Email</value></data>
+  <data name="Login_EmailBox.PlaceholderText" xml:space="preserve"><value>you@example.com</value></data>
+  <data name="Login_PasswordBox.Header" xml:space="preserve"><value>Password</value></data>
+  <data name="Login_PasswordBox.PlaceholderText" xml:space="preserve"><value>Enter your password</value></data>
+  <data name="Login_ConfirmBox.Header" xml:space="preserve"><value>Confirm password</value></data>
+  <data name="Login_InviteBox.Header" xml:space="preserve"><value>Invite code (optional)</value></data>
+  <data name="Login_InviteBox.PlaceholderText" xml:space="preserve"><value>Fill in if required</value></data>
+  <data name="Login_DeviceBox.Header" xml:space="preserve"><value>Device name</value></data>
+  <data name="Login_SubmitButton.Content" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Login_SharedNote.Text" xml:space="preserve"><value>Use the same account as SSH Tool on desktop and HarmonyOS. Hosts and tunnels sync across devices automatically.</value></data>
+  <data name="Login_PasswordHint.Text" xml:space="preserve"><value>Registration password must be at least 10 characters.</value></data>
+  <data name="Login_HttpBanner.Title" xml:space="preserve"><value>Unencrypted connection</value></data>
+  <data name="Login_HttpBanner.Message" xml:space="preserve"><value>Your login password may be eavesdropped on this network. Use only on networks you trust.</value></data>
+  <data name="Login_SubmitLogin" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Login_SubmitRegister" xml:space="preserve"><value>Sign up</value></data>
+  <data name="Login_WorkingLogin" xml:space="preserve"><value>Signing in…</value></data>
+  <data name="Login_WorkingRegister" xml:space="preserve"><value>Signing up…</value></data>
+  <data name="Login_EmailRequired" xml:space="preserve"><value>Enter your email.</value></data>
+  <data name="Login_PasswordRequired" xml:space="preserve"><value>Enter your password.</value></data>
+  <data name="Login_PasswordTooShort" xml:space="preserve"><value>Registration password must be at least 10 characters.</value></data>
+  <data name="Login_PasswordMismatch" xml:space="preserve"><value>The two passwords do not match.</value></data>
+  <data name="Login_BusyRetry" xml:space="preserve"><value>Too many attempts. Please try again later.</value></data>
+  <data name="Login_RequestId" xml:space="preserve"><value>Request ID: {0}</value></data>
+  <data name="Login_SyncUnavailable" xml:space="preserve"><value>Sync is unavailable. Restart the app and try again.</value></data>
+  <data name="Login_AlreadySignedIn" xml:space="preserve"><value>Already signed in. Sign out first to continue.</value></data>
 </root>

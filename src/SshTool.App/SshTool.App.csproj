@@ -254,6 +254,10 @@
     <Compile Include="ViewModels\Snippets\SnippetEditViewModel.cs" />
     <Compile Include="ViewModels\Snippets\SnippetPickerViewModel.cs" />
     <Compile Include="ViewModels\Snippets\SnippetSendHelper.cs" />
+    <Compile Include="ViewModels\Sync\LoginViewModel.cs" />
+    <Compile Include="Views\Sync\LoginPage.xaml.cs">
+      <DependentUpon>LoginPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModels\Keys\KeysViewModel.cs" />
     <Compile Include="ViewModels\Keys\KeyDetailViewModel.cs" />
     <Compile Include="ViewModels\Keys\KeyImportViewModel.cs" />
@@ -580,6 +584,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Keys\KeyDetailPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Sync\LoginPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

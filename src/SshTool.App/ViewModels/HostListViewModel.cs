@@ -53,7 +53,7 @@ namespace SshTool.App.ViewModels
             Groups = new ObservableCollection<HostListGroup>();
 
             NewHostCommand = new RelayCommand(() => Navigation.Navigate<HostEditPage>(HostEditArgs.New()));
-            SignInCommand = new RelayCommand(() => OpenPlaceholder("登录", "M5"));
+            SignInCommand = new RelayCommand(() => Navigation.Navigate<Views.Sync.LoginPage>());
             ToggleSearchCommand = new RelayCommand(ToggleSearch);
             QuickConnectCommand = new RelayCommand(QuickConnect, () => QuickConnectParser.TryParse(_quickConnectText, out _));
             QuickConnectFromSearchCommand = new RelayCommand(QuickConnectFromSearch, () => _canQuickConnectFromSearch);
