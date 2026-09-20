@@ -356,14 +356,15 @@ namespace SshTool.App.Views
             // C-03（§7.5）：菜单关闭后把焦点还给哨兵。仅当开菜单时 SIP 处于弹出态才恢复——
             // 否则会把已收起的软键盘反复拉起；「外观/SFTP/关闭会话」等导航项离场后
             // 世代失效，也不再触碰 Term。「片段」会再开一层 Flyout，此时抢焦点会把
-            // 选择器 light-dismiss，故该项抑制恢复。
+            // 选择器 light-dismiss，故该项抑制恢复，并把此处的采样透传给选择器——
+            // 菜单打开期间 SIP 已收起，选择器就地再采样恒为 false。
             int generation = _generation;
             bool restoreSip = Term.IsInputPaneVisible;
             bool suppressRestore = false;
             flyout.Items.Add(Item("片段", () =>
             {
                 suppressRestore = true;
-                OpenSnippetPicker(anchor ?? Term);
+                OpenSnippetPicker(anchor ?? Term, restoreSip);
             }));
             // F03：本会话的 SFTP（复用该会话已认证连接挂 SFTP 子系统）。
             flyout.Items.Add(Item("SFTP", OpenSftp));
@@ -394,7 +395,9 @@ namespace SshTool.App.Views
         }
 
         // U13：片段选择器统一入口（终端菜单 / 键条 snippets 键 / 右键菜单）。
-        private void OpenSnippetPicker(FrameworkElement anchor)
+        // sipWasVisible：菜单路径由 OnMenuClick 透传开菜单时的采样（菜单打开期间 SIP
+        // 已收起，此处就地采样恒为 false）；键条/右键路径不传，就地采样。
+        private void OpenSnippetPicker(FrameworkElement anchor, bool? sipWasVisible = null)
         {
             if (anchor == null)
             {
@@ -405,7 +408,7 @@ namespace SshTool.App.Views
             // 且世代仍有效才恢复，SIP 原本收起则不做事。采样须在 Show 之前：
             // 选择器一打开焦点就离开哨兵。
             int generation = _generation;
-            bool restoreSip = Term.IsInputPaneVisible;
+            bool restoreSip = sipWasVisible ?? Term.IsInputPaneVisible;
             var flyout = SnippetPickerFlyout.Show(anchor, ViewModel.Session);
             if (flyout == null)
             {
