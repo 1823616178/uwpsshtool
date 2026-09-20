@@ -609,6 +609,7 @@ public ref class KeyTool sealed {
 | `hostSortMode` | string | `name` | name/recent |
 | `useSystemAccent` | bool | true | 强调色取系统强调色 |
 | `showQuickConnect` | bool | true | 主机页快速连接卡 |
+| `hostQuickConnectExpanded` | bool | false | 快速连接卡展开态（V02 起折叠行记忆） |
 | `language` | string | `system` | system/zh-CN/en-US（重启生效） |
 | `connectTimeoutSeconds` | int | 15 | 5–60 |
 | `reconnectMaxAttempts` | int | 6 | 0–10，0 = 不自动重连 |
