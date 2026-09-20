@@ -278,4 +278,40 @@
   <!-- V01a review follow-up: semantic label for the hidekb editor row (Core key face has no text) + gallery icon-keys section title -->
   <data name="KeyBar_HideKeyboardLabel" xml:space="preserve"><value>Hide keyboard</value></data>
   <data name="Gallery_V2IconKeys.Text" xml:space="preserve"><value>New icon keys (V01a)</value></data>
+
+  <!-- V01b: accessibility name for the BottomActionBar overflow button (doc/05 §7.2) -->
+  <data name="BottomActionBar_OverflowButton.AutomationProperties.Name" xml:space="preserve"><value>More actions</value></data>
+
+  <!-- V01b: gallery additions — AppListRow four states (title/subtitle shared across rows,
+       same precedent as Gallery_CardBody; status pill text reuses Gallery_PillSuccess.Text) -->
+  <data name="Gallery_ListRowDemo.Text" xml:space="preserve"><value>AppListRow: normal / pressed / selected / disabled (status and trailing slots shown)</value></data>
+  <data name="Gallery_ListRowTitle" xml:space="preserve"><value>Production (web-01)</value></data>
+  <data name="Gallery_ListRowSubtitle" xml:space="preserve"><value>deploy@prod.example.com:22</value></data>
+  <data name="Gallery_ListRowMore.AutomationProperties.Name" xml:space="preserve"><value>More actions</value></data>
+
+  <!-- V01b: FormSection three states (Header/Description/input placeholder shared; error text reuses Validation_PortRange) -->
+  <data name="Gallery_FormSectionDemo.Text" xml:space="preserve"><value>FormSection: normal / error / readonly (fixed order: header, description, content, error)</value></data>
+  <data name="Gallery_FormSectionHeader" xml:space="preserve"><value>Connection</value></data>
+  <data name="Gallery_FormSectionDescription" xml:space="preserve"><value>Host address, port, and login name.</value></data>
+  <data name="Gallery_FormSectionInput" xml:space="preserve"><value>e.g. 192.168.1.8</value></data>
+
+  <!-- V01b: BottomActionBar two states (keyboard-visible collapses the bar, revealing the placeholder text behind) -->
+  <data name="Gallery_ActionBarDemo.Text" xml:space="preserve"><value>BottomActionBar: normal / keyboard-visible (bar collapses while the SIP is up)</value></data>
+  <data name="Gallery_ActionBarPrimary" xml:space="preserve"><value>Save</value></data>
+  <data name="Gallery_ActionBarOverflowItem" xml:space="preserve"><value>Secondary action</value></data>
+  <data name="Gallery_ActionBarCollapsedHint.Text" xml:space="preserve"><value>(The bar below has IsKeyboardVisible=True; this placeholder shows once it collapses.)</value></data>
+
+  <!-- V01b: Banner retry action (ActionClick event) and EmptyState variants (Kind-driven default icons) -->
+  <data name="Gallery_BannerRetryDemo.Text" xml:space="preserve"><value>Banner (InlineBanner): error + retry (ActionClick event; result below)</value></data>
+  <data name="Gallery_BannerRetry.Title" xml:space="preserve"><value>Sync failed</value></data>
+  <data name="Gallery_BannerRetry.Message" xml:space="preserve"><value>Network unavailable; local changes kept.</value></data>
+  <data name="Gallery_BannerRetry.ActionText" xml:space="preserve"><value>Retry</value></data>
+  <data name="Gallery_BannerRetryResult" xml:space="preserve"><value>Retry triggered (ActionClick event).</value></data>
+  <data name="Gallery_EmptyStateDemo.Text" xml:space="preserve"><value>EmptyState variants: normal (explicit Glyph) / offline / filtered (Kind-driven default icons)</value></data>
+  <data name="Gallery_EmptyNormal.Title" xml:space="preserve"><value>No hosts yet</value></data>
+  <data name="Gallery_EmptyNormal.Description" xml:space="preserve"><value>Add a host to start your first SSH session.</value></data>
+  <data name="Gallery_EmptyOffline.Title" xml:space="preserve"><value>You are offline</value></data>
+  <data name="Gallery_EmptyOffline.Description" xml:space="preserve"><value>Network unavailable; showing cached content.</value></data>
+  <data name="Gallery_EmptyFiltered.Title" xml:space="preserve"><value>No matching hosts</value></data>
+  <data name="Gallery_EmptyFiltered.Description" xml:space="preserve"><value>Try a different keyword.</value></data>
 </root>

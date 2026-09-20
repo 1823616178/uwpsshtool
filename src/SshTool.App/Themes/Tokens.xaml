@@ -26,6 +26,8 @@
     <!-- Shape.StrokeThickness 用 Double 档（Thickness 不能赋给 StrokeThickness）。 -->
     <x:Double x:Key="StrokeThin">1</x:Double>
     <Thickness x:Key="BorderThinBottom">0,0,0,1</Thickness>
+    <!-- BottomActionBar 顶部分隔线（与 BorderThinBottom 对偶）。 -->
+    <Thickness x:Key="BorderThinTop">0,1,0,0</Thickness>
     <Thickness x:Key="BorderNone">0</Thickness>
     <Thickness x:Key="PadNone">0</Thickness>
     <!-- T09：隐藏 IME 哨兵 TextBox。1×1 保持可聚焦；Opacity 0 会被渲染裁掉。 -->
@@ -42,6 +44,9 @@
     <Thickness x:Key="PadXs">4</Thickness>
     <!-- StatusPill 内边距（横 8 纵 4）：配合 SpaceXl 的 MinHeight 收成约 24 高胶囊。 -->
     <Thickness x:Key="PadPill">8,4</Thickness>
+    <!-- BottomActionBar 内边距：横向同 PagePadding 刻度，纵向 SpaceSm 垫高触控区
+         （条内主按钮 MinHeight=TouchTargetMin，整条约 56）。 -->
+    <Thickness x:Key="PadActionBar">12,8,12,8</Thickness>
     <CornerRadius x:Key="RadiusSm">4</CornerRadius>
     <CornerRadius x:Key="RadiusMd">8</CornerRadius>
     <!-- StatusPill 外圈全圆角（≈ 胶囊高度一半），只用于短状态标签。 -->

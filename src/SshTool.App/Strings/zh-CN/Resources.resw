@@ -279,4 +279,40 @@
   <!-- V01a 评审回补：hidekb 编辑器行首语义文本（Core 键面无文案）+ 画廊图标键区标题 -->
   <data name="KeyBar_HideKeyboardLabel" xml:space="preserve"><value>隐藏键盘</value></data>
   <data name="Gallery_V2IconKeys.Text" xml:space="preserve"><value>V01a 新增图标键</value></data>
+
+  <!-- V01b：BottomActionBar 溢出按钮无障碍名（05 §7.2） -->
+  <data name="BottomActionBar_OverflowButton.AutomationProperties.Name" xml:space="preserve"><value>更多操作</value></data>
+
+  <!-- V01b：画廊补全——AppListRow 四态（标题/副标题四行共用，同 Gallery_CardBody 先例；
+       状态 Pill 文案复用 Gallery_PillSuccess.Text） -->
+  <data name="Gallery_ListRowDemo.Text" xml:space="preserve"><value>AppListRow：normal / pressed / selected / disabled（状态槽与尾操作槽示例）</value></data>
+  <data name="Gallery_ListRowTitle" xml:space="preserve"><value>生产机（web-01）</value></data>
+  <data name="Gallery_ListRowSubtitle" xml:space="preserve"><value>deploy@prod.example.com:22</value></data>
+  <data name="Gallery_ListRowMore.AutomationProperties.Name" xml:space="preserve"><value>更多操作</value></data>
+
+  <!-- V01b：FormSection 三态（Header/Description/输入框占位共用；错误文案复用 Validation_PortRange） -->
+  <data name="Gallery_FormSectionDemo.Text" xml:space="preserve"><value>FormSection：normal / error / readonly（标题→说明→内容→错误固定顺序）</value></data>
+  <data name="Gallery_FormSectionHeader" xml:space="preserve"><value>连接</value></data>
+  <data name="Gallery_FormSectionDescription" xml:space="preserve"><value>主机地址、端口与登录名。</value></data>
+  <data name="Gallery_FormSectionInput" xml:space="preserve"><value>例如 192.168.1.8</value></data>
+
+  <!-- V01b：BottomActionBar 两态（keyboard-visible 条收起，露出底层占位文字） -->
+  <data name="Gallery_ActionBarDemo.Text" xml:space="preserve"><value>BottomActionBar：normal / keyboard-visible（SIP 弹出时整条收起让位）</value></data>
+  <data name="Gallery_ActionBarPrimary" xml:space="preserve"><value>保存</value></data>
+  <data name="Gallery_ActionBarOverflowItem" xml:space="preserve"><value>辅助操作</value></data>
+  <data name="Gallery_ActionBarCollapsedHint.Text" xml:space="preserve"><value>（下方操作条已设 IsKeyboardVisible=True，整条收起后露出这段占位文字）</value></data>
+
+  <!-- V01b：Banner 重试动作（ActionClick 事件）与 EmptyState 三变体（Kind 驱动默认图标） -->
+  <data name="Gallery_BannerRetryDemo.Text" xml:space="preserve"><value>Banner（InlineBanner）：错误 + 重试（ActionClick 事件，结果见下方）</value></data>
+  <data name="Gallery_BannerRetry.Title" xml:space="preserve"><value>同步失败</value></data>
+  <data name="Gallery_BannerRetry.Message" xml:space="preserve"><value>网络不可用，已保留本地更改。</value></data>
+  <data name="Gallery_BannerRetry.ActionText" xml:space="preserve"><value>重试</value></data>
+  <data name="Gallery_BannerRetryResult" xml:space="preserve"><value>已触发重试（ActionClick 事件）。</value></data>
+  <data name="Gallery_EmptyStateDemo.Text" xml:space="preserve"><value>EmptyState 变体：normal（显式 Glyph）/ offline / filtered（Kind 驱动默认图标）</value></data>
+  <data name="Gallery_EmptyNormal.Title" xml:space="preserve"><value>还没有主机</value></data>
+  <data name="Gallery_EmptyNormal.Description" xml:space="preserve"><value>新建一台主机开始第一次 SSH 连接。</value></data>
+  <data name="Gallery_EmptyOffline.Title" xml:space="preserve"><value>当前离线</value></data>
+  <data name="Gallery_EmptyOffline.Description" xml:space="preserve"><value>网络不可用，显示本机缓存内容。</value></data>
+  <data name="Gallery_EmptyFiltered.Title" xml:space="preserve"><value>没有匹配的主机</value></data>
+  <data name="Gallery_EmptyFiltered.Description" xml:space="preserve"><value>换个关键词试试。</value></data>
 </root>

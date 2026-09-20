@@ -25,6 +25,10 @@ namespace SshTool.App.Controls
 
         public event EventHandler Closed;
 
+        // V01b（05 §5.3 InlineBanner 角色）：页面级 Banner 的重试入口——消费方可在
+        // XAML/代码里直接挂事件，不必为「重试」单独包 ICommand。事件先于 ActionCommand 触发。
+        public event EventHandler ActionClick;
+
         public Banner()
         {
             this.InitializeComponent();
@@ -150,6 +154,11 @@ namespace SshTool.App.Controls
 
         private void OnActionClick(object sender, RoutedEventArgs e)
         {
+            EventHandler handler = ActionClick;
+            if (handler != null)
+            {
+                handler(this, EventArgs.Empty);
+            }
             if (ActionCommand != null && ActionCommand.CanExecute(null))
             {
                 ActionCommand.Execute(null);

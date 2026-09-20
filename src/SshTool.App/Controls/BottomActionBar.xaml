@@ -1,0 +1,38 @@
+<UserControl
+    x:Class="SshTool.App.Controls.BottomActionBar"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 05 §5.3：手机端底部主操作条。Surface2 底 + 顶部发丝线（浮起层级，列表行在其下滚过）。
+         槽位：1 个主操作（PrimaryButtonStyle 层级，§5.1 一页最多一个强强调）+ 可选溢出（…）按钮。
+         状态：normal / keyboard-visible——SIP 弹出时整条收起让位（code-behind 监听 InputPane，
+         与 SoftKeyboardInput 同一感知机制；也可由页面直接驱动 IsKeyboardVisible）。 -->
+    <Border x:Name="Root"
+            Background="{ThemeResource AppSurfaceAltBrush}"
+            BorderBrush="{ThemeResource AppBorderBrush}"
+            BorderThickness="{StaticResource BorderThinTop}"
+            Padding="{StaticResource PadActionBar}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="PrimaryButton"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    VerticalAlignment="Center"
+                    Click="OnPrimaryClick" />
+            <Button x:Name="OverflowButton" x:Uid="BottomActionBar_OverflowButton"
+                    Grid.Column="1"
+                    Style="{StaticResource IconButtonStyle}"
+                    Margin="{StaticResource GapSmLeft}"
+                    VerticalAlignment="Center"
+                    Click="OnOverflowClick"
+                    Visibility="Collapsed">
+                <FontIcon Glyph="{StaticResource IconMore}" FontSize="{StaticResource FontBody}" />
+            </Button>
+        </Grid>
+    </Border>
+</UserControl>

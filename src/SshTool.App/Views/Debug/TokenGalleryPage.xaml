@@ -239,6 +239,67 @@
                     <StackPanel Width="72"><FontIcon Glyph="{StaticResource IconSplit}" FontSize="20" Foreground="{ThemeResource AppTextBrush}" /><TextBlock Text="Split" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
                 </StackPanel>
 
+                <!-- V01b：05 §5.3 剩余组件演示。可见文字与无障碍名全部走 resw（x:Uid/ResourceLoader）。 -->
+                <TextBlock x:Uid="Gallery_ListRowDemo" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <controls:AppListRow x:Name="DemoRow1" IconGlyph="{StaticResource IconTerminal}" ShowChevron="True">
+                    <controls:AppListRow.StatusContent>
+                        <controls:StatusPill x:Name="DemoRow1Status" Kind="Success" />
+                    </controls:AppListRow.StatusContent>
+                </controls:AppListRow>
+                <controls:AppListRow x:Name="DemoRow2" State="Pressed" IconGlyph="{StaticResource IconTerminal}" ShowChevron="True" Margin="0,4,0,0">
+                    <controls:AppListRow.StatusContent>
+                        <controls:StatusDot State="Connected" />
+                    </controls:AppListRow.StatusContent>
+                </controls:AppListRow>
+                <controls:AppListRow x:Name="DemoRow3" State="Selected" IconGlyph="{StaticResource IconTerminal}" Margin="0,4,0,0">
+                    <controls:AppListRow.TrailingContent>
+                        <Button Style="{StaticResource IconButtonStyle}" x:Uid="Gallery_ListRowMore">
+                            <FontIcon Glyph="{StaticResource IconMore}" FontSize="{StaticResource FontBody}" />
+                        </Button>
+                    </controls:AppListRow.TrailingContent>
+                </controls:AppListRow>
+                <controls:AppListRow x:Name="DemoRow4" State="Disabled" IconGlyph="{StaticResource IconTerminal}" ShowChevron="True" Margin="0,4,0,8" />
+
+                <TextBlock x:Uid="Gallery_FormSectionDemo" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <controls:FormSection x:Name="DemoSectionNormal" Margin="0,0,0,4">
+                    <controls:FormSection.SectionContent>
+                        <TextBox x:Name="DemoSectionInput1" />
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+                <controls:FormSection x:Name="DemoSectionError" State="Error" Margin="0,4,0,4">
+                    <controls:FormSection.SectionContent>
+                        <TextBox x:Name="DemoSectionInput2" />
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+                <controls:FormSection x:Name="DemoSectionReadOnly" State="ReadOnly" Margin="0,4,0,8">
+                    <controls:FormSection.SectionContent>
+                        <TextBox x:Name="DemoSectionInput3" />
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <TextBlock x:Uid="Gallery_ActionBarDemo" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <controls:BottomActionBar x:Name="DemoBarNormal" ShowOverflow="True" Margin="0,0,0,4">
+                    <controls:BottomActionBar.OverflowFlyout>
+                        <MenuFlyout>
+                            <MenuFlyoutItem x:Name="DemoBarOverflowItem" />
+                        </MenuFlyout>
+                    </controls:BottomActionBar.OverflowFlyout>
+                </controls:BottomActionBar>
+                <Grid Height="56" Background="{ThemeResource AppSurfaceBrush}" Margin="0,4,0,8">
+                    <TextBlock x:Uid="Gallery_ActionBarCollapsedHint" Style="{StaticResource CaptionTextStyle}"
+                               TextWrapping="Wrap" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <controls:BottomActionBar x:Name="DemoBarKeyboard" IsKeyboardVisible="True" />
+                </Grid>
+
+                <TextBlock x:Uid="Gallery_BannerRetryDemo" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <controls:Banner x:Uid="Gallery_BannerRetry" Severity="Error" ActionClick="OnBannerRetryClick" />
+                <TextBlock x:Name="BannerRetryResult" Style="{StaticResource CaptionTextStyle}" Margin="0,4,0,8" />
+
+                <TextBlock x:Uid="Gallery_EmptyStateDemo" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,4" />
+                <controls:EmptyState x:Uid="Gallery_EmptyNormal" Glyph="{StaticResource IconTerminal}" />
+                <controls:EmptyState x:Uid="Gallery_EmptyOffline" Kind="Offline" />
+                <controls:EmptyState x:Uid="Gallery_EmptyFiltered" Kind="Filtered" Margin="0,0,0,8" />
+
                 <TextBlock Text="对话框（U05，02-UI-DESIGN §5.8，结果脱敏显示）" Style="{StaticResource SectionTitleTextStyle}" Margin="0,16,0,4" />
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                     <Button Content="HostKey" Click="OnHostKeyDemo" />

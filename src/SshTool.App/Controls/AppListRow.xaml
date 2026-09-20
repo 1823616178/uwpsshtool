@@ -1,0 +1,56 @@
+<UserControl
+    x:Class="SshTool.App.Controls.AppListRow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Tapped="OnTapped"
+    PointerPressed="OnPointerPressed"
+    PointerReleased="OnPointerReleased"
+    PointerExited="OnPointerExited"
+    PointerCaptureLost="OnPointerCaptureLost">
+
+    <!-- 05 §5.3：通用列表行。槽位：主图标（IconGlyph 字形或 IconContent 槽）/ 标题 / 副标题 /
+         状态槽（StatusPill 或 StatusDot）/ 尾操作槽（TrailingContent，空时可显示 Chevron）。
+         状态：normal=Surface1 底、pressed=AppPressed 底（指针按下即时反馈，也可由 State 静态指定）、
+         selected=Surface2 底（§5.1：选中归 Surface 2 角色）、disabled=DisabledOpacity + 整块禁点。
+         行高走 ListRowHeight / ListRowCompactHeight 刻度（IsCompact 切换）。
+         间距列由 code-behind 用 Gap 系列 Margin 让出（Grid.ColumnSpacing 需 1709，15063 会抛
+         XamlParseException——Banner 同款注释）。HostRow 保持不动，V02 再用本件重构。 -->
+    <Border x:Name="Root"
+            Background="{ThemeResource AppSurfaceBrush}"
+            MinHeight="{StaticResource ListRowHeight}"
+            Padding="{StaticResource PagePadding}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <ContentPresenter x:Name="IconSlot" VerticalAlignment="Center" Visibility="Collapsed" />
+            <FontIcon x:Name="LeadingIcon" FontSize="{StaticResource FontSubtitle}"
+                      Foreground="{ThemeResource AppTextDimBrush}"
+                      VerticalAlignment="Center" Visibility="Collapsed" />
+
+            <StackPanel x:Name="TextPanel" Grid.Column="1" VerticalAlignment="Center">
+                <!-- 标题由根上的 AutomationProperties.Name 代表（UpdateVisual 置 Title），
+                     标 Raw 防读屏重复（同 StatusPill 手法）；副标题留树内正常朗读。 -->
+                <TextBlock x:Name="TitleText" Style="{StaticResource BodyTextStyle}"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           AutomationProperties.AccessibilityView="Raw" />
+                <TextBlock x:Name="SubtitleText" Style="{StaticResource CaptionTextStyle}"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                           Visibility="Collapsed" />
+            </StackPanel>
+
+            <ContentPresenter x:Name="StatusSlot" Grid.Column="2" VerticalAlignment="Center"
+                              Visibility="Collapsed" />
+            <ContentPresenter x:Name="TrailingSlot" Grid.Column="3" VerticalAlignment="Center"
+                              Visibility="Collapsed" />
+            <FontIcon x:Name="ChevronIcon" Grid.Column="3" Glyph="{StaticResource IconChevronRight}"
+                      FontSize="{StaticResource FontBody}"
+                      Foreground="{ThemeResource AppTextFaintBrush}"
+                      VerticalAlignment="Center" Visibility="Collapsed" />
+        </Grid>
+    </Border>
+</UserControl>

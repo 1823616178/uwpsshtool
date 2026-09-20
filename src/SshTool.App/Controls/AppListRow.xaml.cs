@@ -1,0 +1,260 @@
+using System;
+using System.Windows.Input;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Automation;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
+
+namespace SshTool.App.Controls
+{
+    public enum AppListRowState
+    {
+        Normal,
+        Pressed,
+        Selected,
+        Disabled
+    }
+
+    public sealed partial class AppListRow : UserControl
+    {
+        public static readonly DependencyProperty IconGlyphProperty = DependencyProperty.Register(
+            nameof(IconGlyph), typeof(string), typeof(AppListRow),
+            new PropertyMetadata(string.Empty, OnChanged));
+        public static readonly DependencyProperty IconContentProperty = DependencyProperty.Register(
+            nameof(IconContent), typeof(object), typeof(AppListRow),
+            new PropertyMetadata(null, OnChanged));
+        public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
+            nameof(Title), typeof(string), typeof(AppListRow),
+            new PropertyMetadata(string.Empty, OnChanged));
+        public static readonly DependencyProperty SubtitleProperty = DependencyProperty.Register(
+            nameof(Subtitle), typeof(string), typeof(AppListRow),
+            new PropertyMetadata(string.Empty, OnChanged));
+        public static readonly DependencyProperty StatusContentProperty = DependencyProperty.Register(
+            nameof(StatusContent), typeof(object), typeof(AppListRow),
+            new PropertyMetadata(null, OnChanged));
+        public static readonly DependencyProperty TrailingContentProperty = DependencyProperty.Register(
+            nameof(TrailingContent), typeof(object), typeof(AppListRow),
+            new PropertyMetadata(null, OnChanged));
+        public static readonly DependencyProperty ShowChevronProperty = DependencyProperty.Register(
+            nameof(ShowChevron), typeof(bool), typeof(AppListRow),
+            new PropertyMetadata(false, OnChanged));
+        public static readonly DependencyProperty IsCompactProperty = DependencyProperty.Register(
+            nameof(IsCompact), typeof(bool), typeof(AppListRow),
+            new PropertyMetadata(false, OnChanged));
+        public static readonly DependencyProperty StateProperty = DependencyProperty.Register(
+            nameof(State), typeof(AppListRowState), typeof(AppListRow),
+            new PropertyMetadata(AppListRowState.Normal, OnChanged));
+        public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(
+            nameof(Command), typeof(ICommand), typeof(AppListRow),
+            new PropertyMetadata(null));
+
+        // 指针按压的即时反馈，与 State="Pressed"（静态指定，如画廊）叠加生效。
+        private bool _pointerPressed;
+
+        public event EventHandler Click;
+
+        public AppListRow()
+        {
+            this.InitializeComponent();
+            this.Loaded += (s, e) => UpdateVisual();
+            this.IsEnabledChanged += (s, e) => UpdateVisual();
+        }
+
+        // MDL2 字形串（消费方写 {StaticResource IconXxx}）；IconContent 非空时槽内容优先。
+        public string IconGlyph
+        {
+            get { return (string)GetValue(IconGlyphProperty); }
+            set { SetValue(IconGlyphProperty, value); }
+        }
+
+        public object IconContent
+        {
+            get { return GetValue(IconContentProperty); }
+            set { SetValue(IconContentProperty, value); }
+        }
+
+        public string Title
+        {
+            get { return (string)GetValue(TitleProperty); }
+            set { SetValue(TitleProperty, value); }
+        }
+
+        public string Subtitle
+        {
+            get { return (string)GetValue(SubtitleProperty); }
+            set { SetValue(SubtitleProperty, value); }
+        }
+
+        // 状态槽：放 StatusPill 或 StatusDot。
+        public object StatusContent
+        {
+            get { return GetValue(StatusContentProperty); }
+            set { SetValue(StatusContentProperty, value); }
+        }
+
+        // 尾操作槽：放单个按钮；为空且 ShowChevron=true 时显示右尖括号。
+        public object TrailingContent
+        {
+            get { return GetValue(TrailingContentProperty); }
+            set { SetValue(TrailingContentProperty, value); }
+        }
+
+        public bool ShowChevron
+        {
+            get { return (bool)GetValue(ShowChevronProperty); }
+            set { SetValue(ShowChevronProperty, value); }
+        }
+
+        // false=ListRowHeight（64），true=ListRowCompactHeight（48）。
+        public bool IsCompact
+        {
+            get { return (bool)GetValue(IsCompactProperty); }
+            set { SetValue(IsCompactProperty, value); }
+        }
+
+        public AppListRowState State
+        {
+            get { return (AppListRowState)GetValue(StateProperty); }
+            set { SetValue(StateProperty, value); }
+        }
+
+        public ICommand Command
+        {
+            get { return (ICommand)GetValue(CommandProperty); }
+            set { SetValue(CommandProperty, value); }
+        }
+
+        private static void OnChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            ((AppListRow)d).UpdateVisual();
+        }
+
+        private bool IsDisabled
+        {
+            get { return State == AppListRowState.Disabled || !IsEnabled; }
+        }
+
+        private void UpdateVisual()
+        {
+            bool hasIconContent = IconContent != null;
+            IconSlot.Content = IconContent;
+            IconSlot.Visibility = hasIconContent ? Visibility.Visible : Visibility.Collapsed;
+            bool hasGlyph = !hasIconContent && !string.IsNullOrEmpty(IconGlyph);
+            LeadingIcon.Glyph = IconGlyph ?? string.Empty;
+            LeadingIcon.Visibility = hasGlyph ? Visibility.Visible : Visibility.Collapsed;
+
+            var gapLeft = (Thickness)Application.Current.Resources["GapSmLeft"];
+            var noPad = (Thickness)Application.Current.Resources["PadNone"];
+            TextPanel.Margin = (hasIconContent || hasGlyph) ? gapLeft : noPad;
+
+            TitleText.Text = Title ?? string.Empty;
+            SubtitleText.Text = Subtitle ?? string.Empty;
+            SubtitleText.Visibility = string.IsNullOrEmpty(Subtitle) ? Visibility.Collapsed : Visibility.Visible;
+
+            bool hasStatus = StatusContent != null;
+            StatusSlot.Content = StatusContent;
+            StatusSlot.Visibility = hasStatus ? Visibility.Visible : Visibility.Collapsed;
+            StatusSlot.Margin = hasStatus ? gapLeft : noPad;
+
+            bool hasTrailing = TrailingContent != null;
+            TrailingSlot.Content = TrailingContent;
+            TrailingSlot.Visibility = hasTrailing ? Visibility.Visible : Visibility.Collapsed;
+            TrailingSlot.Margin = hasTrailing ? gapLeft : noPad;
+
+            bool showChevron = !hasTrailing && ShowChevron;
+            ChevronIcon.Visibility = showChevron ? Visibility.Visible : Visibility.Collapsed;
+            ChevronIcon.Margin = showChevron ? gapLeft : noPad;
+
+            Root.MinHeight = (double)Application.Current.Resources[
+                IsCompact ? "ListRowCompactHeight" : "ListRowHeight"];
+
+            bool disabled = IsDisabled;
+            Root.Opacity = disabled ? (double)Application.Current.Resources["DisabledOpacity"] : 1.0;
+            // State=Disabled 时 IsEnabled 仍为 true，显式断掉整块命中（含槽内按钮）。
+            Root.IsHitTestVisible = !disabled;
+
+            ApplyStateBrush();
+            // §7.2：行作为整体进无障碍树，名称取可见标题（标题 TextBlock 已标 Raw）。
+            AutomationProperties.SetName(this, Title ?? string.Empty);
+        }
+
+        private void ApplyStateBrush()
+        {
+            string brushKey = "AppSurfaceBrush";
+            if (!IsDisabled && (_pointerPressed || State == AppListRowState.Pressed))
+            {
+                brushKey = "AppPressedBrush";
+            }
+            else if (State == AppListRowState.Selected)
+            {
+                brushKey = "AppSurfaceAltBrush";
+            }
+            Root.Background = Banner.ResolveThemedBrush(brushKey);
+        }
+
+        private void OnPointerPressed(object sender, PointerRoutedEventArgs e)
+        {
+            if (IsDisabled)
+            {
+                return;
+            }
+            _pointerPressed = true;
+            ApplyStateBrush();
+        }
+
+        private void OnPointerReleased(object sender, PointerRoutedEventArgs e)
+        {
+            _pointerPressed = false;
+            ApplyStateBrush();
+        }
+
+        private void OnPointerExited(object sender, PointerRoutedEventArgs e)
+        {
+            _pointerPressed = false;
+            ApplyStateBrush();
+        }
+
+        private void OnPointerCaptureLost(object sender, PointerRoutedEventArgs e)
+        {
+            _pointerPressed = false;
+            ApplyStateBrush();
+        }
+
+        private void OnTapped(object sender, TappedRoutedEventArgs e)
+        {
+            if (IsDisabled)
+            {
+                e.Handled = true;
+                return;
+            }
+            // 尾操作槽内的按钮自行处理点击（Button 不拦截冒泡的 Tapped，这里按来源排除）。
+            if (IsWithin(e.OriginalSource as DependencyObject, TrailingSlot))
+            {
+                return;
+            }
+            EventHandler handler = Click;
+            if (handler != null)
+            {
+                handler(this, EventArgs.Empty);
+            }
+            if (Command != null && Command.CanExecute(null))
+            {
+                Command.Execute(null);
+            }
+        }
+
+        private static bool IsWithin(DependencyObject element, DependencyObject ancestor)
+        {
+            while (element != null)
+            {
+                if (element == ancestor)
+                {
+                    return true;
+                }
+                element = VisualTreeHelper.GetParent(element);
+            }
+            return false;
+        }
+    }
+}

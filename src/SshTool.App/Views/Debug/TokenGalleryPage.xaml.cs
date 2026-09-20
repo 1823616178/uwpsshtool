@@ -60,6 +60,51 @@ namespace SshTool.App.Views.Debug
             CardBody2.Text = cardBody;
             CardBody3.Text = cardBody;
             CardBody4.Text = cardBody;
+
+            InitV01bDemos(loader);
+        }
+
+        // V01b：AppListRow / FormSection / BottomActionBar 演示（状态由 XAML 静态指定，文案在此装配）。
+        private void InitV01bDemos(ResourceLoader loader)
+        {
+            // AppListRow 四态共用示例标题/副标题（同 Gallery_CardBody 先例）；
+            // 状态 Pill 文案复用 Gallery_PillSuccess.Text。
+            string rowTitle = loader.GetString("Gallery_ListRowTitle");
+            string rowSubtitle = loader.GetString("Gallery_ListRowSubtitle");
+            DemoRow1.Title = rowTitle;
+            DemoRow1.Subtitle = rowSubtitle;
+            DemoRow1Status.Text = loader.GetString("Gallery_PillSuccess.Text");
+            DemoRow2.Title = rowTitle;
+            DemoRow2.Subtitle = rowSubtitle;
+            DemoRow3.Title = rowTitle;
+            DemoRow3.Subtitle = rowSubtitle;
+            DemoRow4.Title = rowTitle;
+            DemoRow4.Subtitle = rowSubtitle;
+
+            // FormSection 三态：错误文案直接复用错误码映射键 Validation_PortRange。
+            string sectionHeader = loader.GetString("Gallery_FormSectionHeader");
+            string sectionDescription = loader.GetString("Gallery_FormSectionDescription");
+            string placeholder = loader.GetString("Gallery_FormSectionInput");
+            DemoSectionNormal.Header = sectionHeader;
+            DemoSectionNormal.Description = sectionDescription;
+            DemoSectionError.Header = sectionHeader;
+            DemoSectionError.ErrorMessage = loader.GetString("Validation_PortRange");
+            DemoSectionReadOnly.Header = sectionHeader;
+            DemoSectionReadOnly.Description = sectionDescription;
+            DemoSectionInput1.PlaceholderText = placeholder;
+            DemoSectionInput2.PlaceholderText = placeholder;
+            DemoSectionInput3.PlaceholderText = placeholder;
+
+            // BottomActionBar 两态：normal（含溢出菜单）/ keyboard-visible（XAML 已置 IsKeyboardVisible）。
+            string primary = loader.GetString("Gallery_ActionBarPrimary");
+            DemoBarNormal.PrimaryText = primary;
+            DemoBarKeyboard.PrimaryText = primary;
+            DemoBarOverflowItem.Text = loader.GetString("Gallery_ActionBarOverflowItem");
+        }
+
+        private void OnBannerRetryClick(object sender, System.EventArgs e)
+        {
+            BannerRetryResult.Text = ResourceLoader.GetForCurrentView().GetString("Gallery_BannerRetryResult");
         }
 
         private void OnDemoSegmentChanged(object sender, System.EventArgs e)

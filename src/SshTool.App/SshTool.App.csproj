@@ -349,6 +349,15 @@
     <Compile Include="Controls\StatusPill.xaml.cs">
       <DependentUpon>StatusPill.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\AppListRow.xaml.cs">
+      <DependentUpon>AppListRow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\FormSection.xaml.cs">
+      <DependentUpon>FormSection.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\BottomActionBar.xaml.cs">
+      <DependentUpon>BottomActionBar.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Main\HostsPivot.xaml.cs">
       <DependentUpon>HostsPivot.xaml</DependentUpon>
     </Compile>
@@ -536,6 +545,18 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\StatusPill.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\AppListRow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\FormSection.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\BottomActionBar.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

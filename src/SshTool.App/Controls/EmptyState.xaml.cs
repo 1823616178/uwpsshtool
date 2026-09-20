@@ -5,8 +5,18 @@ using Windows.UI.Xaml.Controls;
 
 namespace SshTool.App.Controls
 {
+    // V01b（05 §5.3）：normal/offline/filtered 三变体。Kind 只在 Glyph 为空时提供默认图标
+    // （offline=IconCloudOff、filtered=IconSearch）；显式 Glyph 始终优先，既有使用点不受影响。
+    public enum EmptyStateKind
+    {
+        Normal,
+        Offline,
+        Filtered
+    }
+
     public sealed partial class EmptyState : UserControl
     {
+        public static readonly DependencyProperty KindProperty = Register(nameof(Kind), typeof(EmptyStateKind), EmptyStateKind.Normal, OnChanged);
         public static readonly DependencyProperty GlyphProperty = Register(nameof(Glyph), typeof(string), string.Empty, OnChanged);
         public static readonly DependencyProperty TitleProperty = Register(nameof(Title), typeof(string), string.Empty, OnChanged);
         public static readonly DependencyProperty DescriptionProperty = Register(nameof(Description), typeof(string), string.Empty, OnChanged);
@@ -19,6 +29,12 @@ namespace SshTool.App.Controls
         {
             this.InitializeComponent();
             this.Loaded += (s, e) => UpdateVisual();
+        }
+
+        public EmptyStateKind Kind
+        {
+            get { return (EmptyStateKind)GetValue(KindProperty); }
+            set { SetValue(KindProperty, value); }
         }
 
         public string Glyph
@@ -75,8 +91,20 @@ namespace SshTool.App.Controls
 
         private void UpdateVisual()
         {
-            GlyphIcon.Glyph = Glyph ?? string.Empty;
-            GlyphIcon.Visibility = string.IsNullOrEmpty(Glyph) ? Visibility.Collapsed : Visibility.Visible;
+            string glyph = Glyph;
+            if (string.IsNullOrEmpty(glyph))
+            {
+                if (Kind == EmptyStateKind.Offline)
+                {
+                    glyph = (string)Application.Current.Resources["IconCloudOff"];
+                }
+                else if (Kind == EmptyStateKind.Filtered)
+                {
+                    glyph = (string)Application.Current.Resources["IconSearch"];
+                }
+            }
+            GlyphIcon.Glyph = glyph ?? string.Empty;
+            GlyphIcon.Visibility = string.IsNullOrEmpty(glyph) ? Visibility.Collapsed : Visibility.Visible;
             TitleText.Text = Title ?? string.Empty;
             DescriptionText.Text = Description ?? string.Empty;
             DescriptionText.Visibility = string.IsNullOrEmpty(Description) ? Visibility.Collapsed : Visibility.Visible;
