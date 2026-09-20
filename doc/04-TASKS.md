@@ -1322,6 +1322,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] R01 📱 反复进入退出终端 50 次：旧页面可回收、SessionInfo 事件只触发一次、无明显内存增长（fix(R01) d20bf4c 后订阅全部成对可拆，代码结构已支撑）
 - [ ] C-03 📱 终端焦点/SIP 回归：打开菜单后 SIP 回弹、切会话、分屏、旋转、SIP 收起/再弹出；菜单/键条/右键三入口打开片段选择器发送或取消后 SIP 自动回弹（fix(C03) 43ffc0a）
 - [ ] Phase0 📱 UI 重构前截图基线：360×640、640×360、Continuum 三组（05 文档 Phase 0 出口第 4 步）
+- [ ] V01a 📱 画廊 V2 演示区观感：AppPageHeader 三宽态、SegmentTabs（含按压反馈与「已选」播报）、SurfaceCard 四态、StatusPill 四态、IconButtonStyle，深浅两主题；新 MDL2 字形（E700/E76C/E72A/E73E/E8A9 等）在 W10M 15063 字库逐个点亮确认
 
 ---
 
@@ -1444,3 +1445,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-20 | Phase0 基线 | 1a1ab79…080de29 | **完成**。05 审查文档入库；脏工作区（U16 完成态 + F03/F05/Q01 开发中 + MainPage 移入 Views/）整理为可复现提交 5293799，基线 verify 全绿。 |
 | 2026-09-20 | R01 | 072eee9…d20bf4c | **完成**（05 工作包：终端订阅释放与导航取消）。C-01：TerminalPage/TerminalViewModel 匿名订阅改命名处理器，AttachNative 幂等、Detach/UnbindSession 成对，全部拆除经 Track 登记按订阅反序执行。C-02：Core 新增 NavigationLifetime（Begin/End/IsCurrent/Token/Track，幂等反序、Begin 隐含 End、Track-after-End 立即执行，单测 11 条），8 个 async void OnNavigatedTo 页面全部薄壳化 + 每个 await 后世代检查 + OnNavigatedFrom 先 End；KeyDetailPage 补 DataTransferManager 长寿订阅解除；新增 AppLog（只记异常类型名，脱敏）。规格+质量两轮评审及复核通过。已知：页面 await 期间返回不取消后台连接（需动 SessionManager API，留待后续）；TerminalWorkspace 的同型订阅/fire-and-forget 归 V03。⏳ 📱 50 次进出回归（已登记待办）。 |
 | 2026-09-20 | C-03 | 16ce518…43ffc0a | **完成**（05 P0：终端控件抢软键盘焦点）。新建 TerminalIconButtonStyle（AllowFocusOnInteraction=False、MinWidth=TouchTargetMin、全 token），终端页更多按钮/TabStrip 新建与动态关闭按钮/Workspace 分屏关闭按钮全部套用；无障碍名 resw 双语 +5 key；菜单与片段选择器关闭后按「开前采样 SIP + 世代守卫 + 物理键盘早退」恢复哨兵焦点，不无条件拉起 SIP；菜单→片段路径透传采样修复评审发现的恒 false 缺陷。规格+质量三轮评审通过。⏳ 📱 SIP/菜单/旋转/片段回弹回归（已登记待办）。 |
+| 2026-09-20 | V01a | 5757f6f…ffcec16 | **完成**（05 Phase 1 前半：Design System V2 首批）。Token 收敛：深浅色板注释归档五层角色（Canvas/Surface1/Surface2/Stroke/Semantic），新 token PadCard/PadXs/PadPill/RadiusPill/SegmentHeight/DisabledOpacity/ExtraWideBreakpoint 均有消费方，动效标准注释成文。MDL2 统一：☰⧉▸▾↪⌨✕✓ 7 处 + KeyBarLayout ⌨ Label 残留全清，新键 IconGlobalNav/IconSplit/IconChevronRight/IconForward/IconCheck（两处码位经 MDL2 官方表与本地渲染核对纠正任务单笔误）；补 AppIconFontFamily。新组件：AppPageHeader（两级标题/返回/双槽/三宽态）、SegmentTabs（均分列/按压反馈/「已选」无障碍后缀）、SurfaceCard（四态）、StatusPill（四 Kind 小点不饱和）、IconButtonStyle（通用，区别于终端专用样式）。画廊 V2 演示区；resw 268 键双语一致。规格+质量评审及复核通过。⏳ 📱 画廊观感与字形点亮（已登记待办）。 |
