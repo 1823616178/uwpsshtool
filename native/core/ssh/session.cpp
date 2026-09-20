@@ -2,6 +2,9 @@
 
 #include "channel.h"
 #include "debug_log.h"
+#include "fwd/direct_tcpip.h"
+#include "fwd/local_listener.h"
+#include "fwd/remote_listen.h"
 #include "io/SessionThread.h"
 
 #include <libssh2.h>
@@ -355,6 +358,14 @@ void SshSession::onSocketEvent(SOCKET, short events)
             (events & (io::EventLoop::Readable | io::EventLoop::Writable)) != 0) {
             driveChannels();
         }
+        // F04: same drive for forwarded streams (direct-tcpip EAGAIN
+        // continuations, pump passes, close handshakes) and remote accept
+        // polling. Kept separate from driveChannels: different registries,
+        // same event gate.
+        if ((!fwdStreams_.empty() || !fwdRemoteListeners_.empty()) &&
+            (events & (io::EventLoop::Readable | io::EventLoop::Writable)) != 0) {
+            driveForwarded();
+        }
         if (state() == SshSessionState::Established ||
             state() == SshSessionState::Authenticating) {
             if ((events & io::EventLoop::Readable) != 0) {
@@ -489,6 +500,15 @@ void SshSession::updateSocketInterest()
                 break;
             }
         }
+        // F04: forwarded streams declare outbound stalls the same way (a
+        // channel write EAGAINed while pump bytes are pending, or an open /
+        // close handshake waiting on the outbound direction).
+        for (fwd::ForwardedConnection* stream : fwdStreams_) {
+            if (stream->wantsOutboundBlocked()) {
+                events |= io::EventLoop::Writable;
+                break;
+            }
+        }
     }
     if (events == 0) {
         // Nothing blocked (e.g. idle Authenticating/Established): arm read-only.
@@ -610,6 +630,11 @@ void SshSession::releaseResources()
     // goes away; a channel free that EAGAINs is covered by the session_free
     // retry below (channel.cpp onSessionLost).
     notifyChannelsSessionLost();
+    // F04: force-clean forwarded streams and listeners the same way. Streams
+    // first (their onClose erases them from the owning listeners), then the
+    // listeners themselves (drop the remote bind; the server side releases
+    // when the session dies).
+    notifyForwardedSessionLost();
     if (socketRegistered_) {
         thread_.loop().removeSocket(socket_);
         socketRegistered_ = false;
@@ -679,6 +704,142 @@ void SshSession::notifyChannelsSessionLost()
         channel->onSessionLost();
     }
     channels_.clear();
+}
+
+// ---------------------------------------------------------------- F04 forwarding registry (loop thread)
+
+void SshSession::registerForwarded(fwd::ForwardedConnection* connection)
+{
+    fwdStreams_.push_back(connection);
+}
+
+void SshSession::unregisterForwarded(fwd::ForwardedConnection* connection)
+{
+    fwdStreams_.erase(std::remove(fwdStreams_.begin(), fwdStreams_.end(), connection),
+                      fwdStreams_.end());
+    if (fwdChannelOpening_ == connection) {
+        fwdChannelOpening_ = nullptr;
+    }
+}
+
+void SshSession::registerRemoteListener(fwd::RemoteListener* listener)
+{
+    fwdRemoteListeners_.push_back(listener);
+}
+
+void SshSession::unregisterRemoteListener(fwd::RemoteListener* listener)
+{
+    fwdRemoteListeners_.erase(
+        std::remove(fwdRemoteListeners_.begin(), fwdRemoteListeners_.end(), listener),
+        fwdRemoteListeners_.end());
+    if (fwdListenOpening_ == listener) {
+        fwdListenOpening_ = nullptr;
+    }
+}
+
+void SshSession::registerLocalListener(fwd::LocalListener* listener)
+{
+    fwdLocalListeners_.push_back(listener);
+}
+
+void SshSession::unregisterLocalListener(fwd::LocalListener* listener)
+{
+    fwdLocalListeners_.erase(
+        std::remove(fwdLocalListeners_.begin(), fwdLocalListeners_.end(), listener),
+        fwdLocalListeners_.end());
+}
+
+void SshSession::driveForwarded()
+{
+    // Accept polling first (new arrivals), then every stream's pump. Both may
+    // unregister finished entries mid-round: walk snapshots and skip entries
+    // that unregistered meanwhile (same convention as driveChannels).
+    const std::vector<fwd::RemoteListener*> listenerSnapshot = fwdRemoteListeners_;
+    for (fwd::RemoteListener* listener : listenerSnapshot) {
+        if (std::find(fwdRemoteListeners_.begin(), fwdRemoteListeners_.end(), listener) !=
+            fwdRemoteListeners_.end()) {
+            listener->drive();
+        }
+    }
+    const std::vector<fwd::ForwardedConnection*> streamSnapshot = fwdStreams_;
+    for (fwd::ForwardedConnection* stream : streamSnapshot) {
+        if (std::find(fwdStreams_.begin(), fwdStreams_.end(), stream) != fwdStreams_.end()) {
+            stream->pump();
+        }
+    }
+    // Re-arm per the fresh block directions (a stall may have moved between
+    // inbound/outbound during the pumps).
+    if (socketRegistered_ && state() == SshSessionState::Established) {
+        updateSocketInterest();
+    }
+}
+
+void SshSession::notifyForwardedSessionLost()
+{
+    // onSessionLost() does not unregister (both tables are dropped here).
+    // Streams first: their onClose erases them from the owning listeners, so
+    // the listeners see an empty set when their own onSessionLost runs.
+    const std::vector<fwd::ForwardedConnection*> streamSnapshot = fwdStreams_;
+    for (fwd::ForwardedConnection* stream : streamSnapshot) {
+        stream->onSessionLost();
+    }
+    fwdStreams_.clear();
+    fwdChannelOpening_ = nullptr;
+    const std::vector<fwd::RemoteListener*> listenerSnapshot = fwdRemoteListeners_;
+    for (fwd::RemoteListener* listener : listenerSnapshot) {
+        listener->onSessionLost();
+    }
+    fwdRemoteListeners_.clear();
+    fwdListenOpening_ = nullptr;
+    // Local listeners self-drive (no polling); they only need the socket
+    // cleanup + Stopped transition. Their connections were force-cleaned
+    // above and erased themselves via onClose.
+    const std::vector<fwd::LocalListener*> localSnapshot = fwdLocalListeners_;
+    for (fwd::LocalListener* listener : localSnapshot) {
+        listener->onSessionLost();
+    }
+    fwdLocalListeners_.clear();
+}
+
+bool SshSession::tryAcquireFwdChannelOpen(fwd::ForwardedConnection* owner)
+{
+    if (fwdChannelOpening_ != nullptr && fwdChannelOpening_ != owner) {
+        return false; // another stream owns the open machine: wait
+    }
+    fwdChannelOpening_ = owner;
+    return true;
+}
+
+void SshSession::releaseFwdChannelOpen(fwd::ForwardedConnection* owner)
+{
+    if (fwdChannelOpening_ == owner) {
+        fwdChannelOpening_ = nullptr;
+    }
+}
+
+bool SshSession::tryAcquireFwdListenOpen(fwd::RemoteListener* owner)
+{
+    if (fwdListenOpening_ != nullptr && fwdListenOpening_ != owner) {
+        return false; // another listener owns the listen machine: wait
+    }
+    fwdListenOpening_ = owner;
+    return true;
+}
+
+void SshSession::releaseFwdListenOpen(fwd::RemoteListener* owner)
+{
+    if (fwdListenOpening_ == owner) {
+        fwdListenOpening_ = nullptr;
+    }
+}
+
+std::string SshSession::lastLibssh2ErrorForFwd()
+{
+    char* errmsg = nullptr;
+    int errmsgLen = 0;
+    ::libssh2_session_last_error(session_, &errmsg, &errmsgLen, 0);
+    return errmsg != nullptr ? std::string(errmsg, static_cast<size_t>(errmsgLen))
+                             : std::string("unknown error");
 }
 
 // ---------------------------------------------------------------- N07 keepalive (loop thread)

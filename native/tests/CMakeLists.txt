@@ -91,7 +91,11 @@ add_library(ssh_session_host STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/hostkey.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/auth.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/agent.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/channel.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/ssh/channel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/fwd/pump.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/fwd/direct_tcpip.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/fwd/local_listener.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/fwd/remote_listen.cpp)
 target_include_directories(ssh_session_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core)
 # hostkey.cpp 用 OpenSSL EVP 算指纹；native_dependencies_host 的 OpenSSL include 是 PRIVATE，这里单独补。
 target_include_directories(ssh_session_host PRIVATE ${OPENSSL_DIR}/include)
@@ -205,6 +209,11 @@ target_compile_definitions(sftp_test PRIVATE SSH_TEST_SOURCE_DIR="${CMAKE_CURREN
 # 单测直连 OpenSSL（SHA256 对比）；include 不经 sftp 库透传。
 target_include_directories(sftp_test PRIVATE ${OPENSSL_DIR}/include)
 
+# F04：原生转发（只追加，不动既有条目；fwd 源已随 ssh_session_host 编译）。
+add_executable(fwd_test fwd_test.cpp)
+target_link_libraries(fwd_test PRIVATE ssh_session_host GTest::gtest_main)
+target_compile_definitions(fwd_test PRIVATE SSH_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
 gtest_discover_tests(deps_smoke_test)
@@ -228,3 +237,4 @@ gtest_discover_tests(desktop_vectors_test)
 gtest_discover_tests(keytool_test)
 gtest_discover_tests(agent_test)
 gtest_discover_tests(sftp_test)
+gtest_discover_tests(fwd_test)

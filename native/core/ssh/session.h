@@ -28,6 +28,11 @@ class SessionThread;
 namespace sftp {
 class SftpSession; // F01: sftp/sftp_session.h（SFTP 子系统；仅引用，不包含头）
 } // namespace sftp
+namespace fwd {
+class ForwardedConnection; // F04: fwd/direct_tcpip.h（端口转发连接；仅引用，不包含头）
+class LocalListener;       // F04: fwd/local_listener.h（本地监听；仅引用，不包含头）
+class RemoteListener;      // F04: fwd/remote_listen.h（远端监听；仅引用，不包含头）
+} // namespace fwd
 namespace ssh {
 
 class SshChannel; // N06: channel.h
@@ -261,6 +266,9 @@ public:
 private:
     friend class SshChannel; // N06: registration, pump dispatch, handle access
     friend class sftp::SftpSession; // F01: loop-thread task post, raw handle access
+    friend class fwd::ForwardedConnection; // F04: pump dispatch, raw handle access
+    friend class fwd::LocalListener;  // F04: loop-thread task post, socket registration
+    friend class fwd::RemoteListener; // F04: accept drive, raw handle access
 
     void doConnect();
     void onSocketEvent(SOCKET socket, short events);
@@ -284,6 +292,31 @@ private:
     void unregisterChannel(SshChannel* channel);
     void driveChannels();             // socket event -> pump every channel
     void notifyChannelsSessionLost(); // releaseResources: force-clean all
+
+    // ---- F04 forwarding registry (loop thread only; fwd/*.cpp) ----
+    // Forwarded connections ride the same socket-event drive as channels
+    // (EAGAIN continuations, inbound data, close handshakes); remote
+    // listeners poll forward_accept on the same pass. Local listeners
+    // self-drive from their own listen-socket events and need no polling.
+    void registerForwarded(fwd::ForwardedConnection* connection);
+    void unregisterForwarded(fwd::ForwardedConnection* connection);
+    void registerRemoteListener(fwd::RemoteListener* listener);
+    void unregisterRemoteListener(fwd::RemoteListener* listener);
+    void registerLocalListener(fwd::LocalListener* listener);
+    void unregisterLocalListener(fwd::LocalListener* listener);
+    void driveForwarded();             // socket event -> accept poll + pump every stream
+    void notifyForwardedSessionLost(); // releaseResources: force-clean all
+    // libssh2 shares one channel-open machine (open_state) and one
+    // forward-listen machine (fwdLstn_state) per session: at most one
+    // ForwardedConnection / RemoteListener drives its open at a time, the
+    // rest wait for the next event (loop thread only).
+    bool tryAcquireFwdChannelOpen(fwd::ForwardedConnection* owner);
+    void releaseFwdChannelOpen(fwd::ForwardedConnection* owner);
+    bool tryAcquireFwdListenOpen(fwd::RemoteListener* owner);
+    void releaseFwdListenOpen(fwd::RemoteListener* owner);
+    // Loop-thread last-error text for fwd diagnostics (never touches the
+    // session state machine; must not be called after session_free).
+    std::string lastLibssh2ErrorForFwd();
 
     // ---- N07 keepalive (loop thread only) ----
     void armKeepalive();    // on entering Established: libssh2_keepalive_config + first tick
@@ -364,6 +397,13 @@ private:
 
     // ---- N06 channel registry (loop thread only) ----
     std::vector<SshChannel*> channels_;
+
+    // ---- F04 forwarding registry (loop thread only) ----
+    std::vector<fwd::ForwardedConnection*> fwdStreams_;
+    std::vector<fwd::RemoteListener*> fwdRemoteListeners_;
+    std::vector<fwd::LocalListener*> fwdLocalListeners_; // notify-only (self-driven)
+    fwd::ForwardedConnection* fwdChannelOpening_ = nullptr; // open_state gate
+    fwd::RemoteListener* fwdListenOpening_ = nullptr;       // fwdLstn_state gate
 
     // ---- N07 keepalive state (loop thread only, except the atomic counters) ----
     io::EventLoop::TimerId keepaliveTimer_ = 0; // next tick / probe deadline (runAfter)
