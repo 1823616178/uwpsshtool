@@ -42,11 +42,11 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 12 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 15 | 与桌面端同账号双向同步、冲突可解 |
+| M5 | 云端同步 | 22 | 16 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
-| M7 | 密钥、SFTP、转发、跳板 | 11 | 5 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
+| M7 | 密钥、SFTP、转发、跳板 | 11 | 7 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 1 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **89** | |
+| **合计** | | **111** | **92** | |
 
 ### 1.1 关键路径
 
@@ -939,14 +939,14 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 修改主机约 3 秒后自动同步
   - 验证：`dotnet test`；真机
 
-- [ ] **U15 登录与注册页** `S`
+- [x] **U15 登录与注册页** `S`
   - 依赖：S14
   - 参考：`02-UI-DESIGN.md §5.13`
   - 产出：`src/SshTool.App/Views/Sync/LoginPage.xaml(.cs)`、`src/SshTool.App/ViewModels/Sync/LoginViewModel.cs`、resw `Api_<CODE>` 文案、测试
   - 要点：登录/注册切换；明文 HTTP 风险 Banner（`allowHttp` 且 URL 为 http 时）；注册密码 ≥10 位、确认一致、邀请码可选；设备名默认值；三端共用账号说明；错误码中文映射；成功后跳状态页。
   - 验收：
-    - [ ] 单测：两份 resw 中 `Api_<CODE>` 覆盖 `03-SYNC-PROTOCOL.md §2.3` 全部码
-    - [ ] x64 对真实服务器注册测试账号并登录成功（记录到进度日志，不记录密码）
+    - [x] 单测：两份 resw 中 `Api_<CODE>` 覆盖 `03-SYNC-PROTOCOL.md §2.3` 全部码
+    - [x] x64 对真实服务器注册测试账号并登录成功（记录到进度日志，不记录密码）
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **U16 保险库创建、解锁与恢复密钥** `M` 📱
@@ -1109,13 +1109,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] 错误码对拍通过
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
-- [ ] **F02 SFTP 桥与传输队列** `M`
+- [x] **F02 SFTP 桥与传输队列** `M`
   - 依赖：F01、N09b
   - 参考：`01-DESIGN.md §11.1`
   - 产出：`src/SshTool.Native/Bridge/SftpSession.{h,cpp}`、`src/SshTool.Core/Sftp/{ISftpClient,RemoteEntry,TransferQueue,TransferItem,PermissionBits,RemotePath}.cs`、`src/SshTool.App/Platform/{NativeSftpClient,StorageFileStreams}.cs`、测试
   - 要点：异步 API + 进度事件（节流 200 ms）；TransferQueue（排队/进行/完成/失败/取消，并发 1，失败重试，速率滑动平均）；`PermissionBits` 八进制与 rwx 互转；`RemotePath` 规范化；本地文件流用 `IRandomAccessStream` 分块。
   - 验收：
-    - [ ] Core 单测：队列状态机、速率计算、权限互转、路径规范化
+    - [x] Core 单测：队列状态机、速率计算、权限互转、路径规范化
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **F03 SFTP 页面** `M` 📱
@@ -1127,13 +1127,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 上传手机照片到服务器；下载日志文件到手机并能打开
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **F04 原生转发：本地监听、direct-tcpip 与远程监听** `M`
+- [x] **F04 原生转发：本地监听、direct-tcpip 与远程监听** `M`
   - 依赖：N06
   - 参考：`01-DESIGN.md §11.2`
   - 产出：`native/core/fwd/{local_listener,direct_tcpip,remote_listen,pump}.{h,cpp}`、`native/tests/fwd_test.cpp`
   - 要点：在会话 I/O 线程上非阻塞监听与双向泵（背压：通道写阻塞时暂停读 socket）；每条隧道统计（活跃、累计、上下行字节）；remote 接受通道后连接目标；关闭时优雅收尾。
   - 验收：
-    - [ ] pump 单测（假通道：部分写、EAGAIN、EOF 半关闭）
+    - [x] pump 单测（假通道：部分写、EAGAIN、EOF 半关闭）
     - [ ] 集成（环境变量开启）：本地转发到远端 HTTP 服务取回内容
   - 验证：`pwsh scripts/verify.ps1 -Quick`
 
@@ -1314,6 +1314,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] S05 📱 自检全部通过，记录 Argon2id 解锁耗时
 - [ ] P02 📱 Wi-Fi 切蜂窝后 10 s 内会话恢复可用
 - [ ] S14 📱 修改主机约 3 秒后自动同步
+- [ ] F04 👤 集成：`SSH_TEST_HOST/PORT/USER/PASSWORD` + `SSH_TEST_FWD_HTTP=host:port` 跑 `FwdIntegrationTest.LocalForwardToHttp*` 取回 `HTTP/`；`SSH_TEST_FWD_REMOTE=1` 跑远端回显
 - [ ] A03 📱 修改字号/配色后已打开终端即时生效
 - [ ] K02 📱 生成 ed25519 → 公钥加入服务器 `authorized_keys` → 用该密钥登录成功
 
@@ -1431,3 +1432,6 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | F01 | 83c37d8 | **完成**。SftpSession 绑已认证会话（open/listDir/stat/lstat/readlink/mkdir/rename/unlink/rmdir/setstat/文件读写 seek/close，I/O 线程纪律+EAGAIN 100ms 切片+取消）；transfer 32KiB 分块、偏移续传、取消标志。6xx 码表 601–606 四处同步（§6.3/C#/resw/error_codes.h，对拍 29 码过）。单测 16 + 集成 4 实测通过（临时 WSL sshd，50MB SHA256 一致 73s、8MiB 续传一致；测后回收）。native 268；`verify.ps1 -Interop` 全绿。 |
 | 2026-09-19 | S14 | 7f21fec | **代码完成**。SyncTriggers（User 源主机/分组/隧道+host:/key: 凭据→MarkDirty；启动/回前台>30s/网络恢复/前台轮询/手动；后台停轮询；永不抛）+ ISyncTriggerTarget/SyncIconMap（UI §5.1）/SecretChangedEventArgs；ISecretStore Changed 事件（下行传 Sync 不标脏）；组合根装配同步栈 + MainPage 同步图标旋转绑定。单测 36（Triggers 26 + IconMap 10，验收已勾）。Core 1119；`verify.ps1 -Interop` 全绿。⏳ 📱 3 秒自动同步（已登记待办）。 |
 | 2026-09-19 | S15 | 88aa642 | **完成**。IPrivateKeyInspector 移新文件并异步化 + PrivateKeySyncCodec（出站三元组/入站复算）+ KeyToolPrivateKeyInspector（文案对桌面端 decodeSyncedPrivateKey）+ 11 夹具指纹向量（ssh2@1.17，PKCS#8 不支持故出站跳过记警告）+ U17 最小启用点（数据层 SetPreferences）。等价用例 24 + 向量 12 + 开关 2（验收已勾）。Core 1119；`verify.ps1 -Interop` 全绿（含 private-keys --check）。 |
+| 2026-09-19 | F04 | d0316c1 | **代码完成**。pump 双向泵（背压/半关闭/统计）+ direct_tcpip 状态机 + local_listener（I/O 线程 accept burst）+ remote_listen（forward_accept 轮询）；session 接线（open_state/fwdLstn_state 串行化门）。pump 单测 7 + 状态机 4 + 准入 2 + 回环 1MB + 门控集成 2（未跑，👤 已登记）。native 283；`verify.ps1 -Quick` 全绿。 |
+| 2026-09-19 | F02 | 310436a | **完成**。WinRT SftpSession 桥（会话 I/O 线程串行、SftpCancel consume-once、Shutdown 先拆 SFTP）+ Core Sftp 六件（RemotePath/PermissionBits/RemoteEntry/ISftpClient/TransferItem 速率滑动窗/TransferQueue 单泵）+ NativeSftpClient/StorageFileStreams（IRandomAccessStream 分块）。Core 单测 111（含 FakeSftpClient 供 F03）；`verify.ps1` 全绿。 |
+| 2026-09-19 | U15 | f7db8d3 | **完成**。ApiErrorCatalog（§2.3 全 36 码）+ LoginFormValidator + LoginViewModel/LoginPage（登录注册切换、HTTP Banner、密码≥10+确认、邀请码、三端说明、RateLimited 填秒）；resw +64 键双语一致；Api_<CODE> 覆盖单测。真服务器实测：注册 200→登录 200→GET me 200→登出 200（密码只在内存未落日志；测试账号 u15verify20260920024647@example.com 已登出留服务器，可经注销流程清理）。Core 1163；`verify.ps1` 全绿。 |
