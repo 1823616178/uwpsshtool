@@ -6,6 +6,7 @@ using SshTool.App.Infrastructure;
 using SshTool.App.Terminal;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;
+using SshTool.Core.Common;
 using SshTool.Core.Models;
 using SshTool.Core.Terminal;
 using Windows.UI.Xaml;
@@ -36,6 +37,8 @@ namespace SshTool.App.Views
     public sealed partial class AppearanceEditPage : Page, IBackHandler
     {
         private readonly StaticTerminalScreen _screen = new StaticTerminalScreen();
+        // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
+        private readonly NavigationLifetime _lifetime = new NavigationLifetime();
         // ANSI 调色板外层触控格的透明填充：Button 的 Background 为 null 时整格不参与命中，
         // 内层色块让出的间隙就会漏点击；透明填充补齐 TouchTargetMin，且无可见底色。
         private readonly Brush _touchFill = new SolidColorBrush(Windows.UI.Colors.Transparent);
@@ -65,21 +68,40 @@ namespace SshTool.App.Views
 
         public AppearanceEditViewModel ViewModel { get; private set; }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            int generation = _lifetime.Begin();
             NavigationService nav;
             if (ServiceRegistry.TryGet(out nav))
             {
                 nav.RegisterBackHandler(this);
             }
             var args = e.Parameter as AppearanceEditArgs;
-            await ViewModel.LoadAsync(args == null ? null : args.AppearanceId);
-            BindLoaded();
+            var ignore = LoadAsync(generation, args == null ? null : args.AppearanceId);
+        }
+
+        // R01 (C-02)：await 后先查世代，页面已离开则不再 BindLoaded 触碰 XAML。
+        private async System.Threading.Tasks.Task LoadAsync(int generation, string appearanceId)
+        {
+            try
+            {
+                await ViewModel.LoadAsync(appearanceId);
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
+                BindLoaded();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("AppearanceEdit", "外观编辑页加载失败", ex);
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            _lifetime.End();
             NavigationService nav;
             if (ServiceRegistry.TryGet(out nav))
             {

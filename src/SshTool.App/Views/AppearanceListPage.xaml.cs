@@ -19,6 +19,9 @@ namespace SshTool.App.Views
 {
     public sealed partial class AppearanceListPage : Page
     {
+        // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
+        private readonly NavigationLifetime _lifetime = new NavigationLifetime();
+
         public AppearanceListPage()
         {
             ViewModel = new AppearanceListViewModel(AppServices.Current);
@@ -28,10 +31,34 @@ namespace SshTool.App.Views
 
         public AppearanceListViewModel ViewModel { get; private set; }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            await ViewModel.RefreshAsync();
+            int generation = _lifetime.Begin();
+            var ignore = RefreshAsync(generation);
+        }
+
+        // R01 (C-02)：世代保护加载链（当前 await 后无直接 UI 触碰，检查为后续维护兜底）。
+        private async Task RefreshAsync(int generation)
+        {
+            try
+            {
+                await ViewModel.RefreshAsync();
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("AppearanceList", "外观列表加载失败", ex);
+            }
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            _lifetime.End();
+            base.OnNavigatedFrom(e);
         }
 
         private void OnRowTapped(object sender, TappedRoutedEventArgs e)

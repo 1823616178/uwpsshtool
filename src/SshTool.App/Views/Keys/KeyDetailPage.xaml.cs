@@ -1,6 +1,7 @@
 using System;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Keys;
+using SshTool.Core.Common;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Foundation.Metadata;
 using Windows.UI.Xaml;
@@ -21,6 +22,9 @@ namespace SshTool.App.Views.Keys
 
     public sealed partial class KeyDetailPage : Page
     {
+        // R01 (C-02)：导航世代，离开后加载链不再触碰 UI / Frame。
+        private readonly NavigationLifetime _lifetime = new NavigationLifetime();
+
         public KeyDetailPage()
         {
             ViewModel = new KeyDetailViewModel(AppServices.Current);
@@ -30,18 +34,41 @@ namespace SshTool.App.Views.Keys
 
         public KeyDetailViewModel ViewModel { get; private set; }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            int generation = _lifetime.Begin();
             var args = e.Parameter as KeyDetailArgs;
-            string keyId = args == null ? null : args.KeyId;
-            bool found = await ViewModel.LoadAsync(keyId);
-            if (!found)
+            var ignore = LoadAsync(generation, args == null ? null : args.KeyId);
+        }
+
+        // R01 (C-02)：await 后先查世代，页面已离开则不再 BindLoaded / GoBack。
+        private async System.Threading.Tasks.Task LoadAsync(int generation, string keyId)
+        {
+            try
             {
-                Frame.GoBack();
-                return;
+                bool found = await ViewModel.LoadAsync(keyId);
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
+                if (!found)
+                {
+                    Frame.GoBack();
+                    return;
+                }
+                BindLoaded();
             }
-            BindLoaded();
+            catch (Exception ex)
+            {
+                AppLog.Error("KeyDetail", "密钥详情页加载失败", ex);
+            }
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            _lifetime.End();
+            base.OnNavigatedFrom(e);
         }
 
         private void BindLoaded()

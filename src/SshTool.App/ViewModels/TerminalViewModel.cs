@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using SshTool.App.Infrastructure;
@@ -27,6 +28,8 @@ namespace SshTool.App.ViewModels
     public sealed class TerminalViewModel : ViewModelBase
     {
         private SessionInfo _session;
+        private SessionInfo _attachedSession;
+        private Action<ISshSession> _nativeAttach;
         private bool _infoCollapsed;
 
         public TerminalViewModel()
@@ -111,26 +114,57 @@ namespace SshTool.App.ViewModels
             }
         }
 
+        // R01 (C-01)：先拆旧订阅再挂新订阅，重复调用不叠加；Detach 成对解除。
         public void AttachNative(Action<ISshSession> attach)
         {
-            if (attach != null && _session != null)
+            DetachNativeSubscription();
+            if (attach == null || _session == null)
             {
-                attach(_session.NativeSession);
-                _session.PropertyChanged += (s, e) =>
-                {
-                    // NativeSession 切换会进 TerminalView.Session（碰 Canvas/DispatcherTimer），
-                    // 必须回 UI 线程；SessionInfo 已封送一次，这里是双保险
-                    //（DispatcherHelper.Post 在 UI 线程是同步直行，无开销）。
-                    DispatcherHelper.Post(() =>
-                    {
-                        if (e.PropertyName == "NativeSession" || string.IsNullOrEmpty(e.PropertyName))
-                        {
-                            attach(_session.NativeSession);
-                        }
-                        RaisePropertyChanged("AddressLine");
-                    });
-                };
+                return;
             }
+            _nativeAttach = attach;
+            _attachedSession = _session;
+            attach(_session.NativeSession);
+            _session.PropertyChanged += OnAttachedSessionChanged;
+        }
+
+        // 页面离开时调用：解除 SessionInfo 订阅并清理引用（SessionInfo 生命周期长于页面）。
+        public void Detach()
+        {
+            DetachNativeSubscription();
+            Session = null;
+        }
+
+        private void DetachNativeSubscription()
+        {
+            if (_attachedSession != null)
+            {
+                _attachedSession.PropertyChanged -= OnAttachedSessionChanged;
+                _attachedSession = null;
+            }
+            _nativeAttach = null;
+        }
+
+        private void OnAttachedSessionChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // NativeSession 切换会进 TerminalView.Session（碰 Canvas/DispatcherTimer），
+            // 必须回 UI 线程；SessionInfo 已封送一次，这里是双保险
+            //（DispatcherHelper.Post 在 UI 线程是同步直行，无开销）。
+            DispatcherHelper.Post(() =>
+            {
+                // Post 排队期间可能已 Detach：回调已失效就不再触碰 attach 目标（旧页面）。
+                Action<ISshSession> attach = _nativeAttach;
+                SessionInfo session = _attachedSession;
+                if (attach == null || session == null)
+                {
+                    return;
+                }
+                if (e.PropertyName == "NativeSession" || string.IsNullOrEmpty(e.PropertyName))
+                {
+                    attach(session.NativeSession);
+                }
+                RaisePropertyChanged("AddressLine");
+            });
         }
 
         private void Disconnect()

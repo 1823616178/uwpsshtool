@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Snippets;
+using SshTool.Core.Common;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -27,6 +28,8 @@ namespace SshTool.App.Views
     public sealed partial class SnippetEditPage : Page, IBackHandler
     {
         private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
+        // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
+        private readonly NavigationLifetime _lifetime = new NavigationLifetime();
         private bool _abandonConfirmed;
         private bool _suppress;
 
@@ -38,21 +41,40 @@ namespace SshTool.App.Views
 
         public SnippetEditViewModel ViewModel { get; private set; }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            int generation = _lifetime.Begin();
             NavigationService nav;
             if (ServiceRegistry.TryGet(out nav))
             {
                 nav.RegisterBackHandler(this);
             }
             var args = e.Parameter as SnippetEditArgs;
-            await ViewModel.LoadAsync(args == null ? null : args.SnippetId);
-            BindLoaded();
+            var ignore = LoadAsync(generation, args == null ? null : args.SnippetId);
+        }
+
+        // R01 (C-02)：await 后先查世代，页面已离开则不再 BindLoaded 触碰 XAML。
+        private async System.Threading.Tasks.Task LoadAsync(int generation, string snippetId)
+        {
+            try
+            {
+                await ViewModel.LoadAsync(snippetId);
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
+                BindLoaded();
+            }
+            catch (System.Exception ex)
+            {
+                AppLog.Error("SnippetEdit", "片段编辑页加载失败", ex);
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            _lifetime.End();
             NavigationService nav;
             if (ServiceRegistry.TryGet(out nav))
             {

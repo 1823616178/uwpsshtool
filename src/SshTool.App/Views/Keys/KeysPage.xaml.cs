@@ -1,5 +1,7 @@
+using System;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Keys;
+using SshTool.Core.Common;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -8,6 +10,9 @@ namespace SshTool.App.Views.Keys
 {
     public sealed partial class KeysPage : Page
     {
+        // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
+        private readonly NavigationLifetime _lifetime = new NavigationLifetime();
+
         public KeysPage()
         {
             ViewModel = new KeysViewModel(AppServices.Current);
@@ -19,16 +24,35 @@ namespace SshTool.App.Views.Keys
 
         public KeysViewModel ViewModel { get; private set; }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            await ViewModel.RefreshAsync();
-            UpdateChrome();
-            ViewModel.PropertyChanged += OnVmPropertyChanged;
+            int generation = _lifetime.Begin();
+            var ignore = RefreshAsync(generation);
+        }
+
+        // R01 (C-02)：await 后先查世代，页面已离开则不再 UpdateChrome / 订阅。
+        private async System.Threading.Tasks.Task RefreshAsync(int generation)
+        {
+            try
+            {
+                await ViewModel.RefreshAsync();
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
+                UpdateChrome();
+                ViewModel.PropertyChanged += OnVmPropertyChanged;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("Keys", "密钥列表加载失败", ex);
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            _lifetime.End();
             ViewModel.PropertyChanged -= OnVmPropertyChanged;
             base.OnNavigatedFrom(e);
         }

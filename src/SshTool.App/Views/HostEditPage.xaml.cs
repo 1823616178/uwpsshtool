@@ -2,6 +2,7 @@ using System;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
+using SshTool.Core.Common;
 using SshTool.Core.Hosts;
 using SshTool.Core.Models;
 using Windows.ApplicationModel.Resources;
@@ -35,6 +36,8 @@ namespace SshTool.App.Views
     public sealed partial class HostEditPage : Page, IBackHandler
     {
         private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
+        // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
+        private readonly NavigationLifetime _lifetime = new NavigationLifetime();
         private bool _abandonConfirmed;
         private bool _suppressCombo;
         private bool _suppressAuth;
@@ -47,37 +50,64 @@ namespace SshTool.App.Views
 
         public HostEditViewModel ViewModel { get; private set; }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            int generation = _lifetime.Begin();
             NavigationService nav;
             if (ServiceRegistry.TryGet(out nav))
             {
                 nav.RegisterBackHandler(this);
             }
-            if (e.NavigationMode == NavigationMode.New)
+            var ignore = LoadAsync(generation, e);
+        }
+
+        // R01 (C-02)：每个 await 后先查世代，页面已离开则不再触碰 ComboBox 等 XAML。
+        private async System.Threading.Tasks.Task LoadAsync(int generation, NavigationEventArgs e)
+        {
+            try
             {
-                await ViewModel.LoadAsync(e.Parameter as HostEditArgs);
-                BindLoaded();
-            }
-            else
-            {
-                await ViewModel.ReloadGroupsAsync();
+                if (e.NavigationMode == NavigationMode.New)
+                {
+                    await ViewModel.LoadAsync(e.Parameter as HostEditArgs);
+                    if (!_lifetime.IsCurrent(generation))
+                    {
+                        return;
+                    }
+                    BindLoaded();
+                }
+                else
+                {
+                    await ViewModel.ReloadGroupsAsync();
+                    if (!_lifetime.IsCurrent(generation))
+                    {
+                        return;
+                    }
+                    _suppressCombo = true;
+                    GroupBox.ItemsSource = ViewModel.Groups;
+                    SelectById(GroupBox, ViewModel.GroupId);
+                    _suppressCombo = false;
+                }
+                // A03：从外观管理页返回时刷新下拉（保留当前选择）。
+                await ViewModel.ReloadAppearancesAsync();
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
                 _suppressCombo = true;
-                GroupBox.ItemsSource = ViewModel.Groups;
-                SelectById(GroupBox, ViewModel.GroupId);
+                AppearanceBox.ItemsSource = ViewModel.Appearances;
+                SelectById(AppearanceBox, ViewModel.AppearanceId);
                 _suppressCombo = false;
             }
-            // A03：从外观管理页返回时刷新下拉（保留当前选择）。
-            await ViewModel.ReloadAppearancesAsync();
-            _suppressCombo = true;
-            AppearanceBox.ItemsSource = ViewModel.Appearances;
-            SelectById(AppearanceBox, ViewModel.AppearanceId);
-            _suppressCombo = false;
+            catch (Exception ex)
+            {
+                AppLog.Error("HostEdit", "主机编辑页加载失败", ex);
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            _lifetime.End();
             NavigationService nav;
             if (ServiceRegistry.TryGet(out nav))
             {

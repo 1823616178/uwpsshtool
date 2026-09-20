@@ -1,10 +1,13 @@
 using System;
+using System.ComponentModel;
+using System.Threading.Tasks;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
 using SshTool.App.Terminal;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;
+using SshTool.Core.Common;
 using SshTool.Core.Sessions;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
@@ -18,6 +21,10 @@ namespace SshTool.App.Views
     {
         // P02：省电模式 Banner 数据源（01-DESIGN.md §10；ApiInformation 守卫在内）。
         private readonly Platform.EnergySaverWatcher _energySaver = new Platform.EnergySaverWatcher();
+        // R01 (C-02)：导航世代。OnNavigatedTo Begin、OnNavigatedFrom End（取消 + 反序拆除）。
+        private readonly NavigationLifetime _lifetime = new NavigationLifetime();
+        // R01 (C-01)：BindSession 订阅的 SessionInfo（生命周期长于页面），离开时解除。
+        private SessionInfo _boundSession;
 
         public TerminalPage()
         {
@@ -70,9 +77,10 @@ namespace SshTool.App.Views
 
         public TerminalViewModel ViewModel { get; private set; }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            int generation = _lifetime.Begin();
             StatusBarService.Hide();
             // P01：终端页可见性是屏幕常亮判定的输入之一。
             Platform.KeepAwakeService keepAwake;
@@ -80,29 +88,49 @@ namespace SshTool.App.Views
             {
                 keepAwake.SetTerminalVisible(true);
             }
-            await ViewModel.LoadAsync(e.Parameter as TerminalArgs);
-            BindSession();
-            ViewModel.AttachNative(native => Term.Session = native);
-            ApplyAppearanceForSession();
-            // A03：外观变化后已打开终端刷新调色板与字体度量（不重连）。
-            if (AppServices.Current != null && AppServices.Current.AppearanceService != null)
+            var ignore = LoadAndBindAsync(generation, e.Parameter as TerminalArgs);
+        }
+
+        // R01 (C-02)：加载/绑定共享同一世代——用户在加载期间返回时，await 之后的
+        // 订阅与 XAML 触碰全部跳过（IsCurrent 失效即返回）。
+        private async Task LoadAndBindAsync(int generation, TerminalArgs args)
+        {
+            try
             {
-                AppServices.Current.AppearanceService.Changed += OnAppearanceChanged;
+                await ViewModel.LoadAsync(args).ConfigureAwait(true);
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
+                BindSession();
+                ViewModel.AttachNative(native => Term.Session = native);
+                _lifetime.Track(ViewModel.Detach);
+                ApplyAppearanceForSession();
+                // A03：外观变化后已打开终端刷新调色板与字体度量（不重连）。
+                if (AppServices.Current != null && AppServices.Current.AppearanceService != null)
+                {
+                    AppServices.Current.AppearanceService.Changed += OnAppearanceChanged;
+                    _lifetime.Track(UnsubscribeAppearance);
+                }
+                // P02：省电模式 Banner（事件在系统线程触发，handler 内封送回 UI）。
+                _energySaver.Changed += OnEnergySaverChanged;
+                _lifetime.Track(UnsubscribeEnergySaver);
+                _energySaver.Start();
+                UpdateEnergySaverBanner();
             }
-            // P02：省电模式 Banner（事件在系统线程触发，handler 内封送回 UI）。
-            _energySaver.Changed += OnEnergySaverChanged;
-            _energySaver.Start();
-            UpdateEnergySaverBanner();
+            catch (Exception ex)
+            {
+                // 加载失败留下半装配状态：End 反序拆掉已登记订阅（幂等，离开时再调安全）。
+                AppLog.Error("Terminal", "终端页加载失败", ex);
+                _lifetime.End();
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
-            _energySaver.Changed -= OnEnergySaverChanged;
-            _energySaver.Stop();
-            if (AppServices.Current != null && AppServices.Current.AppearanceService != null)
-            {
-                AppServices.Current.AppearanceService.Changed -= OnAppearanceChanged;
-            }
+            // R01 (C-01/C-02)：End 取消世代（进行中的 LoadAndBindAsync 失效），并按订阅
+            // 反序执行 Track 的拆除：省电 → 外观 → ViewModel.Detach → SessionInfo。幂等。
+            _lifetime.End();
             StatusBarService.ShowThemed();
             // P01：离开终端页即释放常亮（DisplayRequest 成对，见 KeepAwakeService）。
             Platform.KeepAwakeService keepAwake;
@@ -114,31 +142,68 @@ namespace SshTool.App.Views
             base.OnNavigatedFrom(e);
         }
 
+        private void UnsubscribeAppearance()
+        {
+            if (AppServices.Current != null && AppServices.Current.AppearanceService != null)
+            {
+                AppServices.Current.AppearanceService.Changed -= OnAppearanceChanged;
+            }
+        }
+
+        private void UnsubscribeEnergySaver()
+        {
+            _energySaver.Changed -= OnEnergySaverChanged;
+            _energySaver.Stop();
+        }
+
         private void BindSession()
         {
+            UnbindSession();
             SessionInfo info = ViewModel.Session;
             if (info == null)
             {
                 return;
             }
+            _boundSession = info;
             TitleText.Text = info.Title ?? string.Empty;
             AddressText.Text = ViewModel.AddressLine;
             Dot.State = ToDot(info.State);
             Term.Session = info.NativeSession;
-            info.PropertyChanged += (s, args) =>
-            {
-                // SessionInfo 的通知虽已由 SessionManager 经 IUiDispatcher 封送，
-                // 这里再兜底一次：Title/Dot/Overlay 全是 STA，必须 UI 线程触碰，
-                // 否则 Ellipse 等形状在后台线程更新会抛 0x8001010E。
-                DispatcherHelper.Post(() =>
-                {
-                    TitleText.Text = info.Title ?? string.Empty;
-                    AddressText.Text = ViewModel.AddressLine;
-                    Dot.State = ToDot(info.State);
-                    ApplyOverlay(info);
-                });
-            };
+            info.PropertyChanged += OnBoundSessionChanged;
+            _lifetime.Track(UnbindSession);
             ApplyOverlay(info);
+        }
+
+        // R01 (C-01)：与 BindSession 成对，幂等（_boundSession 为空即无操作）。
+        private void UnbindSession()
+        {
+            SessionInfo info = _boundSession;
+            if (info == null)
+            {
+                return;
+            }
+            _boundSession = null;
+            info.PropertyChanged -= OnBoundSessionChanged;
+        }
+
+        private void OnBoundSessionChanged(object sender, PropertyChangedEventArgs e)
+        {
+            // SessionInfo 的通知虽已由 SessionManager 经 IUiDispatcher 封送，
+            // 这里再兜底一次：Title/Dot/Overlay 全是 STA，必须 UI 线程触碰，
+            // 否则 Ellipse 等形状在后台线程更新会抛 0x8001010E。
+            DispatcherHelper.Post(() =>
+            {
+                // Post 排队期间可能已 Unbind：离开后的旧页面不再触碰自身 XAML。
+                SessionInfo info = _boundSession;
+                if (info == null)
+                {
+                    return;
+                }
+                TitleText.Text = info.Title ?? string.Empty;
+                AddressText.Text = ViewModel.AddressLine;
+                Dot.State = ToDot(info.State);
+                ApplyOverlay(info);
+            });
         }
 
         private void ApplyOverlay(SessionInfo info)

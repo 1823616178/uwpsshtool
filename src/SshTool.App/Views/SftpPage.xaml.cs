@@ -2,6 +2,7 @@ using System;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
+using SshTool.Core.Common;
 using SshTool.Core.Sftp;
 using Windows.ApplicationModel.Resources;
 using Windows.Foundation;
@@ -21,6 +22,8 @@ namespace SshTool.App.Views
     public sealed partial class SftpPage : Page
     {
         private static readonly ResourceLoader Loader = ResourceLoader.GetForCurrentView();
+        // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
+        private readonly NavigationLifetime _lifetime = new NavigationLifetime();
 
         public SftpPage()
         {
@@ -29,9 +32,10 @@ namespace SshTool.App.Views
 
         public SftpViewModel ViewModel { get; private set; }
 
-        protected override async void OnNavigatedTo(NavigationEventArgs e)
+        protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            int generation = _lifetime.Begin();
             ViewModel = new SftpViewModel(e.Parameter as SftpArgs ?? new SftpArgs());
             ViewModel.NotifyRequested += OnNotifyRequested;
             ViewModel.PropertyChanged += OnViewModelPropertyChanged;
@@ -39,11 +43,30 @@ namespace SshTool.App.Views
             BreadcrumbBar.ItemsSource = ViewModel.Breadcrumbs;
             TransferList.ItemsSource = ViewModel.TransferRows;
             UpdateChrome();
-            await ViewModel.LoadAsync();
+            var ignore = LoadAsync(generation);
+        }
+
+        // R01 (C-02)：世代保护加载链（await 后无直接 UI 触碰，检查为后续维护兜底）；
+        // 长寿对象（SessionInfo）的订阅解除在 ViewModel.Leave()，由 OnNavigatedFrom 调用。
+        private async System.Threading.Tasks.Task LoadAsync(int generation)
+        {
+            try
+            {
+                await ViewModel.LoadAsync();
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("Sftp", "SFTP 页加载失败", ex);
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            _lifetime.End();
             if (ViewModel != null)
             {
                 ViewModel.NotifyRequested -= OnNotifyRequested;
