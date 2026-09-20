@@ -95,6 +95,8 @@ namespace SshTool.App.Controls
             ErrorText.Visibility = showError ? Visibility.Visible : Visibility.Collapsed;
             ErrorText.Margin = showError ? gapXsTop : noPad;
 
+            // 评审回补：readonly=触控只读（断 IsHitTestVisible），不阻断 Tab 键盘焦点——
+            // 15063 无子树键盘导航开关，键盘/Continuum 场景由消费方自行禁用内容控件。
             bool readOnly = State == FormSectionState.ReadOnly;
             ContentSlot.Opacity = readOnly
                 ? (double)Application.Current.Resources["DisabledOpacity"]

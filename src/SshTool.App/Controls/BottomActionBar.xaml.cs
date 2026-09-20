@@ -81,6 +81,10 @@ namespace SshTool.App.Controls
             AttachInputPane();
         }
 
+        // Owner 语义（评审回补）：InputPane 订阅只靠 Unloaded 解除——与 SoftKeyboardInput
+        // 同一模式，但后者另有页面 Dispose 兜底（TerminalView 持有并显式释放），本控件没有。
+        // 控件生命周期即所在页面/视图；InputPane 是每视图单例，极端情况下（控件未经历
+        // Unloaded 即被弃置）残留订阅也随视图销毁而终结，不会跨页面悬挂。
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             DetachInputPane();
@@ -143,6 +147,7 @@ namespace SshTool.App.Controls
 
         private void OnPrimaryClick(object sender, RoutedEventArgs e)
         {
+            // 事件先于 command 触发；消费方只接其一，避免双执行（同 Banner.ActionClick）。
             EventHandler handler = PrimaryClick;
             if (handler != null)
             {

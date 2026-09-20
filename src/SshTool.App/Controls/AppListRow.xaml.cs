@@ -228,11 +228,16 @@ namespace SshTool.App.Controls
                 e.Handled = true;
                 return;
             }
-            // 尾操作槽内的按钮自行处理点击（Button 不拦截冒泡的 Tapped，这里按来源排除）。
+            // 尾槽内容自行处理点击，这里按来源整槽排除：ButtonBase 的类处理标记的是
+            // PointerPressed 而非 Tapped（UIElement.Tapped 备注明确「控件处理 PointerPressed
+            // 并不阻止 Tapped 触发」，不触发 Tapped 的控件仅 PasswordBox/RichEditBox/TextBox），
+            // 裸 FontIcon/Hyperlink 等也不吞事件——两类内容的点按都会冒泡到本处理器，
+            // 故统一靠 IsWithin 溯源兜底，与尾内容是否为 ButtonBase 无关。
             if (IsWithin(e.OriginalSource as DependencyObject, TrailingSlot))
             {
                 return;
             }
+            // 事件先于 command 触发；消费方只接其一，避免双执行（同 Banner.ActionClick）。
             EventHandler handler = Click;
             if (handler != null)
             {
