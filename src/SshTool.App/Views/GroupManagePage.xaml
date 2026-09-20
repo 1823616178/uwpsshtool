@@ -39,9 +39,11 @@
             <controls:ColorSwatchPicker x:Name="Picker" Margin="{StaticResource GapSmTop}"
                                         ColorChanged="OnColorChanged" />
             <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
-                <Button Content="上移" Click="OnMoveUp" />
-                <Button Content="下移" Click="OnMoveDown" Margin="{StaticResource GapSmLeft}" />
-                <Button Content="删除" Click="OnDelete" Margin="{StaticResource GapSmLeft}" />
+                <Button Content="上移" Click="OnMoveUp" Style="{StaticResource SecondaryButtonStyle}" />
+                <Button Content="下移" Click="OnMoveDown" Margin="{StaticResource GapSmLeft}"
+                        Style="{StaticResource SecondaryButtonStyle}" />
+                <Button Content="删除" Click="OnDelete" Margin="{StaticResource GapSmLeft}"
+                        Style="{StaticResource DangerButtonStyle}" />
             </StackPanel>
         </StackPanel>
     </Grid>

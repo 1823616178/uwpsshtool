@@ -23,6 +23,8 @@
     <Thickness x:Key="GapXlTop">0,24,0,0</Thickness>
     <!-- 发丝描边（Banner 底线、Toast 边框）；不写字面量 1。 -->
     <Thickness x:Key="BorderThin">1</Thickness>
+    <!-- Shape.StrokeThickness 用 Double 档（Thickness 不能赋给 StrokeThickness）。 -->
+    <x:Double x:Key="StrokeThin">1</x:Double>
     <Thickness x:Key="BorderThinBottom">0,0,0,1</Thickness>
     <Thickness x:Key="BorderNone">0</Thickness>
     <Thickness x:Key="PadNone">0</Thickness>
@@ -51,6 +53,8 @@
     <x:Double x:Key="SessionsPaneWidth">280</x:Double>
     <x:Double x:Key="MasterPaneWidth">320</x:Double>
     <x:Double x:Key="DialogMaxWidth">340</x:Double>
+    <!-- F03 SftpPage：传输面板展开后的滚动区上限（≈ 3.5 × ListRowCompactHeight）。 -->
+    <x:Double x:Key="SftpTransferPanelMaxHeight">168</x:Double>
     <x:Double x:Key="FontCaption">12</x:Double>
     <x:Double x:Key="FontBody">15</x:Double>
     <x:Double x:Key="FontSubtitle">18</x:Double>
@@ -80,6 +84,9 @@
     <x:String x:Key="IconUnlock">&#xE785;</x:String>
     <x:String x:Key="IconEdit">&#xE70F;</x:String>
     <x:String x:Key="IconDelete">&#xE74D;</x:String>
+    <x:String x:Key="IconClose">&#xE894;</x:String>
+    <x:String x:Key="IconChevronUp">&#xE70E;</x:String>
+    <x:String x:Key="IconChevronDown">&#xE70D;</x:String>
     <x:String x:Key="IconCopy">&#xE8C8;</x:String>
     <x:String x:Key="IconPaste">&#xE77F;</x:String>
     <x:String x:Key="IconFolder">&#xE8B7;</x:String>

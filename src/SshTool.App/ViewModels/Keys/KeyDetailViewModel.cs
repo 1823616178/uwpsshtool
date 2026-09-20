@@ -263,7 +263,8 @@ namespace SshTool.App.ViewModels.Keys
             }
             catch (Exception ex)
             {
-                return "保存对话框失败：" + ex.GetType().Name;
+                LogFailure("打开保存对话框失败", ex);
+                return "无法打开保存位置，请重试或换个文件夹";
             }
             if (target == null)
             {
@@ -276,12 +277,14 @@ namespace SshTool.App.ViewModels.Keys
                 FileUpdateStatus status = await CachedFileManager.CompleteUpdatesAsync(target);
                 if (status != FileUpdateStatus.Complete)
                 {
-                    return "导出未完成：" + status.ToString();
+                    LogFailure("私钥导出未确认完成 status=" + status.ToString(), null);
+                    return "未能写入所选位置，请关闭占用该文件的程序后重试";
                 }
             }
             catch (Exception ex)
             {
-                return "导出失败：" + ex.GetType().Name;
+                LogFailure("导出私钥失败", ex);
+                return "导出失败，请重试";
             }
             finally
             {
@@ -351,6 +354,20 @@ namespace SshTool.App.ViewModels.Keys
                 clean = clean.Replace(invalid[i].ToString(), "_");
             }
             return clean.Length == 0 ? "key" : clean;
+        }
+
+        // 异常细节只进日志（写盘前由 FileLogger 过 Redactor；私钥内容从不入日志），
+        // 上屏一律是一句能看懂的中文短句。ex 允许为 null。
+        private void LogFailure(string what, Exception ex)
+        {
+            try
+            {
+                Logger.Log(LogLevel.Error, "Keys", what + "："
+                    + (ex == null ? "无异常对象" : ex.GetType().Name + " " + ex.Message));
+            }
+            catch (Exception)
+            {
+            }
         }
 
         private void RaiseAll()

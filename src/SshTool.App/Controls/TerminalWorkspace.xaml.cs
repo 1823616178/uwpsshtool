@@ -417,7 +417,12 @@ namespace SshTool.App.Controls
             bar.Children.Add(split);
 
             var close = new Button();
-            close.Content = "✕";
+            // UI 走查：✕ 文本换 IconClose 字形并补无障碍名（与 TabStrip/SessionsPivot 一致）。
+            close.Content = new FontIcon
+            {
+                Glyph = (string)Application.Current.Resources["IconClose"]
+            };
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(close, "关闭会话");
             close.Tag = sessionId;
             close.Padding = (Thickness)Application.Current.Resources["PadNone"];
             close.BorderThickness = (Thickness)Application.Current.Resources["BorderNone"];

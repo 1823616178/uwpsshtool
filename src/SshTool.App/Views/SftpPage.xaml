@@ -1,0 +1,259 @@
+<Page
+    x:Class="SshTool.App.Views.SftpPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:SshTool.App.Views"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- 02-UI-DESIGN.md §5.17 SftpPage：标题、面包屑（可点）+ 返回上级、文件列表、
+         传输面板（可展开：名称/方向/进度/速率/[取消][重试]）、
+         CommandBar（上传/新建文件夹/刷新/更多=排序方式+显示隐藏文件）。
+         行长按/右键菜单由 code-behind 按条目类型动态构建（下载/重命名/权限/删除/复制路径）。
+         文案走 resw（x:Uid 或 ResourceLoader），尺寸与颜色一律 Token。 -->
+
+    <Page.Resources>
+        <local:NonEmptyToVisibilityConverter x:Key="NonEmptyToVisibility" />
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+        <local:HasPercentToVisibilityConverter x:Key="PercentToVisibility" />
+
+        <!-- 文件行：图标 / 名称（+链接目标）/ 大小 / 修改时间 -->
+        <DataTemplate x:Key="EntryRowTemplate">
+            <Grid MinHeight="{StaticResource ListRowCompactHeight}"
+                  Padding="{StaticResource PagePadding}"
+                  Background="Transparent"
+                  RightTapped="OnRowRightTapped"
+                  Holding="OnRowHolding">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <FontIcon Glyph="{Binding Glyph}"
+                          FontSize="{StaticResource FontBody}"
+                          Foreground="{ThemeResource AppAccentBrush}"
+                          VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}">
+                    <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding LinkText}" Style="{StaticResource CaptionTextStyle}"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                               Visibility="{Binding LinkText, Converter={StaticResource NonEmptyToVisibility}}" />
+                </StackPanel>
+                <TextBlock Grid.Column="2" Text="{Binding SizeText}"
+                           Style="{StaticResource MonoCaptionTextStyle}"
+                           VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
+                <TextBlock Grid.Column="3" Text="{Binding MtimeText}"
+                           Style="{StaticResource CaptionTextStyle}"
+                           VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
+            </Grid>
+        </DataTemplate>
+
+        <!-- 传输行：方向图标 / 名称 / 状态 / 进度条 / 速率 / [取消][重试] -->
+        <DataTemplate x:Key="TransferRowTemplate">
+            <Grid MinHeight="{StaticResource ListRowCompactHeight}"
+                  Padding="{StaticResource PagePadding}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <FontIcon Glyph="{Binding Glyph}" FontSize="{StaticResource FontBody}"
+                          Foreground="{ThemeResource AppTextDimBrush}"
+                          VerticalAlignment="Center" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}"
+                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="1" Text="{Binding StateText}"
+                                   Style="{StaticResource CaptionTextStyle}"
+                                   VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
+                        <TextBlock Grid.Column="2" Text="{Binding RateText}"
+                                   Style="{StaticResource MonoCaptionTextStyle}"
+                                   VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}"
+                                   Visibility="{Binding RateText, Converter={StaticResource NonEmptyToVisibility}}" />
+                    </Grid>
+                    <ProgressBar Maximum="100" Value="{Binding Percent, Mode=OneWay}"
+                                 Visibility="{Binding Percent, Converter={StaticResource PercentToVisibility}}"
+                                 Margin="{StaticResource GapXsTop}"
+                                 Background="{ThemeResource AppBorderBrush}"
+                                 Foreground="{ThemeResource AppAccentBrush}" />
+                    <TextBlock Text="{Binding ErrorText}" Style="{StaticResource CaptionTextStyle}"
+                               Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
+                               Visibility="{Binding ErrorText, Converter={StaticResource NonEmptyToVisibility}}"
+                               Margin="{StaticResource GapXsTop}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                            Margin="{StaticResource GapSmLeft}">
+                    <Button Content="{Binding CancelText}" Click="OnCancelTransferClick"
+                            Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
+                            MinWidth="{StaticResource TouchTargetMin}" />
+                    <Button Click="OnRetryTransferClick"
+                            Visibility="{Binding CanRetry, Converter={StaticResource BoolToVisibility}}"
+                            MinWidth="{StaticResource TouchTargetMin}"
+                            Margin="{StaticResource GapSmLeft}">
+                        <FontIcon Glyph="{StaticResource IconSync}" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="TitleText" Style="{StaticResource PageTitleTextStyle}"
+                   Margin="{StaticResource PagePadding}" TextTrimming="CharacterEllipsis" />
+
+        <!-- 面包屑（可点回跳）+ 返回上级 -->
+        <Grid Grid.Row="1" Padding="{StaticResource PagePadding}"
+              Background="{ThemeResource AppSurfaceBrush}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ScrollViewer HorizontalScrollBarVisibility="Hidden"
+                          HorizontalScrollMode="Auto" VerticalScrollMode="Disabled"
+                          VerticalAlignment="Center">
+                <ItemsControl x:Name="BreadcrumbBar">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="/" Style="{StaticResource BodyTextStyle}"
+                                           VerticalAlignment="Center" />
+                                <Button Content="{Binding Name}" Click="OnBreadcrumbClick"
+                                        Padding="{StaticResource PadNone}"
+                                        BorderThickness="{StaticResource BorderNone}"
+                                        Background="Transparent"
+                                        Foreground="{ThemeResource AppTextBrush}"
+                                        MinHeight="{StaticResource GroupHeaderHeight}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+            <!-- UI 走查：上级按钮不再用裸「↑」字符（读屏念成「上箭头」、字体回落会变豆腐块）。
+                 无障碍名由 x:Uid 从 resw 的 Sftp_UpButton.AutomationProperties.Name 取（zh/en 均已登记）。 -->
+            <Button x:Uid="Sftp_UpButton" Grid.Column="1"
+                    MinWidth="{StaticResource TouchTargetMin}"
+                    MinHeight="{StaticResource TouchTargetMin}"
+                    BorderThickness="{StaticResource BorderNone}"
+                    Background="Transparent"
+                    Foreground="{ThemeResource AppTextBrush}"
+                    Click="OnUpClick">
+                <Button.Content>
+                    <FontIcon Glyph="{StaticResource IconChevronUp}" FontSize="{StaticResource FontBody}" />
+                </Button.Content>
+            </Button>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <ListView x:Name="EntryList" SelectionMode="None" IsItemClickEnabled="True"
+                      ItemClick="OnEntryClick" ItemTemplate="{StaticResource EntryRowTemplate}" />
+            <controls:EmptyState x:Name="EmptyPanel" Visibility="Collapsed"
+                                 Glyph="{StaticResource IconFolder}" />
+        </Grid>
+
+        <!-- 传输面板：头（可展开 / 清除已完成）+ 行列表；无传输/无历史时整条隐藏。
+             描边只能挂在 Border 上（Panel 无 BorderThickness，写上去 XAML 直接编译失败），
+             所以外层是 Border、内容是 StackPanel；x:Name 留在 Border 上，整块一起显隐。 -->
+        <Border x:Name="TransferPanel" Grid.Row="3" Visibility="Collapsed"
+                Background="{ThemeResource AppSurfaceBrush}"
+                BorderBrush="{ThemeResource AppBorderBrush}"
+                BorderThickness="{StaticResource BorderThin}">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                            Click="OnToggleTransfersClick"
+                            BorderThickness="{StaticResource BorderNone}"
+                            Background="Transparent">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="ChevronText" Text="▸" Style="{StaticResource BodyTextStyle}"
+                                       VerticalAlignment="Center" />
+                            <TextBlock x:Name="TransferHeaderText" Grid.Column="1"
+                                       Style="{StaticResource BodyTextStyle}" TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
+                        </Grid>
+                    </Button>
+                    <Button x:Name="ClearFinishedButton" Grid.Column="1" Click="OnClearFinishedClick"
+                            BorderThickness="{StaticResource BorderNone}"
+                            Background="Transparent"
+                            Foreground="{ThemeResource AppTextDimBrush}"
+                            MinHeight="{StaticResource TouchTargetMin}" />
+                </Grid>
+                <!-- 传输面板空状态：面板可见但列表暂无行时给一行说明（文案由 code-behind
+                     取 resw 的 Sftp_TransfersEmpty）。整条面板的显隐仍由 ShowTransferBar 决定，
+                     折叠逻辑一字未改。 -->
+                <TextBlock x:Name="TransfersEmptyText" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource PagePadding}" TextWrapping="Wrap"
+                           Visibility="Collapsed" />
+                <ItemsControl x:Name="TransferList" ItemTemplate="{StaticResource TransferRowTemplate}"
+                              MaxHeight="{StaticResource SftpTransferPanelMaxHeight}"
+                              Visibility="Collapsed">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <VirtualizingStackPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.Template>
+                        <ControlTemplate TargetType="ItemsControl">
+                            <ScrollViewer VerticalScrollMode="Auto" VerticalScrollBarVisibility="Visible">
+                                <ItemsPresenter />
+                            </ScrollViewer>
+                        </ControlTemplate>
+                    </ItemsControl.Template>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <controls:LoadingOverlay x:Name="BusyOverlay" Grid.RowSpan="4" IsActive="False" />
+        <controls:TransientToast x:Name="Toast" Grid.RowSpan="4" VerticalAlignment="Bottom" />
+    </Grid>
+
+    <Page.BottomAppBar>
+        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
+            <AppBarButton x:Uid="Sftp_UploadButton" Click="OnUploadClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconUpload}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton x:Uid="Sftp_NewFolderButton" Click="OnNewFolderClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconFolder}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton x:Uid="Sftp_RefreshButton" Click="OnRefreshClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconSync}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <CommandBar.SecondaryCommands>
+                <AppBarButton x:Uid="Sftp_MoreButton" Click="OnMoreClick" />
+            </CommandBar.SecondaryCommands>
+        </CommandBar>
+    </Page.BottomAppBar>
+</Page>

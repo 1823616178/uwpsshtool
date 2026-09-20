@@ -1,0 +1,60 @@
+<ContentDialog
+    x:Class="SshTool.App.Dialogs.PermissionsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Uid="PermissionsDialog"
+    MaxWidth="{StaticResource DialogMaxWidth}">
+
+    <!-- 02-UI-DESIGN.md §5.17：rwx 九宫格 + 八进制互转（PermissionBits，Core 单测）；
+         文案由 .cs 经 resw 填充（双语），色值一律走 Token。Title 走 Sftp_PermissionsTitle，
+         取消/确定复用 Dialog_Cancel/Dialog_Ok（.cs 设定），故此处不硬编码中文。 -->
+    <StackPanel>
+        <Grid Margin="{StaticResource GapSmTop}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock x:Name="OwnerLabel" Grid.Row="1" Grid.Column="0"
+                       Style="{StaticResource BodyTextStyle}" VerticalAlignment="Center" />
+            <TextBlock x:Name="GroupLabel" Grid.Row="2" Grid.Column="0"
+                       Style="{StaticResource BodyTextStyle}" VerticalAlignment="Center" />
+            <TextBlock x:Name="OtherLabel" Grid.Row="3" Grid.Column="0"
+                       Style="{StaticResource BodyTextStyle}" VerticalAlignment="Center" />
+
+            <TextBlock x:Name="ReadLabel" Grid.Row="0" Grid.Column="1"
+                       Style="{StaticResource CaptionTextStyle}"
+                       Width="{StaticResource TouchTargetMin}" TextAlignment="Center" />
+            <TextBlock x:Name="WriteLabel" Grid.Row="0" Grid.Column="2"
+                       Style="{StaticResource CaptionTextStyle}"
+                       Width="{StaticResource TouchTargetMin}" TextAlignment="Center" />
+            <TextBlock x:Name="ExecuteLabel" Grid.Row="0" Grid.Column="3"
+                       Style="{StaticResource CaptionTextStyle}"
+                       Width="{StaticResource TouchTargetMin}" TextAlignment="Center" />
+
+            <CheckBox x:Name="OwnerRead"    Grid.Row="1" Grid.Column="1" Margin="{StaticResource GapSmLeft}" />
+            <CheckBox x:Name="OwnerWrite"   Grid.Row="1" Grid.Column="2" Margin="{StaticResource GapSmLeft}" />
+            <CheckBox x:Name="OwnerExecute" Grid.Row="1" Grid.Column="3" Margin="{StaticResource GapSmLeft}" />
+            <CheckBox x:Name="GroupRead"    Grid.Row="2" Grid.Column="1" Margin="{StaticResource GapSmLeft}" />
+            <CheckBox x:Name="GroupWrite"   Grid.Row="2" Grid.Column="2" Margin="{StaticResource GapSmLeft}" />
+            <CheckBox x:Name="GroupExecute" Grid.Row="2" Grid.Column="3" Margin="{StaticResource GapSmLeft}" />
+            <CheckBox x:Name="OtherRead"    Grid.Row="3" Grid.Column="1" Margin="{StaticResource GapSmLeft}" />
+            <CheckBox x:Name="OtherWrite"   Grid.Row="3" Grid.Column="2" Margin="{StaticResource GapSmLeft}" />
+            <CheckBox x:Name="OtherExecute" Grid.Row="3" Grid.Column="3" Margin="{StaticResource GapSmLeft}" />
+        </Grid>
+
+        <TextBox x:Name="OctalBox" Header="八进制" Margin="{StaticResource GapMdTop}"
+                 TextChanged="OnOctalChanged" MaxLength="4" />
+        <TextBlock x:Name="ErrorText" Style="{StaticResource CaptionTextStyle}"
+                   Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
+                   Visibility="Collapsed" Margin="{StaticResource GapXsTop}" />
+    </StackPanel>
+</ContentDialog>

@@ -17,6 +17,7 @@ tools/vcpkg/
 # 设备门户会话与拉回的真机报告（本机产物，不入库）
 .phone-portal-session.json
 artifacts/
+.qoder/
 
 # 第三方源码由 scripts/fetch-third-party.ps1 抓取，不入库（补丁说明除外）
 native/third_party/*

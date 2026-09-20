@@ -55,9 +55,9 @@
                 <AppBarButton x:Name="DebugSpikeItem" Label="SP01 JSON Spike" Click="OnSpikeClick" Visibility="Collapsed" />
                 <AppBarButton x:Name="DebugTokenItem" Label="X03 Token 画廊" Click="OnTokenGalleryClick" Visibility="Collapsed" />
                 <AppBarButton x:Name="DebugRenderItem" Label="SP04 渲染压测" Click="OnRenderSpikeClick" Visibility="Collapsed" />
+                <AppBarButton x:Name="DebugPerfItem" Label="Q01 性能基准" Click="OnPerfClick" Visibility="Collapsed" />
                 <AppBarButton x:Name="DebugInputItem" Label="SP05 输入采集" Click="OnInputSpikeClick" Visibility="Collapsed" />
                 <AppBarButton x:Name="DebugPlatformItem" Label="SP06 平台 Spike" Click="OnPlatformSpikeClick" Visibility="Collapsed" />
-                <AppBarButton x:Name="DebugBuildItem" Label="构建信息" Click="OnBuildInfoClick" Visibility="Collapsed" />
                 <AppBarButton x:Name="DebugGenerateHostsItem" Label="生成 100 台测试主机" Click="OnGenerateHostsClick" Visibility="Collapsed" />
             </CommandBar.SecondaryCommands>
         </CommandBar>
@@ -78,11 +78,12 @@
             <PivotItem Header="会话">
                 <main:SessionsPivot x:Name="SessionsPivotCtl" />
             </PivotItem>
+            <!-- R-C：本页不绑定任何转发数据，说明文字不再承诺「会显示转发状态」。 -->
             <PivotItem Header="隧道">
                 <controls:EmptyState
                     Glyph="{StaticResource IconTunnel}"
-                    Title="没有隧道"
-                    Description="隧道将在后续里程碑提供。" />
+                    Title="暂无隧道"
+                    Description="转发在会话后台运行。" />
             </PivotItem>
         </Pivot>
 

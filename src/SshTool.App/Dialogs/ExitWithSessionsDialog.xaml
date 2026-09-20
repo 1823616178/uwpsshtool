@@ -2,11 +2,14 @@
     x:Class="SshTool.App.Dialogs.ExitWithSessionsDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:Uid="ExitDialog"
     MaxWidth="{StaticResource DialogMaxWidth}"
     Title="退出应用"
     PrimaryButtonText="退出"
     SecondaryButtonText="取消">
 
-    <!-- 02-UI-DESIGN.md §5.8 ExitWithSessionsDialog：「有 N 个会话正在连接，退出将全部断开」 -->
+    <!-- 02-UI-DESIGN.md §5.8 ExitWithSessionsDialog：「有 N 个会话正在连接，退出将全部断开」。
+         标题与按钮走 x:Uid（ExitDialog.Title / .PrimaryButtonText / .SecondaryButtonText）；
+         正文含会话数，由 code-behind 用 ResourceLoader 的 ExitDialog_Message（{0}）格式化。 -->
     <TextBlock x:Name="MessageText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
 </ContentDialog>

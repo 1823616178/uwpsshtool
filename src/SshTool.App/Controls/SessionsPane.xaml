@@ -8,7 +8,11 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Button Content="新会话" Click="OnNew" Margin="{StaticResource PagePadding}" />
+        <!-- UI 走查：侧栏「新会话」为次级入口（主新建在 CommandBar），补触控与层级样式。 -->
+        <Button Content="新会话" Click="OnNew"
+                Style="{StaticResource SecondaryButtonStyle}"
+                MinHeight="{StaticResource TouchTargetMin}"
+                Margin="{StaticResource PagePadding}" />
         <ListView x:Name="List" Grid.Row="1" IsItemClickEnabled="True" ItemClick="OnItemClick">
             <ListView.ItemTemplate>
                 <DataTemplate>

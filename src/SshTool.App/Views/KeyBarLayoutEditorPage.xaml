@@ -10,7 +10,7 @@
         <DataTemplate x:Key="KeyItemTemplate">
             <StackPanel Padding="{StaticResource PagePadding}">
                 <TextBlock Text="{Binding Label}" Style="{StaticResource BodyTextStyle}" />
-                <TextBlock Text="{Binding Id}" Style="{StaticResource CaptionTextStyle}" />
+                <TextBlock Text="{Binding Description}" Style="{StaticResource CaptionTextStyle}" />
             </StackPanel>
         </DataTemplate>
     </Page.Resources>
@@ -58,16 +58,21 @@
         </Grid>
         <StackPanel Grid.Row="3" Orientation="Horizontal"
                     Margin="{StaticResource PagePadding}">
-            <Button Content="添加 →" Click="OnAddClick" />
+            <Button Content="添加 →" Click="OnAddClick"
+                    Style="{StaticResource PrimaryButtonStyle}" />
             <Button Content="← 移除" Click="OnRemoveClick"
+                    Style="{StaticResource SecondaryButtonStyle}"
                     Margin="{StaticResource GapSmLeft}" />
         </StackPanel>
         <StackPanel Grid.Row="4" Orientation="Horizontal"
                     Margin="{StaticResource PagePadding}">
-            <Button Content="上移" Click="OnMoveUpClick" />
+            <Button Content="上移" Click="OnMoveUpClick"
+                    Style="{StaticResource SecondaryButtonStyle}" />
             <Button Content="下移" Click="OnMoveDownClick"
+                    Style="{StaticResource SecondaryButtonStyle}"
                     Margin="{StaticResource GapSmLeft}" />
             <Button Content="恢复默认" Click="OnResetClick"
+                    Style="{StaticResource SecondaryButtonStyle}"
                     Margin="{StaticResource GapSmLeft}" />
         </StackPanel>
         <controls:TransientToast x:Name="Toast" Grid.Row="4" />

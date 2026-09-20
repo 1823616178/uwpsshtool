@@ -120,4 +120,115 @@
   <data name="Login_RequestId" xml:space="preserve"><value>Request ID: {0}</value></data>
   <data name="Login_SyncUnavailable" xml:space="preserve"><value>Sync is unavailable. Restart the app and try again.</value></data>
   <data name="Login_AlreadySignedIn" xml:space="preserve"><value>Already signed in. Sign out first to continue.</value></data>
+
+  <data name="Sftp_Title.Text" xml:space="preserve"><value>SFTP</value></data>
+  <data name="Sftp_Connecting" xml:space="preserve"><value>Connecting to SFTP…</value></data>
+  <data name="Sftp_UpButton.AutomationProperties.Name" xml:space="preserve"><value>Go to parent directory</value></data>
+  <data name="Sftp_EmptyTitle.Text" xml:space="preserve"><value>Empty directory</value></data>
+  <data name="Sftp_EmptyDescription.Text" xml:space="preserve"><value>Nothing in this directory</value></data>
+  <data name="Sftp_LoadFailed.Text" xml:space="preserve"><value>Failed to load</value></data>
+  <data name="Sftp_Retry.Text" xml:space="preserve"><value>Retry</value></data>
+  <data name="Sftp_UploadButton.Label" xml:space="preserve"><value>Upload</value></data>
+  <data name="Sftp_NewFolderButton.Label" xml:space="preserve"><value>New folder</value></data>
+  <data name="Sftp_RefreshButton.Label" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Sftp_MoreButton.Label" xml:space="preserve"><value>More</value></data>
+  <data name="Sftp_SortHeader" xml:space="preserve"><value>Sort by</value></data>
+  <data name="Sftp_SortName" xml:space="preserve"><value>Name</value></data>
+  <data name="Sftp_SortSize" xml:space="preserve"><value>Size</value></data>
+  <data name="Sftp_SortMtime" xml:space="preserve"><value>Date</value></data>
+  <data name="Sftp_ShowHidden" xml:space="preserve"><value>Show hidden files</value></data>
+  <data name="Sftp_RowDownload" xml:space="preserve"><value>Download</value></data>
+  <data name="Sftp_RowRename" xml:space="preserve"><value>Rename</value></data>
+  <data name="Sftp_RowPermissions" xml:space="preserve"><value>Permissions</value></data>
+  <data name="Sftp_RowDelete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Sftp_RowCopyPath" xml:space="preserve"><value>Copy path</value></data>
+  <data name="Sftp_PathCopied" xml:space="preserve"><value>Path copied</value></data>
+  <data name="Sftp_FolderCreated" xml:space="preserve"><value>Folder created</value></data>
+  <data name="Sftp_Renamed" xml:space="preserve"><value>Rename done</value></data>
+  <data name="Sftp_PermissionsChanged" xml:space="preserve"><value>Permissions updated</value></data>
+  <data name="Sftp_Deleted" xml:space="preserve"><value>Deleted</value></data>
+  <data name="Sftp_UploadStarted" xml:space="preserve"><value>Queued {0} file(s) for upload</value></data>
+  <data name="Sftp_DeleteTitle" xml:space="preserve"><value>Delete</value></data>
+  <data name="Sftp_DeleteFileConfirm" xml:space="preserve"><value>Delete “{0}”?</value></data>
+  <data name="Sftp_DeleteDirConfirm" xml:space="preserve"><value>“{0}” is a folder. Everything inside it (including subfolders) will be deleted. This cannot be undone.</value></data>
+  <data name="Sftp_DeletePartialNote" xml:space="preserve"><value>Some content may already be deleted.</value></data>
+  <data name="Sftp_DeleteButtonText" xml:space="preserve"><value>Delete</value></data>
+  <data name="Sftp_TransferPanelTitle" xml:space="preserve"><value>Transfers ({0})</value></data>
+  <data name="Sftp_TransfersEmpty" xml:space="preserve"><value>No transfers in progress</value></data>
+  <data name="Sftp_ClearFinished" xml:space="preserve"><value>Clear finished</value></data>
+  <data name="Sftp_TransferUpload" xml:space="preserve"><value>Upload</value></data>
+  <data name="Sftp_TransferDownload" xml:space="preserve"><value>Download</value></data>
+  <data name="Sftp_StateQueued" xml:space="preserve"><value>Queued</value></data>
+  <data name="Sftp_StateRunning" xml:space="preserve"><value>Transferring</value></data>
+  <data name="Sftp_StateCompleted" xml:space="preserve"><value>Completed</value></data>
+  <data name="Sftp_StateFailed" xml:space="preserve"><value>Failed</value></data>
+  <data name="Sftp_StateCancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Sftp_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Sftp_RetryTransfer" xml:space="preserve"><value>Retry</value></data>
+  <data name="Sftp_PermissionsTitle" xml:space="preserve"><value>Permissions</value></data>
+  <data name="Sftp_PermissionsOwner" xml:space="preserve"><value>Owner</value></data>
+  <data name="Sftp_PermissionsGroup" xml:space="preserve"><value>Group</value></data>
+  <data name="Sftp_PermissionsOther" xml:space="preserve"><value>Others</value></data>
+  <data name="Sftp_PermissionsRead" xml:space="preserve"><value>Read</value></data>
+  <data name="Sftp_PermissionsWrite" xml:space="preserve"><value>Write</value></data>
+  <data name="Sftp_PermissionsExecute" xml:space="preserve"><value>Execute</value></data>
+  <data name="Sftp_PermissionsOctal.Header" xml:space="preserve"><value>Octal (e.g. 644)</value></data>
+  <data name="Sftp_PermissionsInvalid" xml:space="preserve"><value>Octal must be 3 digits 0–7</value></data>
+  <data name="Sftp_RenameTitle" xml:space="preserve"><value>Rename</value></data>
+  <data name="Sftp_RenameName.Header" xml:space="preserve"><value>Name</value></data>
+  <data name="Sftp_MkdirTitle" xml:space="preserve"><value>New folder</value></data>
+  <data name="Sftp_NameRequired" xml:space="preserve"><value>Enter a name.</value></data>
+  <data name="Sftp_NameInvalid" xml:space="preserve"><value>Name cannot contain “/” and cannot be “.” or “..”</value></data>
+  <data name="Sftp_MinutesAgo" xml:space="preserve"><value>{0} min ago</value></data>
+  <data name="Sftp_JustNow" xml:space="preserve"><value>Just now</value></data>
+  <data name="Sftp_SymlinkTo" xml:space="preserve"><value>→ {0}</value></data>
+  <data name="Sftp_LinkMenuOpenTarget" xml:space="preserve"><value>Open target folder</value></data>
+  <data name="Sftp_LinkFileMenuOpenTarget" xml:space="preserve"><value>Download target</value></data>
+  <data name="Sftp_ErrSessionGone" xml:space="preserve"><value>The session has ended. Reopen SFTP from the host list.</value></data>
+  <data name="Sftp_ErrNotConnected" xml:space="preserve"><value>Session not connected. SFTP needs an online session.</value></data>
+  <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>Transfer failed (error code {0})</value></data>
+  <data name="Dialog_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Dialog_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="Placeholder_Title" xml:space="preserve"><value>Coming soon</value></data>
+  <data name="Placeholder_ComingSoon" xml:space="preserve"><value>This feature is still in the works. Stay tuned for a future update.</value></data>
+
+  <data name="ExitDialog.Title" xml:space="preserve"><value>Exit the app</value></data>
+  <data name="ExitDialog.PrimaryButtonText" xml:space="preserve"><value>Exit</value></data>
+  <data name="ExitDialog.SecondaryButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="ExitDialog_Message" xml:space="preserve"><value>{0} session(s) are still active. Exiting will disconnect them all.</value></data>
+
+  <data name="VaultSetup_Title.Text" xml:space="preserve"><value>Create sync vault</value></data>
+  <data name="VaultSetup_Explanation.Text" xml:space="preserve"><value>The sync password encrypts your data. The server cannot decrypt it and it may differ from your login password.</value></data>
+  <data name="VaultSetup_PasswordBox.Header" xml:space="preserve"><value>Sync password</value></data>
+  <data name="VaultSetup_PasswordBox.PlaceholderText" xml:space="preserve"><value>Set a sync password (at least 8 characters)</value></data>
+  <data name="VaultSetup_ConfirmBox.Header" xml:space="preserve"><value>Confirm sync password</value></data>
+  <data name="VaultSetup_PasswordHint.Text" xml:space="preserve"><value>Sync password must be at least 8 characters.</value></data>
+  <data name="VaultSetup_LocalNote.Text" xml:space="preserve"><value>Once unlocked, the vault key is stored encrypted on this device, so you will not need to type it again after a restart.</value></data>
+  <data name="VaultSetup_SubmitButton.Content" xml:space="preserve"><value>Create</value></data>
+  <data name="VaultUnlock_Title.Text" xml:space="preserve"><value>Unlock vault</value></data>
+  <data name="VaultUnlock_PasswordTab.Content" xml:space="preserve"><value>Sync password</value></data>
+  <data name="VaultUnlock_RecoveryTab.Content" xml:space="preserve"><value>Recovery key</value></data>
+  <data name="VaultUnlock_PasswordBox.Header" xml:space="preserve"><value>Sync password</value></data>
+  <data name="VaultUnlock_PasswordBox.PlaceholderText" xml:space="preserve"><value>Enter your sync password</value></data>
+  <data name="VaultUnlock_RecoveryBox.Header" xml:space="preserve"><value>Recovery key</value></data>
+  <data name="VaultUnlock_RecoveryBox.PlaceholderText" xml:space="preserve"><value>SPM1-…-XXXXXXXXXXXX</value></data>
+  <data name="VaultUnlock_RecoveryHint.Text" xml:space="preserve"><value>Paste directly. Prefix and checksum casing does not matter; the key is normalized automatically.</value></data>
+  <data name="VaultUnlock_SubmitButton.Content" xml:space="preserve"><value>Unlock</value></data>
+  <data name="VaultDialog.Title" xml:space="preserve"><value>Save the recovery key now</value></data>
+  <data name="VaultDialog.PrimaryButtonText" xml:space="preserve"><value>Done</value></data>
+  <data name="VaultDialog_Note.Text" xml:space="preserve"><value>This is the only time it is shown. If you forget the sync password, the recovery key is the only way to unlock the vault.</value></data>
+  <data name="VaultDialog_CopyButton.Content" xml:space="preserve"><value>Copy</value></data>
+  <data name="VaultDialog_Copied.Text" xml:space="preserve"><value>Copied to clipboard</value></data>
+  <data name="VaultDialog_SavedBox.Content" xml:space="preserve"><value>I have saved this key</value></data>
+  <data name="VaultDialog_Warning.Text" xml:space="preserve"><value>Tick "I have saved this key" first to continue</value></data>
+  <data name="Vault_SyncUnavailable" xml:space="preserve"><value>Sync is unavailable. Restart the app and try again.</value></data>
+  <data name="Vault_SyncPasswordRequired" xml:space="preserve"><value>Enter your sync password.</value></data>
+  <data name="Vault_SyncPasswordTooShort" xml:space="preserve"><value>Sync password must be at least 8 characters.</value></data>
+  <data name="Vault_SyncPasswordMismatch" xml:space="preserve"><value>The two sync passwords do not match.</value></data>
+  <data name="Vault_RecoveryRequired" xml:space="preserve"><value>Enter your recovery key.</value></data>
+  <data name="Vault_RecoveryFormatInvalid" xml:space="preserve"><value>The recovery key format is invalid.</value></data>
+  <data name="Vault_RecoveryChecksumFailed" xml:space="preserve"><value>The recovery key failed verification.</value></data>
+  <data name="Vault_WorkingSetup" xml:space="preserve"><value>Generating keys (a few seconds)…</value></data>
+  <data name="Vault_WorkingUnlock" xml:space="preserve"><value>Unlocking…</value></data>
+  <data name="Vault_WorkingSync" xml:space="preserve"><value>Syncing…</value></data>
 </root>

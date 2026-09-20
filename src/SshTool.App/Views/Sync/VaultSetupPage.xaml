@@ -1,0 +1,52 @@
+<Page
+    x:Class="SshTool.App.Views.Sync.VaultSetupPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- U16 建库页（02-UI-DESIGN.md §5.13 VaultSetupPage）：说明 + 同步密码 ×2（≥8 位提示）
+         + [创建] → 进度「正在生成密钥（约数秒）」→ RecoveryKeyDialog（必须勾选已保存）
+         → 自动首次同步。解锁后的密钥由 VaultCache（DPAPI）持久化，故无「记住同步密码」。 -->
+    <Grid>
+        <ScrollViewer>
+            <StackPanel Padding="{StaticResource PagePadding}">
+                <TextBlock x:Uid="VaultSetup_Title" Text="创建同步保险库"
+                           Style="{StaticResource PageTitleTextStyle}" />
+                <TextBlock x:Uid="VaultSetup_Explanation"
+                           Text="同步密码用于加密你的配置，服务器无法解密；与登录密码可以不同。"
+                           Style="{StaticResource BodyTextStyle}"
+                           TextWrapping="Wrap"
+                           Margin="{StaticResource GapSmTop}" />
+                <PasswordBox x:Name="SyncPasswordBox" x:Uid="VaultSetup_PasswordBox"
+                             Header="同步密码" PlaceholderText="设置同步密码（至少 8 位）"
+                             Margin="{StaticResource GapMdTop}"
+                             PasswordChanged="OnPasswordChanged" />
+                <TextBlock x:Uid="VaultSetup_PasswordHint" Text="同步密码至少 8 位"
+                           Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapXsTop}" />
+                <PasswordBox x:Name="ConfirmBox" x:Uid="VaultSetup_ConfirmBox"
+                             Header="确认同步密码"
+                             Margin="{StaticResource GapSmTop}"
+                             PasswordChanged="OnConfirmChanged" />
+                <TextBlock x:Uid="VaultSetup_LocalNote"
+                           Text="解锁后的保险库密钥加密保存在本机，重启无需再次输入。"
+                           Style="{StaticResource CaptionTextStyle}"
+                           TextWrapping="Wrap"
+                           Margin="{StaticResource GapSmTop}" />
+                <TextBlock x:Name="ErrorText"
+                           Foreground="{ThemeResource AppDangerBrush}"
+                           Style="{StaticResource BodyTextStyle}"
+                           TextWrapping="Wrap"
+                           Margin="{StaticResource GapSmTop}"
+                           Visibility="Collapsed" />
+                <Button x:Name="SubmitButton" x:Uid="VaultSetup_SubmitButton" Content="创建"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        HorizontalAlignment="Stretch"
+                        Margin="{StaticResource GapSmTop}"
+                        Click="OnSubmitClick" />
+            </StackPanel>
+        </ScrollViewer>
+        <controls:LoadingOverlay x:Name="Working" />
+    </Grid>
+</Page>

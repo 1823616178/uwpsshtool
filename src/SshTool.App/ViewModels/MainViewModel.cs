@@ -93,6 +93,7 @@ namespace SshTool.App.ViewModels
         public ICommand AboutCommand { get; private set; }
         public ICommand SignInCommand { get; private set; }
 
+        // UI 走查：milestone 是内部规划代号（M3/M5/M8），只随参数进日志，PlaceholderPage 不上屏显示。
         private void OpenPlaceholder(string title, string milestone)
         {
             Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs(title, milestone));

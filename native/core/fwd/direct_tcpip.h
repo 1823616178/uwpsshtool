@@ -49,6 +49,7 @@
 #include <string>
 
 #include "fwd/pump.h"
+#include "fwd/socks5.h"
 #include "io/EventLoop.h"
 
 // Forward declaration, keeps <libssh2.h> out of the public header (channel.h
@@ -101,9 +102,7 @@ struct ForwardCloseInfo {
 struct ForwardedCallbacks {
     std::function<void(const ForwardOpenResult& result)> onOpen; // exactly once
     std::function<void(const ForwardCloseInfo& info)> onClose; // exactly once, after open
-};
-
-class ForwardedConnection {
+};class ForwardedConnection {
 public:
     // Local half: |accepted| must be a connected non-blocking TCP socket
     // (the listener accepts + configures it). Takes ownership immediately
@@ -127,6 +126,11 @@ public:
                    std::uint16_t srcPort);
     // Remote: connect the socket to the tunnel target.
     bool openRemote(std::string targetHost, std::uint16_t targetPort);
+    // F05 dynamic (SOCKS5): 先在 accepted socket 上完成握手（纯逻辑 socks5::Handshake），
+    // 从 CONNECT 请求解析出目标后再 openLocal 语义的 direct-tcpip；通道就绪前先回写
+    // 成功回复，请求后已到达的字节经 pump::injectAtoB 注入。握手失败按裁决回写
+    // 回复帧（可为空）后关闭；direct-tcpip 被拒时回写 HostUnreachable 后关闭。
+    bool openDynamic(std::string srcHost, std::uint16_t srcPort);
 
     // Close (any thread, idempotent): an in-flight open finishes first; a
     // pumping connection best-effort flushes both pump buffers before the
@@ -138,6 +142,10 @@ public:
     // Replace the onClose callback (loop thread only; must precede the open —
     // lets the owning listener bind an erasure keyed on the heap address).
     void setCloseCallback(std::function<void(const ForwardCloseInfo& info)> callback);
+
+    // F05：打开失败（onOpen(false) 后无 onClose）时的回收钩子（loop 线程、
+    // failOpen 内触发）。监听器凭此按堆地址回收失败连接，避免滞留集合。
+    void setOpenFailureCallback(std::function<void()> callback);
 
     // Step-machine legality table (static pure function, for unit tests).
     static bool isLegalTransition(ForwardState from, ForwardState to);
@@ -163,6 +171,12 @@ private:
     void driveTargetConnect();   // remote half: deadline nudge from session events
     bool drivePumpOnce();      // one BidirectionalPump pass + interest refresh
     bool driveClose();         // close handshake -> free -> socket close -> finish
+    // F05 dynamic: SOCKS5 握手驱动（Opening 阶段、通道打开前）——读 socket 喂
+    // 纯逻辑握手，回写裁决帧，Request 解析出目标后转入通道打开。
+    bool driveSocks();
+    bool flushSocksReply(); // 写回挂起的握手帧（可部分写，Writable 续推）
+    void sendBestEffort(const std::string& data); // 关闭前尽力送达（拒绝/失败帧）
+    void finishOpenToPumping(); // open 成功收尾：统计/回调/（dynamic 时先回写回复）
     void enterClosing(ForwardCloseReason reason, std::string message);
     void failOpen(ForwardOpenError error, const std::string& message);
     void finishClose();
@@ -177,6 +191,7 @@ private:
 
     ssh::SshSession& session_;
     ForwardedCallbacks callbacks_;
+    std::function<void()> openFailureCallback_; // 打开失败回收钩子（可空）
     std::shared_ptr<TunnelStats> stats_; // never null (admission copies the share)
 
     // ---- cross-thread visible state ----
@@ -191,6 +206,16 @@ private:
     std::uint16_t port_ = 0;
     std::string srcHost_;
     std::uint16_t srcPort_ = 0;
+
+    // ---- F05 dynamic (SOCKS5) handshake phase, loop thread only ----
+    bool socksMode_ = false;     // openDynamic 准入时置位
+    bool socksParsed_ = false;   // CONNECT 目标已解析（host_/port_ 已就位）
+    bool socksReplyArmed_ = false; // 成功回复帧已入队（防部分写后重复注入）
+    bool socksReplyFailed_ = false; // 回复写失败（由调用方收尾，本函数不碰状态机）
+    bool openNotified_ = false;  // onOpen(成功) 已回调（回复写完才转 Pumping，需幂等）
+    std::string socksLeftover_;  // 请求后已到达的应用数据（开泵时注入 A→B）
+    std::string socksReplyPending_; // 待写回的握手帧（方法选择/成功/失败回复）
+    socks5::Handshake socks_;
 
     // ---- loop thread only ----
     SOCKET socket_ = INVALID_SOCKET;

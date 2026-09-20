@@ -1,7 +1,9 @@
+using System;
 using SshTool.App.ViewModels;
 using SshTool.Core.Sessions;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Data;
 
 namespace SshTool.App.Views.Main
 {
@@ -63,6 +65,43 @@ namespace SshTool.App.Views.Main
             {
                 ViewModel.Close(btn.Tag as SessionInfo);
             }
+        }
+    }
+
+    // UI 走查（验收项 3）：SessionUiState 是枚举，直接绑定会把英文枚举名甩到屏幕上。
+    // 这里只做显示层转换（说法与 StatusDot 的无障碍名一致），不参与任何连接判断。
+    public sealed class SessionStateTextConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            if (!(value is SessionUiState))
+            {
+                return string.Empty;
+            }
+            switch ((SessionUiState)value)
+            {
+                case SessionUiState.Connecting:
+                    return "连接中";
+                case SessionUiState.Authenticating:
+                    return "认证中";
+                case SessionUiState.Connected:
+                    return "已连接";
+                case SessionUiState.Reconnecting:
+                    return "重连中";
+                case SessionUiState.Disconnected:
+                    return "已断开";
+                case SessionUiState.Error:
+                    return "连接错误";
+                case SessionUiState.Closed:
+                    return "已关闭";
+                default:
+                    return "未连接";
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new NotSupportedException();
         }
     }
 }

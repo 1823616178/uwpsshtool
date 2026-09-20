@@ -120,4 +120,115 @@
   <data name="Login_RequestId" xml:space="preserve"><value>请求 ID：{0}</value></data>
   <data name="Login_SyncUnavailable" xml:space="preserve"><value>同步组件不可用，请重启应用后重试</value></data>
   <data name="Login_AlreadySignedIn" xml:space="preserve"><value>已登录，请先退出登录后再继续</value></data>
+
+  <data name="Sftp_Title.Text" xml:space="preserve"><value>SFTP</value></data>
+  <data name="Sftp_Connecting" xml:space="preserve"><value>正在连接 SFTP…</value></data>
+  <data name="Sftp_UpButton.AutomationProperties.Name" xml:space="preserve"><value>返回上级目录</value></data>
+  <data name="Sftp_EmptyTitle.Text" xml:space="preserve"><value>空目录</value></data>
+  <data name="Sftp_EmptyDescription.Text" xml:space="preserve"><value>此目录没有内容</value></data>
+  <data name="Sftp_LoadFailed.Text" xml:space="preserve"><value>加载失败</value></data>
+  <data name="Sftp_Retry.Text" xml:space="preserve"><value>重试</value></data>
+  <data name="Sftp_UploadButton.Label" xml:space="preserve"><value>上传</value></data>
+  <data name="Sftp_NewFolderButton.Label" xml:space="preserve"><value>新建文件夹</value></data>
+  <data name="Sftp_RefreshButton.Label" xml:space="preserve"><value>刷新</value></data>
+  <data name="Sftp_MoreButton.Label" xml:space="preserve"><value>更多</value></data>
+  <data name="Sftp_SortHeader" xml:space="preserve"><value>排序方式</value></data>
+  <data name="Sftp_SortName" xml:space="preserve"><value>按名称</value></data>
+  <data name="Sftp_SortSize" xml:space="preserve"><value>按大小</value></data>
+  <data name="Sftp_SortMtime" xml:space="preserve"><value>按时间</value></data>
+  <data name="Sftp_ShowHidden" xml:space="preserve"><value>显示隐藏文件</value></data>
+  <data name="Sftp_RowDownload" xml:space="preserve"><value>下载</value></data>
+  <data name="Sftp_RowRename" xml:space="preserve"><value>重命名</value></data>
+  <data name="Sftp_RowPermissions" xml:space="preserve"><value>权限</value></data>
+  <data name="Sftp_RowDelete" xml:space="preserve"><value>删除</value></data>
+  <data name="Sftp_RowCopyPath" xml:space="preserve"><value>复制路径</value></data>
+  <data name="Sftp_PathCopied" xml:space="preserve"><value>已复制路径</value></data>
+  <data name="Sftp_FolderCreated" xml:space="preserve"><value>文件夹已创建</value></data>
+  <data name="Sftp_Renamed" xml:space="preserve"><value>已重命名</value></data>
+  <data name="Sftp_PermissionsChanged" xml:space="preserve"><value>权限已更新</value></data>
+  <data name="Sftp_Deleted" xml:space="preserve"><value>已删除</value></data>
+  <data name="Sftp_UploadStarted" xml:space="preserve"><value>已加入上传队列：{0} 个文件</value></data>
+  <data name="Sftp_DeleteTitle" xml:space="preserve"><value>删除</value></data>
+  <data name="Sftp_DeleteFileConfirm" xml:space="preserve"><value>删除「{0}」？</value></data>
+  <data name="Sftp_DeleteDirConfirm" xml:space="preserve"><value>「{0}」是文件夹，将删除其中的全部内容（含子目录）。此操作不可撤销。</value></data>
+  <data name="Sftp_DeletePartialNote" xml:space="preserve"><value>部分内容可能已删除。</value></data>
+  <data name="Sftp_DeleteButtonText" xml:space="preserve"><value>删除</value></data>
+  <data name="Sftp_TransferPanelTitle" xml:space="preserve"><value>传输（{0}）</value></data>
+  <data name="Sftp_TransfersEmpty" xml:space="preserve"><value>没有进行中的传输</value></data>
+  <data name="Sftp_ClearFinished" xml:space="preserve"><value>清除已完成</value></data>
+  <data name="Sftp_TransferUpload" xml:space="preserve"><value>上传</value></data>
+  <data name="Sftp_TransferDownload" xml:space="preserve"><value>下载</value></data>
+  <data name="Sftp_StateQueued" xml:space="preserve"><value>等待中</value></data>
+  <data name="Sftp_StateRunning" xml:space="preserve"><value>传输中</value></data>
+  <data name="Sftp_StateCompleted" xml:space="preserve"><value>已完成</value></data>
+  <data name="Sftp_StateFailed" xml:space="preserve"><value>失败</value></data>
+  <data name="Sftp_StateCancelled" xml:space="preserve"><value>已取消</value></data>
+  <data name="Sftp_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Sftp_RetryTransfer" xml:space="preserve"><value>重试</value></data>
+  <data name="Sftp_PermissionsTitle" xml:space="preserve"><value>权限</value></data>
+  <data name="Sftp_PermissionsOwner" xml:space="preserve"><value>所有者</value></data>
+  <data name="Sftp_PermissionsGroup" xml:space="preserve"><value>属组</value></data>
+  <data name="Sftp_PermissionsOther" xml:space="preserve"><value>其他</value></data>
+  <data name="Sftp_PermissionsRead" xml:space="preserve"><value>读取</value></data>
+  <data name="Sftp_PermissionsWrite" xml:space="preserve"><value>写入</value></data>
+  <data name="Sftp_PermissionsExecute" xml:space="preserve"><value>执行</value></data>
+  <data name="Sftp_PermissionsOctal.Header" xml:space="preserve"><value>八进制（如 644）</value></data>
+  <data name="Sftp_PermissionsInvalid" xml:space="preserve"><value>八进制须为 3 位 0–7</value></data>
+  <data name="Sftp_RenameTitle" xml:space="preserve"><value>重命名</value></data>
+  <data name="Sftp_RenameName.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="Sftp_MkdirTitle" xml:space="preserve"><value>新建文件夹</value></data>
+  <data name="Sftp_NameRequired" xml:space="preserve"><value>请输入名称</value></data>
+  <data name="Sftp_NameInvalid" xml:space="preserve"><value>名称不能含 “/”，且不能是 “.” 或 “..”</value></data>
+  <data name="Sftp_MinutesAgo" xml:space="preserve"><value>{0} 分钟前</value></data>
+  <data name="Sftp_JustNow" xml:space="preserve"><value>刚刚</value></data>
+  <data name="Sftp_SymlinkTo" xml:space="preserve"><value>→ {0}</value></data>
+  <data name="Sftp_LinkMenuOpenTarget" xml:space="preserve"><value>进入目标</value></data>
+  <data name="Sftp_LinkFileMenuOpenTarget" xml:space="preserve"><value>下载目标</value></data>
+  <data name="Sftp_ErrSessionGone" xml:space="preserve"><value>会话已结束，请从主机列表重新打开 SFTP</value></data>
+  <data name="Sftp_ErrNotConnected" xml:space="preserve"><value>会话未连接，SFTP 需要在线会话</value></data>
+  <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>传输失败（错误码 {0}）</value></data>
+  <data name="Dialog_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Dialog_Ok" xml:space="preserve"><value>确定</value></data>
+  <data name="Placeholder_Title" xml:space="preserve"><value>即将推出</value></data>
+  <data name="Placeholder_ComingSoon" xml:space="preserve"><value>功能还在打磨中，敬请期待后续版本。</value></data>
+
+  <data name="ExitDialog.Title" xml:space="preserve"><value>退出应用</value></data>
+  <data name="ExitDialog.PrimaryButtonText" xml:space="preserve"><value>退出</value></data>
+  <data name="ExitDialog.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="ExitDialog_Message" xml:space="preserve"><value>有 {0} 个会话正在连接，退出将全部断开。</value></data>
+
+  <data name="VaultSetup_Title.Text" xml:space="preserve"><value>创建同步保险库</value></data>
+  <data name="VaultSetup_Explanation.Text" xml:space="preserve"><value>同步密码用于加密你的配置，服务器无法解密；与登录密码可以不同。</value></data>
+  <data name="VaultSetup_PasswordBox.Header" xml:space="preserve"><value>同步密码</value></data>
+  <data name="VaultSetup_PasswordBox.PlaceholderText" xml:space="preserve"><value>设置同步密码（至少 8 位）</value></data>
+  <data name="VaultSetup_ConfirmBox.Header" xml:space="preserve"><value>确认同步密码</value></data>
+  <data name="VaultSetup_PasswordHint.Text" xml:space="preserve"><value>同步密码至少 8 位</value></data>
+  <data name="VaultSetup_LocalNote.Text" xml:space="preserve"><value>解锁后的保险库密钥加密保存在本机，重启无需再次输入。</value></data>
+  <data name="VaultSetup_SubmitButton.Content" xml:space="preserve"><value>创建</value></data>
+  <data name="VaultUnlock_Title.Text" xml:space="preserve"><value>解锁保险库</value></data>
+  <data name="VaultUnlock_PasswordTab.Content" xml:space="preserve"><value>同步密码</value></data>
+  <data name="VaultUnlock_RecoveryTab.Content" xml:space="preserve"><value>恢复密钥</value></data>
+  <data name="VaultUnlock_PasswordBox.Header" xml:space="preserve"><value>同步密码</value></data>
+  <data name="VaultUnlock_PasswordBox.PlaceholderText" xml:space="preserve"><value>输入同步密码</value></data>
+  <data name="VaultUnlock_RecoveryBox.Header" xml:space="preserve"><value>恢复密钥</value></data>
+  <data name="VaultUnlock_RecoveryBox.PlaceholderText" xml:space="preserve"><value>SPM1-…-XXXXXXXXXXXX</value></data>
+  <data name="VaultUnlock_RecoveryHint.Text" xml:space="preserve"><value>可直接粘贴；前缀与校验段大小写随意，将自动规范化</value></data>
+  <data name="VaultUnlock_SubmitButton.Content" xml:space="preserve"><value>解锁</value></data>
+  <data name="VaultDialog.Title" xml:space="preserve"><value>立即保存恢复密钥</value></data>
+  <data name="VaultDialog.PrimaryButtonText" xml:space="preserve"><value>完成</value></data>
+  <data name="VaultDialog_Note.Text" xml:space="preserve"><value>这是唯一一次显示。同步密码遗忘时，只能使用恢复密钥解锁保险库。</value></data>
+  <data name="VaultDialog_CopyButton.Content" xml:space="preserve"><value>复制</value></data>
+  <data name="VaultDialog_Copied.Text" xml:space="preserve"><value>已复制到剪贴板</value></data>
+  <data name="VaultDialog_SavedBox.Content" xml:space="preserve"><value>我已抄写/保存</value></data>
+  <data name="VaultDialog_Warning.Text" xml:space="preserve"><value>必须先勾选「我已抄写/保存」才能继续</value></data>
+  <data name="Vault_SyncUnavailable" xml:space="preserve"><value>同步组件不可用，请重启应用后重试</value></data>
+  <data name="Vault_SyncPasswordRequired" xml:space="preserve"><value>请输入同步密码</value></data>
+  <data name="Vault_SyncPasswordTooShort" xml:space="preserve"><value>同步密码至少 8 位</value></data>
+  <data name="Vault_SyncPasswordMismatch" xml:space="preserve"><value>两次输入的同步密码不一致</value></data>
+  <data name="Vault_RecoveryRequired" xml:space="preserve"><value>请输入恢复密钥</value></data>
+  <data name="Vault_RecoveryFormatInvalid" xml:space="preserve"><value>恢复密钥格式无效</value></data>
+  <data name="Vault_RecoveryChecksumFailed" xml:space="preserve"><value>恢复密钥校验失败</value></data>
+  <data name="Vault_WorkingSetup" xml:space="preserve"><value>正在生成密钥（约数秒）…</value></data>
+  <data name="Vault_WorkingUnlock" xml:space="preserve"><value>正在解锁…</value></data>
+  <data name="Vault_WorkingSync" xml:space="preserve"><value>正在同步…</value></data>
 </root>

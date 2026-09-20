@@ -100,9 +100,6 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MainPage.xaml.cs">
-      <DependentUpon>MainPage.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Platform\ThemeService.cs" />
     <Compile Include="Platform\FileLogger.cs" />
     <Compile Include="Platform\AppConfig.cs" />
@@ -214,6 +211,15 @@
     <Compile Include="Dialogs\ThemeSchemePickerDialog.xaml.cs">
       <DependentUpon>ThemeSchemePickerDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\PermissionsDialog.xaml.cs">
+      <DependentUpon>PermissionsDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\RenameDialog.xaml.cs">
+      <DependentUpon>RenameDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Dialogs\RecoveryKeyDialog.xaml.cs">
+      <DependentUpon>RecoveryKeyDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Debug\SpikePage.xaml.cs">
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
@@ -228,6 +234,9 @@
     </Compile>
     <Compile Include="Views\Debug\RenderSpikePage.xaml.cs">
       <DependentUpon>RenderSpikePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Debug\PerfPage.xaml.cs">
+      <DependentUpon>PerfPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Debug\TokenGalleryPage.xaml.cs">
       <DependentUpon>TokenGalleryPage.xaml</DependentUpon>
@@ -247,6 +256,7 @@
     <Compile Include="ViewModels\KnownHostsViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="ViewModels\TerminalViewModel.cs" />
+    <Compile Include="ViewModels\SftpViewModel.cs" />
     <Compile Include="ViewModels\SessionsPaneViewModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModel.cs" />
     <Compile Include="ViewModels\Snippets\SnippetGroupVm.cs" />
@@ -255,9 +265,19 @@
     <Compile Include="ViewModels\Snippets\SnippetPickerViewModel.cs" />
     <Compile Include="ViewModels\Snippets\SnippetSendHelper.cs" />
     <Compile Include="ViewModels\Sync\LoginViewModel.cs" />
+    <Compile Include="ViewModels\Sync\VaultErrorText.cs" />
+    <Compile Include="ViewModels\Sync\VaultSetupViewModel.cs" />
+    <Compile Include="ViewModels\Sync\VaultUnlockViewModel.cs" />
     <Compile Include="Views\Sync\LoginPage.xaml.cs">
       <DependentUpon>LoginPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Sync\VaultSetupPage.xaml.cs">
+      <DependentUpon>VaultSetupPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Sync\VaultUnlockPage.xaml.cs">
+      <DependentUpon>VaultUnlockPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Sync\SyncNavigation.cs" />
     <Compile Include="ViewModels\Keys\KeysViewModel.cs" />
     <Compile Include="ViewModels\Keys\KeyDetailViewModel.cs" />
     <Compile Include="ViewModels\Keys\KeyImportViewModel.cs" />
@@ -279,6 +299,9 @@
     </Compile>
     <Compile Include="Views\KnownHostsPage.xaml.cs">
       <DependentUpon>KnownHostsPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SftpPage.xaml.cs">
+      <DependentUpon>SftpPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
@@ -347,10 +370,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="MainPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Views\Debug\SpikePage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -360,6 +379,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Debug\RenderSpikePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Debug\PerfPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -412,6 +435,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\KnownHostsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\SftpPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -591,7 +618,27 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\Sync\VaultSetupPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Sync\VaultUnlockPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Dialogs\ThemeSchemePickerDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\PermissionsDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\RenameDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\RecoveryKeyDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

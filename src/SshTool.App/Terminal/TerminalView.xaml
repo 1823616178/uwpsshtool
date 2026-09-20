@@ -9,9 +9,13 @@
     AllowFocusOnInteraction="False"
     UseSystemFocusVisuals="False">
 
-    <!-- T05：终端画布。尺寸由度量后在代码里设，避免 XAML 魔法数字。 -->
+    <!-- T05：终端画布。尺寸由度量后在代码里设，避免 XAML 魔法数字。
+         必须锚定左上角：SIP 出现后画布会按未遮挡行数缩短；若保持默认居中，
+         画布（尤其光标/输入回显所在的底行）会被下移到软键盘后面。 -->
     <Grid>
         <canvas:CanvasControl x:Name="Canvas"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Top"
                               IsTabStop="False"
                               AllowFocusOnInteraction="False"
                               Draw="OnDraw"

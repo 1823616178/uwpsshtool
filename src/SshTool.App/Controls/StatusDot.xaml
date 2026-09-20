@@ -54,6 +54,6 @@
         <Ellipse x:Name="Dot"
                  Width="{StaticResource StatusDotSize}"
                  Height="{StaticResource StatusDotSize}"
-                 StrokeThickness="1" />
+                 StrokeThickness="{StaticResource StrokeThin}" />
     </Grid>
 </UserControl>

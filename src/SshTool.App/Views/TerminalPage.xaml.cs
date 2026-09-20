@@ -255,10 +255,25 @@ namespace SshTool.App.Views
             // U13：终端菜单「片段」打开选择器（锚定菜单按钮）。
             FrameworkElement anchor = sender as FrameworkElement;
             flyout.Items.Add(Item("片段", () => OpenSnippetPicker(anchor ?? Term)));
+            // F03：本会话的 SFTP（复用该会话已认证连接挂 SFTP 子系统）。
+            flyout.Items.Add(Item("SFTP", OpenSftp));
             flyout.Items.Add(Item("外观", () => Frame.Navigate(typeof(AppearanceListPage))));
-            flyout.Items.Add(Item("断开", () => ViewModel.DisconnectCommand.Execute(null)));
-            flyout.Items.Add(Item("关闭会话", () => ViewModel.CloseSessionCommand.Execute(null)));
+            // UI 走查：断开/关闭会话为破坏性项，套红字 DangerMenuItemStyle。
+            flyout.Items.Add(DangerItem("断开", () => ViewModel.DisconnectCommand.Execute(null)));
+            flyout.Items.Add(DangerItem("关闭会话", () => ViewModel.CloseSessionCommand.Execute(null)));
             flyout.ShowAt((FrameworkElement)sender);
+        }
+
+        // F03：带当前会话进入 SFTP 页（SftpArgs.SessionId）。
+        private void OpenSftp()
+        {
+            if (ViewModel.Session != null)
+            {
+                Frame.Navigate(typeof(SftpPage), new SftpArgs
+                {
+                    SessionId = ViewModel.Session.SessionId
+                });
+            }
         }
 
         // U13：片段选择器统一入口（终端菜单 / 键条 snippets 键 / 右键菜单）。
@@ -342,6 +357,14 @@ namespace SshTool.App.Views
         {
             var item = new MenuFlyoutItem { Text = text };
             item.Click += (s, e) => action();
+            return item;
+        }
+
+        // UI 走查：破坏性菜单项（断开/关闭会话）红字样式，菜单在 C# 构造故代码赋 Style。
+        private static MenuFlyoutItem DangerItem(string text, System.Action action)
+        {
+            var item = Item(text, action);
+            item.Style = (Style)Application.Current.Resources["DangerMenuItemStyle"];
             return item;
         }
     }

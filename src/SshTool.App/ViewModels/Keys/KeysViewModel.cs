@@ -218,7 +218,7 @@ namespace SshTool.App.ViewModels.Keys
         {
             if (ex != null)
             {
-                Logger.Log(LogLevel.Error, "Keys", ex.GetType().Name);
+                Logger.Log(LogLevel.Error, "Keys", ex.GetType().Name + " " + ex.Message);
             }
         }
     }

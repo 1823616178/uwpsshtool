@@ -50,9 +50,9 @@ namespace SshTool.App.Views
             DebugSpikeItem.Visibility = Visibility.Visible;
             DebugTokenItem.Visibility = Visibility.Visible;
             DebugRenderItem.Visibility = Visibility.Visible;
+            DebugPerfItem.Visibility = Visibility.Visible;
             DebugInputItem.Visibility = Visibility.Visible;
             DebugPlatformItem.Visibility = Visibility.Visible;
-            DebugBuildItem.Visibility = Visibility.Visible;
             DebugGenerateHostsItem.Visibility = Visibility.Visible;
 #endif
         }
@@ -269,6 +269,11 @@ namespace SshTool.App.Views
             Frame.Navigate(typeof(RenderSpikePage));
         }
 
+        private void OnPerfClick(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(PerfPage));
+        }
+
         private void OnInputSpikeClick(object sender, RoutedEventArgs e)
         {
             Frame.Navigate(typeof(InputSpikePage));
@@ -277,11 +282,6 @@ namespace SshTool.App.Views
         private void OnPlatformSpikeClick(object sender, RoutedEventArgs e)
         {
             Frame.Navigate(typeof(PlatformSpikePage));
-        }
-
-        private void OnBuildInfoClick(object sender, RoutedEventArgs e)
-        {
-            Frame.Navigate(typeof(SshTool.App.MainPage));
         }
 
         private void OnGenerateHostsClick(object sender, RoutedEventArgs e)

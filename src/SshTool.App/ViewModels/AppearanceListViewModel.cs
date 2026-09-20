@@ -236,7 +236,8 @@ namespace SshTool.App.ViewModels
         {
             if (ex != null)
             {
-                Logger.Log(LogLevel.Error, "AppearanceList", ex.GetType().Name);
+                Logger.Log(LogLevel.Error, "AppearanceList",
+                    ex.GetType().Name + " " + ex.Message);
             }
         }
     }

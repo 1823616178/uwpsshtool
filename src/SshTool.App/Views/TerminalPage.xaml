@@ -39,7 +39,13 @@
                 <TextBlock x:Name="AddressText" Style="{StaticResource CaptionTextStyle}"
                            TextTrimming="CharacterEllipsis" />
             </StackPanel>
-            <Button Grid.Column="2" Content="⋯" Click="OnMenuClick" />
+            <!-- UI 走查：⋯ 文本换 IconMore 字形并补无障碍名；无样式按钮保留手写 MinWidth，
+                 高度受 TerminalInfoBarHeight=32 行约束不强求 40。 -->
+            <Button Grid.Column="2" Click="OnMenuClick"
+                    MinWidth="{StaticResource TouchTargetMin}"
+                    AutomationProperties.Name="更多">
+                <FontIcon Glyph="{StaticResource IconMore}" />
+            </Button>
         </Grid>
 
         <term:TerminalView x:Name="Term" Grid.Row="2" />

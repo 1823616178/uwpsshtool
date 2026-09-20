@@ -32,4 +32,40 @@
         <Setter Property="FontSize" Value="{StaticResource FontBody}" />
         <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
     </Style>
+
+    <!-- 按钮层级（UI 走查 P0）：主＝电青底 onAccent 字；次＝表面底正文字；
+         危险＝红底 onAccent 字。全部保证 TouchTargetMin 最小触控。
+         CommandBar 内 AppBarButton 保持系统形态，主次靠入口收敛表达。 -->
+    <!-- MinWidth 由样式统一兜底（TouchTargetMin），页面按钮不再各自手写。 -->
+    <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{ThemeResource AppAccentBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppOnAccentBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+        <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />
+    </Style>
+    <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{ThemeResource AppSurfaceAltBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+        <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />
+    </Style>
+    <Style x:Key="DangerButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{ThemeResource AppDangerBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppOnAccentBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+        <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />
+    </Style>
+    <!-- 对话框内危险主按钮：只换配色，不带字号/最小尺寸（尺寸交由 ContentDialog 按钮区统一布局），
+         避免 DangerButtonStyle 的 FontSize/MinHeight/MinWidth 让主/次按钮错位。页面级按钮仍用 DangerButtonStyle。 -->
+    <Style x:Key="DangerDialogButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{ThemeResource AppDangerBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppOnAccentBrush}" />
+    </Style>
+    <!-- 菜单里的破坏性项（删除/断开）：红字，与 ConfirmDialog(isDanger) 呼应 -->
+    <Style x:Key="DangerMenuItemStyle" TargetType="MenuFlyoutItem">
+        <Setter Property="Foreground" Value="{ThemeResource AppDangerBrush}" />
+    </Style>
 </ResourceDictionary>

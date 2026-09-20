@@ -63,6 +63,11 @@ namespace sshclient
         struct SftpAttrs;
         struct SftpEntry;
     }
+    namespace fwd
+    {
+        // F05：core fwd 结构的前向声明（同上，避免把 Winsock/fwd 头带进公开头）。
+        struct TunnelStatsSnapshot;
+    }
 }
 
 namespace SshTool
@@ -75,6 +80,9 @@ namespace SshTool
             // SftpSession 与远端文件句柄表；放命名空间作用域以便 cpp 的自由
             // 函数可用，生命周期由 SshSession 管理）。
             struct SshSessionSftpMount;
+            // F05：转发挂载状态（不透明；持有 core LocalListener/RemoteListener
+            // 与共享统计，生命周期由 SshSession 管理）。
+            struct SshSessionForwardMount;
             // ExecAsync 结果（要点 5）。打开/传输失败时 ExitCode=-1、
             // Stderr 带诊断文本。
             public ref class ExecResult sealed
@@ -207,12 +215,30 @@ namespace SshTool
                 int SftpCloseFile(int fileId, unsigned timeoutMs);
                 void SftpCancel();
 
+                // F05：转发监听挂载点（供 Bridge.Forwarder 调用；kind 0=local
+                // 1=remote 2=dynamic，与 Bridge.ForwardKind 数值一致）。
+                //
+                // 所有权与寿命：core LocalListener/RemoteListener 由本对象持有
+                // （PIMPL，见 cpp），与 core SshSession 同寿命；Shutdown 在停线程
+                // 前先行停止监听（有界等待 onStopped/Stopped），保证监听器析构
+                // 满足 core 契约。FwdStart 在后台线程等待 loop 线程的 onListening
+                // 结果（绝不持 sessionMutex_ 等待，防与 I/O 线程的状态回调互锁）。
+                // 一个挂载同时只承载一个监听（一条隧道一条监听，重连换新会话）。
+                int FwdStart(int kind, const std::string& listenHost, unsigned listenPort,
+                             const std::string& destHost, unsigned destPort,
+                             unsigned& boundPortOut, std::string& messageOut);
+                void FwdStop();
+                bool FwdIsRunning();
+                bool FwdStats(sshclient::fwd::TunnelStatsSnapshot& statsOut);
+
             private:
                 void Shutdown(); // 幂等：Close + 停线程(join) + 释放 core 对象
                 // F02 SFTP 拆除与准入（定义在 cpp；调用方持有 sessionMutex_）。
                 void TeardownSftp();
                 void TeardownSftpLocked();
                 bool SftpAdmitted();
+                // F05：转发挂载拆除（Shutdown 调用；停监听 + 有界等待收尾）。
+                void TeardownForward();
                 void OnCoreStateChanged(sshclient::ssh::SshSessionState from,
                                         sshclient::ssh::SshSessionState to,
                                         std::shared_ptr<concurrency::task_completion_event<int>> connectTce);
@@ -266,6 +292,9 @@ namespace SshTool
 
                 // F02：SFTP 挂载状态（构造时创建、Shutdown 时先行拆除）。
                 SshSessionSftpMount* sftpMount_;
+
+                // F05：转发挂载状态（构造时创建、Shutdown 时先行拆除）。
+                SshSessionForwardMount* fwdMount_;
             };
         }
     }

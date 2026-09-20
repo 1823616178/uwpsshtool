@@ -8,5 +8,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <!-- U16：RecoveryKeyInput 复算恢复密钥校验段需要 SHA256（netstandard1.4 BCL 不含 HashAlgorithm；
+         4.3.0 与 UWP 包依赖的 NETStandard.Library 2.0.3 同源，已在依赖闭包内） -->
+    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SysCryptoAlgorithmsVersion)" />
   </ItemGroup>
 </Project>

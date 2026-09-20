@@ -78,7 +78,8 @@
                             <TextBlock Text="前景" Style="{StaticResource BodyTextStyle}"
                                        VerticalAlignment="Center" />
                             <Button x:Name="FgButton" Grid.Column="1" Margin="{StaticResource GapSmLeft}"
-                                    Tag="foreground">
+                                    Tag="foreground"
+                                    Style="{StaticResource SecondaryButtonStyle}">
                                 <Button.Flyout>
                                     <Flyout Opening="OnFgFlyoutOpening">
                                         <controls:ColorSwatchPicker x:Name="FgPicker" />
@@ -88,7 +89,8 @@
                             <TextBlock Grid.Row="1" Text="背景" Style="{StaticResource BodyTextStyle}"
                                        VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
                             <Button x:Name="BgButton" Grid.Row="1" Grid.Column="1"
-                                    Margin="{StaticResource GapSmLeft}" Tag="background">
+                                    Margin="{StaticResource GapSmLeft}" Tag="background"
+                                    Style="{StaticResource SecondaryButtonStyle}">
                                 <Button.Flyout>
                                     <Flyout Opening="OnBgFlyoutOpening">
                                         <controls:ColorSwatchPicker x:Name="BgPicker" />
@@ -98,7 +100,8 @@
                             <TextBlock Grid.Row="2" Text="光标" Style="{StaticResource BodyTextStyle}"
                                        VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
                             <Button x:Name="CursorButton" Grid.Row="2" Grid.Column="1"
-                                    Margin="{StaticResource GapSmLeft}" Tag="cursor">
+                                    Margin="{StaticResource GapSmLeft}" Tag="cursor"
+                                    Style="{StaticResource SecondaryButtonStyle}">
                                 <Button.Flyout>
                                     <Flyout Opening="OnCursorFlyoutOpening">
                                         <controls:ColorSwatchPicker x:Name="CursorPicker" />
@@ -108,7 +111,8 @@
                             <TextBlock Grid.Row="3" Text="选区" Style="{StaticResource BodyTextStyle}"
                                        VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
                             <Button x:Name="SelectionButton" Grid.Row="3" Grid.Column="1"
-                                    Margin="{StaticResource GapSmLeft}" Tag="selection">
+                                    Margin="{StaticResource GapSmLeft}" Tag="selection"
+                                    Style="{StaticResource SecondaryButtonStyle}">
                                 <Button.Flyout>
                                     <Flyout Opening="OnSelectionFlyoutOpening">
                                         <controls:ColorSwatchPicker x:Name="SelectionPicker" />
@@ -122,8 +126,8 @@
                                    Margin="{StaticResource GapSmTop}" />
                         <VariableSizedWrapGrid x:Name="PaletteGrid" Orientation="Horizontal"
                                                MaximumRowsOrColumns="8"
-                                               ItemWidth="{StaticResource SpaceXl}"
-                                               ItemHeight="{StaticResource SpaceXl}" />
+                                               ItemWidth="{StaticResource TouchTargetMin}"
+                                               ItemHeight="{StaticResource TouchTargetMin}" />
                         <TextBlock x:Name="PaletteError" Style="{StaticResource CaptionTextStyle}"
                                    Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
                     </StackPanel>

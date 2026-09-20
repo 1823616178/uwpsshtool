@@ -20,6 +20,19 @@ LocalListener::LocalListener(ssh::SshSession& session, std::string destHost,
     : session_(session)
     , destHost_(std::move(destHost))
     , destPort_(destPort)
+    , socksMode_(false)
+    , stats_(std::move(stats))
+    , callbacks_(std::move(callbacks))
+{
+    if (!stats_) {
+        stats_ = std::make_shared<TunnelStats>();
+    }
+}
+
+LocalListener::LocalListener(ssh::SshSession& session, std::shared_ptr<TunnelStats> stats,
+                             LocalListenerCallbacks callbacks)
+    : session_(session)
+    , socksMode_(true)
     , stats_(std::move(stats))
     , callbacks_(std::move(callbacks))
 {
@@ -43,7 +56,7 @@ LocalListener::~LocalListener()
 
 bool LocalListener::start(std::string listenHost, std::uint16_t listenPort)
 {
-    if (destHost_.empty() || destPort_ == 0) {
+    if (!socksMode_ && (destHost_.empty() || destPort_ == 0)) {
         FWD_LOG("local listen rejected: no direct-tcpip destination configured");
         return false;
     }
@@ -171,9 +184,14 @@ void LocalListener::begin()
     listenRegistered_ = true;
     state_.store(LocalListenState::Listening, std::memory_order_release);
     session_.registerLocalListener(this);
-    FWD_LOG("local listening on %s:%u -> %s:%u",
-            listenHost_.empty() ? "*" : listenHost_.c_str(), boundPort_,
-            destHost_.c_str(), destPort_);
+    if (socksMode_) {
+        FWD_LOG("local listening on %s:%u -> SOCKS5", listenHost_.empty() ? "*" : listenHost_.c_str(),
+                boundPort_);
+    } else {
+        FWD_LOG("local listening on %s:%u -> %s:%u",
+                listenHost_.empty() ? "*" : listenHost_.c_str(), boundPort_,
+                destHost_.c_str(), destPort_);
+    }
     if (callbacks_.onListening) {
         callbacks_.onListening({true, boundPort_, ""});
     }
@@ -215,6 +233,16 @@ void LocalListener::acceptBurst()
     }
 }
 
+void LocalListener::eraseConnection(ForwardedConnection* raw)
+{
+    for (auto it = connections_.begin(); it != connections_.end(); ++it) {
+        if (it->get() == raw) {
+            connections_.erase(it); // destroys post-onClose: contract holds
+            break;
+        }
+    }
+}
+
 void LocalListener::spawnConnection(SOCKET accepted)
 {
     if (session_.state() != ssh::SshSessionState::Established) {
@@ -247,24 +275,27 @@ void LocalListener::spawnConnection(SOCKET accepted)
         }
     }
     ForwardedCallbacks callbacks;
-    callbacks.onOpen = [](const ForwardOpenResult&) {}; // stats flow regardless
+    callbacks.onOpen = [](const ForwardOpenResult&) {}; // 统计在连接内部入账
     auto owned =
         std::make_unique<ForwardedConnection>(session_, accepted, stats_, std::move(callbacks));
-    ForwardedConnection* raw = owned.get();
-    // Erase-by-pointer on close: raw is stable (heap) and set before any
-    // loop-thread callback can fire (all callbacks serialize after this very
-    // function on the same loop thread), so capture by value is sound.
-    owned->setCloseCallback([this, raw](const ForwardCloseInfo&) {
-        for (auto it = connections_.begin(); it != connections_.end(); ++it) {
-            if (it->get() == raw) {
-                connections_.erase(it); // destroys post-onClose: contract holds
-                break;
-            }
-        }
+    ForwardedConnection* connection = owned.get();
+    // 回收钩子（loop 线程、本函数之后串行触发，按堆地址安全回收）：
+    //   - onClose：正常/优雅/会话丢失关闭路径；
+    //   - 打开失败：契约是 onOpen(false) 后无 onClose，需另行回收
+    //     （F04 原实现的隐性泄漏，F05 dynamic 的拒绝路径高频触发，顺手修复）。
+    owned->setCloseCallback([this, connection](const ForwardCloseInfo&) {
+        eraseConnection(connection);
     });
-    if (!owned->openLocal(destHost_, destPort_, srcHost, srcPort)) {
-        return; // admission refused (session raced away): the Idle destructor
-                // closes the never-registered socket, no leak
+    owned->setOpenFailureCallback([this, connection]() {
+        eraseConnection(connection);
+    });
+    if (socksMode_) {
+        if (!owned->openDynamic(srcHost, srcPort)) {
+            return; // admission refused (session raced away): the Idle destructor
+                    // closes the never-registered socket, no leak
+        }
+    } else if (!owned->openLocal(destHost_, destPort_, srcHost, srcPort)) {
+        return; // 同上
     }
     connections_.insert(std::move(owned));
 }

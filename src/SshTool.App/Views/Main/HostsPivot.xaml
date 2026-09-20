@@ -46,7 +46,9 @@
                      PlaceholderText="user@host[:port]"
                      Header="快速连接"
                      TextChanged="OnQuickConnectTextChanged" />
+            <!-- UI 走查：快速连接为次级入口（主入口在 CommandBar），补触控与层级样式。 -->
             <Button Grid.Column="1" Content="连接" Click="OnQuickConnectClick"
+                    Style="{StaticResource SecondaryButtonStyle}"
                     VerticalAlignment="Bottom" Margin="{StaticResource GapSmLeft}" />
         </Grid>
 

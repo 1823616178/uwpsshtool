@@ -42,11 +42,11 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 12 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 16 | 与桌面端同账号双向同步、冲突可解 |
+| M5 | 云端同步 | 22 | 17 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 7 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 1 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **92** | |
+| **合计** | | **111** | **93** | |
 
 ### 1.1 关键路径
 
@@ -949,13 +949,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] x64 对真实服务器注册测试账号并登录成功（记录到进度日志，不记录密码）
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **U16 保险库创建、解锁与恢复密钥** `M` 📱
+- [x] **U16 保险库创建、解锁与恢复密钥** `M` 📱
   - 依赖：U15
   - 参考：`02-UI-DESIGN.md §5.13`（VaultSetupPage、VaultUnlockPage、RecoveryKeyDialog）
   - 产出：`src/SshTool.App/Views/Sync/{VaultSetupPage,VaultUnlockPage}.xaml(.cs)`、`src/SshTool.App/Dialogs/RecoveryKeyDialog.xaml(.cs)`、`src/SshTool.Core/Sync/Vault/RecoveryKeyInput.cs`、ViewModels、测试
   - 要点：同步密码 ≥8 位 + 确认；Argon2 进度遮罩；恢复密钥分行显示、复制、必须勾选「已保存」；解锁分段（同步密码/恢复密钥），恢复密钥输入规范化（去空白、前缀大写、格式通过才可提交）。保险库密钥解锁后持久化在 VaultCache，重启无需再次解锁，因此**不提供「记住同步密码」**。
   - 验收：
-    - [ ] RecoveryKeyInput 单测
+    - [x] RecoveryKeyInput 单测
     - [ ] x64：在已由桌面端创建保险库的账号上用同步密码解锁成功
     - [ ] 📱 真机创建或解锁成功
   - 验证：`pwsh scripts/verify.ps1`；真机
@@ -1317,6 +1317,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] F04 👤 集成：`SSH_TEST_HOST/PORT/USER/PASSWORD` + `SSH_TEST_FWD_HTTP=host:port` 跑 `FwdIntegrationTest.LocalForwardToHttp*` 取回 `HTTP/`；`SSH_TEST_FWD_REMOTE=1` 跑远端回显
 - [ ] A03 📱 修改字号/配色后已打开终端即时生效
 - [ ] K02 📱 生成 ed25519 → 公钥加入服务器 `authorized_keys` → 用该密钥登录成功
+- [ ] U16 👤 x64：在已由桌面端创建保险库的账号上用同步密码解锁成功（本机无桌面端建库账号，待提供后经 LoginPage→登录→VaultUnlockPage 实测）
+- [ ] U16 📱 真机创建或解锁成功（注册→建库→RecoveryKeyDialog 勾选保存→首次同步；或对已建库账号用同步密码/恢复密钥解锁）
 
 ---
 
@@ -1435,3 +1437,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-19 | F04 | d0316c1 | **代码完成**。pump 双向泵（背压/半关闭/统计）+ direct_tcpip 状态机 + local_listener（I/O 线程 accept burst）+ remote_listen（forward_accept 轮询）；session 接线（open_state/fwdLstn_state 串行化门）。pump 单测 7 + 状态机 4 + 准入 2 + 回环 1MB + 门控集成 2（未跑，👤 已登记）。native 283；`verify.ps1 -Quick` 全绿。 |
 | 2026-09-19 | F02 | 310436a | **完成**。WinRT SftpSession 桥（会话 I/O 线程串行、SftpCancel consume-once、Shutdown 先拆 SFTP）+ Core Sftp 六件（RemotePath/PermissionBits/RemoteEntry/ISftpClient/TransferItem 速率滑动窗/TransferQueue 单泵）+ NativeSftpClient/StorageFileStreams（IRandomAccessStream 分块）。Core 单测 111（含 FakeSftpClient 供 F03）；`verify.ps1` 全绿。 |
 | 2026-09-19 | U15 | f7db8d3 | **完成**。ApiErrorCatalog（§2.3 全 36 码）+ LoginFormValidator + LoginViewModel/LoginPage（登录注册切换、HTTP Banner、密码≥10+确认、邀请码、三端说明、RateLimited 填秒）；resw +64 键双语一致；Api_<CODE> 覆盖单测。真服务器实测：注册 200→登录 200→GET me 200→登出 200（密码只在内存未落日志；测试账号 u15verify20260920024647@example.com 已登出留服务器，可经注销流程清理）。Core 1163；`verify.ps1` 全绿。 |
+| 2026-09-20 | U16 | （未提交） | **代码任务完成**。Core：RecoveryKeyInput（格式/校验段复算逐字对齐桌面端 decodeRecoveryKey，SHA256 经 System.Security.Cryptography.Algorithms 4.3.0，正文段大小写敏感不动、前缀/校验段归一）+ VaultFormValidator（同步密码≥8+确认、解锁判空）；单测 48 条含桌面向量 SPM1-YGFi…-0F62… 冻结值对拍、3 行展示切分与 resw 双语覆盖。App：VaultSetupPage/VaultUnlockPage（分段解锁、等宽恢复密钥框、LoadingOverlay「正在生成密钥/正在解锁/正在同步」，文案随 Coordinator syncing 相位驱动）+ RecoveryKeyDialog（等宽 3 行、复制、必须勾选「已保存」，返回键关闭会重弹并警告）+ VaultErrorText（ApiError→Api_ resw）+ SyncNavigation.GoAfterAuth（按 vault missing/locked 路由建库/解锁页，导航后剪返回栈失效中间页，修 U15 返回键弹回登录页循环）+ LoginPage 接线；resw +34 键双语一致；csproj 登记（Core 增 System.Security.Cryptography.Algorithms 4.3.0）。`verify.ps1` 六步全绿（Core 1364、native 299、x64 Debug 无 WMC0151）。⏳ 👤 桌面端建库账号解锁、📱 真机建库/解锁（已登记真机待办）。 |

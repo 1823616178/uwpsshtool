@@ -1,0 +1,92 @@
+<Page
+    x:Class="SshTool.App.Views.Debug.PerfPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:term="using:SshTool.App.Terminal"
+    xmlns:main="using:SshTool.App.Views.Main"
+    mc:Ignorable="d"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- Q01：性能基准页（01-DESIGN.md §15）。场景全部本地化：字节流直喂
+         native vterm（Bridge.TerminalScreen.FeedBytes），不经 SSH。
+         FPS 复用 SP04 双口径（tick/s=CompositionTarget 回调，draw/s=Canvas 实绘）；
+         内存走 MemoryManager.AppMemoryUsage（ApiInformation 守卫，见 cs）。 -->
+    <Grid Margin="{StaticResource PagePadding}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal">
+            <Button Content="返回" Click="OnBackClick" />
+            <TextBlock Text="Q01 性能基准" Style="{StaticResource SectionTitleTextStyle}"
+                       VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
+        </StackPanel>
+
+        <!-- 一键全跑：⓪→①→②→③→⑤→④ 依次执行，报告落盘 spike-reports\perf-*.txt -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+            <Button x:Name="RunAllButton" Content="跑全场景并导出" Click="OnRunAllClick" />
+            <Button x:Name="CopyButton" Content="复制报告" Click="OnCopyClick"
+                    Margin="{StaticResource GapSmLeft}" IsEnabled="False" />
+            <Button x:Name="ViewButton" Content="看/收报告" Click="OnToggleReportClick"
+                    Margin="{StaticResource GapSmLeft}" IsEnabled="False" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Margin="{StaticResource GapSmTop}">
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="IdleButton" Content="⓪ 静止读数" Click="OnIdleClick" />
+                <Button x:Name="Base64Button" Content="① base64 1MB" Click="OnBase64Click"
+                        Margin="{StaticResource GapSmLeft}" />
+                <Button x:Name="YesButton" Content="② yes 20万行" Click="OnYesClick"
+                        Margin="{StaticResource GapSmLeft}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                <Button x:Name="VimButton" Content="③ vim 600页" Click="OnVimClick" />
+                <Button x:Name="HostListButton" Content="④ 100主机滚动" Click="OnHostListClick"
+                        Margin="{StaticResource GapSmLeft}" />
+                <Button x:Name="ScrollbackButton" Content="⑤ 4×5000回滚" Click="OnScrollbackClick"
+                        Margin="{StaticResource GapSmLeft}" />
+                <Button x:Name="GenerateHostsButton" Content="生成100台" Click="OnGenerateHostsClick"
+                        Margin="{StaticResource GapSmLeft}" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- FPS/帧耗时叠加读数（500 ms 刷新，口径见 Report()） -->
+        <TextBlock x:Name="StatsText" Grid.Row="3" Style="{StaticResource MonoCaptionTextStyle}"
+                   TextWrapping="Wrap" Margin="{StaticResource GapSmTop}" Text="未开始" />
+
+        <Grid Grid.Row="4" Margin="{StaticResource GapMdTop}">
+            <Grid x:Name="TermHost">
+                <term:TerminalView x:Name="Term" />
+                <!-- FPS 叠加（不可点，盖在终端左上） -->
+                <Border x:Name="FpsOverlay" IsHitTestVisible="False"
+                        HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Background="{ThemeResource AppSurfaceBrush}"
+                        BorderBrush="{ThemeResource AppBorderBrush}"
+                        BorderThickness="{StaticResource BorderThin}"
+                        CornerRadius="{StaticResource RadiusSm}"
+                        Padding="{StaticResource PadMd}">
+                    <TextBlock x:Name="OverlayText" Style="{StaticResource MonoCaptionTextStyle}"
+                               Foreground="{ThemeResource AppTextBrush}" />
+                </Border>
+                <!-- 跑完后盖在上面显示报告全文，可直接选中复制 -->
+                <TextBox x:Name="ReportBox" Visibility="Collapsed"
+                         IsReadOnly="True" AcceptsReturn="True" TextWrapping="NoWrap"
+                         FontFamily="{StaticResource AppMonoFontFamily}"
+                         FontSize="{StaticResource FontCaption}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            </Grid>
+
+            <!-- ④：真实主机列表（独立 HostListViewModel，不动主页面 VM） -->
+            <Grid x:Name="ListHost" Visibility="Collapsed">
+                <main:HostsPivot x:Name="HostPane" />
+            </Grid>
+        </Grid>
+    </Grid>
+</Page>

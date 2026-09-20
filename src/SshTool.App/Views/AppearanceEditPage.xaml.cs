@@ -36,6 +36,9 @@ namespace SshTool.App.Views
     public sealed partial class AppearanceEditPage : Page, IBackHandler
     {
         private readonly StaticTerminalScreen _screen = new StaticTerminalScreen();
+        // ANSI 调色板外层触控格的透明填充：Button 的 Background 为 null 时整格不参与命中，
+        // 内层色块让出的间隙就会漏点击；透明填充补齐 TouchTargetMin，且无可见底色。
+        private readonly Brush _touchFill = new SolidColorBrush(Windows.UI.Colors.Transparent);
         private bool _abandonConfirmed;
         private bool _suppress;
 
@@ -180,16 +183,39 @@ namespace SshTool.App.Views
             {
                 return;
             }
+            double target = (double)Application.Current.Resources["TouchTargetMin"];
+            Thickness thin = (Thickness)Application.Current.Resources["BorderThin"];
+            CornerRadius radius = (CornerRadius)Application.Current.Resources["RadiusSm"];
+            Thickness gap = new Thickness(ColorSwatchPicker.SwatchGap);
+            // AppBorderBrush 在 ThemeDictionaries 里，索引器取不到（恒 null）→ 用 Banner 的解析。
+            Brush hairline = Banner.ResolveThemedBrush("AppBorderBrush");
             for (int i = 0; i < draft.Palette.Count && i < 16; i++)
             {
                 int index = i;
-                var button = new Button
+                // 内层：圆角色块 + 序号，四周让出 SwatchGap 与邻块分开（走查 R-C 分层）。
+                var swatch = new Border
                 {
                     Background = AppearanceBrushes.FromHex(draft.Palette[index]),
-                    Content = index.ToString(CultureInfo.InvariantCulture),
-                    Width = (double)Application.Current.Resources["SpaceXl"],
-                    Height = (double)Application.Current.Resources["SpaceXl"],
-                    Margin = (Thickness)Application.Current.Resources["BorderThin"],
+                    CornerRadius = radius,
+                    Margin = gap,
+                    BorderThickness = thin,
+                    BorderBrush = hairline,
+                    Child = new TextBlock
+                    {
+                        // 不设字号/前景：沿用 Button 向下继承的正文样式，与原先 string 内容一致。
+                        Text = index.ToString(CultureInfo.InvariantCulture),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
+                    }
+                };
+                // 外层 Button：纯触控格（透明填充保命中、无圆角无描边），Flyout 挂在它上面。
+                var button = new Button
+                {
+                    Background = _touchFill,
+                    Content = swatch,
+                    MinWidth = target,
+                    MinHeight = target,
+                    Margin = (Thickness)Application.Current.Resources["BorderNone"],
                     Padding = (Thickness)Application.Current.Resources["PadNone"],
                     BorderThickness = (Thickness)Application.Current.Resources["BorderNone"],
                     Tag = index
@@ -207,7 +233,7 @@ namespace SshTool.App.Views
                         return;
                     }
                     ViewModel.Draft.Palette[index] = picker.Color;
-                    button.Background = AppearanceBrushes.FromHex(picker.Color);
+                    swatch.Background = AppearanceBrushes.FromHex(picker.Color);
                     OnDraftChanged();
                 };
                 button.Flyout = new Flyout { Content = picker };
@@ -288,10 +314,12 @@ namespace SshTool.App.Views
                 return;
             }
             ShowErrors();
-            string saveError;
-            if (ViewModel.Errors.TryGetValue("save", out saveError))
+            if (ViewModel.Errors != null && ViewModel.Errors.ContainsKey("save"))
             {
-                await ConfirmDialog.ShowAsync("保存失败", saveError, "确定", "关闭");
+                // 「save」里是 VM 兜到的原始异常（细节已入日志），不一句红字糊到用户脸上；
+                // 这里只给一句能照着做的中文。
+                await ConfirmDialog.ShowAsync(
+                    "保存失败", "这份配色没能保存，请检查名称与颜色设置后重试。", "确定", "关闭");
             }
         }
 

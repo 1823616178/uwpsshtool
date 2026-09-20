@@ -15,7 +15,9 @@
             <MenuFlyoutItem Text="复制为新主机" Click="OnDuplicateClick" />
             <MenuFlyoutItem Text="SFTP" Click="OnSftpClick" />
             <MenuFlyoutSeparator />
-            <MenuFlyoutItem Text="删除" Click="OnDeleteClick" />
+            <!-- UI 走查：破坏性项红字，与 ConfirmDialog(isDanger) 呼应 -->
+            <MenuFlyoutItem Text="删除" Click="OnDeleteClick"
+                            Style="{StaticResource DangerMenuItemStyle}" />
         </MenuFlyout>
     </UserControl.Resources>
 

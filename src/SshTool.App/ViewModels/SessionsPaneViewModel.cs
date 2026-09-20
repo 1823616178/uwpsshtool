@@ -74,6 +74,13 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
+            // F03：无 shell 的 SFTP 专用连接附到终端是黑屏——改为按主机新开
+            //（FindConnected 会跳过无 shell 会话并新建带 shell 的会话）。
+            if (!info.ShellOpened && !string.IsNullOrEmpty(info.HostId))
+            {
+                Navigation.Navigate<TerminalPage>(new TerminalArgs { HostId = info.HostId });
+                return;
+            }
             Navigation.Navigate<TerminalPage>(new TerminalArgs { SessionId = info.SessionId });
         }
 

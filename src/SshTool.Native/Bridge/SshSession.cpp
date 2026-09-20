@@ -4,6 +4,9 @@
 #include "Bridge/BridgeUtil.h"
 #include "Bridge/SshAgent.h"
 
+#include "fwd/local_listener.h"
+#include "fwd/pump.h"
+#include "fwd/remote_listen.h"
 #include "sftp/sftp_session.h"
 
 #include <cstring>
@@ -40,6 +43,21 @@ namespace SshTool
                 std::atomic<bool> cancel{false};
             };
 
+            // F05：转发挂载状态（同样头文件只前向声明；构造时创建、
+            // TeardownForward 先行停止并等待 Stopped 后析构，见文件尾 F05 节）。
+            // 定义须早于 SshSession 构造函数中的 new 表达式。
+            struct SshSessionForwardMount
+            {
+                // core 监听对象：与 core SshSession 同寿命；析构须在停线程之后
+                // （TeardownForward 先行停止并等待 Stopped）。
+                std::unique_ptr<sshclient::fwd::LocalListener> local;
+                std::unique_ptr<sshclient::fwd::RemoteListener> remote;
+                std::shared_ptr<sshclient::fwd::TunnelStats> stats =
+                    std::make_shared<sshclient::fwd::TunnelStats>();
+                std::atomic<bool> running{false};
+                unsigned boundPort = 0;
+            };
+
             // ---------------------------------------------------------------- ExecResult
 
             ExecResult::ExecResult(int exitCode, Platform::String^ stdoutText,
@@ -72,7 +90,8 @@ namespace SshTool
                 : thread_(std::make_unique<sshclient::io::SessionThread>()),
                   sink_(this),
                   hostKeyGate_(std::make_shared<bridge::DecisionGate<bool>>()),
-                  sftpMount_(new SshSessionSftpMount())
+                  sftpMount_(new SshSessionSftpMount()),
+                  fwdMount_(new SshSessionForwardMount())
             {
                 // Id 无须全局唯一持久：会话内区分即可（计数 + 启动滴答）。
                 static std::atomic<long long> idCounter{0};
@@ -115,6 +134,7 @@ namespace SshTool
                 }
                 Close(); // 幂等；关闭握手异步跑在 I/O 线程上
                 TeardownSftp(); // F02：先关 SFTP（文件→子系统），再停线程释会话
+                TeardownForward(); // F05：停转发监听（有界等待 Stopped），再停线程
                 // 兜底完成悬挂的 Connect/OpenShell 任务：EventLoop::stop 丢弃
                 // 未跑的任务，回调里的 tce->set 可能永远不会来。
                 {
@@ -134,6 +154,8 @@ namespace SshTool
                 session_.reset();
                 delete sftpMount_; // 已拆除，此处仅释放空壳
                 sftpMount_ = nullptr;
+                delete fwdMount_; // 监听器已 Stopped：析构满足 core 契约
+                fwdMount_ = nullptr;
             }
 
             // ---------------------------------------------------------------- 自定义事件
@@ -1017,6 +1039,255 @@ namespace SshTool
                 if (sftpMount_ != nullptr)
                 {
                     sftpMount_->cancel.store(true, std::memory_order_release);
+                }
+            }
+
+            // ================================================================ F05 转发挂载
+
+            // FwdStart 结果的堆载体：loop 线程的 onListening 回调与后台等待线程
+            // 共享（shared_ptr 独立于挂载/会话寿命；字段由内部锁保护）。
+            struct FwdStartOutcome
+            {
+                std::mutex mutex;
+                bool done = false;
+                int code = 0;
+                std::string message;
+                unsigned boundPort = 0;
+            };
+
+            // F05 启停参数（毫秒）：等 onListening 结果；Shutdown 等监听收尾。
+            static constexpr unsigned kFwdStartTimeoutMs = 10000;
+            static constexpr unsigned kFwdTeardownTimeoutMs = 3000;
+            static constexpr unsigned kFwdPollIntervalMs = 50;
+            // kind 数值与 Bridge.ForwardKind 一致。
+            static constexpr int kFwdKindLocal = 0;
+            static constexpr int kFwdKindRemote = 1;
+            static constexpr int kFwdKindDynamic = 2;
+
+            int SshSession::FwdStart(int kind, const std::string& listenHost,
+                                     unsigned listenPort, const std::string& destHost,
+                                     unsigned destPort, unsigned& boundPortOut,
+                                     std::string& messageOut)
+            {
+                auto outcome = std::make_shared<FwdStartOutcome>();
+                bool admitted = false;
+                {
+                    std::lock_guard<std::mutex> lock(sessionMutex_);
+                    if (closed_.load() || fwdMount_ == nullptr || session_ == nullptr)
+                    {
+                        return ssh::kSshErrorCodeInternalError;
+                    }
+                    if (session_->state() != ssh::SshSessionState::Established)
+                    {
+                        messageOut = "会话未就绪，转发监听拒绝启动";
+                        return ssh::kSshErrorCodeSocketError;
+                    }
+                    if (fwdMount_->local != nullptr || fwdMount_->remote != nullptr)
+                    {
+                        messageOut = "该会话已有转发监听（一条隧道一条监听）";
+                        return ssh::kSshErrorCodeInternalError;
+                    }
+                    // LocalListenResult / RemoteListenResult 同形（success /
+                    // message / boundPort），故共用落账逻辑；但两者是不同类型，
+                    // 回调签名各自显式适配（泛型 lambda 会让 vc141 ICE）。
+                    auto record = [outcome](bool success, const std::string& message,
+                                            unsigned port)
+                    {
+                        std::lock_guard<std::mutex> guard(outcome->mutex);
+                        outcome->code = success ? 0 : ssh::kSshErrorCodeSocketError;
+                        outcome->message = message;
+                        outcome->boundPort = port;
+                        outcome->done = true;
+                    };
+                    auto onListening = [record](const sshclient::fwd::LocalListenResult& result)
+                    {
+                        record(result.success, result.message, result.boundPort);
+                    };
+                    auto onRemoteListening =
+                        [record](const sshclient::fwd::RemoteListenResult& result)
+                    {
+                        record(result.success, result.message, result.boundPort);
+                    };
+                    auto onStopped = []() {};
+                    if (kind == kFwdKindDynamic)
+                    {
+                        auto listener = std::make_unique<sshclient::fwd::LocalListener>(
+                            *session_, fwdMount_->stats,
+                            sshclient::fwd::LocalListenerCallbacks{onListening, onStopped});
+                        admitted = listener->start(listenHost, static_cast<std::uint16_t>(listenPort));
+                        if (admitted)
+                        {
+                            fwdMount_->local = std::move(listener);
+                        }
+                    }
+                    else if (kind == kFwdKindLocal)
+                    {
+                        auto listener = std::make_unique<sshclient::fwd::LocalListener>(
+                            *session_, destHost, static_cast<std::uint16_t>(destPort),
+                            fwdMount_->stats,
+                            sshclient::fwd::LocalListenerCallbacks{onListening, onStopped});
+                        admitted = listener->start(listenHost, static_cast<std::uint16_t>(listenPort));
+                        if (admitted)
+                        {
+                            fwdMount_->local = std::move(listener);
+                        }
+                    }
+                    else if (kind == kFwdKindRemote)
+                    {
+                        auto listener = std::make_unique<sshclient::fwd::RemoteListener>(
+                            *session_, destHost, static_cast<std::uint16_t>(destPort),
+                            fwdMount_->stats,
+                            sshclient::fwd::RemoteListenerCallbacks{onRemoteListening, onStopped});
+                        admitted = listener->start(listenHost, static_cast<std::uint16_t>(listenPort));
+                        if (admitted)
+                        {
+                            fwdMount_->remote = std::move(listener);
+                        }
+                    }
+                    else
+                    {
+                        messageOut = "未知的转发类型";
+                        return ssh::kSshErrorCodeInternalError;
+                    }
+                    if (!admitted)
+                    {
+                        messageOut = "转发监听未受理（会话状态或参数非法）";
+                        return ssh::kSshErrorCodeSocketError;
+                    }
+                }
+                // 后台线程轮询等待 loop 线程的 onListening（绝不持 sessionMutex_
+                // 等待，防与 I/O 线程的状态回调互锁）；TeardownForward 会通过
+                // 停止监听让结果尽快落地或超时兜底。
+                const unsigned long long deadline = ::GetTickCount64() + kFwdStartTimeoutMs;
+                for (;;)
+                {
+                    {
+                        std::lock_guard<std::mutex> guard(outcome->mutex);
+                        if (outcome->done)
+                        {
+                            break;
+                        }
+                    }
+                    if (::GetTickCount64() >= deadline)
+                    {
+                        FwdStop();
+                        messageOut = "启动转发监听超时";
+                        return ssh::kSshErrorCodeInternalError;
+                    }
+                    ::Sleep(kFwdPollIntervalMs);
+                }
+                std::lock_guard<std::mutex> guard(outcome->mutex);
+                if (outcome->code != 0)
+                {
+                    // 监听失败：移除挂载引用（监听器停在 Idle/Stopped，可在
+                    // Shutdown 时安全析构）。
+                    std::lock_guard<std::mutex> lock(sessionMutex_);
+                    if (fwdMount_ != nullptr)
+                    {
+                        fwdMount_->local.reset();
+                        fwdMount_->remote.reset();
+                    }
+                }
+                else
+                {
+                    std::lock_guard<std::mutex> lock(sessionMutex_);
+                    if (fwdMount_ != nullptr)
+                    {
+                        fwdMount_->running.store(true, std::memory_order_release);
+                        fwdMount_->boundPort = outcome->boundPort;
+                    }
+                }
+                boundPortOut = outcome->boundPort;
+                messageOut = outcome->message;
+                return outcome->code;
+            }
+
+            void SshSession::FwdStop()
+            {
+                std::lock_guard<std::mutex> lock(sessionMutex_);
+                if (fwdMount_ == nullptr)
+                {
+                    return;
+                }
+                fwdMount_->running.store(false, std::memory_order_release);
+                if (fwdMount_->local != nullptr)
+                {
+                    fwdMount_->local->stop();
+                }
+                if (fwdMount_->remote != nullptr)
+                {
+                    fwdMount_->remote->stop();
+                }
+            }
+
+            bool SshSession::FwdIsRunning()
+            {
+                std::lock_guard<std::mutex> lock(sessionMutex_);
+                return fwdMount_ != nullptr && fwdMount_->running.load(std::memory_order_acquire);
+            }
+
+            bool SshSession::FwdStats(sshclient::fwd::TunnelStatsSnapshot& statsOut)
+            {
+                std::lock_guard<std::mutex> lock(sessionMutex_);
+                if (fwdMount_ == nullptr)
+                {
+                    return false;
+                }
+                if (fwdMount_->local != nullptr)
+                {
+                    statsOut = sshclient::fwd::snapshotTunnelStats(*fwdMount_->local->stats());
+                    return true;
+                }
+                if (fwdMount_->remote != nullptr)
+                {
+                    statsOut = sshclient::fwd::snapshotTunnelStats(*fwdMount_->remote->stats());
+                    return true;
+                }
+                return false;
+            }
+
+            // F05：转发挂载拆除（Shutdown 专用，线程仍在跑）：post stop，有界
+            // 等待监听进入 Stopped（会话丢失路径也会转 Stopped），随后线程停止，
+            // mount 在 Shutdown 尾部删除（契约：析构在 onStopped/Stopped 之后）。
+            void SshSession::TeardownForward()
+            {
+                SshSessionForwardMount* mount = fwdMount_;
+                if (mount == nullptr)
+                {
+                    return;
+                }
+                {
+                    std::lock_guard<std::mutex> lock(sessionMutex_);
+                    mount->running.store(false, std::memory_order_release);
+                    if (mount->local != nullptr)
+                    {
+                        mount->local->stop();
+                    }
+                    if (mount->remote != nullptr)
+                    {
+                        mount->remote->stop();
+                    }
+                }
+                const unsigned long long deadline = ::GetTickCount64() + kFwdTeardownTimeoutMs;
+                for (;;)
+                {
+                    bool settled = false;
+                    {
+                        std::lock_guard<std::mutex> lock(sessionMutex_);
+                        const bool localDone =
+                            mount->local == nullptr ||
+                            mount->local->state() == sshclient::fwd::LocalListenState::Stopped ||
+                            mount->local->state() == sshclient::fwd::LocalListenState::Idle;
+                        const bool remoteDone = mount->remote == nullptr ||
+                            mount->remote->state() == sshclient::fwd::RemoteListenState::Stopped ||
+                            mount->remote->state() == sshclient::fwd::RemoteListenState::Idle;
+                        settled = localDone && remoteDone;
+                    }
+                    if (settled || ::GetTickCount64() >= deadline)
+                    {
+                        break;
+                    }
+                    ::Sleep(kFwdPollIntervalMs);
                 }
             }
         }

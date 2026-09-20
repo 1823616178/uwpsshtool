@@ -2,6 +2,7 @@ using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;
+using SshTool.Core.Common;
 using SshTool.Core.Models;
 using System;
 using System.Collections.Generic;
@@ -169,7 +170,20 @@ namespace SshTool.App.Views
             }
             catch (Exception ex)
             {
-                await ConfirmDialog.ShowAsync("导入失败", "读取或保存文件时出错：" + ex.Message, "确定", "关闭");
+                // 异常细节（类型/消息）只写日志，弹框只给一句能看懂的话。
+                ILogger log;
+                if (ServiceRegistry.TryGet(out log))
+                {
+                    try
+                    {
+                        log.Log(LogLevel.Error, "AppearanceList",
+                            "导入配色失败：" + ex.GetType().Name + " " + ex.Message);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+                await ConfirmDialog.ShowAsync("导入失败", "读取或保存文件时出错，请重试。", "确定", "关闭");
             }
         }
     }

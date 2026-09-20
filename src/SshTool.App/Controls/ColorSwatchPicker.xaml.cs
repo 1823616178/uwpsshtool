@@ -12,6 +12,9 @@ using Windows.UI.Xaml.Media;
 namespace SshTool.App.Controls
 {
     // A03 完整版：24 预设色；默认组色 #4F8CFF 在第一位。
+    // UI 走查 S 组：色块即可触控（TouchTargetMin），选中态用强调色描边 + 「✓」角标，未选中不留描边。
+    // UI 走查 R-C 分层：外层 Border 只做 40×40 触控区（无圆角、无可见填充），内层 Border 才是
+    // 圆角色块，四周让出 SwatchGap 的间隙 —— 邻块之间不再无缝贴死，选中环也只压住自己那块。
     public sealed partial class ColorSwatchPicker : UserControl
     {
         private static readonly string[] Presets =
@@ -20,6 +23,19 @@ namespace SshTool.App.Controls
             "#16A765", "#C9800C", "#7CADFF", "#FF8584", "#5BD896", "#FFBB4D", "#D6A0EC", "#6AD8E5",
             "#1A2233", "#12161F", "#6B7891", "#9AA7C0", "#E8EEFB", "#243048", "#000000", "#FFFFFF"
         };
+
+        // 分层刻度：既是选中环的描边宽度，也是内层色块与外层触控格之间的间隙。
+        // Themes/ 只有 1px（BorderThin）与 0（BorderNone），没有 2px 均匀档，故在此登记；
+        // AppearanceEditPage 的 ANSI 调色板色块共用同值（内层圆角 + 让出间隙）。
+        internal const double SwatchGap = 2;
+        // 「✓」角标（文本字形，仓库已有 ▶ 先例）；对比色随色块亮度取黑白，与主题无关。
+        // 实例字段：Brush 是 DependencyObject，随构造在 UI 线程创建。
+        private const string CheckGlyph = "✓";
+        private readonly Brush _onLightSwatch = new SolidColorBrush(Colors.Black);
+        private readonly Brush _onDarkSwatch = new SolidColorBrush(Colors.White);
+        // 外层触控格的透明填充：Background 为 null 时 Border 不参与命中测试，
+        // 内层让出的 SwatchGap 环带就会漏掉触控；透明填充补齐整格 40×40，且无可见底色。
+        private readonly Brush _hitTestFill = new SolidColorBrush(Colors.Transparent);
 
         public static readonly DependencyProperty ColorProperty = DependencyProperty.Register(
             nameof(Color), typeof(string), typeof(ColorSwatchPicker),
@@ -72,18 +88,100 @@ namespace SshTool.App.Controls
         private void BuildSwatches()
         {
             SwatchGrid.Children.Clear();
+            double target = (double)Application.Current.Resources["TouchTargetMin"];
+            Thickness noGap = (Thickness)Application.Current.Resources["BorderNone"];
+            Thickness gap = new Thickness(SwatchGap);
+            CornerRadius radius = (CornerRadius)Application.Current.Resources["RadiusSm"];
+            double glyphSize = (double)Application.Current.Resources["FontCaption"];
             for (int i = 0; i < Presets.Length; i++)
             {
                 string hex = Presets[i];
-                var border = new Border
+                var check = new TextBlock
+                {
+                    Text = CheckGlyph,
+                    FontSize = glyphSize,
+                    Foreground = _onDarkSwatch,
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    Visibility = Visibility.Collapsed,
+                    IsHitTestVisible = false
+                };
+                // 内层：圆角色块本体，四周让出 gap 与邻块分开；选中环画在这一层。
+                var swatch = new Border
                 {
                     Background = BrushFrom(hex),
-                    Margin = (Thickness)Application.Current.Resources["BorderThin"],
+                    Child = check,
+                    CornerRadius = radius,
+                    Margin = gap,
+                    BorderThickness = noGap,
+                    // 与外层同值 Tag：Tapped 冒泡后无论 sender 解析到哪一层 Border 都取得到色值，
+                    // 点击回调无需改动。
                     Tag = hex
                 };
-                border.Tapped += OnSwatchTapped;
-                SwatchGrid.Children.Add(border);
+                // 外层：纯触控格（无圆角、无可见填充），Tapped 与色值都挂这一层，
+                // 因此点击回调与 Children[i] 的索引语义不变。
+                var cell = new Border
+                {
+                    Background = _hitTestFill,
+                    Child = swatch,
+                    MinWidth = target,
+                    MinHeight = target,
+                    Margin = noGap,
+                    BorderThickness = noGap,
+                    Tag = hex
+                };
+                cell.Tapped += OnSwatchTapped;
+                SwatchGrid.Children.Add(cell);
             }
+            SyncSelection();
+        }
+
+        // 选中态：内层色块加强调色 2 描边 + 「✓」；未选中无描边。
+        private void SyncSelection()
+        {
+            // AppAccentBrush 只在 Tokens.*.xaml 的 ThemeDictionaries 里，
+            // ResourceDictionary 索引器不查主题字典（恒 null）——走 Banner 的解析。
+            Brush accent = Banner.ResolveThemedBrush("AppAccentBrush");
+            Thickness stroke = new Thickness(SwatchGap);
+            Thickness noGap = (Thickness)Application.Current.Resources["BorderNone"];
+            for (int i = 0; i < SwatchGrid.Children.Count; i++)
+            {
+                var cell = SwatchGrid.Children[i] as Border;
+                if (cell == null)
+                {
+                    continue;
+                }
+                var swatch = cell.Child as Border;
+                if (swatch == null)
+                {
+                    continue;
+                }
+                string hex = cell.Tag as string;
+                bool selected = !string.IsNullOrEmpty(Color)
+                    && string.Equals(hex, Color, StringComparison.OrdinalIgnoreCase);
+                swatch.BorderBrush = selected ? accent : null;
+                swatch.BorderThickness = selected ? stroke : noGap;
+                var check = swatch.Child as TextBlock;
+                if (check != null)
+                {
+                    check.Visibility = selected ? Visibility.Visible : Visibility.Collapsed;
+                    check.Foreground = ContrastGlyph(hex);
+                }
+            }
+        }
+
+        // 角标压在任意色块上都要可辨：按色块亮度取纯黑/纯白，不跟随主题。
+        private Brush ContrastGlyph(string hex)
+        {
+            byte r;
+            byte g;
+            byte b;
+            if (!TryParse(hex, out r, out g, out b))
+            {
+                return _onDarkSwatch;
+            }
+            int luminance = (r * 299 + g * 587 + b * 114) / 1000;
+            return luminance >= 150 ? _onLightSwatch : _onDarkSwatch;
         }
 
         private void OnSwatchTapped(object sender, TappedRoutedEventArgs e)
@@ -155,6 +253,7 @@ namespace SshTool.App.Controls
                     UpdateLabels(hsv);
                 }
                 SyncCompare();
+                SyncSelection();
             }
             finally
             {

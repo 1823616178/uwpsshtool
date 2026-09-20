@@ -155,6 +155,18 @@ namespace SshTool
                 impl_->bridge.feed(data, len);
             }
 
+            void TerminalScreen::FeedBytes(const Platform::Array<uint8>^ data)
+            {
+                if (data == nullptr || data->Length == 0)
+                    return;
+                Feed(reinterpret_cast<const char *>(data->Data), data->Length);
+            }
+
+            void TerminalScreen::ResizeGrid(int cols, int rows)
+            {
+                ResetGrid(cols, rows);
+            }
+
             void TerminalScreen::ResetGrid(int cols, int rows)
             {
                 if (cols <= 0 || rows <= 0)

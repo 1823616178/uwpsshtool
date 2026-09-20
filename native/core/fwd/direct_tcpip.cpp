@@ -244,6 +244,11 @@ void ForwardedConnection::setCloseCallback(
     callbacks_.onClose = std::move(callback);
 }
 
+void ForwardedConnection::setOpenFailureCallback(std::function<void()> callback)
+{
+    openFailureCallback_ = std::move(callback);
+}
+
 // ---------------------------------------------------------------- admission (any thread)
 
 bool ForwardedConnection::openLocal(std::string destHost, std::uint16_t destPort,
@@ -255,6 +260,16 @@ bool ForwardedConnection::openLocal(std::string destHost, std::uint16_t destPort
     }
     return admitOpen(Half::Local, std::move(destHost), destPort, std::move(srcHost),
                      srcPort);
+}
+
+bool ForwardedConnection::openDynamic(std::string srcHost, std::uint16_t srcPort)
+{
+    if (socket_ == INVALID_SOCKET) {
+        FWD_LOG("openDynamic rejected: no socket");
+        return false;
+    }
+    // 目标未知（来自客户端的 CONNECT），admit 时 host_/port_ 留空。
+    return admitOpen(Half::Local, std::string(), 0, std::move(srcHost), srcPort);
 }
 
 bool ForwardedConnection::openRemote(std::string targetHost, std::uint16_t targetPort)
@@ -287,6 +302,10 @@ bool ForwardedConnection::admitOpen(Half half, std::string host, std::uint16_t p
     port_ = port;
     srcHost_ = std::move(srcHost);
     srcPort_ = srcPort;
+    socksMode_ = half == Half::Local && host_.empty();
+    socksParsed_ = false;
+    socksLeftover_.clear();
+    socksReplyPending_.clear();
     session_.thread_.post([this] { begin(); });
     return true;
 }
@@ -351,8 +370,11 @@ void ForwardedConnection::begin()
     }
     socketEndpoint_ = std::make_unique<SocketEndpoint>(*this);
     channelEndpoint_ = std::make_unique<ChannelEndpoint>(*this);
-    pump_ = std::make_unique<BidirectionalPump>(*socketEndpoint_, *channelEndpoint_,
-                                                stats_.get());
+    if (!socksMode_) {
+        // 直连/远端半边：开泵即可；dynamic 半边在握手解析出目标后才建泵。
+        pump_ = std::make_unique<BidirectionalPump>(*socketEndpoint_, *channelEndpoint_,
+                                                    stats_.get());
+    }
     session_.registerForwarded(this);
     if (half_ == Half::Local) {
         if (!session_.thread_.loop().addSocket(
@@ -383,10 +405,20 @@ void ForwardedConnection::pump()
     }
     switch (state) {
     case ForwardState::Opening:
-        if (half_ == Half::Local) {
-            driveChannelOpen();
-        } else {
-            driveTargetConnect();
+        if (socksMode_ && !socksParsed_) {
+            driveSocks(); // SOCKS5 握手（含回复写回）；解析出目标后转入通道打开
+        }
+        if (!socksMode_ || socksParsed_) {
+            if (half_ == Half::Local) {
+                if (channel_ == nullptr) {
+                    driveChannelOpen();
+                } else {
+                    // 通道已开但回复未写完（部分写等 Writable）：续推并转泵。
+                    finishOpenToPumping();
+                }
+            } else {
+                driveTargetConnect();
+            }
         }
         if (state_.load(std::memory_order_acquire) == ForwardState::Pumping) {
             drivePumpOnce(); // opened just now: run the data plane on the same beat
@@ -411,6 +443,13 @@ void ForwardedConnection::onTcpEvent(SOCKET socket, short events)
         return; // session teardown: onSessionLost owns the cleanup
     }
     const ForwardState state = state_.load(std::memory_order_acquire);
+    if (state == ForwardState::Opening && half_ == Half::Local && socksMode_) {
+        pump(); // SOCKS 握手与回复写回（Readable/Writable 都可能推进）
+        if (state_.load(std::memory_order_acquire) != ForwardState::Closed) {
+            session_.updateSocketInterest();
+        }
+        return;
+    }
     if (state == ForwardState::Opening && half_ == Half::Remote) {
         driveTargetConnectEvent();
         return;
@@ -440,25 +479,165 @@ bool ForwardedConnection::driveChannelOpen()
             return false;
         }
         session_.releaseFwdChannelOpen(this);
+        if (socksMode_ && socksParsed_) {
+            // F05 dynamic：direct-tcpip 被拒（目标不可达/服务器策略），尽力把
+            // HostUnreachable 回给客户端再收尾（closesocket 会尝试送达缓冲）。
+            sendBestEffort(socks5::buildReply(socks5::Reply::HostUnreachable));
+        }
         failOpen(ForwardOpenError::ChannelOpenFailed, lastLibssh2Error());
         return true;
     }
     session_.releaseFwdChannelOpen(this);
     channel_ = channel;
     blockedOutbound_ = false;
-    transitionTo(ForwardState::Pumping);
-    countedActive_ = true;
-    stats_->activeConnections.fetch_add(1, std::memory_order_relaxed);
-    stats_->totalConnections.fetch_add(1, std::memory_order_relaxed);
-    FWD_LOG("direct-tcpip open to %s:%u", host_.c_str(), port_);
-    if (callbacks_.onOpen) {
-        callbacks_.onOpen({true, ForwardOpenError::None, ""});
-    }
     if (closeRequested_.load(std::memory_order_acquire)) {
         // close() raced the open: honor it immediately (SshChannel convention).
+        // 统计/回调由 finishOpenToPumping 入账，enterClosing 路径的 finishClose 配平。
+        finishOpenToPumping();
         enterClosing(ForwardCloseReason::LocalClose, "local close requested");
+        return true;
+    }
+    finishOpenToPumping();
+    return true;
+}
+
+// F05 dynamic：open 成功收尾（可多次进入：回复未写完时保持 Opening，Writable
+// 事件续推）。统计与 onOpen 仅入账一次；dynamic 半边先把成功回复写回客户端，
+// 写完才进入 Pumping 并注入请求后已到达的字节；直连半边直接进泵。
+void ForwardedConnection::finishOpenToPumping()
+{
+    if (!openNotified_) {
+        openNotified_ = true;
+        countedActive_ = true;
+        stats_->activeConnections.fetch_add(1, std::memory_order_relaxed);
+        stats_->totalConnections.fetch_add(1, std::memory_order_relaxed);
+        FWD_LOG("direct-tcpip open to %s:%u", host_.c_str(), port_);
+        if (callbacks_.onOpen) {
+            callbacks_.onOpen({true, ForwardOpenError::None, ""});
+        }
+    }
+    if (socksMode_) {
+        if (!socksReplyArmed_) {
+            socksReplyArmed_ = true;
+            socksReplyPending_ = socks5::buildReply(socks5::Reply::Success);
+        }
+        if (!flushSocksReply()) {
+            return; // 回复未写完：保持 Opening，Writable 事件续推
+        }
+        if (socksReplyFailed_) {
+            // 成功回复都没送出去：客户端多半已断开，按 socket 错误收尾。
+            enterClosing(ForwardCloseReason::SocketError, "socks reply send failed");
+            return; // enterClosing 可能同步回收本对象，之后不得触碰成员
+        }
+    }
+    transitionTo(ForwardState::Pumping);
+    if (pump_ != nullptr && !socksLeftover_.empty()) {
+        pump_->injectAtoB(std::move(socksLeftover_));
+        socksLeftover_.clear();
+    }
+    refreshSocketInterest();
+    session_.updateSocketInterest();
+}
+
+// F05：写回挂起的握手帧；全部写完返回 true，WOULDBLOCK 返回 false（由
+// refreshSocketInterest 挂 Writable 续推）。写失败只记账 socksReplyFailed_
+// 并返回 true，由调用方检查后收尾（本函数绝不触碰状态机，避免回收路径
+// 的重入）。
+bool ForwardedConnection::flushSocksReply()
+{
+    socksReplyFailed_ = false;
+    while (!socksReplyPending_.empty()) {
+        const int sent = ::send(socket_, socksReplyPending_.data(),
+                                static_cast<int>(socksReplyPending_.size()), 0);
+        if (sent > 0) {
+            socksReplyPending_.erase(0, static_cast<size_t>(sent));
+            continue;
+        }
+        const int error = ::WSAGetLastError();
+        if (sent == 0 || error == WSAEWOULDBLOCK) {
+            return false; // retry on writable
+        }
+        socksReplyFailed_ = true;
+        return true;
     }
     return true;
+}
+
+// F05：尽力一写（不重试、不收尾）——拒绝/失败路径在关闭前的最后送达机会，
+// 失败由紧随其后的关闭路径处理。
+void ForwardedConnection::sendBestEffort(const std::string& data)
+{
+    if (socket_ != INVALID_SOCKET && !data.empty()) {
+        (void)::send(socket_, data.data(), static_cast<int>(data.size()), 0);
+    }
+}
+
+// F05：SOCKS5 握手驱动（Opening、socksMode、解析完成前）。循环：先续推挂起
+// 的回复帧，再读 socket 喂纯逻辑握手，按裁决回写/推进/失败收尾。与桌面端
+// socks5.ts 的行为一致：失败先写裁决帧（可为空）再关闭；握手期间不建泵。
+// 已知偏差（记录于 04-TASKS 进度日志）：握手无超时（对齐桌面端，卡住由
+// tunnel stop 兜底拆除）。
+bool ForwardedConnection::driveSocks()
+{
+    for (;;) {
+        if (!flushSocksReply()) {
+            return false; // 回复未写完，等 Writable
+        }
+        if (socksReplyFailed_) {
+            enterClosing(ForwardCloseReason::SocketError, "socks reply send failed");
+            return true; // enterClosing 可能同步回收本对象，之后不得触碰成员
+        }
+        if (socksParsed_) {
+            return true; // 主泵路径接续 driveChannelOpen
+        }
+        if (closeRequested_.load(std::memory_order_acquire)) {
+            enterClosing(ForwardCloseReason::LocalClose, "local close requested");
+            return true;
+        }
+        char buffer[BidirectionalPump::kReadChunkBytes];
+        const int received = ::recv(socket_, buffer, sizeof(buffer), 0);
+        if (received < 0) {
+            const int error = ::WSAGetLastError();
+            if (error == WSAEWOULDBLOCK) {
+                return false; // 等下一拍
+            }
+            char message[96]{};
+            ::sprintf_s(message, sizeof(message), "socks handshake recv failed (WSA %d)",
+                        error);
+            enterClosing(ForwardCloseReason::SocketError, message);
+            return true;
+        }
+        if (received == 0) {
+            // 客户端在握手完成前就关了连接。
+            enterClosing(ForwardCloseReason::SocketError, "socks handshake: client closed");
+            return true;
+        }
+        const socks5::FeedResult outcome = socks_.feed(buffer, static_cast<size_t>(received));
+        switch (outcome.kind) {
+        case socks5::FeedKind::NeedMore:
+            return false; // 等客户端后续字节（Readable 已挂）
+        case socks5::FeedKind::Reply:
+            socksReplyPending_ = outcome.reply; // 循环顶部先尽力写回
+            continue;
+        case socks5::FeedKind::Request:
+            socksReplyPending_.clear();
+            socksLeftover_ = outcome.leftover;
+            host_ = outcome.host;
+            port_ = outcome.port;
+            socksParsed_ = true;
+            pump_ = std::make_unique<BidirectionalPump>(*socketEndpoint_, *channelEndpoint_,
+                                                        stats_.get());
+            FWD_LOG("socks5 CONNECT %s:%u", host_.c_str(), static_cast<unsigned>(port_));
+            return true; // 主泵路径接续 driveChannelOpen
+        case socks5::FeedKind::Failure:
+        default:
+            // 失败帧尽力送达（可为空 = 不回复直接关），然后收尾。
+            sendBestEffort(outcome.reply);
+            enterClosing(ForwardCloseReason::SocketError,
+                         "socks handshake failed: " + outcome.message);
+            return true; // enterClosing 可能同步回收本对象，之后不得触碰成员
+        }
+    }
 }
 
 // ---------------------------------------------------------------- remote-half TCP connect (loop thread)
@@ -632,8 +811,21 @@ void ForwardedConnection::refreshSocketInterest()
     }
     short events = 0;
     const ForwardState state = state_.load(std::memory_order_acquire);
-    if (state == ForwardState::Opening && half_ == Half::Remote) {
-        events = io::EventLoop::Writable; // connect in progress
+    if (state == ForwardState::Opening) {
+        if (half_ == Half::Remote) {
+            events = io::EventLoop::Writable; // connect in progress
+        } else if (socksMode_ && !socksParsed_) {
+            events = io::EventLoop::Readable; // SOCKS 握手：等客户端字节
+            if (!socksReplyPending_.empty()) {
+                events |= io::EventLoop::Writable; // 回复未写完：续推
+            }
+        } else if (socksMode_ && socksParsed_ && pump_ == nullptr) {
+            events = io::EventLoop::Readable; // 目标已解析、通道未开：吸收余量
+            if (!socksReplyPending_.empty()) {
+                events |= io::EventLoop::Writable;
+            }
+        }
+        // 非 dynamic 的本地半边：通道打开驱动跟会话 socket，本地无需兴趣。
     } else if (state == ForwardState::Pumping && pump_) {
         if (pump_->wantReadA()) {
             events |= io::EventLoop::Readable;
@@ -759,6 +951,13 @@ void ForwardedConnection::failOpen(ForwardOpenError error, const std::string& me
     socketEndpoint_.reset();
     channelEndpoint_.reset();
     transitionTo(ForwardState::Closed);
+    // 回收钩子最后触发：erase 会析构本对象，返回后不得再触碰任何成员
+    //（与 finishClose 里 onClose 的「destroys post-onClose」同款纪律）。
+    std::function<void()> reclaim = std::move(openFailureCallback_);
+    openFailureCallback_ = nullptr;
+    if (reclaim) {
+        reclaim();
+    }
 }
 
 void ForwardedConnection::onSessionLost()

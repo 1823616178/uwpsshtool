@@ -10,10 +10,11 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Button Content="返回" Click="OnBackClick" Margin="{StaticResource GapSmTop}" />
+        <Button Content="返回" Click="OnBackClick" Margin="{StaticResource GapSmTop}"
+                Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Left" />
         <controls:EmptyState x:Name="Empty"
                              Grid.Row="1"
-                             Glyph="{StaticResource IconDocument}"
+                             Glyph="{StaticResource IconInfo}"
                              Title="即将推出" />
     </Grid>
 </Page>

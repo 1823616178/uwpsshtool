@@ -531,5 +531,37 @@ namespace SshTool.Core.Tests.Sessions
             Assert.Single(second.Writes);
             Assert.Equal("tmux new-session -A -s main\r", Encoding.UTF8.GetString(second.Writes[0]));
         }
+
+        // F03：OpenShell=false（SFTP 专用连接）——不开 shell、不发 AutoRun，
+        // 认证通过即 Connected；重连也保持无 shell。
+        [Fact]
+        public async Task Open_NoShell_ConnectedWithoutShellOrAutoRun()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            host.TmuxAutoAttach = true;
+            host.TmuxSessionName = "main";
+            await fx.Hosts.UpdateAsync(host, ChangeOrigin.User);
+            FakeSshSession native = fx.Enqueue(ReadySession());
+
+            SessionInfo info = await fx.Manager.OpenAsync(
+                new SessionOpenRequest { HostId = host.Id, OpenShell = false });
+
+            Assert.Equal(SessionUiState.Connected, info.State);
+            Assert.False(info.ShellOpened);
+            Assert.DoesNotContain(native.Calls, c => c == "OpenShell");
+            Assert.Empty(native.Writes);
+
+            // 重连保持无 shell 形态。
+            FakeSshSession second = fx.Enqueue(ReadySession());
+            native.FireStateChanged(SessionStateKind.Disconnected, SshErrorCode.RemoteClosed);
+            fx.Timers.FirePending();
+            await Task.Yield();
+
+            Assert.Equal(SessionUiState.Connected, info.State);
+            Assert.Same(second, info.NativeSession);
+            Assert.False(info.ShellOpened);
+            Assert.DoesNotContain(second.Calls, c => c == "OpenShell");
+        }
     }
 }

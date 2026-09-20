@@ -13,5 +13,7 @@
     <!-- SP04：Win2D.uwp 1.26.0 —— 1.26.0 的原生库放在 runtimes/win10-arm（UWP 工具链认的 RID），
          1.27+ 改成 runtimes/win-arm；ARM32 二进制两版都有。最终版本以真机帧率结论为准。 -->
     <Win2DVersion>1.26.0</Win2DVersion>
+    <!-- U16：netstandard1.4 下 SHA256 来自 System.Security.Cryptography.Algorithms（RecoveryKeyInput）。 -->
+    <SysCryptoAlgorithmsVersion>4.3.0</SysCryptoAlgorithmsVersion>
   </PropertyGroup>
 </Project>

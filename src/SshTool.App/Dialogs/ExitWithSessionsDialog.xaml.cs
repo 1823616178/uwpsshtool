@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml.Controls;
 
 namespace SshTool.App.Dialogs
@@ -12,6 +14,8 @@ namespace SshTool.App.Dialogs
 
     public sealed partial class ExitWithSessionsDialog : ContentDialog
     {
+        private static readonly ResourceLoader Loader = ResourceLoader.GetForCurrentView();
+
         private ExitWithSessionsDialog()
         {
             this.InitializeComponent();
@@ -20,7 +24,10 @@ namespace SshTool.App.Dialogs
         public static async Task<ExitWithSessionsDialogResult> ShowAsync(int sessionCount)
         {
             var dialog = new ExitWithSessionsDialog();
-            dialog.MessageText.Text = "有 " + sessionCount + " 个会话正在连接，退出将全部断开。";
+            // 标题/按钮由 x:Uid 本地化；正文带会话数，用 {0} 模板格式化（不拼字符串）。
+            dialog.MessageText.Text = string.Format(CultureInfo.CurrentCulture,
+                Loader.GetString("ExitDialog_Message"),
+                sessionCount.ToString(CultureInfo.InvariantCulture));
             var result = await ServiceRegistry.Get<DialogService>().ShowAsync(dialog);
             return new ExitWithSessionsDialogResult
             {

@@ -1,10 +1,13 @@
 using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
 namespace SshTool.App.Views
 {
+    // Milestone 仅作内部规划口径（日志/注释），一律不上屏。
     public sealed class PlaceholderArgs
     {
         public PlaceholderArgs(string title, string milestone)
@@ -19,6 +22,8 @@ namespace SshTool.App.Views
 
     public sealed partial class PlaceholderPage : Page
     {
+        private static readonly ResourceLoader Loader = ResourceLoader.GetForCurrentView();
+
         public PlaceholderPage()
         {
             this.InitializeComponent();
@@ -28,10 +33,17 @@ namespace SshTool.App.Views
         {
             base.OnNavigatedTo(e);
             var args = e.Parameter as PlaceholderArgs;
-            string title = args != null ? args.Title : "页面";
+            string title = args != null && !string.IsNullOrEmpty(args.Title)
+                ? args.Title : Loader.GetString("Placeholder_Title");
             string milestone = args != null ? args.Milestone : "后续";
             Empty.Title = title;
-            Empty.Description = "将在 " + milestone + " 提供";
+            Empty.Description = Loader.GetString("Placeholder_ComingSoon");
+            // 里程碑代号只进日志，供开发排查；页面不显示 M3/M5/M7 这类内部代号。
+            ILogger log;
+            if (ServiceRegistry.TryGet(out log))
+            {
+                log.Log(LogLevel.Info, "Placeholder", title + " 未实现，计划里程碑 " + milestone);
+            }
         }
 
         private void OnBackClick(object sender, RoutedEventArgs e)

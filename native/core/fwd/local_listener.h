@@ -11,6 +11,12 @@
 // its own Closing path). TunnelStats is shared between the listener and its
 // connections (F05 polls it for rates).
 //
+// F05 dynamic (SOCKS5) mode: the no-destination constructor selects the -D
+// flavor —each accepted connection first completes a SOCKS5 handshake on the
+// socket (ForwardedConnection::openDynamic, pure logic in fwd/socks5.h), then
+// opens direct-tcpip to the client's CONNECT target. destHost_/destPort_ stay
+// empty in this mode; the same session gates and stats apply.
+//
 // Threading (SshChannel discipline): start/stop/state are any-thread;
 // admission posts to the session's loop thread. All socket calls and all
 // callbacks run on the loop thread. Destroy only after onStopped (or after a
@@ -60,6 +66,9 @@ public:
     // stats: shared counters (created internally when null).
     LocalListener(ssh::SshSession& session, std::string destHost, std::uint16_t destPort,
                   std::shared_ptr<TunnelStats> stats, LocalListenerCallbacks callbacks);
+    // F05 dynamic：SOCKS5 模式（无固定目标；目标来自客户端 CONNECT）。
+    LocalListener(ssh::SshSession& session, std::shared_ptr<TunnelStats> stats,
+                  LocalListenerCallbacks callbacks);
     ~LocalListener();
 
     LocalListener(const LocalListener&) = delete;
@@ -86,12 +95,14 @@ private:
     void onListenEvent(SOCKET socket, short events);
     void acceptBurst();
     void spawnConnection(SOCKET accepted);
+    void eraseConnection(ForwardedConnection* raw); // onClose / open-failure 回收
     void teardown(const char* reason); // close listen socket + all connections
     void onSessionLost();              // forced cleanup when the session drops/closes
 
     ssh::SshSession& session_;
     std::string destHost_;
     std::uint16_t destPort_ = 0;
+    bool socksMode_ = false; // F05 dynamic（-D）：目标由客户端 CONNECT 提供
     std::shared_ptr<TunnelStats> stats_;
     LocalListenerCallbacks callbacks_;
 

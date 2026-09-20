@@ -49,14 +49,18 @@
                                 <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}" />
                                 <TextBlock Text="{Binding Subtitle}" Style="{StaticResource CaptionTextStyle}" />
                             </StackPanel>
-                            <Button Grid.Column="1" Content="…" Margin="{StaticResource GapSmLeft}"
+                            <!-- UI 走查：… 文本换 IconMore 字形并补无障碍名；无样式按钮保留手写触控尺寸。 -->
+                            <Button Grid.Column="1" Margin="{StaticResource GapSmLeft}"
                                     MinWidth="{StaticResource TouchTargetMin}"
                                     MinHeight="{StaticResource TouchTargetMin}"
-                                    Background="{ThemeResource AppSurfaceAltBrush}">
+                                    Background="{ThemeResource AppSurfaceAltBrush}"
+                                    AutomationProperties.Name="更多">
+                                <FontIcon Glyph="{StaticResource IconMore}" />
                                 <Button.Flyout>
                                     <MenuFlyout>
                                         <MenuFlyoutItem Text="查看详情" Click="OnDetailClick" />
-                                        <MenuFlyoutItem Text="删除" Click="OnDeleteClick" />
+                                        <MenuFlyoutItem Text="删除" Click="OnDeleteClick"
+                                                        Style="{StaticResource DangerMenuItemStyle}" />
                                     </MenuFlyout>
                                 </Button.Flyout>
                             </Button>

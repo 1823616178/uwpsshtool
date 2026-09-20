@@ -2,7 +2,14 @@
     x:Class="SshTool.App.Views.Main.SessionsPivot"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:SshTool.App.Controls">
+    xmlns:controls="using:SshTool.App.Controls"
+    xmlns:local="using:SshTool.App.Views.Main">
+
+    <!-- UI 走查：会话状态是枚举，直接绑定会把 Connected/Authenticating 这类
+         英文枚举名甩到屏幕上；改走转换器出中文（说法与 StatusDot 无障碍名一致）。 -->
+    <UserControl.Resources>
+        <local:SessionStateTextConverter x:Key="SessionStateText" />
+    </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -14,7 +21,10 @@
                 Visibility="Collapsed">
             <StackPanel>
                 <TextBlock x:Name="RestoreText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
-                <Button Content="全部恢复" Click="OnRestore" Margin="{StaticResource GapSmTop}" />
+                <!-- UI 走查：恢复为次级动作（主入口在主机列表），补触控。 -->
+                <Button Content="全部恢复" Click="OnRestore"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="{StaticResource GapSmTop}" />
             </StackPanel>
         </Border>
         <ListView x:Name="SessionList" Grid.Row="1" SelectionMode="Single"
@@ -28,9 +38,16 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel>
                             <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}" />
-                            <TextBlock Text="{Binding State}" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock Text="{Binding State, Converter={StaticResource SessionStateText}}"
+                                       Style="{StaticResource CaptionTextStyle}" />
                         </StackPanel>
-                        <Button Grid.Column="1" Content="✕" Click="OnCloseClick" Tag="{Binding}" />
+                        <!-- UI 走查：✕ 换 IconClose 字形（Segoe MDL2），补触控与无障碍名。 -->
+                        <Button Grid.Column="1" Click="OnCloseClick" Tag="{Binding}"
+                                AutomationProperties.Name="关闭会话"
+                                MinWidth="{StaticResource TouchTargetMin}"
+                                MinHeight="{StaticResource TouchTargetMin}">
+                            <FontIcon Glyph="{StaticResource IconClose}" />
+                        </Button>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>

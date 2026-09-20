@@ -152,6 +152,16 @@ public:
 
     void setMaxBufferedBytes(size_t bytes) { maxBufferedBytes_ = bytes; }
 
+    // F05：注入本应从 SideA 读到但已被前置阶段（SOCKS5 握手）消费的字节
+    //（客户端把应用数据与请求一并送达的流水线场景）。仅在泵尚未结束时调用；
+    // 字节按顺序进入 A→B 缓冲，随下一次 drive() 送往 SideB。
+    void injectAtoB(std::string bytes)
+    {
+        if (!bytes.empty()) {
+            bufferAtoB_ += std::move(bytes);
+        }
+    }
+
     PumpDriveReport drive(); // loop thread only
 
     bool finished() const { return finished_; }

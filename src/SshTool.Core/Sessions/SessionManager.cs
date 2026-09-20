@@ -150,7 +150,8 @@ namespace SshTool.Core.Sessions
                 Rows = request.Rows < 1 ? 24 : request.Rows,
                 HostName = hostName,
                 Port = port,
-                Username = user
+                Username = user,
+                ShellOpened = request.OpenShell
             };
             // D06/WRONG_THREAD：ConnectCoreAsync 后续在线程池里改 info.*；
             // 字段同步更新、PropertyChanged 经 _ui 回 UI 线程，否则 XAML 绑定
@@ -477,19 +478,24 @@ namespace SshTool.Core.Sessions
                 return;
             }
 
-            code = await native.OpenShellAsync(info.Cols, info.Rows).ConfigureAwait(false);
-            if (info.UserClosed)
+            // F03：无 shell 用途（SFTP 专用连接）不开 shell、不发 AutoRun，
+            // 认证通过即视为已连接；重连保持原会话形态（info.ShellOpened）。
+            if (info.ShellOpened)
             {
-                return;
-            }
-            if (code != SshErrorCode.None)
-            {
-                Fail(info, code, true);
-                return;
-            }
+                code = await native.OpenShellAsync(info.Cols, info.Rows).ConfigureAwait(false);
+                if (info.UserClosed)
+                {
+                    return;
+                }
+                if (code != SshErrorCode.None)
+                {
+                    Fail(info, code, true);
+                    return;
+                }
 
-            // U10：每次（含重连）shell 打开后发送自动执行命令，靠 tmux 附着找回现场。
-            SendAutoRun(native, host);
+                // U10：每次（含重连）shell 打开后发送自动执行命令，靠 tmux 附着找回现场。
+                SendAutoRun(native, host);
+            }
 
             info.State = SessionUiState.Connected;
             info.ErrorCode = SshErrorCode.None;

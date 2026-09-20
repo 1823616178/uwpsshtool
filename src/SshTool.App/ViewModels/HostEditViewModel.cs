@@ -364,8 +364,7 @@ namespace SshTool.App.ViewModels
             _loadedAuth = Credentials.AuthType;
             _loadedKeyId = Credentials.KeyId;
             RaisePropertyChanged("Credentials");
-            RaisePropertyChanged("PasswordPlaceholder");
-            RaisePropertyChanged("PassphrasePlaceholder");
+            RaiseCredentialStates();
         }
 
         public string PasswordPlaceholder
@@ -376,6 +375,101 @@ namespace SshTool.App.ViewModels
         public string PassphrasePlaceholder
         {
             get { return Credentials != null && Credentials.HasSavedPassphrase ? "已保存" : string.Empty; }
+        }
+
+        // UI 走查（凭据三态可见化）：状态语义仍完全由 CredentialDraft 持有，这里只做只读派生 +
+        // 通知。文案集中在此（后续可整段换 resw），颜色交给 XAML 的 ThemeResource 跟随主题。
+        public CredentialFieldState PasswordCredentialState
+        {
+            get { return Credentials == null ? CredentialFieldState.Unchanged : Credentials.PasswordState; }
+        }
+
+        public CredentialFieldState PassphraseCredentialState
+        {
+            get { return Credentials == null ? CredentialFieldState.Unchanged : Credentials.PassphraseState; }
+        }
+
+        public string PasswordCredentialStateText
+        {
+            get { return DescribeCredentialState(PasswordCredentialState, HasSavedPassword); }
+        }
+
+        public string PassphraseCredentialStateText
+        {
+            get { return DescribeCredentialState(PassphraseCredentialState, HasSavedPassphrase); }
+        }
+
+        // 三态各一个可见性开关（XAML 用 x:Bind 的 bool→Visibility 隐式转换）。
+        // Unchanged 且本机没有已存凭据时不提示，避免对新建主机谎称「已保存」。
+        public bool IsPasswordCredentialSaved
+        {
+            get { return PasswordCredentialState == CredentialFieldState.Unchanged && HasSavedPassword; }
+        }
+
+        public bool IsPasswordCredentialNew
+        {
+            get { return PasswordCredentialState == CredentialFieldState.Modified; }
+        }
+
+        public bool IsPasswordCredentialCleared
+        {
+            get { return PasswordCredentialState == CredentialFieldState.Cleared; }
+        }
+
+        public bool IsPassphraseCredentialSaved
+        {
+            get { return PassphraseCredentialState == CredentialFieldState.Unchanged && HasSavedPassphrase; }
+        }
+
+        public bool IsPassphraseCredentialNew
+        {
+            get { return PassphraseCredentialState == CredentialFieldState.Modified; }
+        }
+
+        public bool IsPassphraseCredentialCleared
+        {
+            get { return PassphraseCredentialState == CredentialFieldState.Cleared; }
+        }
+
+        private bool HasSavedPassword
+        {
+            get { return Credentials != null && Credentials.HasSavedPassword; }
+        }
+
+        private bool HasSavedPassphrase
+        {
+            get { return Credentials != null && Credentials.HasSavedPassphrase; }
+        }
+
+        private static string DescribeCredentialState(CredentialFieldState state, bool hasSaved)
+        {
+            if (state == CredentialFieldState.Modified)
+            {
+                return "新凭据，保存后生效";
+            }
+            if (state == CredentialFieldState.Cleared)
+            {
+                return "将清除已保存凭据";
+            }
+            return hasSaved ? "已保存" : string.Empty;
+        }
+
+        // 凭据状态被改动后由页面调用（SetPassword / SetRememberPassword / ApplySwitch …）。
+        public void RaiseCredentialStates()
+        {
+            RaisePropertyChanged("PasswordCredentialState");
+            RaisePropertyChanged("PassphraseCredentialState");
+            RaisePropertyChanged("PasswordCredentialStateText");
+            RaisePropertyChanged("PassphraseCredentialStateText");
+            RaisePropertyChanged("IsPasswordCredentialSaved");
+            RaisePropertyChanged("IsPasswordCredentialNew");
+            RaisePropertyChanged("IsPasswordCredentialCleared");
+            RaisePropertyChanged("IsPassphraseCredentialSaved");
+            RaisePropertyChanged("IsPassphraseCredentialNew");
+            RaisePropertyChanged("IsPassphraseCredentialCleared");
+            RaisePropertyChanged("PasswordPlaceholder");
+            RaisePropertyChanged("PassphrasePlaceholder");
+            RaisePropertyChanged("IsDirty");
         }
 
         public async Task ReloadGroupsAsync()

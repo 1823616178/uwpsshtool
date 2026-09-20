@@ -37,6 +37,15 @@ namespace SshTool
                 void CopyViewport(int offset, Platform::WriteOnlyArray<uint8>^ rowsOut);
                 Platform::String^ GetText(int startRow, int startCol, int endRow, int endCol, int offset);
 
+                // Q01（PerfPage 字节流直喂）：不经 SSH 灌输出流——把生成的终端输出
+                // 字节流（base64 / yes / vim 分页脚本）直接喂进 vterm，走与真会话
+                // 完全相同的 解析→网格→回滚 管线；PerfPage 经 NativeTerminalScreen
+                // 调用。内部 Feed 签名（const char*）不是 WinRT 类型，无法直接公开。
+                void FeedBytes(const Platform::Array<uint8>^ data);
+                // Q01：PerfPage 按 TerminalView 实测网格重设 vterm 尺寸
+                // （正常路径由 SshSession 在 OpenShell/Resize 时调 internal ResetGrid）。
+                void ResizeGrid(int cols, int rows);
+
             internal:
                 void Feed(const char *data, size_t len);
                 void ResetGrid(int cols, int rows);

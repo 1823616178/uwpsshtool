@@ -163,6 +163,8 @@
     <ClInclude Include="Bridge\StateChangedEventArgs.h" />
     <ClInclude Include="Bridge\SshSession.h" />
     <ClInclude Include="Bridge\SftpSession.h" />
+    <!-- F05：隧道转发桥（WinRT 类型必须显式登记，否则不进 winmd） -->
+    <ClInclude Include="Bridge\Forwarder.h" />
     <ClInclude Include="Bridge\TerminalScreen.h" />
     <ClInclude Include="Bridge\VaultCrypto.h" />
     <ClInclude Include="Bridge\KeyTool.h" />
@@ -185,6 +187,7 @@
     <ClCompile Include="Bridge\StateChangedEventArgs.cpp" />
     <ClCompile Include="Bridge\SshSession.cpp" />
     <ClCompile Include="Bridge\SftpSession.cpp" />
+    <ClCompile Include="Bridge\Forwarder.cpp" />
     <ClCompile Include="Bridge\TerminalScreen.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>

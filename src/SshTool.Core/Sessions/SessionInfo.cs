@@ -23,10 +23,15 @@ namespace SshTool.Core.Sessions
         public int Cols { get; set; }
         public int Rows { get; set; }
 
+        // F03：SFTP 等无终端用途置 false——连接 + 认证后不开 shell、不发 AutoRun
+        //（01-DESIGN.md §11.1：SFTP 会话建议独占一条连接；避免 tmux 附着/初始命令副作用）。
+        public bool OpenShell { get; set; }
+
         public SessionOpenRequest()
         {
             Cols = 80;
             Rows = 24;
+            OpenShell = true;
         }
     }
 
@@ -92,6 +97,11 @@ namespace SshTool.Core.Sessions
         public int Cols { get; set; }
         public int Rows { get; set; }
         public bool UserClosed { get; set; }
+
+        // F03：本会话是否已开 shell（SessionOpenRequest.OpenShell 的落地标记；
+        // 重连保持原样）。终端侧（TerminalViewModel/SessionsPane）只复用 true 的会话，
+        // 免得把无 shell 的 SFTP 连接附到终端上得到黑屏。
+        public bool ShellOpened { get; set; }
 
         // P01：被后台策略挂起（405 策略性断开，面孔与窗格绑定保留，回前台原地重连）。
         // 与 UserClosed 一样是普通字段（State/ErrorMessage 的可观察通知照常走）。

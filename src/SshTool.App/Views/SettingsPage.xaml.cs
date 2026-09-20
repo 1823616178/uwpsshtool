@@ -11,7 +11,12 @@ namespace SshTool.App.Views
 {
     public sealed partial class SettingsPage : Page
     {
+        // A03：默认外观一律显示名称；解析不到（未知 id / 列表读失败 / 首帧）时显示
+        // 这句兜底文案，绝不把 builtin-xxx 这类内部 id 当文案上屏。
+        private const string AppearanceFallback = "系统默认";
+
         private bool _suppress;
+        private string _appearanceName = string.Empty;
 
         public SettingsPage()
         {
@@ -43,7 +48,9 @@ namespace SshTool.App.Views
                 HapticsSwitch.IsOn = ViewModel.HapticsEnabled;
                 LanguageBox.SelectedIndex = SettingsViewModel.LanguageToIndex(ViewModel.Language);
 
-                AppearanceValue.Text = ViewModel.DefaultAppearanceId;
+                AppearanceValue.Text = string.IsNullOrEmpty(_appearanceName)
+                    ? AppearanceFallback
+                    : _appearanceName;
                 FontSlider.Value = ViewModel.TerminalFontSize;
                 FontValue.Text = ViewModel.TerminalFontSize.ToString() + " pt";
                 ScrollbackSlider.Value = ViewModel.ScrollbackLines;
@@ -129,27 +136,37 @@ namespace SshTool.App.Views
             Frame.Navigate(typeof(AppearanceListPage));
         }
 
-        // A03：默认外观显示名称（id 兜底）；从外观列表返回时刷新。
+        // A03：默认外观显示名称（解析失败兜底「系统默认」，不显示内部 id）；
+        // 从外观列表返回时刷新。
         private async void RefreshAppearanceName()
         {
-            try
+            string id = ViewModel.DefaultAppearanceId;
+            string resolved = AppearanceFallback;
+            if (!string.IsNullOrEmpty(id))
             {
-                string id = ViewModel.DefaultAppearanceId;
-                string name = id;
-                System.Collections.Generic.IReadOnlyList<SshTool.Core.Models.AppearanceProfile> all =
-                    await AppServices.Current.AppearanceService.ListAsync().ConfigureAwait(true);
-                for (int i = 0; i < all.Count; i++)
+                try
                 {
-                    if (string.Equals(all[i].Id, id, System.StringComparison.Ordinal))
+                    System.Collections.Generic.IReadOnlyList<SshTool.Core.Models.AppearanceProfile> all =
+                        await AppServices.Current.AppearanceService.ListAsync().ConfigureAwait(true);
+                    for (int i = 0; i < all.Count; i++)
                     {
-                        name = all[i].Name;
-                        break;
+                        if (string.Equals(all[i].Id, id, System.StringComparison.Ordinal)
+                            && !string.IsNullOrEmpty(all[i].Name))
+                        {
+                            resolved = all[i].Name;
+                            break;
+                        }
                     }
                 }
-                AppearanceValue.Text = name;
+                catch (Exception)
+                {
+                    resolved = AppearanceFallback;
+                }
             }
-            catch (Exception)
+            _appearanceName = resolved;
+            if (AppearanceValue != null)
             {
+                AppearanceValue.Text = resolved;
             }
         }
 

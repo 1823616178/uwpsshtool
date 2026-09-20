@@ -13,7 +13,7 @@ namespace SshTool.App.Views.Sync
 {
     // U15 登录/注册页（02-UI-DESIGN.md §5.13）。
     // PasswordBox 不做 x:Bind：由 PasswordChanged 事件写入 ViewModel 内存字段。
-    // 成功后暂跳 PlaceholderPage（U17 建 AccountSyncPage 后改为导航状态页）。
+    // 成功后经 SyncNavigation（U16）按保险库状态去建库/解锁/状态占位页。
     public sealed partial class LoginPage : Page
     {
         private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
@@ -34,7 +34,7 @@ namespace SshTool.App.Views.Sync
         {
             base.OnNavigatedTo(e);
             // 已登录不再重复登录（每次登录都会新建设备，见 03-SYNC-PROTOCOL.md §11-10）：
-            // 直接去状态占位页（U17 后改为 AccountSyncPage）。
+            // 直接按保险库状态去建库/解锁/状态页。
             if (IsSignedIn())
             {
                 GoStatusPlaceholder();
@@ -162,8 +162,10 @@ namespace SshTool.App.Views.Sync
 
         private void GoStatusPlaceholder()
         {
-            // U17 未做：先跳占位页并注明目标里程碑；U17 建 AccountSyncPage 后改跳状态页。
-            Frame.Navigate(typeof(PlaceholderPage), new PlaceholderArgs("同步状态", "U17"));
+            // U16：按保险库状态路由（missing → 建库页，locked → 解锁页，ready → 状态占位）；
+            // 并剪掉登录页自身——U15 原实现直接进占位页，返回键会弹回登录页再被重定向成循环。
+            // U17 建 AccountSyncPage 后状态分支改跳真状态页（见 SyncNavigation）。
+            SyncNavigation.GoAfterAuth(Frame, 1);
         }
 
         private void RefreshAll()

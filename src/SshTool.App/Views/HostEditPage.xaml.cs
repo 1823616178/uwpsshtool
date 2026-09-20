@@ -352,6 +352,7 @@ namespace SshTool.App.Views
             }
             ViewModel.Credentials.ApplySwitch(next);
             ApplyAuthPanels(next);
+            ViewModel.RaiseCredentialStates();
         }
 
         private void ApplyAuthPanels(AuthType type)
@@ -365,6 +366,7 @@ namespace SshTool.App.Views
             if (ViewModel.Credentials != null)
             {
                 ViewModel.Credentials.SetPassword(PasswordBox.Password);
+                ViewModel.RaiseCredentialStates();
             }
         }
 
@@ -373,6 +375,7 @@ namespace SshTool.App.Views
             if (ViewModel.Credentials != null)
             {
                 ViewModel.Credentials.SetPassphrase(PassphraseBox.Password);
+                ViewModel.RaiseCredentialStates();
             }
         }
 
@@ -383,6 +386,7 @@ namespace SshTool.App.Views
                 return;
             }
             ViewModel.Credentials.SetRememberPassword(RememberPasswordSwitch.IsOn);
+            ViewModel.RaiseCredentialStates();
         }
 
         private void OnRememberPassphraseToggled(object sender, RoutedEventArgs e)
@@ -392,6 +396,7 @@ namespace SshTool.App.Views
                 return;
             }
             ViewModel.Credentials.SetRememberPassphrase(RememberPassphraseSwitch.IsOn);
+            ViewModel.RaiseCredentialStates();
         }
 
         private void OnKeyChanged(object sender, SelectionChangedEventArgs e)
@@ -401,6 +406,7 @@ namespace SshTool.App.Views
                 return;
             }
             ViewModel.Credentials.KeyId = SelectedId(KeyBox);
+            ViewModel.RaiseCredentialStates();
         }
 
         private async void OnImportKey(object sender, RoutedEventArgs e)

@@ -63,6 +63,7 @@
                            Margin="{StaticResource GapSmTop}"
                            Visibility="Collapsed" />
                 <Button x:Name="SubmitButton" x:Uid="Login_SubmitButton" Content="登录"
+                        Style="{StaticResource PrimaryButtonStyle}"
                         HorizontalAlignment="Stretch"
                         Margin="{StaticResource GapSmTop}"
                         Click="OnSubmitClick" />

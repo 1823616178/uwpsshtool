@@ -106,6 +106,7 @@ private:
     void driveAccept();       // one forward_accept attempt per pass
     bool driveCancel();       // forward_cancel EAGAIN continuation (bounded)
     void spawnConnection(struct _LIBSSH2_CHANNEL* accepted);
+    void eraseConnection(ForwardedConnection* raw); // onClose / open-failure 回收
     void finishStop(); // terminal Stopped + onStopped (exactly once)
     void failStart(RemoteListenError error, const std::string& message);
     void onSessionLost(); // forced cleanup when the session drops/closes

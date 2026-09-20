@@ -19,7 +19,7 @@
             </AppBarButton>
             <AppBarButton Label="取消" Click="OnCancelClick">
                 <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconDelete}" />
+                    <FontIcon Glyph="{StaticResource IconClose}" />
                 </AppBarButton.Icon>
             </AppBarButton>
         </CommandBar>
@@ -77,6 +77,21 @@
                         <StackPanel x:Name="PasswordPanel" Margin="{StaticResource GapSmTop}">
                             <PasswordBox x:Name="PasswordBox" Header="密码"
                                          PasswordChanged="OnPasswordChanged" />
+                            <!-- 凭据三态：已保存 / 新凭据 / 将清除（文案在 VM，颜色走主题色） -->
+                            <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                       Text="{x:Bind ViewModel.PasswordCredentialStateText, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.IsPasswordCredentialSaved, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                       Foreground="{ThemeResource AppTextBrush}"
+                                       Text="{x:Bind ViewModel.PasswordCredentialStateText, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.IsPasswordCredentialNew, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                       Foreground="{ThemeResource AppDangerBrush}"
+                                       Text="{x:Bind ViewModel.PasswordCredentialStateText, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.IsPasswordCredentialCleared, Mode=OneWay}" />
                             <ToggleSwitch x:Name="RememberPasswordSwitch" Header="保存在本机"
                                           Toggled="OnRememberPasswordToggled" />
                             <TextBlock Text="开启同步密码后会加密上传"
@@ -94,6 +109,20 @@
                             <PasswordBox x:Name="PassphraseBox" Header="密码短语"
                                          Margin="{StaticResource GapSmTop}"
                                          PasswordChanged="OnPassphraseChanged" />
+                            <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                       Text="{x:Bind ViewModel.PassphraseCredentialStateText, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.IsPassphraseCredentialSaved, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                       Foreground="{ThemeResource AppTextBrush}"
+                                       Text="{x:Bind ViewModel.PassphraseCredentialStateText, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.IsPassphraseCredentialNew, Mode=OneWay}" />
+                            <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                       Foreground="{ThemeResource AppDangerBrush}"
+                                       Text="{x:Bind ViewModel.PassphraseCredentialStateText, Mode=OneWay}"
+                                       Visibility="{x:Bind ViewModel.IsPassphraseCredentialCleared, Mode=OneWay}" />
                             <ToggleSwitch x:Name="RememberPassphraseSwitch" Header="保存短语"
                                           Toggled="OnRememberPassphraseToggled" />
                         </StackPanel>

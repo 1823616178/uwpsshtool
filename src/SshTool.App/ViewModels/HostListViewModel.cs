@@ -216,7 +216,8 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
-            OpenPlaceholder("SFTP", "M7");
+            // F03：SFTP 页复用该主机的已连接会话，无则新建专用连接（无 shell）。
+            Navigation.Navigate<SftpPage>(new SftpArgs { HostId = row.HostId });
         }
 
         public async Task DeleteAsync(HostListRow row)

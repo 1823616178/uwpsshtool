@@ -21,7 +21,8 @@
                   SelectionChanged="OnSelectionChanged">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Padding="{StaticResource PagePadding}">
+                    <StackPanel Padding="{StaticResource PagePadding}"
+                                MinHeight="{StaticResource ListRowCompactHeight}">
                         <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}" />
                         <TextBlock Text="{Binding Subtitle}" Style="{StaticResource CaptionTextStyle}" />
                     </StackPanel>
@@ -32,7 +33,9 @@
                     Background="{ThemeResource AppSurfaceBrush}" Visibility="Collapsed">
             <controls:MonoText x:Name="FingerprintText" Compact="True" />
             <controls:RandomArtView x:Name="ArtView" Margin="{StaticResource GapSmTop}" />
-            <Button Content="删除" Click="OnDeleteClick" Margin="{StaticResource GapSmTop}" />
+            <Button Content="删除" Click="OnDeleteClick" Margin="{StaticResource GapSmTop}"
+                    Style="{StaticResource DangerButtonStyle}"
+                    MinHeight="{StaticResource TouchTargetMin}" />
         </StackPanel>
     </Grid>
 </Page>

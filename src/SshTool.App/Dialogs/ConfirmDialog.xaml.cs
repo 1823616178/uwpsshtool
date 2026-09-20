@@ -30,10 +30,9 @@ namespace SshTool.App.Dialogs
             dialog.SecondaryButtonText = cancelText;
             if (isDanger)
             {
-                var style = new Style(typeof(Button));
-                style.Setters.Add(new Setter(Control.BackgroundProperty, Banner.ResolveThemedBrush("AppDangerBrush")));
-                style.Setters.Add(new Setter(Control.ForegroundProperty, Banner.ResolveThemedBrush("AppOnAccentBrush")));
-                dialog.PrimaryButtonStyle = style;
+                // 对话框按钮用 DangerDialogButtonStyle（仅换色、无尺寸/字号），
+                // 避免 DangerButtonStyle 的 MinWidth/MinHeight/FontSize 让主/次按钮错位。
+                dialog.PrimaryButtonStyle = (Style)Application.Current.Resources["DangerDialogButtonStyle"];
             }
             var result = await ServiceRegistry.Get<DialogService>().ShowAsync(dialog);
             return new ConfirmDialogResult

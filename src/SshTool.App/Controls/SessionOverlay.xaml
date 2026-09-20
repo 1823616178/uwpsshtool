@@ -14,18 +14,26 @@
                 <TextBlock x:Name="MessageText" Style="{StaticResource BodyTextStyle}"
                            TextWrapping="Wrap" TextAlignment="Center"
                            Margin="{StaticResource GapSmTop}" />
+                <!-- UI 走查：按钮分级——主推进（立即重连/重试）Primary、破坏性（停止重连/关闭会话）
+                     Danger、其余（取消/编辑主机）Secondary；三档样式均含 MinHeight=TouchTargetMin。 -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
                             Margin="{StaticResource GapSmTop}">
-                    <Button x:Name="CancelButton" Content="取消" Click="OnCancel" Visibility="Collapsed" />
+                    <Button x:Name="CancelButton" Content="取消" Click="OnCancel"
+                            Style="{StaticResource SecondaryButtonStyle}" Visibility="Collapsed" />
                     <Button x:Name="ReconnectNowButton" Content="立即重连" Click="OnReconnectNow"
+                            Style="{StaticResource PrimaryButtonStyle}"
                             Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
                     <Button x:Name="StopButton" Content="停止" Click="OnStop"
+                            Style="{StaticResource DangerButtonStyle}"
                             Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
                     <Button x:Name="RetryButton" Content="重试" Click="OnRetry"
+                            Style="{StaticResource PrimaryButtonStyle}"
                             Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
                     <Button x:Name="EditButton" Content="编辑主机" Click="OnEdit"
+                            Style="{StaticResource SecondaryButtonStyle}"
                             Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
                     <Button x:Name="CloseButton" Content="关闭" Click="OnClose"
+                            Style="{StaticResource DangerButtonStyle}"
                             Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
                 </StackPanel>
             </StackPanel>

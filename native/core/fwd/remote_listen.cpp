@@ -221,6 +221,16 @@ void RemoteListener::driveAccept()
     spawnConnection(accepted);
 }
 
+void RemoteListener::eraseConnection(ForwardedConnection* raw)
+{
+    for (auto it = connections_.begin(); it != connections_.end(); ++it) {
+        if (it->get() == raw) {
+            connections_.erase(it); // destroys post-onClose: contract holds
+            break;
+        }
+    }
+}
+
 void RemoteListener::spawnConnection(struct _LIBSSH2_CHANNEL* accepted)
 {
     ForwardedCallbacks callbacks;
@@ -228,14 +238,16 @@ void RemoteListener::spawnConnection(struct _LIBSSH2_CHANNEL* accepted)
     auto owned =
         std::make_unique<ForwardedConnection>(session_, accepted, stats_,
                                               std::move(callbacks));
-    ForwardedConnection* raw = owned.get();
-    owned->setCloseCallback([this, raw](const ForwardCloseInfo&) {
-        for (auto it = connections_.begin(); it != connections_.end(); ++it) {
-            if (it->get() == raw) {
-                connections_.erase(it); // destroys post-onClose: contract holds
-                break;
-            }
-        }
+    ForwardedConnection* connection = owned.get();
+    // 回收钩子（loop 线程、本函数之后串行触发，按堆地址安全回收）：
+    //   - onClose：正常/优雅/会话丢失关闭路径；
+    //   - 打开失败：契约是 onOpen(false) 后无 onClose，需另行回收
+    //     （F04 原实现的隐性泄漏，目标拒绝/不可达时连接滞留集合，顺手修复）。
+    owned->setCloseCallback([this, connection](const ForwardCloseInfo&) {
+        eraseConnection(connection);
+    });
+    owned->setOpenFailureCallback([this, connection]() {
+        eraseConnection(connection);
     });
     if (!owned->openRemote(targetHost_, targetPort_)) {
         // Admission refused (session raced away): the Idle destructor frees

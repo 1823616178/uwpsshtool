@@ -48,13 +48,20 @@
                                        Foreground="{ThemeResource AppWarningBrush}"
                                        VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
                         </StackPanel>
-                        <Button Grid.Column="1" Content="设为默认" Click="OnSetDefaultClick" />
-                        <Button Grid.Column="2" Content="…" Margin="{StaticResource GapSmLeft}">
+                        <Button Grid.Column="1" Content="设为默认" Click="OnSetDefaultClick"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                        <!-- UI 走查：… 文本换 IconMore 字形并补无障碍名；无样式按钮保留手写触控尺寸。 -->
+                        <Button Grid.Column="2" Margin="{StaticResource GapSmLeft}"
+                                MinWidth="{StaticResource TouchTargetMin}"
+                                MinHeight="{StaticResource TouchTargetMin}"
+                                AutomationProperties.Name="更多">
+                            <FontIcon Glyph="{StaticResource IconMore}" />
                             <Button.Flyout>
                                 <MenuFlyout>
                                     <MenuFlyoutItem Text="编辑" Click="OnEditClick" />
                                     <MenuFlyoutItem Text="复制为新主题" Click="OnDuplicateClick" />
-                                    <MenuFlyoutItem Text="删除" Click="OnDeleteClick" />
+                                    <MenuFlyoutItem Text="删除" Click="OnDeleteClick"
+                                                    Style="{StaticResource DangerMenuItemStyle}" />
                                 </MenuFlyout>
                             </Button.Flyout>
                         </Button>

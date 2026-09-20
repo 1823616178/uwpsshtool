@@ -171,7 +171,9 @@ namespace SshTool.App.ViewModels
             for (int i = 0; i < manager.Sessions.Count; i++)
             {
                 SessionInfo s = manager.Sessions[i];
+                // F03：跳过无 shell 的 SFTP 专用连接（附上去是黑屏）。
                 if (string.Equals(s.HostId, hostId, StringComparison.Ordinal)
+                    && s.ShellOpened
                     && s.State == SessionUiState.Connected)
                 {
                     return s;

@@ -1,7 +1,10 @@
+using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
+using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace SshTool.App.Views
@@ -40,8 +43,29 @@ namespace SshTool.App.Views
             }
             _suppress = true;
             NameBox.Text = row.Name ?? string.Empty;
-            Picker.Color = string.IsNullOrEmpty(row.Color) ? "#4F8CFF" : row.Color;
+            string color = row.Color;
+            if (string.IsNullOrEmpty(color))
+            {
+                // UI 走查：未设色的分组用应用强调色（随主题解析），不再写死蓝色。
+                color = AccentColorHex();
+            }
+            if (!string.IsNullOrEmpty(color))
+            {
+                Picker.Color = color;
+            }
             _suppress = false;
+        }
+
+        // 取当前主题的 AppAccentBrush → #RRGGBB；解析不到时返回 null（选择器保留自身默认值）。
+        private static string AccentColorHex()
+        {
+            var brush = Banner.ResolveThemedBrush("AppAccentBrush") as SolidColorBrush;
+            if (brush == null)
+            {
+                return null;
+            }
+            Color c = brush.Color;
+            return "#" + c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2");
         }
 
         private void OnNameLostFocus(object sender, RoutedEventArgs e)

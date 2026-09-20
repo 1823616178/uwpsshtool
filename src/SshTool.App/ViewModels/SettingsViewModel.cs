@@ -572,7 +572,8 @@ namespace SshTool.App.ViewModels
             }
             catch (Exception ex)
             {
-                return "无法打开日志目录：" + ex.GetType().Name;
+                LogFailure(SshTool.Core.Common.LogLevel.Error, "打开日志目录失败", ex);
+                return "找不到日志位置，请稍后重试";
             }
 
             List<StorageFile> logFiles = new List<StorageFile>();
@@ -588,7 +589,8 @@ namespace SshTool.App.ViewModels
             }
             catch (Exception ex)
             {
-                return "枚举日志失败：" + ex.GetType().Name;
+                LogFailure(SshTool.Core.Common.LogLevel.Error, "枚举日志文件失败", ex);
+                return "读取日志列表失败，请稍后重试";
             }
 
             logFiles.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
@@ -631,7 +633,8 @@ namespace SshTool.App.ViewModels
             }
             catch (Exception ex)
             {
-                return "保存对话框失败：" + ex.GetType().Name;
+                LogFailure(SshTool.Core.Common.LogLevel.Error, "打开保存对话框失败", ex);
+                return "无法打开保存位置，请重试或换个文件夹";
             }
             if (target == null)
             {
@@ -645,12 +648,15 @@ namespace SshTool.App.ViewModels
                 FileUpdateStatus status = await CachedFileManager.CompleteUpdatesAsync(target);
                 if (status != FileUpdateStatus.Complete)
                 {
-                    return "导出未完成：" + status.ToString();
+                    LogFailure(SshTool.Core.Common.LogLevel.Warning,
+                        "日志导出未确认完成 status=" + status.ToString(), null);
+                    return "未能写入所选位置，请关闭占用该文件的程序后重试";
                 }
             }
             catch (Exception ex)
             {
-                return "导出失败：" + ex.GetType().Name;
+                LogFailure(SshTool.Core.Common.LogLevel.Error, "导出日志失败", ex);
+                return "导出失败，请重试";
             }
 
             try
@@ -690,7 +696,8 @@ namespace SshTool.App.ViewModels
             }
             catch (Exception ex)
             {
-                return "清空失败：" + ex.GetType().Name;
+                LogFailure(SshTool.Core.Common.LogLevel.Error, "清空日志失败", ex);
+                return "清空失败，请稍后重试";
             }
 
             try
@@ -810,7 +817,7 @@ namespace SshTool.App.ViewModels
             }
             catch (Exception ex)
             {
-                LogQuiet("应用主题失败 " + ex.GetType().Name);
+                LogFailure(SshTool.Core.Common.LogLevel.Warning, "应用主题失败", ex);
             }
         }
 
@@ -840,7 +847,7 @@ namespace SshTool.App.ViewModels
             }
             catch (Exception ex)
             {
-                LogQuiet("应用日志级别失败 " + ex.GetType().Name);
+                LogFailure(SshTool.Core.Common.LogLevel.Warning, "应用日志级别失败", ex);
             }
         }
 
@@ -856,19 +863,30 @@ namespace SshTool.App.ViewModels
             }
             catch (Exception ex)
             {
-                LogQuiet("刷新常亮失败 " + ex.GetType().Name);
+                LogFailure(SshTool.Core.Common.LogLevel.Warning, "刷新常亮失败", ex);
             }
         }
 
-        private void LogQuiet(string message)
+        // 异常细节只进日志（类型 + 消息，落盘前由 FileLogger 过 Redactor），
+        // 上屏一律是一句能看懂的中文短句。ex 允许为 null（仅记录状态说明）。
+        private void LogFailure(SshTool.Core.Common.LogLevel level, string what, Exception ex)
         {
             try
             {
-                Logger.Log(SshTool.Core.Common.LogLevel.Warning, "Settings", message);
+                Logger.Log(level, "Settings", what + "：" + Describe(ex));
             }
             catch (Exception)
             {
             }
+        }
+
+        private static string Describe(Exception ex)
+        {
+            if (ex == null)
+            {
+                return "无异常对象";
+            }
+            return ex.GetType().Name + " " + ex.Message;
         }
 
         internal static AppThemeMode ParseTheme(string mode)

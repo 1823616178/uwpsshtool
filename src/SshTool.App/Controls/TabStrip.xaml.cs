@@ -119,7 +119,13 @@ namespace SshTool.App.Controls
             row.Children.Add(title);
 
             var close = new Button();
-            close.Content = "✕";
+            // UI 走查：✕ 文本换 IconClose 字形并补无障碍名；触控 MinWidth=TouchTargetMin，
+            // 高度受 TabStripHeight=36 行约束不强求 40。
+            close.Content = new FontIcon
+            {
+                Glyph = (string)Application.Current.Resources["IconClose"]
+            };
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(close, "关闭标签");
             close.Tag = tab.TabId;
             close.MinWidth = (double)Application.Current.Resources["TouchTargetMin"];
             close.Height = (double)Application.Current.Resources["TabStripHeight"];
