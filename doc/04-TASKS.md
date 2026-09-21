@@ -44,9 +44,9 @@
 | M4 | 终端页与会话 | 12 | 12 | **完整可用的本地 SSH 客户端**（无同步） |
 | M5 | 云端同步 | 22 | 22 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
-| M7 | 密钥、SFTP、转发、跳板 | 11 | 10 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
+| M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 3 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **103** | |
+| **合计** | | **111** | **104** | |
 
 ### 1.1 关键路径
 
@@ -1155,13 +1155,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 远程转发（-R）把手机可达服务暴露到服务器端口并访问成功；动态转发供局域网电脑作 SOCKS 代理访问成功
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **F07 ProxyJump 多级跳板** `M` 📱
+- [x] **F07 ProxyJump 多级跳板** `M` 📱
   - 依赖：F04、D06
   - 参考：`01-DESIGN.md §11.3`；鸿蒙端 `docs/DESIGN.md §3.3`
   - 产出：`native/core/fwd/jump_transport.{h,cpp}`、`src/SshTool.Core/Sessions/JumpChainPlanner.cs`、SessionManager 链式连接、测试
   - 要点：`LIBSSH2_CALLBACK_SEND/RECV` 把上级 direct-tcpip 通道作为下级会话传输；Planner 计算连接顺序、检测环、深度 ≤5；每一跳独立的主机密钥与认证提示（对话框标题注明第几跳）；任一跳断开时下级报错并从最上级重连。
   - 验收：
-    - [ ] Planner 单测；jump_transport 假通道单测
+    - [x] Planner 单测；jump_transport 假通道单测
     - [ ] 📱 两级跳板连接成功；断开中间跳后下级进入重连而非挂死
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1341,6 +1341,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] F06 📱 远程转发（-R）把手机可达服务暴露到服务器端口并访问成功；动态转发供局域网电脑作 SOCKS 代理访问成功
 - [ ] S16 📱 场景 1–8、10 通过（参见 doc/INTEROP-REPORT.md）
 - [ ] S16 📱 场景 9（鸿蒙端参与）通过，或记录鸿蒙端侧已知差异（参见 doc/INTEROP-REPORT.md）
+- [ ] F07 📱 两级跳板连接成功；断开中间跳后下级进入重连而非挂死
 
 ---
 
@@ -1477,3 +1478,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-21 | F05 | b2c151f | **完成**。NativeForwarder（ITunnelRuntime 原生实现，独占 NativeSshSession + Bridge.Forwarder，线程安全字典，TOFU/known_hosts 保存，链路断开 Dropped 上抛）+ AppServices 接线（TunnelManager 单例注册 + ApplyConfig + 仓库 Changed 联动 + StartAutoStartAsync）。verify 7 步全绿（Core 1420 + native 299）。 |
 | 2026-09-21 | F06 | bc1a33a | **完成**。TunnelsPivot（列表/启停/每秒速率统计/空态/全部停止）+ TunnelRow（基于 AppListRow/状态点/开关）+ TunnelEditPage（三 Section 结构/路径图示/动态显隐校验）+ LoopbackNoticeDialog（回环隔离提示+不再提示）+ HostEditPage 隧道列表与新建跳转接线；ViewModel 状态/编辑/列表三件套；resw 双语 42 组键。verify 7 步全绿（Core 1420 + native 299）。 |
 | 2026-09-21 | S16 | d08a697 | **完成**。产出 doc/INTEROP-REPORT.md，依据 §10.3 规范化十大互通场景测试矩阵、前置条件、操作步骤与预期结果；自动化向量与密码学单测全部就绪，真机联调场景已登记待办。verify 7 步全绿。 |
+| 2026-09-21 | F07 | 457ff70 | **完成**。jump_transport（IJumpChannel/Fake/DirectTcpip/BufferedPipe + LIBSSH2 SEND/RECV 回调）+ connectJump（loopback 唤醒对 + 50ms 轮询兜底防 DirectTcpip 通道无 wakeup 挂死）+ Bridge ConnectJumpAsync（上级 I/O 线程开 direct-tcpip 再包 JumpTransport）+ JumpChainPlanner（顺序/环/深度 5，9 单测）+ SessionManager 链式连接（每跳独立认证与主机密钥提示、标题注明 [i/n]、密钥按跳板 host:port 落库、失败级联清理、重连整链重建）。修 session.h 自足性（SSIZE_T/SOCKET）。Core 1430（+9）+ native 306（+7）；verify 7 步全绿。⏳ 📱 两级跳板与断中间跳重连（已登记待办）。 |
