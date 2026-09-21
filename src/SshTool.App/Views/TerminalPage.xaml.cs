@@ -226,8 +226,13 @@ namespace SshTool.App.Views
             string text = string.Empty;
             if (model.Kind == OverlayKind.Reconnecting)
             {
-                text = "连接已断开，" + model.ReconnectInSeconds.ToString() + " 秒后第 "
-                    + model.ReconnectAttempt.ToString() + " 次重连";
+                // C-06：重连倒计时文案走 resw 格式化键（双语同增）。
+                string format = ResourceLoader.GetForCurrentView().GetString("Overlay_ReconnectingCountdown");
+                if (string.IsNullOrEmpty(format))
+                {
+                    format = "连接已断开，{0} 秒后第 {1} 次重连";
+                }
+                text = string.Format(format, model.ReconnectInSeconds, model.ReconnectAttempt);
             }
             else if (!string.IsNullOrEmpty(model.MessageKey))
             {
@@ -342,17 +347,21 @@ namespace SshTool.App.Views
             }
         }
 
+        // V03a（05 §6.2）：点击信息条在 Normal/Expanded 之间切换（单行紧凑 / 双行详情）。
         private void OnInfoTapped(object sender, TappedRoutedEventArgs e)
         {
             ViewModel.ToggleInfoCommand.Execute(null);
-            InfoBar.Visibility = ViewModel.InfoCollapsed ? Visibility.Collapsed : Visibility.Visible;
+            string state = ViewModel.InfoExpanded ? "Expanded" : "Normal";
+            VisualStateManager.GoToState(this, state, true);
         }
 
         private void OnMenuClick(object sender, RoutedEventArgs e)
         {
+            // C-06：终端菜单项文案走 resw 双语。
+            ResourceLoader resw = ResourceLoader.GetForCurrentView();
             var flyout = new MenuFlyout();
-            flyout.Items.Add(Item("会话", () => SessionsSplit.IsPaneOpen = !SessionsSplit.IsPaneOpen));
-            flyout.Items.Add(Item("键条", ToggleKeyBar));
+            flyout.Items.Add(Item(resw.GetString("Terminal_MenuSessions"), () => SessionsSplit.IsPaneOpen = !SessionsSplit.IsPaneOpen));
+            flyout.Items.Add(Item(resw.GetString("Terminal_MenuKeyBar"), ToggleKeyBar));
             // U13：终端菜单「片段」打开选择器（锚定菜单按钮）。
             FrameworkElement anchor = sender as FrameworkElement;
             // C-03（§7.5）：菜单关闭后把焦点还给哨兵。仅当开菜单时 SIP 处于弹出态才恢复——
@@ -363,17 +372,17 @@ namespace SshTool.App.Views
             int generation = _generation;
             bool restoreSip = Term.IsInputPaneVisible;
             bool suppressRestore = false;
-            flyout.Items.Add(Item("片段", () =>
+            flyout.Items.Add(Item(resw.GetString("Terminal_MenuSnippets"), () =>
             {
                 suppressRestore = true;
                 OpenSnippetPicker(anchor ?? Term, restoreSip);
             }));
             // F03：本会话的 SFTP（复用该会话已认证连接挂 SFTP 子系统）。
-            flyout.Items.Add(Item("SFTP", OpenSftp));
-            flyout.Items.Add(Item("外观", () => Frame.Navigate(typeof(AppearanceListPage))));
+            flyout.Items.Add(Item(resw.GetString("Terminal_MenuSftp"), OpenSftp));
+            flyout.Items.Add(Item(resw.GetString("Terminal_MenuAppearance"), () => Frame.Navigate(typeof(AppearanceListPage))));
             // UI 走查：断开/关闭会话为破坏性项，套红字 DangerMenuItemStyle。
-            flyout.Items.Add(DangerItem("断开", () => ViewModel.DisconnectCommand.Execute(null)));
-            flyout.Items.Add(DangerItem("关闭会话", () => ViewModel.CloseSessionCommand.Execute(null)));
+            flyout.Items.Add(DangerItem(resw.GetString("Terminal_MenuDisconnect"), () => ViewModel.DisconnectCommand.Execute(null)));
+            flyout.Items.Add(DangerItem(resw.GetString("Terminal_MenuCloseSession"), () => ViewModel.CloseSessionCommand.Execute(null)));
             flyout.Closed += (s, args) =>
             {
                 if (restoreSip && !suppressRestore && _lifetime.IsCurrent(generation))

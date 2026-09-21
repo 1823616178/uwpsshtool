@@ -30,11 +30,11 @@ namespace SshTool.App.ViewModels
         private SessionInfo _session;
         private SessionInfo _attachedSession;
         private Action<ISshSession> _nativeAttach;
-        private bool _infoCollapsed;
+        private bool _infoExpanded;
 
         public TerminalViewModel()
         {
-            ToggleInfoCommand = new RelayCommand(() => InfoCollapsed = !InfoCollapsed);
+            ToggleInfoCommand = new RelayCommand(() => InfoExpanded = !InfoExpanded);
             DisconnectCommand = new RelayCommand(Disconnect);
             CloseSessionCommand = new RelayCommand(CloseSession);
             PasteCommand = new RelayCommand(() => { });
@@ -57,10 +57,11 @@ namespace SshTool.App.ViewModels
             private set { SetProperty(ref _session, value); }
         }
 
-        public bool InfoCollapsed
+        // V03a（05 §6.2）：信息条展开态（true=Expanded 双行详情，false=Normal 单行紧凑）。
+        public bool InfoExpanded
         {
-            get { return _infoCollapsed; }
-            set { SetProperty(ref _infoCollapsed, value); }
+            get { return _infoExpanded; }
+            set { SetProperty(ref _infoExpanded, value); }
         }
 
         public string AddressLine

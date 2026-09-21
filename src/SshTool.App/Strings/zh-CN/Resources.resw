@@ -54,6 +54,8 @@
   <data name="Overlay_Reconnecting" xml:space="preserve"><value>连接已断开，正在重连</value></data>
   <data name="Overlay_Closed" xml:space="preserve"><value>会话已结束</value></data>
   <data name="Overlay_PolicyDisconnected" xml:space="preserve"><value>应用在后台时连接被系统断开</value></data>
+  <!-- V03a（C-06）：重连倒计时文案（代码拼装，格式化键）。 -->
+  <data name="Overlay_ReconnectingCountdown" xml:space="preserve"><value>连接已断开，{0} 秒后第 {1} 次重连</value></data>
   <data name="EnergySaverBanner_Title" xml:space="preserve"><value>省电模式已开启</value></data>
   <data name="EnergySaverBanner_Message" xml:space="preserve"><value>省电模式下切换到后台时连接会被系统断开，回到应用后会自动重连</value></data>
   <data name="Api_VALIDATION_ERROR" xml:space="preserve"><value>请求参数无效，请检查输入后重试</value></data>
@@ -188,6 +190,14 @@
   <data name="Sftp_ErrNotConnected" xml:space="preserve"><value>会话未连接，SFTP 需要在线会话</value></data>
   <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>传输失败（错误码 {0}）</value></data>
   <data name="Terminal_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多</value></data>
+  <!-- V03a（C-06）：终端菜单项文案（代码构造，走 resw 双语）。 -->
+  <data name="Terminal_MenuSessions" xml:space="preserve"><value>会话</value></data>
+  <data name="Terminal_MenuKeyBar" xml:space="preserve"><value>键条</value></data>
+  <data name="Terminal_MenuSnippets" xml:space="preserve"><value>片段</value></data>
+  <data name="Terminal_MenuSftp" xml:space="preserve"><value>SFTP</value></data>
+  <data name="Terminal_MenuAppearance" xml:space="preserve"><value>外观</value></data>
+  <data name="Terminal_MenuDisconnect" xml:space="preserve"><value>断开</value></data>
+  <data name="Terminal_MenuCloseSession" xml:space="preserve"><value>关闭会话</value></data>
   <data name="TabStrip_AddButton.AutomationProperties.Name" xml:space="preserve"><value>新建标签</value></data>
   <data name="TabStrip_CloseButton_A11yName" xml:space="preserve"><value>关闭标签</value></data>
   <data name="Workspace_SplitButton_A11yName" xml:space="preserve"><value>分屏</value></data>

@@ -24,8 +24,11 @@
              正文案从 Resources.resw 取（中英），此处只摆位，不写字面量。 -->
         <controls:Banner x:Name="EnergySaverBanner" Visibility="Collapsed" />
 
+        <!-- V03a（05 §6.2）：紧凑信息条。默认单行（TerminalCompactBarHeight=44 epx），
+             点击展开为双行（TerminalExpandedBarHeight=64 epx）；横屏（WideState）隐藏次要地址。
+             中列用 2 行 Grid 容纳同行（Normal）与换行（Expanded）两种布局。 -->
         <Grid x:Name="InfoBar" Grid.Row="1" Background="{ThemeResource AppSurfaceBrush}"
-              Height="{StaticResource TerminalInfoBarHeight}" Tapped="OnInfoTapped">
+              Height="{StaticResource TerminalCompactBarHeight}" Tapped="OnInfoTapped">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -33,14 +36,23 @@
             </Grid.ColumnDefinitions>
             <controls:StatusDot x:Name="Dot" VerticalAlignment="Center"
                                 Margin="{StaticResource PagePadding}" />
-            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock x:Name="TitleText" Style="{StaticResource BodyTextStyle}"
+            <Grid Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource PagePadding}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition x:Name="AddressRow" Height="0" />
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="TitleText" Grid.Row="0"
+                           Style="{StaticResource BodyTextStyle}"
                            TextTrimming="CharacterEllipsis" />
-                <TextBlock x:Name="AddressText" Style="{StaticResource CaptionTextStyle}"
-                           TextTrimming="CharacterEllipsis" />
-            </StackPanel>
+                <!-- Normal：同行右侧（CaptionTextStyle=次要色小字）；Expanded：换行占满。 -->
+                <TextBlock x:Name="AddressText" Grid.Row="0"
+                           Style="{StaticResource CaptionTextStyle}"
+                           TextTrimming="CharacterEllipsis"
+                           HorizontalAlignment="Right"
+                           Margin="{StaticResource GapSmLeft}" />
+            </Grid>
             <!-- C-03：TerminalIconButtonStyle 统一焦点行为（AllowFocusOnInteraction=False）
-                 与触控宽；无障碍名经 x:Uid 走 resw。高度受 TerminalInfoBarHeight=32 行约束不强求 40。 -->
+                 与触控宽；无障碍名经 x:Uid 走 resw。 -->
             <Button x:Uid="Terminal_MoreButton" Grid.Column="2" Click="OnMenuClick"
                     Style="{StaticResource TerminalIconButtonStyle}">
                 <FontIcon Glyph="{StaticResource IconMore}" />
@@ -53,6 +65,27 @@
 
         <!-- U12：窄屏回退单窗格（本页即单窗格）；宽屏（Continuum/鼠标）键条默认隐藏，可从菜单手动打开。 -->
         <VisualStateManager.VisualStateGroups>
+            <!-- V03a（05 §6.2）：信息条 Normal/Expanded 切换（单行紧凑 / 双行详情）。 -->
+            <VisualStateGroup x:Name="InfoStates">
+                <VisualState x:Name="Normal">
+                    <VisualState.Setters>
+                        <Setter Target="InfoBar.Height" Value="{StaticResource TerminalCompactBarHeight}" />
+                        <Setter Target="AddressRow.Height" Value="0" />
+                        <Setter Target="AddressText.(Grid.Row)" Value="0" />
+                        <Setter Target="AddressText.HorizontalAlignment" Value="Right" />
+                        <Setter Target="AddressText.Margin" Value="{StaticResource GapSmLeft}" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="Expanded">
+                    <VisualState.Setters>
+                        <Setter Target="InfoBar.Height" Value="{StaticResource TerminalExpandedBarHeight}" />
+                        <Setter Target="AddressRow.Height" Value="Auto" />
+                        <Setter Target="AddressText.(Grid.Row)" Value="1" />
+                        <Setter Target="AddressText.HorizontalAlignment" Value="Stretch" />
+                        <Setter Target="AddressText.Margin" Value="{StaticResource GapXsTop}" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
             <VisualStateGroup>
                 <VisualState x:Name="WideState">
                     <VisualState.StateTriggers>
@@ -60,6 +93,8 @@
                     </VisualState.StateTriggers>
                     <VisualState.Setters>
                         <Setter Target="Keys.Visibility" Value="Collapsed" />
+                        <!-- V03a（05 §6.2）：横屏隐藏次要地址。 -->
+                        <Setter Target="AddressText.Visibility" Value="Collapsed" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>

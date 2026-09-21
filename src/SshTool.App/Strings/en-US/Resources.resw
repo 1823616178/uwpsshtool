@@ -54,6 +54,8 @@
   <data name="Overlay_Reconnecting" xml:space="preserve"><value>Disconnected, reconnecting</value></data>
   <data name="Overlay_Closed" xml:space="preserve"><value>Session ended</value></data>
   <data name="Overlay_PolicyDisconnected" xml:space="preserve"><value>The connection was dropped in the background.</value></data>
+  <!-- V03a (C-06): Reconnecting countdown text (assembled in code, format key). -->
+  <data name="Overlay_ReconnectingCountdown" xml:space="preserve"><value>Disconnected, reconnecting in {0}s (attempt {1})</value></data>
   <data name="EnergySaverBanner_Title" xml:space="preserve"><value>Battery saver is on</value></data>
   <data name="EnergySaverBanner_Message" xml:space="preserve"><value>In Battery saver mode, connections are dropped in the background and reconnected when you return.</value></data>
   <data name="Api_VALIDATION_ERROR" xml:space="preserve"><value>The request is invalid. Check your input and try again.</value></data>
@@ -188,6 +190,14 @@
   <data name="Sftp_ErrNotConnected" xml:space="preserve"><value>Session not connected. SFTP needs an online session.</value></data>
   <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>Transfer failed (error code {0})</value></data>
   <data name="Terminal_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>More</value></data>
+  <!-- V03a (C-06): Terminal menu item text (assembled in code, resw bilingual). -->
+  <data name="Terminal_MenuSessions" xml:space="preserve"><value>Sessions</value></data>
+  <data name="Terminal_MenuKeyBar" xml:space="preserve"><value>Key bar</value></data>
+  <data name="Terminal_MenuSnippets" xml:space="preserve"><value>Snippets</value></data>
+  <data name="Terminal_MenuSftp" xml:space="preserve"><value>SFTP</value></data>
+  <data name="Terminal_MenuAppearance" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Terminal_MenuDisconnect" xml:space="preserve"><value>Disconnect</value></data>
+  <data name="Terminal_MenuCloseSession" xml:space="preserve"><value>Close session</value></data>
   <data name="TabStrip_AddButton.AutomationProperties.Name" xml:space="preserve"><value>New tab</value></data>
   <data name="TabStrip_CloseButton_A11yName" xml:space="preserve"><value>Close tab</value></data>
   <data name="Workspace_SplitButton_A11yName" xml:space="preserve"><value>Split pane</value></data>

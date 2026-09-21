@@ -66,6 +66,9 @@
     <Thickness x:Key="KeyBarLockedBorder">0,0,0,2</Thickness>
     <x:Double x:Key="SelectionOverlayOpacity">0.35</x:Double>
     <x:Double x:Key="TerminalInfoBarHeight">32</x:Double>
+    <!-- V03a（05 §6.2）：紧凑信息条——默认单行 44 epx，展开双行 64 epx。 -->
+    <x:Double x:Key="TerminalCompactBarHeight">44</x:Double>
+    <x:Double x:Key="TerminalExpandedBarHeight">64</x:Double>
     <x:Double x:Key="TabStripHeight">36</x:Double>
     <x:Double x:Key="SplitterThickness">6</x:Double>
     <x:Double x:Key="SessionsPaneWidth">280</x:Double>
