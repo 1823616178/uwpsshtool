@@ -1,5 +1,6 @@
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Snippets;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -24,6 +25,8 @@ namespace SshTool.App.Views
 
     public sealed partial class SnippetsPage : Page
     {
+        private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
+
         public SnippetsPage()
         {
             ViewModel = new SnippetsViewModel(AppServices.Current);
@@ -31,6 +34,11 @@ namespace SshTool.App.Views
             GroupedSnippets.Source = ViewModel.Groups;
             SnippetList.ItemsSource = GroupedSnippets.View;
             Empty.PrimaryCommand = ViewModel.NewCommand;
+            // V04b（C-06）：EmptyState 文案走 resw 双语。
+            Empty.Title = _loader.GetString("Snippets_Empty_Title");
+            Empty.Description = _loader.GetString("Snippets_Empty_Description");
+            Empty.PrimaryText = _loader.GetString("Snippets_Empty_Primary");
+            NoMatches.Title = _loader.GetString("Snippets_NoMatches_Title");
         }
 
         public SnippetsViewModel ViewModel { get; private set; }
@@ -73,7 +81,7 @@ namespace SshTool.App.Views
             }
         }
 
-        private void OnNewClick(object sender, RoutedEventArgs e)
+        private void OnNewClick(object sender, System.EventArgs e)
         {
             ViewModel.OpenNew();
         }

@@ -7,6 +7,7 @@ using SshTool.Core.Hosts;
 using SshTool.Core.Models;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Automation;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 
@@ -60,6 +61,19 @@ namespace SshTool.App.Views
                 nav.RegisterBackHandler(this);
             }
             var ignore = LoadAsync(generation, e);
+            SetupBottomBar();
+        }
+
+        // V04b（§6.4）：装配底部固定操作条——主操作=保存，溢出=测试连接；高级折叠 chevron 复位。
+        private void SetupBottomBar()
+        {
+            BottomBar.PrimaryText = _loader.GetString("HostEdit_Save");
+            var flyout = new MenuFlyout();
+            var testItem = new MenuFlyoutItem { Text = _loader.GetString("HostEdit_TestConnect") };
+            testItem.Click += (s, args) => { var ignore = RunTestAsync(); };
+            flyout.Items.Add(testItem);
+            BottomBar.OverflowFlyout = flyout;
+            AutomationProperties.SetName(AdvancedToggle, _loader.GetString("HostEdit_AdvancedToggle_Chevron"));
         }
 
         // R01 (C-02)：每个 await 后先查世代，页面已离开则不再触碰 ComboBox 等 XAML。
@@ -101,7 +115,7 @@ namespace SshTool.App.Views
             }
             catch (Exception ex)
             {
-                AppLog.Error("HostEdit", "主机编辑页加载失败", ex);
+                AppLog.Error("HostEdit", "host edit load failed", ex);
             }
         }
 
@@ -136,7 +150,7 @@ namespace SshTool.App.Views
             UserBox.Text = ViewModel.Username;
             KeepaliveBox.Text = ViewModel.KeepaliveText;
             FingerprintText.Text = string.IsNullOrEmpty(ViewModel.HostFingerprint)
-                ? "（无）" : ViewModel.HostFingerprint;
+                ? _loader.GetString("HostEdit_FingerprintNone") : ViewModel.HostFingerprint;
             InitBox.Text = ViewModel.InitCommandsText ?? string.Empty;
             TmuxNameBox.Text = ViewModel.TmuxSessionName ?? string.Empty;
             BackspaceSwitch.IsOn = ViewModel.BackspaceSendsCtrlH;
@@ -170,7 +184,10 @@ namespace SshTool.App.Views
         private async System.Threading.Tasks.Task ConfirmAbandonAsync()
         {
             ConfirmDialogResult result = await ConfirmDialog.ShowAsync(
-                "放弃修改？", "未保存的更改将丢失。", "放弃", "继续编辑");
+                _loader.GetString("HostEdit_AbandonTitle"),
+                _loader.GetString("HostEdit_AbandonMessage"),
+                _loader.GetString("HostEdit_AbandonConfirm"),
+                _loader.GetString("HostEdit_AbandonCancel"));
             if (result.Confirmed)
             {
                 _abandonConfirmed = true;
@@ -182,17 +199,26 @@ namespace SshTool.App.Views
             }
         }
 
-        private async void OnTestClick(object sender, RoutedEventArgs e)
+        private async System.Threading.Tasks.Task RunTestAsync()
         {
-            TestOverlay.Message = "测试连接…";
+            TestOverlay.Message = _loader.GetString("HostEdit_TestMessage");
             TestOverlay.IsActive = true;
             try
             {
                 SshTool.Core.Sessions.TestConnectResult result = await ViewModel.TestAsync();
                 string text = _loader.GetString(result.MessageKey ?? "Error_500");
                 TestOverlay.IsActive = false;
-                await ConfirmDialog.ShowAsync(result.Success ? "测试连接" : "测试失败",
-                    string.IsNullOrEmpty(text) ? result.MessageKey : text, "确定", "关闭");
+                await ConfirmDialog.ShowAsync(result.Success
+                        ? _loader.GetString("HostEdit_TestTitle")
+                        : _loader.GetString("HostEdit_TestFailedTitle"),
+                    string.IsNullOrEmpty(text) ? result.MessageKey : text,
+                    _loader.GetString("HostEdit_DialogOk"),
+                    _loader.GetString("HostEdit_DialogClose"));
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("HostEdit", "test connection failed", ex);
+                TestOverlay.IsActive = false;
             }
             finally
             {
@@ -200,7 +226,13 @@ namespace SshTool.App.Views
             }
         }
 
-        private async void OnSaveClick(object sender, RoutedEventArgs e)
+        // V04b：OverflowClick 触发器复用同一测试流程。
+        private async void OnTestClick(object sender, EventArgs e)
+        {
+            await RunTestAsync();
+        }
+
+        private async void OnSaveClick(object sender, EventArgs e)
         {
             await ViewModel.SaveCoreAsync();
             if (ViewModel.LastSaveHadErrors)
@@ -210,16 +242,13 @@ namespace SshTool.App.Views
             }
         }
 
-        private void OnCancelClick(object sender, RoutedEventArgs e)
+        // V04b：高级 Section 折叠/展开。点击头部翻转 chevron 并切换内容可见性。
+        private void OnAdvancedToggleClick(object sender, RoutedEventArgs e)
         {
-            if (!HandleBack())
-            {
-                NavigationService nav;
-                if (ServiceRegistry.TryGet(out nav))
-                {
-                    nav.GoBack();
-                }
-            }
+            bool collapsed = AdvancedContent.Visibility == Visibility.Collapsed;
+            AdvancedContent.Visibility = collapsed ? Visibility.Visible : Visibility.Collapsed;
+            AdvancedChevron.Glyph = (string)Application.Current.Resources
+                [collapsed ? "IconChevronDown" : "IconChevronRight"];
         }
 
         private void OnNameChanged(object sender, TextChangedEventArgs e)
@@ -325,7 +354,7 @@ namespace SshTool.App.Views
         private void OnClearFingerprint(object sender, RoutedEventArgs e)
         {
             ViewModel.ClearFingerprintCommand.Execute(null);
-            FingerprintText.Text = "（无）";
+            FingerprintText.Text = _loader.GetString("HostEdit_FingerprintNone");
         }
 
         private void OnAddEnv(object sender, RoutedEventArgs e)
@@ -369,7 +398,10 @@ namespace SshTool.App.Views
             if (preview.NeedsConfirm)
             {
                 ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
-                    "切换认证方式？", preview.Message, "切换", "取消");
+                    _loader.GetString("HostEdit_SwitchAuthTitle"),
+                    preview.Message,
+                    _loader.GetString("HostEdit_SwitchAuthConfirm"),
+                    _loader.GetString("HostEdit_SwitchAuthCancel"));
                 if (!confirm.Confirmed)
                 {
                     _suppressAuth = true;
@@ -509,13 +541,13 @@ namespace SshTool.App.Views
             }
         }
 
+        // V04b：原 FocusField 依赖 Pivot.SelectedIndex 切换标签；现结构已无 Pivot，直接聚焦目标控件。
         private void FocusField(string field)
         {
             if (string.IsNullOrEmpty(field))
             {
                 return;
             }
-            EditPivot.SelectedIndex = HostEditState.PivotIndexForField(field);
             Control target = null;
             switch (field)
             {

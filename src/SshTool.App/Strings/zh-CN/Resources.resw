@@ -521,4 +521,88 @@
   <data name="Settings_About_Diagnostics_Header" xml:space="preserve"><value>诊断信息</value></data>
   <data name="Settings_About_Refresh" xml:space="preserve"><value>刷新</value></data>
   <data name="Settings_About_Copy" xml:space="preserve"><value>复制</value></data>
+
+  <!-- V04b（C-06 + §6.4）：HostEditPage 五 Section 结构 + BottomActionBar + 折叠高级 + 全量文案走 resw -->
+  <data name="HostEdit_Section_Basic.Header" xml:space="preserve"><value>基础连接</value></data>
+  <data name="HostEdit_Section_Auth.Header" xml:space="preserve"><value>认证</value></data>
+  <data name="HostEdit_Section_Terminal.Header" xml:space="preserve"><value>终端</value></data>
+  <data name="HostEdit_Section_Proxy.Header" xml:space="preserve"><value>代理/跳板</value></data>
+  <data name="HostEdit_Section_Advanced.Header" xml:space="preserve"><value>高级</value></data>
+  <data name="HostEdit_NameBox.Header" xml:space="preserve"><value>名称 *</value></data>
+  <data name="HostEdit_HostBox.Header" xml:space="preserve"><value>地址 *</value></data>
+  <data name="HostEdit_PortBox.Header" xml:space="preserve"><value>端口</value></data>
+  <data name="HostEdit_UserBox.Header" xml:space="preserve"><value>用户名 *</value></data>
+  <data name="HostEdit_GroupBox.Header" xml:space="preserve"><value>分组</value></data>
+  <data name="HostEdit_KeepaliveBox.Header" xml:space="preserve"><value>保活间隔(秒)</value></data>
+  <data name="HostEdit_PasswordBox.Header" xml:space="preserve"><value>密码</value></data>
+  <data name="HostEdit_KeyBox.Header" xml:space="preserve"><value>私钥</value></data>
+  <data name="HostEdit_PassphraseBox.Header" xml:space="preserve"><value>密码短语</value></data>
+  <data name="HostEdit_AppearanceBox.Header" xml:space="preserve"><value>外观</value></data>
+  <data name="HostEdit_TermTypeBox.Header" xml:space="preserve"><value>终端类型</value></data>
+  <data name="HostEdit_JumpBox.Header" xml:space="preserve"><value>跳板主机</value></data>
+  <data name="HostEdit_TmuxNameBox.Header" xml:space="preserve"><value>tmux 会话名</value></data>
+  <data name="HostEdit_InitBox.Header" xml:space="preserve"><value>连接后执行命令（每行一条）</value></data>
+  <data name="HostEdit_RememberPasswordSwitch.Header" xml:space="preserve"><value>保存在本机</value></data>
+  <data name="HostEdit_RememberPassphraseSwitch.Header" xml:space="preserve"><value>保存短语</value></data>
+  <data name="HostEdit_BackspaceSwitch.Header" xml:space="preserve"><value>退格发送 Ctrl+H</value></data>
+  <data name="HostEdit_TmuxSwitch.Header" xml:space="preserve"><value>tmux 自动附着</value></data>
+  <data name="HostEdit_AuthPasswordRadio.Content" xml:space="preserve"><value>密码</value></data>
+  <data name="HostEdit_AuthKeyRadio.Content" xml:space="preserve"><value>私钥</value></data>
+  <data name="HostEdit_AuthAgentRadio.Content" xml:space="preserve"><value>应用内 Agent</value></data>
+  <data name="HostEdit_ManageGroups.Content" xml:space="preserve"><value>管理分组</value></data>
+  <data name="HostEdit_ManageAppearances.Content" xml:space="preserve"><value>管理外观</value></data>
+  <data name="HostEdit_ImportKey.Content" xml:space="preserve"><value>导入</value></data>
+  <data name="HostEdit_GenerateKey.Content" xml:space="preserve"><value>生成</value></data>
+  <data name="HostEdit_AddEnv.Content" xml:space="preserve"><value>添加变量</value></data>
+  <data name="HostEdit_AddTunnel.Content" xml:space="preserve"><value>添加隧道</value></data>
+  <data name="HostEdit_ClearFingerprint.Content" xml:space="preserve"><value>清除</value></data>
+  <data name="HostEdit_LocalOnly.Text" xml:space="preserve"><value>仅本机</value></data>
+  <data name="HostEdit_HostFingerprint.Text" xml:space="preserve"><value>主机指纹</value></data>
+  <data name="HostEdit_EnvVars.Text" xml:space="preserve"><value>环境变量</value></data>
+  <data name="HostEdit_Tunnels.Text" xml:space="preserve"><value>隧道</value></data>
+  <data name="HostEdit_TmuxNote.Text" xml:space="preserve"><value>断线/被系统挂起后重连回到原现场，推荐开启</value></data>
+  <data name="HostEdit_SyncPasswordNote.Text" xml:space="preserve"><value>开启同步密码后会加密上传</value></data>
+  <data name="HostEdit_EnvKey_Placeholder" xml:space="preserve"><value>KEY</value></data>
+  <data name="HostEdit_EnvValue_Placeholder" xml:space="preserve"><value>VALUE</value></data>
+  <data name="HostEdit_RemoveEnv.Content" xml:space="preserve"><value>删除</value></data>
+  <data name="HostEdit_AdvancedToggle.Header" xml:space="preserve"><value>高级</value></data>
+  <data name="HostEdit_AdvancedToggle_Chevron" xml:space="preserve"><value>展开或收起高级设置</value></data>
+  <!-- V04b：HostEditPage 代码拼装文案（ResourceLoader） -->
+  <data name="HostEdit_Save" xml:space="preserve"><value>保存</value></data>
+  <data name="HostEdit_TestConnect" xml:space="preserve"><value>测试连接</value></data>
+  <data name="HostEdit_AbandonTitle" xml:space="preserve"><value>放弃修改？</value></data>
+  <data name="HostEdit_AbandonMessage" xml:space="preserve"><value>未保存的更改将丢失。</value></data>
+  <data name="HostEdit_AbandonConfirm" xml:space="preserve"><value>放弃</value></data>
+  <data name="HostEdit_AbandonCancel" xml:space="preserve"><value>继续编辑</value></data>
+  <data name="HostEdit_SwitchAuthTitle" xml:space="preserve"><value>切换认证方式？</value></data>
+  <data name="HostEdit_SwitchAuthConfirm" xml:space="preserve"><value>切换</value></data>
+  <data name="HostEdit_SwitchAuthCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="HostEdit_TestMessage" xml:space="preserve"><value>测试连接…</value></data>
+  <data name="HostEdit_TestTitle" xml:space="preserve"><value>测试连接</value></data>
+  <data name="HostEdit_TestFailedTitle" xml:space="preserve"><value>测试失败</value></data>
+  <data name="HostEdit_DialogOk" xml:space="preserve"><value>确定</value></data>
+  <data name="HostEdit_DialogClose" xml:space="preserve"><value>关闭</value></data>
+  <data name="HostEdit_FingerprintNone" xml:space="preserve"><value>（无）</value></data>
+
+  <!-- V04b（C-06 + §6.4）：KeysPage 行模板 + 底部动作 + 全量文案走 resw -->
+  <data name="Keys_Title.Text" xml:space="preserve"><value>密钥</value></data>
+  <data name="Keys_Empty_Title" xml:space="preserve"><value>还没有密钥</value></data>
+  <data name="Keys_Empty_Description" xml:space="preserve"><value>生成一个新密钥，或导入已有的私钥。</value></data>
+  <data name="Keys_Empty_Primary" xml:space="preserve"><value>生成密钥</value></data>
+  <data name="Keys_Empty_Secondary" xml:space="preserve"><value>导入密钥</value></data>
+  <data name="Keys_Generate.Label" xml:space="preserve"><value>生成</value></data>
+  <data name="Keys_Import.Label" xml:space="preserve"><value>导入</value></data>
+  <data name="Keys_MenuDetail.Text" xml:space="preserve"><value>查看详情</value></data>
+  <data name="Keys_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
+  <data name="Keys_MoreButton_A11yName" xml:space="preserve"><value>更多操作</value></data>
+
+  <!-- V04b（C-06 + §6.4）：SnippetsPage 发送按钮 + 分组行 + 全量文案走 resw -->
+  <data name="Snippets_Title.Text" xml:space="preserve"><value>片段</value></data>
+  <data name="Snippets_Empty_Title" xml:space="preserve"><value>还没有片段</value></data>
+  <data name="Snippets_Empty_Description" xml:space="preserve"><value>把常用命令存成片段，一键发送到终端。</value></data>
+  <data name="Snippets_Empty_Primary" xml:space="preserve"><value>新建片段</value></data>
+  <data name="Snippets_NoMatches_Title" xml:space="preserve"><value>没有匹配的片段</value></data>
+  <data name="Snippets_Search_Placeholder" xml:space="preserve"><value>搜索片段</value></data>
+  <data name="Snippets_New.Label" xml:space="preserve"><value>新建</value></data>
+  <data name="Snippets_SendButton.AutomationProperties.Name" xml:space="preserve"><value>发送</value></data>
 </root>

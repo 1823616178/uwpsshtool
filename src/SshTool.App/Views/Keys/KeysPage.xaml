@@ -5,69 +5,52 @@
     xmlns:controls="using:SshTool.App.Controls"
     Background="{ThemeResource AppBgBrush}">
 
-    <!-- K02 密钥管理（02-UI-DESIGN.md §5.10）。行点按进详情；长按/右键菜单删除。 -->
-    <Page.BottomAppBar>
-        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton Label="生成" Click="OnGenerateClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconAdd}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton Label="导入" Click="OnImportClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconDownload}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-        </CommandBar>
-    </Page.BottomAppBar>
-
+    <!-- V04b（§6.4 + C-06）：密钥管理。行用 AppListRow（图标/标题/副标题/尾操作），
+         底部 BottomActionBar（生成/导入），全量文案走 resw 双语。 -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Text="密钥" Style="{StaticResource PageTitleTextStyle}"
+        <TextBlock x:Uid="Keys_Title" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
         <Grid Grid.Row="1">
             <controls:EmptyState x:Name="Empty"
                                  Glyph="{StaticResource IconKey}"
-                                 Title="还没有密钥"
-                                 Description="生成一个新密钥，或导入已有的私钥。"
-                                 PrimaryText="生成密钥"
-                                 SecondaryText="导入密钥"
                                  Visibility="Collapsed" />
             <ListView x:Name="KeyList" SelectionMode="None"
                       IsItemClickEnabled="True" ItemClick="OnItemClick">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="{StaticResource PagePadding}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}" />
-                                <TextBlock Text="{Binding Subtitle}" Style="{StaticResource CaptionTextStyle}" />
-                            </StackPanel>
-                            <!-- UI 走查：… 文本换 IconMore 字形并补无障碍名；无样式按钮保留手写触控尺寸。 -->
-                            <Button Grid.Column="1" Margin="{StaticResource GapSmLeft}"
-                                    MinWidth="{StaticResource TouchTargetMin}"
-                                    MinHeight="{StaticResource TouchTargetMin}"
-                                    Background="{ThemeResource AppSurfaceAltBrush}"
-                                    AutomationProperties.Name="更多">
-                                <FontIcon Glyph="{StaticResource IconMore}" />
-                                <Button.Flyout>
-                                    <MenuFlyout>
-                                        <MenuFlyoutItem Text="查看详情" Click="OnDetailClick" />
-                                        <MenuFlyoutItem Text="删除" Click="OnDeleteClick"
-                                                        Style="{StaticResource DangerMenuItemStyle}" />
-                                    </MenuFlyout>
-                                </Button.Flyout>
-                            </Button>
-                        </Grid>
+                        <controls:AppListRow IconGlyph="{StaticResource IconKey}"
+                                             Title="{Binding Name}"
+                                             Subtitle="{Binding Subtitle}"
+                                             ShowChevron="True">
+                            <controls:AppListRow.TrailingContent>
+                                <Button Style="{StaticResource IconButtonStyle}"
+                                        MinWidth="{StaticResource TouchTargetMin}"
+                                        MinHeight="{StaticResource TouchTargetMin}"
+                                        AutomationProperties.Name="{StaticResource Keys_MoreButton_A11yName}">
+                                    <FontIcon Glyph="{StaticResource IconMore}" />
+                                    <Button.Flyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem x:Uid="Keys_MenuDetail" Click="OnDetailClick" />
+                                            <MenuFlyoutItem x:Uid="Keys_MenuDelete" Click="OnDeleteClick"
+                                                            Style="{StaticResource DangerMenuItemStyle}" />
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </controls:AppListRow.TrailingContent>
+                        </controls:AppListRow>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
         </Grid>
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"
+                                  PrimaryText="{StaticResource Keys_Generate}"
+                                  ShowOverflow="True"
+                                  PrimaryClick="OnGenerateClick"
+                                  OverflowClick="OnImportClick" />
     </Grid>
 </Page>

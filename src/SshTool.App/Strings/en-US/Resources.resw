@@ -520,4 +520,88 @@
   <data name="Settings_About_Diagnostics_Header" xml:space="preserve"><value>Diagnostics</value></data>
   <data name="Settings_About_Refresh" xml:space="preserve"><value>Refresh</value></data>
   <data name="Settings_About_Copy" xml:space="preserve"><value>Copy</value></data>
+
+  <!-- V04b (C-06 + §6.4): HostEditPage five-Section structure + BottomActionBar + collapsible advanced + all text via resw -->
+  <data name="HostEdit_Section_Basic.Header" xml:space="preserve"><value>Connection</value></data>
+  <data name="HostEdit_Section_Auth.Header" xml:space="preserve"><value>Authentication</value></data>
+  <data name="HostEdit_Section_Terminal.Header" xml:space="preserve"><value>Terminal</value></data>
+  <data name="HostEdit_Section_Proxy.Header" xml:space="preserve"><value>Proxy / Jump Host</value></data>
+  <data name="HostEdit_Section_Advanced.Header" xml:space="preserve"><value>Advanced</value></data>
+  <data name="HostEdit_NameBox.Header" xml:space="preserve"><value>Name *</value></data>
+  <data name="HostEdit_HostBox.Header" xml:space="preserve"><value>Host *</value></data>
+  <data name="HostEdit_PortBox.Header" xml:space="preserve"><value>Port</value></data>
+  <data name="HostEdit_UserBox.Header" xml:space="preserve"><value>Username *</value></data>
+  <data name="HostEdit_GroupBox.Header" xml:space="preserve"><value>Group</value></data>
+  <data name="HostEdit_KeepaliveBox.Header" xml:space="preserve"><value>Keepalive (sec)</value></data>
+  <data name="HostEdit_PasswordBox.Header" xml:space="preserve"><value>Password</value></data>
+  <data name="HostEdit_KeyBox.Header" xml:space="preserve"><value>Private Key</value></data>
+  <data name="HostEdit_PassphraseBox.Header" xml:space="preserve"><value>Passphrase</value></data>
+  <data name="HostEdit_AppearanceBox.Header" xml:space="preserve"><value>Appearance</value></data>
+  <data name="HostEdit_TermTypeBox.Header" xml:space="preserve"><value>Terminal Type</value></data>
+  <data name="HostEdit_JumpBox.Header" xml:space="preserve"><value>Jump Host</value></data>
+  <data name="HostEdit_TmuxNameBox.Header" xml:space="preserve"><value>tmux Session Name</value></data>
+  <data name="HostEdit_InitBox.Header" xml:space="preserve"><value>Commands After Connect (one per line)</value></data>
+  <data name="HostEdit_RememberPasswordSwitch.Header" xml:space="preserve"><value>Save on This Device</value></data>
+  <data name="HostEdit_RememberPassphraseSwitch.Header" xml:space="preserve"><value>Save Passphrase</value></data>
+  <data name="HostEdit_BackspaceSwitch.Header" xml:space="preserve"><value>Backspace Sends Ctrl+H</value></data>
+  <data name="HostEdit_TmuxSwitch.Header" xml:space="preserve"><value>Auto-attach tmux</value></data>
+  <data name="HostEdit_AuthPasswordRadio.Content" xml:space="preserve"><value>Password</value></data>
+  <data name="HostEdit_AuthKeyRadio.Content" xml:space="preserve"><value>Private Key</value></data>
+  <data name="HostEdit_AuthAgentRadio.Content" xml:space="preserve"><value>In-app Agent</value></data>
+  <data name="HostEdit_ManageGroups.Content" xml:space="preserve"><value>Manage Groups</value></data>
+  <data name="HostEdit_ManageAppearances.Content" xml:space="preserve"><value>Manage Appearances</value></data>
+  <data name="HostEdit_ImportKey.Content" xml:space="preserve"><value>Import</value></data>
+  <data name="HostEdit_GenerateKey.Content" xml:space="preserve"><value>Generate</value></data>
+  <data name="HostEdit_AddEnv.Content" xml:space="preserve"><value>Add Variable</value></data>
+  <data name="HostEdit_AddTunnel.Content" xml:space="preserve"><value>Add Tunnel</value></data>
+  <data name="HostEdit_ClearFingerprint.Content" xml:space="preserve"><value>Clear</value></data>
+  <data name="HostEdit_LocalOnly.Text" xml:space="preserve"><value>Local Only</value></data>
+  <data name="HostEdit_HostFingerprint.Text" xml:space="preserve"><value>Host Fingerprint</value></data>
+  <data name="HostEdit_EnvVars.Text" xml:space="preserve"><value>Environment Variables</value></data>
+  <data name="HostEdit_Tunnels.Text" xml:space="preserve"><value>Tunnels</value></data>
+  <data name="HostEdit_TmuxNote.Text" xml:space="preserve"><value>Reconnects to the original session after disconnect/suspend. Recommended.</value></data>
+  <data name="HostEdit_SyncPasswordNote.Text" xml:space="preserve"><value>Encrypted and uploaded when sync password is enabled.</value></data>
+  <data name="HostEdit_EnvKey_Placeholder" xml:space="preserve"><value>KEY</value></data>
+  <data name="HostEdit_EnvValue_Placeholder" xml:space="preserve"><value>VALUE</value></data>
+  <data name="HostEdit_RemoveEnv.Content" xml:space="preserve"><value>Remove</value></data>
+  <data name="HostEdit_AdvancedToggle.Header" xml:space="preserve"><value>Advanced</value></data>
+  <data name="HostEdit_AdvancedToggle_Chevron" xml:space="preserve"><value>Expand or collapse advanced settings</value></data>
+  <!-- V04b: HostEditPage code-assembled text (ResourceLoader) -->
+  <data name="HostEdit_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="HostEdit_TestConnect" xml:space="preserve"><value>Test Connection</value></data>
+  <data name="HostEdit_AbandonTitle" xml:space="preserve"><value>Discard Changes?</value></data>
+  <data name="HostEdit_AbandonMessage" xml:space="preserve"><value>Unsaved changes will be lost.</value></data>
+  <data name="HostEdit_AbandonConfirm" xml:space="preserve"><value>Discard</value></data>
+  <data name="HostEdit_AbandonCancel" xml:space="preserve"><value>Keep Editing</value></data>
+  <data name="HostEdit_SwitchAuthTitle" xml:space="preserve"><value>Switch Authentication Method?</value></data>
+  <data name="HostEdit_SwitchAuthConfirm" xml:space="preserve"><value>Switch</value></data>
+  <data name="HostEdit_SwitchAuthCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="HostEdit_TestMessage" xml:space="preserve"><value>Testing Connection…</value></data>
+  <data name="HostEdit_TestTitle" xml:space="preserve"><value>Test Connection</value></data>
+  <data name="HostEdit_TestFailedTitle" xml:space="preserve"><value>Test Failed</value></data>
+  <data name="HostEdit_DialogOk" xml:space="preserve"><value>OK</value></data>
+  <data name="HostEdit_DialogClose" xml:space="preserve"><value>Close</value></data>
+  <data name="HostEdit_FingerprintNone" xml:space="preserve"><value>(none)</value></data>
+
+  <!-- V04b (C-06 + §6.4): KeysPage row template + bottom actions + all text via resw -->
+  <data name="Keys_Title.Text" xml:space="preserve"><value>Keys</value></data>
+  <data name="Keys_Empty_Title" xml:space="preserve"><value>No Keys Yet</value></data>
+  <data name="Keys_Empty_Description" xml:space="preserve"><value>Generate a new key, or import an existing private key.</value></data>
+  <data name="Keys_Empty_Primary" xml:space="preserve"><value>Generate Key</value></data>
+  <data name="Keys_Empty_Secondary" xml:space="preserve"><value>Import Key</value></data>
+  <data name="Keys_Generate.Label" xml:space="preserve"><value>Generate</value></data>
+  <data name="Keys_Import.Label" xml:space="preserve"><value>Import</value></data>
+  <data name="Keys_MenuDetail.Text" xml:space="preserve"><value>View Details</value></data>
+  <data name="Keys_MenuDelete.Text" xml:space="preserve"><value>Delete</value></data>
+  <data name="Keys_MoreButton_A11yName" xml:space="preserve"><value>More Actions</value></data>
+
+  <!-- V04b (C-06 + §6.4): SnippetsPage send button + group headers + all text via resw -->
+  <data name="Snippets_Title.Text" xml:space="preserve"><value>Snippets</value></data>
+  <data name="Snippets_Empty_Title" xml:space="preserve"><value>No Snippets Yet</value></data>
+  <data name="Snippets_Empty_Description" xml:space="preserve"><value>Save frequently used commands as snippets, send to terminal with one tap.</value></data>
+  <data name="Snippets_Empty_Primary" xml:space="preserve"><value>New Snippet</value></data>
+  <data name="Snippets_NoMatches_Title" xml:space="preserve"><value>No Matching Snippets</value></data>
+  <data name="Snippets_Search_Placeholder" xml:space="preserve"><value>Search Snippets</value></data>
+  <data name="Snippets_New.Label" xml:space="preserve"><value>New</value></data>
+  <data name="Snippets_SendButton.AutomationProperties.Name" xml:space="preserve"><value>Send</value></data>
 </root>

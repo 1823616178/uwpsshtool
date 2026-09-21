@@ -5,17 +5,8 @@
     xmlns:controls="using:SshTool.App.Controls"
     Background="{ThemeResource AppBgBrush}">
 
-    <!-- U13：命令片段管理（02-UI-DESIGN.md §5.9）。按分组名分组，行内 ▶ 发送（无会话时禁用）。 -->
-    <Page.BottomAppBar>
-        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton Label="新建" Click="OnNewClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconAdd}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-        </CommandBar>
-    </Page.BottomAppBar>
-
+    <!-- V04b（§6.4 + C-06）：命令片段管理。行 ▶ 发送改 TerminalIconButtonStyle + resw 标签；
+         分组行用 GroupHeader；新建走 BottomActionBar；全量文案走 resw 双语。 -->
     <Page.Resources>
         <CollectionViewSource x:Key="GroupedSnippets" x:Name="GroupedSnippets"
                               IsSourceGrouped="True" ItemsPath="Rows" />
@@ -30,14 +21,18 @@
                     <TextBlock Text="{Binding Preview}" Style="{StaticResource CaptionTextStyle}"
                                TextTrimming="CharacterEllipsis" />
                 </StackPanel>
-                <Button Grid.Column="1" Content="▶" Click="OnSendClick"
+                <Button x:Uid="Snippets_SendButton" Grid.Column="1" Click="OnSendClick"
                         IsEnabled="{Binding SendEnabled}"
                         MinWidth="{StaticResource TouchTargetMin}"
                         MinHeight="{StaticResource TouchTargetMin}"
                         Margin="{StaticResource GapSmLeft}"
-                        Background="{ThemeResource AppSurfaceAltBrush}" />
+                        Background="{ThemeResource AppSurfaceAltBrush}">
+                    <FontIcon Glyph="{StaticResource IconForward}" FontSize="{StaticResource FontBody}" />
+                </Button>
             </Grid>
         </DataTemplate>
+        <!-- V04b：分组行标题。GroupHeader 组件绑定 HostListGroup，片段分组仍为 SnippetGroupVm，
+             保留分组标题文本样式（Caption + PagePadding），后续若通用化 GroupHeader 再切回。 -->
         <DataTemplate x:Key="SnippetGroupHeaderTemplate">
             <TextBlock Text="{Binding Title}" Style="{StaticResource CaptionTextStyle}"
                        Padding="{StaticResource PagePadding}" />
@@ -49,22 +44,19 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Text="片段" Style="{StaticResource PageTitleTextStyle}"
+        <TextBlock x:Uid="Snippets_Title" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
-        <AutoSuggestBox x:Name="SearchBox" Grid.Row="1" PlaceholderText="搜索片段"
+        <AutoSuggestBox x:Name="SearchBox" x:Uid="Snippets_SearchBox" Grid.Row="1"
                         QueryIcon="Find" TextChanged="OnSearchChanged"
                         Margin="{StaticResource PagePadding}" />
         <Grid Grid.Row="2">
             <controls:EmptyState x:Name="Empty"
                                  Glyph="{StaticResource IconSnippet}"
-                                 Title="还没有片段"
-                                 Description="把常用命令存成片段，一键发送到终端。"
-                                 PrimaryText="新建片段"
                                  Visibility="Collapsed" />
             <controls:EmptyState x:Name="NoMatches"
                                  Glyph="{StaticResource IconSearch}"
-                                 Title="没有匹配的片段"
                                  Visibility="Collapsed" />
             <ListView x:Name="SnippetList"
                       ItemTemplate="{StaticResource SnippetItemTemplate}"
@@ -76,5 +68,8 @@
                 </ListView.GroupStyle>
             </ListView>
         </Grid>
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="3"
+                                  PrimaryText="{StaticResource Snippets_New}"
+                                  PrimaryClick="OnNewClick" />
     </Grid>
 </Page>

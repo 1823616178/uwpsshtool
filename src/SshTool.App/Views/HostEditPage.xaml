@@ -5,195 +5,220 @@
     xmlns:controls="using:SshTool.App.Controls"
     Background="{ThemeResource AppBgBrush}">
 
-    <Page.BottomAppBar>
-        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton Label="保存" Click="OnSaveClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconEdit}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton Label="测试连接" Click="OnTestClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconConnect}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton Label="取消" Click="OnCancelClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconClose}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-        </CommandBar>
-    </Page.BottomAppBar>
-
+    <!-- V04b（§6.4）：五 Section 结构（基础连接/认证/终端/代理跳板/高级）+ 底部固定 BottomActionBar。
+         高级 Section 默认折叠，点击头部展开。LoadingOverlay 保留测试态。 -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <TextBlock x:Name="TitleText" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
-        <controls:LoadingOverlay x:Name="TestOverlay" Grid.RowSpan="2" />
-        <Pivot x:Name="EditPivot" Grid.Row="1">
-            <PivotItem Header="连接">
-                <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <TextBox x:Name="NameBox" Header="名称 *" TextChanged="OnNameChanged" />
-                        <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                        <TextBox x:Name="HostBox" Header="地址 *" Margin="{StaticResource GapSmTop}" TextChanged="OnHostChanged" />
-                        <TextBlock x:Name="HostError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                        <TextBox x:Name="PortBox" Header="端口" InputScope="Number" Margin="{StaticResource GapSmTop}" TextChanged="OnPortChanged" />
-                        <TextBlock x:Name="PortError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                        <TextBox x:Name="UserBox" Header="用户名 *" Margin="{StaticResource GapSmTop}" TextChanged="OnUserChanged" />
-                        <TextBlock x:Name="UserError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                        <ComboBox x:Name="GroupBox" Header="分组" HorizontalAlignment="Stretch"
-                                  DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
-                                  SelectionChanged="OnGroupChanged" />
-                        <HyperlinkButton Content="管理分组" Click="OnManageGroups" />
-                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
-                        <TextBox x:Name="KeepaliveBox" Header="保活间隔(秒)" InputScope="Number"
-                                 Margin="{StaticResource GapSmTop}" TextChanged="OnKeepaliveChanged" />
-                        <TextBlock x:Name="KeepaliveError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                        <TextBlock Text="主机指纹" Style="{StaticResource CaptionTextStyle}" Margin="{StaticResource GapSmTop}" />
-                        <controls:MonoText x:Name="FingerprintText" Compact="True" />
-                        <HyperlinkButton Content="清除" Click="OnClearFingerprint" />
-                    </StackPanel>
-                </ScrollViewer>
-            </PivotItem>
-            <PivotItem Header="认证">
-                <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <RadioButton x:Name="AuthPasswordRadio" GroupName="HostAuth" Content="密码"
-                                     Checked="OnAuthPasswordChecked" />
-                        <RadioButton x:Name="AuthKeyRadio" GroupName="HostAuth" Content="私钥"
-                                     Checked="OnAuthKeyChecked" />
-                        <RadioButton x:Name="AuthAgentRadio" GroupName="HostAuth" Content="应用内 Agent"
-                                     Checked="OnAuthAgentChecked" />
-
-                        <StackPanel x:Name="PasswordPanel" Margin="{StaticResource GapSmTop}">
-                            <PasswordBox x:Name="PasswordBox" Header="密码"
-                                         PasswordChanged="OnPasswordChanged" />
-                            <!-- 凭据三态：已保存 / 新凭据 / 将清除（文案在 VM，颜色走主题色） -->
-                            <TextBlock Style="{StaticResource CaptionTextStyle}"
-                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
-                                       Text="{x:Bind ViewModel.PasswordCredentialStateText, Mode=OneWay}"
-                                       Visibility="{x:Bind ViewModel.IsPasswordCredentialSaved, Mode=OneWay}" />
-                            <TextBlock Style="{StaticResource CaptionTextStyle}"
-                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
-                                       Foreground="{ThemeResource AppTextBrush}"
-                                       Text="{x:Bind ViewModel.PasswordCredentialStateText, Mode=OneWay}"
-                                       Visibility="{x:Bind ViewModel.IsPasswordCredentialNew, Mode=OneWay}" />
-                            <TextBlock Style="{StaticResource CaptionTextStyle}"
-                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
-                                       Foreground="{ThemeResource AppDangerBrush}"
-                                       Text="{x:Bind ViewModel.PasswordCredentialStateText, Mode=OneWay}"
-                                       Visibility="{x:Bind ViewModel.IsPasswordCredentialCleared, Mode=OneWay}" />
-                            <ToggleSwitch x:Name="RememberPasswordSwitch" Header="保存在本机"
-                                          Toggled="OnRememberPasswordToggled" />
-                            <TextBlock Text="开启同步密码后会加密上传"
-                                       Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}">
+                <!-- ========== 基础连接 ========== -->
+                <controls:FormSection x:Uid="HostEdit_Section_Basic">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBox x:Name="NameBox" x:Uid="HostEdit_NameBox" TextChanged="OnNameChanged" />
+                            <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                            <TextBox x:Name="HostBox" x:Uid="HostEdit_HostBox" Margin="{StaticResource GapSmTop}" TextChanged="OnHostChanged" />
+                            <TextBlock x:Name="HostError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                            <TextBox x:Name="PortBox" x:Uid="HostEdit_PortBox" InputScope="Number" Margin="{StaticResource GapSmTop}" TextChanged="OnPortChanged" />
+                            <TextBlock x:Name="PortError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                            <TextBox x:Name="UserBox" x:Uid="HostEdit_UserBox" Margin="{StaticResource GapSmTop}" TextChanged="OnUserChanged" />
+                            <TextBlock x:Name="UserError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                            <ComboBox x:Name="GroupBox" x:Uid="HostEdit_GroupBox" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
+                                      SelectionChanged="OnGroupChanged" />
+                            <HyperlinkButton x:Uid="HostEdit_ManageGroups" Click="OnManageGroups" />
+                            <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBox x:Name="KeepaliveBox" x:Uid="HostEdit_KeepaliveBox" InputScope="Number"
+                                     Margin="{StaticResource GapSmTop}" TextChanged="OnKeepaliveChanged" />
+                            <TextBlock x:Name="KeepaliveError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                            <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock x:Uid="HostEdit_HostFingerprint" Style="{StaticResource CaptionTextStyle}" Margin="{StaticResource GapSmTop}" />
+                            <controls:MonoText x:Name="FingerprintText" Compact="True" />
+                            <HyperlinkButton x:Uid="HostEdit_ClearFingerprint" Click="OnClearFingerprint" />
                         </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
 
-                        <StackPanel x:Name="KeyPanel" Margin="{StaticResource GapSmTop}" Visibility="Collapsed">
-                            <ComboBox x:Name="KeyBox" Header="私钥" HorizontalAlignment="Stretch"
-                                      DisplayMemberPath="Name" SelectionChanged="OnKeyChanged" />
-                            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapXsTop}">
-                                <HyperlinkButton Content="导入" Click="OnImportKey" />
-                                <HyperlinkButton Content="生成" Click="OnGenerateKey"
-                                                 Margin="{StaticResource GapSmLeft}" />
+                <!-- ========== 认证 ========== -->
+                <controls:FormSection x:Uid="HostEdit_Section_Auth" Margin="{StaticResource GapSmTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <RadioButton x:Name="AuthPasswordRadio" x:Uid="HostEdit_AuthPasswordRadio" GroupName="HostAuth"
+                                         Checked="OnAuthPasswordChecked" />
+                            <RadioButton x:Name="AuthKeyRadio" x:Uid="HostEdit_AuthKeyRadio" GroupName="HostAuth"
+                                         Checked="OnAuthKeyChecked" />
+                            <RadioButton x:Name="AuthAgentRadio" x:Uid="HostEdit_AuthAgentRadio" GroupName="HostAuth"
+                                         Checked="OnAuthAgentChecked" />
+
+                            <StackPanel x:Name="PasswordPanel" Margin="{StaticResource GapSmTop}">
+                                <PasswordBox x:Name="PasswordBox" x:Uid="HostEdit_PasswordBox"
+                                             PasswordChanged="OnPasswordChanged" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                           Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                           Text="{x:Bind ViewModel.PasswordCredentialStateText, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.IsPasswordCredentialSaved, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                           Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                           Foreground="{ThemeResource AppTextBrush}"
+                                           Text="{x:Bind ViewModel.PasswordCredentialStateText, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.IsPasswordCredentialNew, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                           Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                           Foreground="{ThemeResource AppDangerBrush}"
+                                           Text="{x:Bind ViewModel.PasswordCredentialStateText, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.IsPasswordCredentialCleared, Mode=OneWay}" />
+                                <ToggleSwitch x:Name="RememberPasswordSwitch" x:Uid="HostEdit_RememberPasswordSwitch"
+                                              Toggled="OnRememberPasswordToggled" />
+                                <TextBlock x:Uid="HostEdit_SyncPasswordNote" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
                             </StackPanel>
-                            <PasswordBox x:Name="PassphraseBox" Header="密码短语"
-                                         Margin="{StaticResource GapSmTop}"
-                                         PasswordChanged="OnPassphraseChanged" />
-                            <TextBlock Style="{StaticResource CaptionTextStyle}"
-                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
-                                       Text="{x:Bind ViewModel.PassphraseCredentialStateText, Mode=OneWay}"
-                                       Visibility="{x:Bind ViewModel.IsPassphraseCredentialSaved, Mode=OneWay}" />
-                            <TextBlock Style="{StaticResource CaptionTextStyle}"
-                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
-                                       Foreground="{ThemeResource AppTextBrush}"
-                                       Text="{x:Bind ViewModel.PassphraseCredentialStateText, Mode=OneWay}"
-                                       Visibility="{x:Bind ViewModel.IsPassphraseCredentialNew, Mode=OneWay}" />
-                            <TextBlock Style="{StaticResource CaptionTextStyle}"
-                                       Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
-                                       Foreground="{ThemeResource AppDangerBrush}"
-                                       Text="{x:Bind ViewModel.PassphraseCredentialStateText, Mode=OneWay}"
-                                       Visibility="{x:Bind ViewModel.IsPassphraseCredentialCleared, Mode=OneWay}" />
-                            <ToggleSwitch x:Name="RememberPassphraseSwitch" Header="保存短语"
-                                          Toggled="OnRememberPassphraseToggled" />
+
+                            <StackPanel x:Name="KeyPanel" Margin="{StaticResource GapSmTop}" Visibility="Collapsed">
+                                <ComboBox x:Name="KeyBox" x:Uid="HostEdit_KeyBox" HorizontalAlignment="Stretch"
+                                          DisplayMemberPath="Name" SelectionChanged="OnKeyChanged" />
+                                <StackPanel Orientation="Horizontal" Margin="{StaticResource GapXsTop}">
+                                    <HyperlinkButton x:Uid="HostEdit_ImportKey" Click="OnImportKey" />
+                                    <HyperlinkButton x:Uid="HostEdit_GenerateKey" Click="OnGenerateKey"
+                                                     Margin="{StaticResource GapSmLeft}" />
+                                </StackPanel>
+                                <PasswordBox x:Name="PassphraseBox" x:Uid="HostEdit_PassphraseBox"
+                                             Margin="{StaticResource GapSmTop}"
+                                             PasswordChanged="OnPassphraseChanged" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                           Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                           Text="{x:Bind ViewModel.PassphraseCredentialStateText, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.IsPassphraseCredentialSaved, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                           Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                           Foreground="{ThemeResource AppTextBrush}"
+                                           Text="{x:Bind ViewModel.PassphraseCredentialStateText, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.IsPassphraseCredentialNew, Mode=OneWay}" />
+                                <TextBlock Style="{StaticResource CaptionTextStyle}"
+                                           Margin="{StaticResource GapXsTop}" TextWrapping="Wrap"
+                                           Foreground="{ThemeResource AppDangerBrush}"
+                                           Text="{x:Bind ViewModel.PassphraseCredentialStateText, Mode=OneWay}"
+                                           Visibility="{x:Bind ViewModel.IsPassphraseCredentialCleared, Mode=OneWay}" />
+                                <ToggleSwitch x:Name="RememberPassphraseSwitch" x:Uid="HostEdit_RememberPassphraseSwitch"
+                                              Toggled="OnRememberPassphraseToggled" />
+                            </StackPanel>
                         </StackPanel>
-                    </StackPanel>
-                </ScrollViewer>
-            </PivotItem>
-            <PivotItem Header="终端">
-                <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <ComboBox x:Name="AppearanceBox" Header="外观" HorizontalAlignment="Stretch"
-                                   DisplayMemberPath="Name" SelectionChanged="OnAppearanceChanged" />
-                        <HyperlinkButton Content="管理外观" Click="OnManageAppearances" />
-                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
-                        <ComboBox x:Name="TermTypeBox" Header="终端类型" HorizontalAlignment="Stretch"
-                                  DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
-                                  SelectionChanged="OnTermTypeChanged" />
-                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
-                        <ToggleSwitch x:Name="BackspaceSwitch" Header="退格发送 Ctrl+H"
-                                      Margin="{StaticResource GapSmTop}" Toggled="OnBackspaceToggled" />
-                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
-                        <TextBlock Text="环境变量" Style="{StaticResource BodyTextStyle}" Margin="{StaticResource GapSmTop}" />
-                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
-                        <ItemsControl x:Name="EnvList">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="{StaticResource GapXsTop}">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="Auto" />
-                                        </Grid.ColumnDefinitions>
-                                        <TextBox PlaceholderText="KEY" Text="{Binding Key, Mode=TwoWay}" />
-                                        <TextBox Grid.Column="1" PlaceholderText="VALUE" Text="{Binding Value, Mode=TwoWay}"
-                                                 Margin="{StaticResource GapSmLeft}" />
-                                        <HyperlinkButton Grid.Column="2" Content="删除" Click="OnRemoveEnv"
-                                                         Margin="{StaticResource GapSmLeft}" />
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <HyperlinkButton Content="添加变量" Click="OnAddEnv" />
-                        <TextBlock x:Name="EnvError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                    </StackPanel>
-                </ScrollViewer>
-            </PivotItem>
-            <PivotItem Header="高级">
-                <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <ToggleSwitch x:Name="TmuxSwitch" Header="tmux 自动附着" Toggled="OnTmuxToggled" />
-                        <TextBlock Text="断线/被系统挂起后重连回到原现场，推荐开启"
-                                   Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
-                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
-                        <TextBox x:Name="TmuxNameBox" Header="tmux 会话名" Margin="{StaticResource GapSmTop}"
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- ========== 终端 ========== -->
+                <controls:FormSection x:Uid="HostEdit_Section_Terminal" Margin="{StaticResource GapSmTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <ComboBox x:Name="AppearanceBox" x:Uid="HostEdit_AppearanceBox" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Name" SelectionChanged="OnAppearanceChanged" />
+                            <HyperlinkButton x:Uid="HostEdit_ManageAppearances" Click="OnManageAppearances" />
+                            <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
+                            <ComboBox x:Name="TermTypeBox" x:Uid="HostEdit_TermTypeBox" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
+                                      SelectionChanged="OnTermTypeChanged" />
+                            <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
+                            <ToggleSwitch x:Name="BackspaceSwitch" x:Uid="HostEdit_BackspaceSwitch"
+                                          Margin="{StaticResource GapSmTop}" Toggled="OnBackspaceToggled" />
+                            <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock x:Uid="HostEdit_EnvVars" Style="{StaticResource BodyTextStyle}" Margin="{StaticResource GapSmTop}" />
+                            <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
+                            <ItemsControl x:Name="EnvList">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="{StaticResource GapXsTop}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox PlaceholderText="KEY" Text="{Binding Key, Mode=TwoWay}" />
+                                            <TextBox Grid.Column="1" PlaceholderText="VALUE" Text="{Binding Value, Mode=TwoWay}"
+                                                     Margin="{StaticResource GapSmLeft}" />
+                                            <HyperlinkButton x:Uid="HostEdit_RemoveEnv" Grid.Column="2" Click="OnRemoveEnv"
+                                                             Margin="{StaticResource GapSmLeft}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <HyperlinkButton x:Uid="HostEdit_AddEnv" Click="OnAddEnv" />
+                            <TextBlock x:Name="EnvError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- ========== 代理/跳板 ========== -->
+                <controls:FormSection x:Uid="HostEdit_Section_Proxy" Margin="{StaticResource GapSmTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <ComboBox x:Name="JumpBox" x:Uid="HostEdit_JumpBox" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Name" SelectionChanged="OnJumpChanged" />
+                            <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock x:Name="JumpError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- ========== 高级（默认折叠） ========== -->
+                <Grid Margin="{StaticResource GapSmTop}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <!-- 折叠头部：点击切换下方内容可见性，chevron 随状态翻转 -->
+                    <Button x:Name="AdvancedToggle" Grid.Row="0"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                            Background="Transparent" BorderThickness="0"
+                            Padding="{StaticResource PadNone}"
+                            Click="OnAdvancedToggleClick">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <FontIcon x:Name="AdvancedChevron" Glyph="{StaticResource IconChevronRight}"
+                                      FontSize="{StaticResource FontCaption}"
+                                      Foreground="{ThemeResource AppTextDimBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock x:Uid="HostEdit_Section_Advanced" Grid.Column="1"
+                                       Style="{StaticResource SectionTitleTextStyle}"
+                                       Margin="{StaticResource GapSmLeft}" />
+                        </Grid>
+                    </Button>
+                    <StackPanel x:Name="AdvancedContent" Grid.Row="1" Visibility="Collapsed">
+                        <ToggleSwitch x:Name="TmuxSwitch" x:Uid="HostEdit_TmuxSwitch" Toggled="OnTmuxToggled" />
+                        <TextBlock x:Uid="HostEdit_TmuxNote" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                        <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
+                        <TextBox x:Name="TmuxNameBox" x:Uid="HostEdit_TmuxNameBox" Margin="{StaticResource GapSmTop}"
                                  TextChanged="OnTmuxNameChanged" />
-                        <TextBox x:Name="InitBox" Header="连接后执行命令（每行一条）"
+                        <TextBox x:Name="InitBox" x:Uid="HostEdit_InitBox"
                                  AcceptsReturn="True" TextWrapping="Wrap"
                                  Margin="{StaticResource GapSmTop}" TextChanged="OnInitChanged" />
-                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
-                        <ComboBox x:Name="JumpBox" Header="跳板主机" HorizontalAlignment="Stretch"
-                                  DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
-                                  SelectionChanged="OnJumpChanged" />
-                        <TextBlock Text="仅本机" Style="{StaticResource CaptionTextStyle}" />
-                        <TextBlock x:Name="JumpError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                        <TextBlock Text="隧道" Style="{StaticResource BodyTextStyle}" Margin="{StaticResource GapSmTop}" />
+                        <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
+                        <TextBlock x:Uid="HostEdit_Tunnels" Style="{StaticResource BodyTextStyle}" Margin="{StaticResource GapSmTop}" />
                         <ListView x:Name="TunnelList" DisplayMemberPath="Name" SelectionMode="None" />
-                        <HyperlinkButton Content="添加隧道" Click="OnAddTunnel" />
+                        <HyperlinkButton x:Uid="HostEdit_AddTunnel" Click="OnAddTunnel" />
                     </StackPanel>
-                </ScrollViewer>
-            </PivotItem>
-        </Pivot>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 底部固定操作条：主操作=保存，溢出=测试连接（PrimaryText/OverflowFlyout 在 code-behind 用 resw 装配） -->
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"
+                                  ShowOverflow="True"
+                                  PrimaryClick="OnSaveClick"
+                                  OverflowClick="OnTestClick" />
+        <controls:LoadingOverlay x:Name="TestOverlay" Grid.RowSpan="3" />
     </Grid>
 </Page>

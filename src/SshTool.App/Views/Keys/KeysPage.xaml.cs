@@ -2,6 +2,7 @@ using System;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Keys;
 using SshTool.Core.Common;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -12,6 +13,7 @@ namespace SshTool.App.Views.Keys
     {
         // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
         private readonly NavigationLifetime _lifetime = new NavigationLifetime();
+        private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
 
         public KeysPage()
         {
@@ -20,6 +22,11 @@ namespace SshTool.App.Views.Keys
             KeyList.ItemsSource = ViewModel.Rows;
             Empty.PrimaryCommand = ViewModel.GenerateCommand;
             Empty.SecondaryCommand = ViewModel.ImportCommand;
+            // V04b（C-06）：EmptyState 文案走 resw 双语。
+            Empty.Title = _loader.GetString("Keys_Empty_Title");
+            Empty.Description = _loader.GetString("Keys_Empty_Description");
+            Empty.PrimaryText = _loader.GetString("Keys_Empty_Primary");
+            Empty.SecondaryText = _loader.GetString("Keys_Empty_Secondary");
         }
 
         public KeysViewModel ViewModel { get; private set; }
@@ -46,7 +53,7 @@ namespace SshTool.App.Views.Keys
             }
             catch (Exception ex)
             {
-                AppLog.Error("Keys", "密钥列表加载失败", ex);
+                AppLog.Error("Keys", "key list load failed", ex);
             }
         }
 
@@ -87,13 +94,13 @@ namespace SshTool.App.Views.Keys
             UpdateChrome();
         }
 
-        private async void OnImportClick(object sender, RoutedEventArgs e)
+        private async void OnImportClick(object sender, EventArgs e)
         {
             await ViewModel.ImportAsync();
             UpdateChrome();
         }
 
-        private async void OnGenerateClick(object sender, RoutedEventArgs e)
+        private async void OnGenerateClick(object sender, EventArgs e)
         {
             await ViewModel.GenerateAsync();
             UpdateChrome();
