@@ -28,10 +28,10 @@
                                              Subtitle="{Binding Subtitle}"
                                              ShowChevron="True">
                             <controls:AppListRow.TrailingContent>
-                                <Button Style="{StaticResource IconButtonStyle}"
+                                <Button x:Uid="Keys_MoreButton"
+                                        Style="{StaticResource IconButtonStyle}"
                                         MinWidth="{StaticResource TouchTargetMin}"
-                                        MinHeight="{StaticResource TouchTargetMin}"
-                                        AutomationProperties.Name="{StaticResource Keys_MoreButton_A11yName}">
+                                        MinHeight="{StaticResource TouchTargetMin}">
                                     <FontIcon Glyph="{StaticResource IconMore}" />
                                     <Button.Flyout>
                                         <MenuFlyout>
@@ -48,7 +48,6 @@
             </ListView>
         </Grid>
         <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"
-                                  PrimaryText="{StaticResource Keys_Generate}"
                                   ShowOverflow="True"
                                   PrimaryClick="OnGenerateClick"
                                   OverflowClick="OnImportClick" />

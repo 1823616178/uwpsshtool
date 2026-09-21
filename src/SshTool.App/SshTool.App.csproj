@@ -764,6 +764,8 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <PRIResource Include="Strings\zh-cn\Resources.resw" />
+    <PRIResource Include="Strings\en-us\Resources.resw" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">

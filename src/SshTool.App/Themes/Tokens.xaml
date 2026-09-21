@@ -17,6 +17,7 @@
     <!-- Gap 系列：W10M 15063（contract 4.0）既无 Grid.ColumnSpacing/RowSpacing 也无 StackPanel.Spacing
          （均需 1709），间距一律由子元素 Margin 让出；数值取自上面的 Space* 刻度。 -->
     <Thickness x:Key="GapSmLeft">8,0,0,0</Thickness>
+    <Thickness x:Key="GapSmRight">0,0,8,0</Thickness>
     <Thickness x:Key="GapSmBottom">0,0,0,8</Thickness>
     <Thickness x:Key="GapLgBottom">0,0,0,16</Thickness>
     <Thickness x:Key="GapMdTop">0,12,0,0</Thickness>

@@ -27,6 +27,7 @@ namespace SshTool.App.Views.Keys
             Empty.Description = _loader.GetString("Keys_Empty_Description");
             Empty.PrimaryText = _loader.GetString("Keys_Empty_Primary");
             Empty.SecondaryText = _loader.GetString("Keys_Empty_Secondary");
+            BottomBar.PrimaryText = _loader.GetString("Keys_Generate.Label");
         }
 
         public KeysViewModel ViewModel { get; private set; }

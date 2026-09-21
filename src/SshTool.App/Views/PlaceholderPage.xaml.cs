@@ -37,7 +37,7 @@ namespace SshTool.App.Views
                 ? args.Title : Loader.GetString("Placeholder_Title");
             string milestone = args != null ? args.Milestone : "后续";
             Empty.Title = title;
-            Empty.Description = Loader.GetString("Placeholder_ComingSoon");
+            Empty.Description = Loader.GetString("Placeholder_ComingSoon.Description");
             // 里程碑代号只进日志，供开发排查；页面不显示 M3/M5/M7 这类内部代号。
             ILogger log;
             if (ServiceRegistry.TryGet(out log))

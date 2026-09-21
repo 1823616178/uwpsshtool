@@ -229,7 +229,7 @@
   <data name="Placeholder_BackButton.Content" xml:space="preserve"><value>返回</value></data>
   <data name="Placeholder_Title" xml:space="preserve"><value>即将推出</value></data>
   <data name="Placeholder_ComingSoon.Title" xml:space="preserve"><value>即将推出</value></data>
-  <data name="Placeholder_ComingSoon" xml:space="preserve"><value>功能还在打磨中，敬请期待后续版本。</value></data>
+  <data name="Placeholder_ComingSoon.Description" xml:space="preserve"><value>功能还在打磨中，敬请期待后续版本。</value></data>
 
   <data name="ExitDialog.Title" xml:space="preserve"><value>退出应用</value></data>
   <data name="ExitDialog.PrimaryButtonText" xml:space="preserve"><value>退出</value></data>
@@ -635,7 +635,7 @@
   <data name="HostEdit_Section_Auth.Header" xml:space="preserve"><value>认证</value></data>
   <data name="HostEdit_Section_Terminal.Header" xml:space="preserve"><value>终端</value></data>
   <data name="HostEdit_Section_Proxy.Header" xml:space="preserve"><value>代理/跳板</value></data>
-  <data name="HostEdit_Section_Advanced.Header" xml:space="preserve"><value>高级</value></data>
+  <data name="HostEdit_Section_Advanced.Text" xml:space="preserve"><value>高级</value></data>
   <data name="HostEdit_NameBox.Header" xml:space="preserve"><value>名称 *</value></data>
   <data name="HostEdit_HostBox.Header" xml:space="preserve"><value>地址 *</value></data>
   <data name="HostEdit_PortBox.Header" xml:space="preserve"><value>端口</value></data>
@@ -703,6 +703,7 @@
   <data name="Keys_MenuDetail.Text" xml:space="preserve"><value>查看详情</value></data>
   <data name="Keys_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
   <data name="Keys_MoreButton_A11yName" xml:space="preserve"><value>更多操作</value></data>
+  <data name="Keys_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多操作</value></data>
 
   <!-- V04b（C-06 + §6.4）：SnippetsPage 发送按钮 + 分组行 + 全量文案走 resw -->
   <data name="Snippets_Title.Text" xml:space="preserve"><value>片段</value></data>

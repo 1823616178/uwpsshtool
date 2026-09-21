@@ -69,7 +69,6 @@
             </ListView>
         </Grid>
         <controls:BottomActionBar x:Name="BottomBar" Grid.Row="3"
-                                  PrimaryText="{StaticResource Snippets_New}"
                                   PrimaryClick="OnNewClick" />
     </Grid>
 </Page>

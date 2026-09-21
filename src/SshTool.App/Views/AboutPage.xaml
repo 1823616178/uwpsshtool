@@ -15,7 +15,7 @@
                                 BackRequested="OnBackRequested" />
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
-                <TextBlock x:Uid="About_AppName" Style="{StaticResource TitleTextStyle}" />
+                <TextBlock x:Uid="About_AppName" Style="{StaticResource PageTitleTextStyle}" />
                 <TextBlock x:Name="VersionText" Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource GapXsTop}" />
 

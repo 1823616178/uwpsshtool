@@ -39,6 +39,7 @@ namespace SshTool.App.Views
             Empty.Description = _loader.GetString("Snippets_Empty_Description");
             Empty.PrimaryText = _loader.GetString("Snippets_Empty_Primary");
             NoMatches.Title = _loader.GetString("Snippets_NoMatches_Title");
+            BottomBar.PrimaryText = _loader.GetString("Snippets_New.Label");
         }
 
         public SnippetsViewModel ViewModel { get; private set; }
