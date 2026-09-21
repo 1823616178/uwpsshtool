@@ -207,7 +207,8 @@
                                  Margin="{StaticResource GapSmTop}" TextChanged="OnInitChanged" />
                         <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
                         <TextBlock x:Uid="HostEdit_Tunnels" Style="{StaticResource BodyTextStyle}" Margin="{StaticResource GapSmTop}" />
-                        <ListView x:Name="TunnelList" DisplayMemberPath="Name" SelectionMode="None" />
+                        <ListView x:Name="TunnelList" DisplayMemberPath="Name" SelectionMode="Single"
+                                  IsItemClickEnabled="True" ItemClick="OnTunnelItemClick" />
                         <HyperlinkButton x:Uid="HostEdit_AddTunnel" Click="OnAddTunnel" />
                     </StackPanel>
                 </Grid>

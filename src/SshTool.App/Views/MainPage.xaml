@@ -84,11 +84,9 @@
             <PivotItem x:Uid="Main_PivotSessions">
                 <main:SessionsPivot x:Name="SessionsPivotCtl" />
             </PivotItem>
-            <!-- R-C：本页不绑定任何转发数据，说明文字不再承诺「会显示转发状态」。
-                 V02：F06 之前维持 EmptyState 占位，Glyph/文案资源化。 -->
+            <!-- F06：隧道 Pivot，绑定 TunnelsPivot 控件 -->
             <PivotItem x:Uid="Main_PivotTunnels">
-                <controls:EmptyState x:Uid="Main_TunnelsEmpty"
-                                     Glyph="{StaticResource IconTunnel}" />
+                <main:TunnelsPivot x:Name="TunnelsPivotCtl" />
             </PivotItem>
         </Pivot>
 

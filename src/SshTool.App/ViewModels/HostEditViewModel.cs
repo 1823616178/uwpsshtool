@@ -83,7 +83,7 @@ namespace SshTool.App.ViewModels
             AddEnvCommand = new RelayCommand(AddEnv);
             ClearFingerprintCommand = new RelayCommand(ClearFingerprint);
             AddTunnelCommand = new RelayCommand(() =>
-                Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs("添加隧道", "M7")));
+                Navigation.Navigate<TunnelEditPage>(TunnelEditArgs.New(_state.HostId)));
         }
 
         public ICommand SaveCommand { get; private set; }

@@ -223,6 +223,9 @@
     <Compile Include="Dialogs\RecoveryKeyDialog.xaml.cs">
       <DependentUpon>RecoveryKeyDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialogs\LoopbackNoticeDialog.xaml.cs">
+      <DependentUpon>LoopbackNoticeDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Debug\SpikePage.xaml.cs">
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
@@ -264,6 +267,9 @@
     <Compile Include="ViewModels\TerminalViewModel.cs" />
     <Compile Include="ViewModels\SftpViewModel.cs" />
     <Compile Include="ViewModels\SessionsPaneViewModel.cs" />
+    <Compile Include="ViewModels\TunnelItemViewModel.cs" />
+    <Compile Include="ViewModels\TunnelsViewModel.cs" />
+    <Compile Include="ViewModels\TunnelEditViewModel.cs" />
     <Compile Include="ViewModels\WorkspaceViewModel.cs" />
     <Compile Include="ViewModels\Snippets\SnippetGroupVm.cs" />
     <Compile Include="ViewModels\Snippets\SnippetsViewModel.cs" />
@@ -366,6 +372,9 @@
     <Compile Include="Controls\HostRow.xaml.cs">
       <DependentUpon>HostRow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\TunnelRow.xaml.cs">
+      <DependentUpon>TunnelRow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\SessionOverlay.xaml.cs">
       <DependentUpon>SessionOverlay.xaml</DependentUpon>
     </Compile>
@@ -398,6 +407,12 @@
     </Compile>
     <Compile Include="Views\Main\SessionsPivot.xaml.cs">
       <DependentUpon>SessionsPivot.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Main\TunnelsPivot.xaml.cs">
+      <DependentUpon>TunnelsPivot.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\TunnelEditPage.xaml.cs">
+      <DependentUpon>TunnelEditPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\SessionsPane.xaml.cs">
       <DependentUpon>SessionsPane.xaml</DependentUpon>
@@ -555,6 +570,14 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Views\Main\TunnelsPivot.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\TunnelEditPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Controls\SessionsPane.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -568,6 +591,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Controls\HostRow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Controls\TunnelRow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -700,6 +727,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Dialogs\AgentUnlockDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Dialogs\LoopbackNoticeDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

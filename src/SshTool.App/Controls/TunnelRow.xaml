@@ -1,0 +1,35 @@
+<UserControl
+    x:Class="SshTool.App.Controls.TunnelRow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Holding="OnHolding"
+    RightTapped="OnRightTapped">
+
+    <UserControl.Resources>
+        <MenuFlyout x:Name="RowMenu">
+            <MenuFlyoutItem x:Name="MenuToggleItem" x:Uid="TunnelRow_MenuToggle" Click="OnMenuToggleClick" />
+            <MenuFlyoutItem x:Uid="TunnelRow_MenuEdit" Click="OnMenuEditClick" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem x:Uid="TunnelRow_MenuDelete" Click="OnMenuDeleteClick"
+                            Style="{StaticResource DangerMenuItemStyle}" />
+        </MenuFlyout>
+    </UserControl.Resources>
+
+    <!-- F06：基于 AppListRow 构建的隧道行（02-UI §5.3；05-CODE-AUDIT §6.1）。
+         领先槽=StatusDot 状态点，主标题=隧道名称/默认路由，副标题=via 主机 · 状态 · 统计，
+         尾操作槽=ToggleSwitch 启停开关（relay 禁用）。行点击进入编辑页。 -->
+    <controls:AppListRow x:Name="RowCtl" Click="OnRowClick">
+        <controls:AppListRow.IconContent>
+            <controls:StatusDot x:Name="Dot" VerticalAlignment="Center" />
+        </controls:AppListRow.IconContent>
+        <controls:AppListRow.TrailingContent>
+            <ToggleSwitch x:Name="SwitchCtl"
+                          x:Uid="TunnelRow_Switch"
+                          MinWidth="{StaticResource TouchTargetMin}"
+                          VerticalAlignment="Center"
+                          Margin="{StaticResource GapSmLeft}"
+                          Toggled="OnSwitchToggled" />
+        </controls:AppListRow.TrailingContent>
+    </controls:AppListRow>
+</UserControl>

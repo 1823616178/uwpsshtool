@@ -831,4 +831,75 @@
   <data name="DeleteVault_PasswordLabel" xml:space="preserve"><value>Login password</value></data>
   <data name="DeleteVault_Submit" xml:space="preserve"><value>Delete cloud vault</value></data>
   <data name="DeleteVault_Failed" xml:space="preserve"><value>Could not delete vault, please try again</value></data>
+
+  <!-- F06：Tunnels & Port Forwarding (Tunnels) -->
+  <data name="Tunnels_Title.Text" xml:space="preserve"><value>Port Forwarding</value></data>
+  <data name="Tunnels_StopAllButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Stop All</value></data>
+  <data name="Tunnels_AddTunnelButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Add Tunnel</value></data>
+  <data name="Tunnels_EmptyState.Title" xml:space="preserve"><value>No Tunnels</value></data>
+  <data name="Tunnels_EmptyState.Description" xml:space="preserve"><value>Set up local, remote, or SOCKS5 forwarding rules in the background</value></data>
+  <data name="Tunnels_EmptyState.PrimaryText" xml:space="preserve"><value>Add Tunnel</value></data>
+  <data name="Tunnels_MenuStart" xml:space="preserve"><value>Start</value></data>
+  <data name="Tunnels_MenuStop" xml:space="preserve"><value>Stop</value></data>
+  <data name="Tunnels_DeleteConfirmTitle" xml:space="preserve"><value>Delete Tunnel</value></data>
+  <data name="Tunnels_DeleteConfirmMessage" xml:space="preserve"><value>Are you sure you want to delete tunnel "{0}"? This action cannot be undone.</value></data>
+  <data name="Tunnels_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Tunnels_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Tunnels_Continue" xml:space="preserve"><value>Continue</value></data>
+  <data name="Tunnels_LoopbackNoticeTitle" xml:space="preserve"><value>Loopback Isolation Notice</value></data>
+  <data name="Tunnels_LoopbackNoticeMessage" xml:space="preserve"><value>UWP applications have network isolation restrictions: other apps on this device may not be able to connect directly to forwarded ports on 127.0.0.1.</value></data>
+  <data name="Tunnels_DoNotRemind.Content" xml:space="preserve"><value>Do not ask again</value></data>
+
+  <!-- F06：Tunnel Row (TunnelRow) -->
+  <data name="TunnelRow_Switch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Toggle Tunnel</value></data>
+  <data name="TunnelRow_MenuToggle.Text" xml:space="preserve"><value>Toggle</value></data>
+  <data name="TunnelRow_MenuEdit.Text" xml:space="preserve"><value>Edit</value></data>
+  <data name="TunnelRow_MenuDelete.Text" xml:space="preserve"><value>Delete</value></data>
+
+  <!-- F06：Tunnel State and Titles (TunnelItem) -->
+  <data name="TunnelState_Running" xml:space="preserve"><value>Running</value></data>
+  <data name="TunnelState_Connecting" xml:space="preserve"><value>Connecting</value></data>
+  <data name="TunnelState_Reconnecting" xml:space="preserve"><value>Reconnecting</value></data>
+  <data name="TunnelState_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="TunnelState_Idle" xml:space="preserve"><value>Stopped</value></data>
+  <data name="TunnelState_DesktopOnly" xml:space="preserve"><value>Desktop only</value></data>
+  <data name="TunnelState_Connections" xml:space="preserve"><value>{0} conns</value></data>
+  <data name="Tunnel_Default_Local" xml:space="preserve"><value>Local</value></data>
+  <data name="Tunnel_Default_Remote" xml:space="preserve"><value>Remote</value></data>
+  <data name="Tunnel_Default_Dynamic" xml:space="preserve"><value>SOCKS5</value></data>
+  <data name="Tunnel_Default_Relay" xml:space="preserve"><value>Relay</value></data>
+  <data name="Tunnel_Default_Forward" xml:space="preserve"><value>Forward</value></data>
+
+  <!-- F06：Tunnel Edit Page (TunnelEditPage) -->
+  <data name="TunnelEdit_Title_New" xml:space="preserve"><value>New Tunnel</value></data>
+  <data name="TunnelEdit_Title_Edit" xml:space="preserve"><value>Edit Tunnel</value></data>
+  <data name="TunnelEdit_Section_Basic.Header" xml:space="preserve"><value>Basic Configuration</value></data>
+  <data name="TunnelEdit_NameBox.Header" xml:space="preserve"><value>Name</value></data>
+  <data name="TunnelEdit_TypeBox.Header" xml:space="preserve"><value>Tunnel Type</value></data>
+  <data name="TunnelEdit_ServerBox.Header" xml:space="preserve"><value>SSH Host *</value></data>
+  <data name="TunnelEdit_GroupBox.Header" xml:space="preserve"><value>Group</value></data>
+  <data name="TunnelEdit_NoGroup" xml:space="preserve"><value>No Group</value></data>
+  <data name="TunnelType_Local" xml:space="preserve"><value>Local Forward (Local)</value></data>
+  <data name="TunnelType_Remote" xml:space="preserve"><value>Remote Forward (Remote)</value></data>
+  <data name="TunnelType_Dynamic" xml:space="preserve"><value>Dynamic SOCKS5 (Dynamic)</value></data>
+  <data name="TunnelType_Relay" xml:space="preserve"><value>Relay Forward (Relay)</value></data>
+  <data name="TunnelEdit_Section_Route.Header" xml:space="preserve"><value>Route and Ports</value></data>
+  <data name="TunnelEdit_ListenHostBox.Header" xml:space="preserve"><value>Listen Host</value></data>
+  <data name="TunnelEdit_ListenPortBox.Header" xml:space="preserve"><value>Listen Port *</value></data>
+  <data name="TunnelEdit_DestHostBox.Header" xml:space="preserve"><value>Destination Host *</value></data>
+  <data name="TunnelEdit_DestPortBox.Header" xml:space="preserve"><value>Destination Port *</value></data>
+  <data name="TunnelEdit_DestServerBox.Header" xml:space="preserve"><value>Destination Server *</value></data>
+  <data name="TunnelEdit_RoutePreviewTitle.Text" xml:space="preserve"><value>Route Preview</value></data>
+  <data name="TunnelEdit_Section_Options.Header" xml:space="preserve"><value>Options</value></data>
+  <data name="TunnelEdit_AutoReconnectSwitch.Header" xml:space="preserve"><value>Auto Reconnect</value></data>
+  <data name="TunnelEdit_AutoStartSwitch.Header" xml:space="preserve"><value>Start with App</value></data>
+  <data name="TunnelEdit_EnabledSwitch.Header" xml:space="preserve"><value>Enabled</value></data>
+  <data name="TunnelEdit_LocalOnly.Text" xml:space="preserve"><value>(Local only)</value></data>
+  <data name="TunnelEdit_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="TunnelEdit_Delete" xml:space="preserve"><value>Delete Tunnel</value></data>
+  <data name="TunnelEdit_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="TunnelEdit_UnsavedChanges_Title" xml:space="preserve"><value>Discard Changes?</value></data>
+  <data name="TunnelEdit_UnsavedChanges_Message" xml:space="preserve"><value>Unsaved changes will be lost.</value></data>
+  <data name="TunnelEdit_Discard" xml:space="preserve"><value>Discard</value></data>
+  <data name="TunnelEdit_DeleteConfirmMessage" xml:space="preserve"><value>Are you sure you want to delete this tunnel? This action cannot be undone.</value></data>
 </root>

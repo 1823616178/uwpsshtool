@@ -373,6 +373,15 @@ namespace SshTool.App.Views
             ViewModel.AddTunnelCommand.Execute(null);
         }
 
+        private void OnTunnelItemClick(object sender, ItemClickEventArgs e)
+        {
+            var item = e.ClickedItem as IdNameOption;
+            if (item != null && !string.IsNullOrEmpty(item.Id))
+            {
+                Frame.Navigate(typeof(TunnelEditPage), TunnelEditArgs.Edit(item.Id));
+            }
+        }
+
         private async void OnAuthPasswordChecked(object sender, RoutedEventArgs e)
         {
             await SwitchAuthAsync(AuthType.Password);

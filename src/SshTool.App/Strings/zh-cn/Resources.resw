@@ -832,4 +832,75 @@
   <data name="DeleteVault_PasswordLabel" xml:space="preserve"><value>登录密码</value></data>
   <data name="DeleteVault_Submit" xml:space="preserve"><value>删除云端保险库</value></data>
   <data name="DeleteVault_Failed" xml:space="preserve"><value>删除保险库失败，请稍后重试</value></data>
+
+  <!-- F06：隧道与端口转发 (Tunnels) -->
+  <data name="Tunnels_Title.Text" xml:space="preserve"><value>端口转发</value></data>
+  <data name="Tunnels_StopAllButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>全部停止</value></data>
+  <data name="Tunnels_AddTunnelButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>添加隧道</value></data>
+  <data name="Tunnels_EmptyState.Title" xml:space="preserve"><value>暂无隧道</value></data>
+  <data name="Tunnels_EmptyState.Description" xml:space="preserve"><value>在手机后台建立本地、远程或 SOCKS5 转发规则</value></data>
+  <data name="Tunnels_EmptyState.PrimaryText" xml:space="preserve"><value>添加隧道</value></data>
+  <data name="Tunnels_MenuStart" xml:space="preserve"><value>启动</value></data>
+  <data name="Tunnels_MenuStop" xml:space="preserve"><value>停止</value></data>
+  <data name="Tunnels_DeleteConfirmTitle" xml:space="preserve"><value>删除隧道</value></data>
+  <data name="Tunnels_DeleteConfirmMessage" xml:space="preserve"><value>确定要删除隧道“{0}”吗？此操作无法撤销。</value></data>
+  <data name="Tunnels_Delete" xml:space="preserve"><value>删除</value></data>
+  <data name="Tunnels_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Tunnels_Continue" xml:space="preserve"><value>继续开启</value></data>
+  <data name="Tunnels_LoopbackNoticeTitle" xml:space="preserve"><value>回环隔离限制</value></data>
+  <data name="Tunnels_LoopbackNoticeMessage" xml:space="preserve"><value>UWP 应用具有网络隔离机制：本机其他应用可能无法直接访问 127.0.0.1 上的转发端口。</value></data>
+  <data name="Tunnels_DoNotRemind.Content" xml:space="preserve"><value>不再提示</value></data>
+
+  <!-- F06：隧道行 (TunnelRow) -->
+  <data name="TunnelRow_Switch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>启停隧道</value></data>
+  <data name="TunnelRow_MenuToggle.Text" xml:space="preserve"><value>启停</value></data>
+  <data name="TunnelRow_MenuEdit.Text" xml:space="preserve"><value>编辑</value></data>
+  <data name="TunnelRow_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
+
+  <!-- F06：隧道状态与标题 (TunnelItem) -->
+  <data name="TunnelState_Running" xml:space="preserve"><value>运行中</value></data>
+  <data name="TunnelState_Connecting" xml:space="preserve"><value>连接中</value></data>
+  <data name="TunnelState_Reconnecting" xml:space="preserve"><value>重连中</value></data>
+  <data name="TunnelState_Error" xml:space="preserve"><value>错误</value></data>
+  <data name="TunnelState_Idle" xml:space="preserve"><value>已停止</value></data>
+  <data name="TunnelState_DesktopOnly" xml:space="preserve"><value>仅桌面端运行</value></data>
+  <data name="TunnelState_Connections" xml:space="preserve"><value>{0} 连接</value></data>
+  <data name="Tunnel_Default_Local" xml:space="preserve"><value>本地</value></data>
+  <data name="Tunnel_Default_Remote" xml:space="preserve"><value>远程</value></data>
+  <data name="Tunnel_Default_Dynamic" xml:space="preserve"><value>SOCKS5</value></data>
+  <data name="Tunnel_Default_Relay" xml:space="preserve"><value>中转</value></data>
+  <data name="Tunnel_Default_Forward" xml:space="preserve"><value>转发</value></data>
+
+  <!-- F06：隧道编辑页 (TunnelEditPage) -->
+  <data name="TunnelEdit_Title_New" xml:space="preserve"><value>新建隧道</value></data>
+  <data name="TunnelEdit_Title_Edit" xml:space="preserve"><value>编辑隧道</value></data>
+  <data name="TunnelEdit_Section_Basic.Header" xml:space="preserve"><value>基础配置</value></data>
+  <data name="TunnelEdit_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="TunnelEdit_TypeBox.Header" xml:space="preserve"><value>转发类型</value></data>
+  <data name="TunnelEdit_ServerBox.Header" xml:space="preserve"><value>SSH 主机 *</value></data>
+  <data name="TunnelEdit_GroupBox.Header" xml:space="preserve"><value>分组</value></data>
+  <data name="TunnelEdit_NoGroup" xml:space="preserve"><value>未分组</value></data>
+  <data name="TunnelType_Local" xml:space="preserve"><value>本地转发 (Local)</value></data>
+  <data name="TunnelType_Remote" xml:space="preserve"><value>远程转发 (Remote)</value></data>
+  <data name="TunnelType_Dynamic" xml:space="preserve"><value>动态 SOCKS5 (Dynamic)</value></data>
+  <data name="TunnelType_Relay" xml:space="preserve"><value>中转转发 (Relay)</value></data>
+  <data name="TunnelEdit_Section_Route.Header" xml:space="preserve"><value>路由与端口</value></data>
+  <data name="TunnelEdit_ListenHostBox.Header" xml:space="preserve"><value>监听地址</value></data>
+  <data name="TunnelEdit_ListenPortBox.Header" xml:space="preserve"><value>监听端口 *</value></data>
+  <data name="TunnelEdit_DestHostBox.Header" xml:space="preserve"><value>目标主机 *</value></data>
+  <data name="TunnelEdit_DestPortBox.Header" xml:space="preserve"><value>目标端口 *</value></data>
+  <data name="TunnelEdit_DestServerBox.Header" xml:space="preserve"><value>目标服务器 *</value></data>
+  <data name="TunnelEdit_RoutePreviewTitle.Text" xml:space="preserve"><value>路径预览</value></data>
+  <data name="TunnelEdit_Section_Options.Header" xml:space="preserve"><value>运行选项</value></data>
+  <data name="TunnelEdit_AutoReconnectSwitch.Header" xml:space="preserve"><value>自动重连</value></data>
+  <data name="TunnelEdit_AutoStartSwitch.Header" xml:space="preserve"><value>随应用启动</value></data>
+  <data name="TunnelEdit_EnabledSwitch.Header" xml:space="preserve"><value>已启用</value></data>
+  <data name="TunnelEdit_LocalOnly.Text" xml:space="preserve"><value>（仅本机）</value></data>
+  <data name="TunnelEdit_Save" xml:space="preserve"><value>保存</value></data>
+  <data name="TunnelEdit_Delete" xml:space="preserve"><value>删除隧道</value></data>
+  <data name="TunnelEdit_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="TunnelEdit_UnsavedChanges_Title" xml:space="preserve"><value>放弃修改？</value></data>
+  <data name="TunnelEdit_UnsavedChanges_Message" xml:space="preserve"><value>未保存的修改将丢失。</value></data>
+  <data name="TunnelEdit_Discard" xml:space="preserve"><value>放弃</value></data>
+  <data name="TunnelEdit_DeleteConfirmMessage" xml:space="preserve"><value>确定要删除该隧道吗？此操作无法撤销。</value></data>
 </root>

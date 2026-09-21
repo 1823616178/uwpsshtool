@@ -1,0 +1,12 @@
+<ContentDialog
+    x:Class="SshTool.App.Dialogs.LoopbackNoticeDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    MaxWidth="{StaticResource DialogMaxWidth}">
+
+    <!-- F06：回环隔离提示对话框（02-UI §5.3）。UWP 应用网络隔离限制说明。 -->
+    <StackPanel>
+        <TextBlock x:Name="MessageText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+        <CheckBox x:Name="DoNotRemindCheck" x:Uid="Tunnels_DoNotRemind" Margin="{StaticResource GapSmTop}" />
+    </StackPanel>
+</ContentDialog>

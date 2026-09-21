@@ -1,0 +1,122 @@
+<Page
+    x:Class="SshTool.App.Views.TunnelEditPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- F06：隧道编辑/新建页（02-UI §5.18；05-CODE-AUDIT §6.4）。
+         采用 AppPageHeader + 三 Section 结构 + 底部固定 BottomActionBar。 -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:AppPageHeader x:Name="PageHeader"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnBackRequested" />
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}">
+                <!-- ========== 基础配置 ========== -->
+                <controls:FormSection x:Uid="TunnelEdit_Section_Basic">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBox x:Name="NameBox" x:Uid="TunnelEdit_NameBox" TextChanged="OnNameChanged" />
+                            <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+
+                            <ComboBox x:Name="TypeBox" x:Uid="TunnelEdit_TypeBox" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
+                                      SelectionChanged="OnTypeChanged" />
+
+                            <ComboBox x:Name="ServerBox" x:Uid="TunnelEdit_ServerBox" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
+                                      SelectionChanged="OnServerChanged" />
+                            <TextBlock x:Name="ServerError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+
+                            <ComboBox x:Name="GroupBox" x:Uid="TunnelEdit_GroupBox" HorizontalAlignment="Stretch"
+                                      DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
+                                      SelectionChanged="OnGroupChanged" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- ========== 路由与端口 ========== -->
+                <controls:FormSection x:Uid="TunnelEdit_Section_Route" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBox x:Name="ListenHostBox" x:Uid="TunnelEdit_ListenHostBox" TextChanged="OnListenHostChanged" />
+                            <TextBlock x:Name="ListenHostError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+
+                            <TextBox x:Name="ListenPortBox" x:Uid="TunnelEdit_ListenPortBox" InputScope="Number"
+                                     Margin="{StaticResource GapSmTop}" TextChanged="OnListenPortChanged" />
+                            <TextBlock x:Name="ListenPortError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+
+                            <!-- 目标地址与端口（动态 SOCKS5 时隐藏） -->
+                            <StackPanel x:Name="DestPanel">
+                                <TextBox x:Name="DestHostBox" x:Uid="TunnelEdit_DestHostBox"
+                                         Margin="{StaticResource GapSmTop}" TextChanged="OnDestHostChanged" />
+                                <TextBlock x:Name="DestHostError" Style="{StaticResource CaptionTextStyle}"
+                                           Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+
+                                <TextBox x:Name="DestPortBox" x:Uid="TunnelEdit_DestPortBox" InputScope="Number"
+                                         Margin="{StaticResource GapSmTop}" TextChanged="OnDestPortChanged" />
+                                <TextBlock x:Name="DestPortError" Style="{StaticResource CaptionTextStyle}"
+                                           Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                            </StackPanel>
+
+                            <!-- 目标服务器（仅 Relay 中转时显示） -->
+                            <StackPanel x:Name="RelayPanel" Visibility="Collapsed">
+                                <ComboBox x:Name="DestServerBox" x:Uid="TunnelEdit_DestServerBox" HorizontalAlignment="Stretch"
+                                          DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
+                                          SelectionChanged="OnDestServerChanged" />
+                                <TextBlock x:Name="DestServerError" Style="{StaticResource CaptionTextStyle}"
+                                           Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                            </StackPanel>
+
+                            <!-- 路径图示卡片 -->
+                            <controls:SurfaceCard Margin="{StaticResource GapSmTop}">
+                                <StackPanel Padding="{StaticResource PadMd}">
+                                    <TextBlock x:Uid="TunnelEdit_RoutePreviewTitle"
+                                               Style="{StaticResource CaptionTextStyle}"
+                                               Foreground="{ThemeResource AppTextDimBrush}" />
+                                    <TextBlock x:Name="RoutePreviewText"
+                                               Style="{StaticResource BodyTextStyle}"
+                                               TextWrapping="Wrap"
+                                               Margin="{StaticResource GapXsTop}"
+                                               FontFamily="{StaticResource AppMonoFontFamily}" />
+                                </StackPanel>
+                            </controls:SurfaceCard>
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- ========== 运行选项 ========== -->
+                <controls:FormSection x:Uid="TunnelEdit_Section_Options" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <ToggleSwitch x:Name="AutoReconnectSwitch" x:Uid="TunnelEdit_AutoReconnectSwitch"
+                                          Toggled="OnAutoReconnectToggled" />
+                            <ToggleSwitch x:Name="AutoStartSwitch" x:Uid="TunnelEdit_AutoStartSwitch"
+                                          Toggled="OnAutoStartToggled" />
+                            <TextBlock x:Uid="TunnelEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppTextFaintBrush}" />
+                            <ToggleSwitch x:Name="EnabledSwitch" x:Uid="TunnelEdit_EnabledSwitch"
+                                          Margin="{StaticResource GapSmTop}" Toggled="OnEnabledToggled" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 底部固定操作条：主操作=保存，溢出=删除 -->
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"
+                                  PrimaryClick="OnSaveClick" />
+    </Grid>
+</Page>
