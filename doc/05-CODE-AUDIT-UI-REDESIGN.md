@@ -64,8 +64,9 @@
 > - **C-02 已实现，形式不同**：落地的是 `Common/NavigationLifetime.cs` 的整型世代号，
 >   不是本文建议的 `CancellationTokenSource`；以世代号为准，不要再引入第二套。覆盖率 9/28，见任务 O04。
 > - **C-05 基础设施已建**：`Core/Common/TaskExtensions.Forget` 与 `Mvvm/AsyncCommand` 可用，缺的是调用点迁移（任务 O05）。
-> - **C-07 完成一半**：`Views/SettingsPage.xaml.cs` 的 150 ms 去抖已实现；
->   缺 `Storage/SettingsRepository.cs:63-76` 的相等值短路（任务 O02）。
+> - **C-07 已闭环**（O02，2026-09-22）：`Views/SettingsPage.xaml.cs` 的 150 ms 去抖 +
+>   `Storage/SettingsRepository.Set` 的相等值短路都已落地。短路比较的是存储原始值且要求其合法，
+>   因此「写默认值修复非法存储值」的行为得以保留。
 > - 新增的 native / 同步 / 渲染层优化项见 `06-OPT-AUDIT.md`，任务编排见 `04-TASKS.md §11 M9`。
 
 ### C-01 · P0 · 终端页事件订阅未释放

@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 14 | 1 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **126** | **108** | |
+| M9 | 优化与债务清理 | 14 | 2 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **126** | **109** | |
 
 ### 1.1 关键路径
 
@@ -1291,17 +1291,21 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 PerfPage「Q02 连接/断开 ×100」与长稳复测，内存 Δ 与 `sessions/threads/sockets/screens` 回填 `doc/PERF-REPORT.md §5.1`
   - 验证：`pwsh scripts/verify.ps1`；真机 Q02
 
-- [ ] **O02 `SettingsRepository.Set` 相等值短路** `S`
+- [x] **O02 `SettingsRepository.Set` 相等值短路** `S`
   - 依赖：—
   - 参考：`06-OPT-AUDIT.md §3 P0-3`；`05-CODE-AUDIT-UI-REDESIGN.md §C-07`
   - 产出：`src/SshTool.Core/Storage/SettingsRepository.cs`、`tests/SshTool.Core.Tests/Storage/SettingsRepositoryTests.cs`
   - 要点：
     1. `Set` 校验通过后先经 `Read(def)` 取当前有效值，`Equals(current, value)` 则直接返回：不写 `_store`、不触发 `Changed`。
+       **实做与本条有一处偏差**：比较对象取**存储里的原始值**而非 `Read()` 的有效值，且要求它本身合法——
+       存了非法值时 `Read` 会回退到默认值但不覆写存储，若拿有效值比较，`Set(key, 默认值)` 会被误判同值而跳过，
+       非法值就永远留在存储里。判据改为「存的值合法且相等才跳过」，顺带保留了改动前「写默认值能修复非法值」的行为。
     2. 注意「未写过的键」的当前有效值是 `def.DefaultValue`——首次显式写入默认值时应保持不写不广播（与读回结果一致），并在注释中写明该语义。
     3. 页面侧 150 ms 去抖（`Views/SettingsPage.xaml.cs:35,54,73,279`）已实现，本任务不动。
   - 验收：
-    - [ ] 新增单测：同值 `Set` 不写 store、不触发 `Changed`；异值 `Set` 行为不变；首次写入等于默认值的行为有断言固定
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] 新增单测 9 条（`CountingSettingsStore` 记账）：同值不写不广播、Slider 拖动形状只写真实变化、异值照常写并广播、
+      首次写入等于默认值被跳过、非法值/类型不符时写默认值仍落盘修复、键缺失时照常写、字符串按值比较、非法值仍抛
+    - [x] `pwsh scripts/verify.ps1` 全绿（Core 1438、7 步全通过）
   - 验证：`dotnet test tests/SshTool.Core.Tests`
 
 - [ ] **O03 页面级订阅收口（内存泄漏）** `M`

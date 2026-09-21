@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 
 namespace SshTool.Core.Storage
 {
@@ -60,12 +60,29 @@ namespace SshTool.Core.Storage
             return (bool)Read(RequireType(key, SettingType.Bool));
         }
 
+        // O02：同值写入直接返回——不落盘、不广播。Slider 拖动一次会发上百个
+        // ValueChanged，每个都写 LocalSettings 并扇出到外观重算/同步脏标记，
+        // 在 ARM32 上是可感知的卡顿（05-CODE-AUDIT §C-07）。
+        //
+        // 短路的判定对象是**存储里的原始值**，不是 Read() 的有效值：存的是非法值
+        // 时（旧版本遗留、外部写坏）Read 会回退到默认值但不覆写存储，此时若拿
+        // 有效值比较，`Set(key, 默认值)` 会被误判为同值而跳过，非法值就永远留在
+        // 存储里。所以只有「存的值合法且相等」才跳过，否则照常写入——顺带把非法
+        // 值修回来，与改动前的行为一致。
+        //
+        // 构造函数的 EnsureDefaults 已为缺失键写入默认值，因此正常路径上
+        // TryGet 必然命中；未命中（键被外部删除）时照常写入。
         public void Set(string key, object value)
         {
             var def = SettingDefinitions.Require(key);
             if (!def.IsValidValue(value))
             {
                 throw new ArgumentException("设置值非法: " + key, nameof(value));
+            }
+            object current;
+            if (_store.TryGet(key, out current) && def.IsValidValue(current) && Equals(current, value))
+            {
+                return;
             }
             _store.Set(key, value);
             var handler = Changed;
