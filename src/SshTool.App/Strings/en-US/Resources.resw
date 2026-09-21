@@ -189,6 +189,8 @@
   <data name="Sftp_ErrSessionGone" xml:space="preserve"><value>The session has ended. Reopen SFTP from the host list.</value></data>
   <data name="Sftp_ErrNotConnected" xml:space="preserve"><value>Session not connected. SFTP needs an online session.</value></data>
   <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>Transfer failed (error code {0})</value></data>
+  <!-- §6.5: File row trailing "More" button accessibility name (provided by SftpRowVm.MoreButtonName). -->
+  <data name="Sftp_RowMoreButton_A11yName" xml:space="preserve"><value>More options</value></data>
   <data name="Terminal_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>More</value></data>
   <!-- V03a (C-06): Terminal menu item text (assembled in code, resw bilingual). -->
   <data name="Terminal_MenuSessions" xml:space="preserve"><value>Sessions</value></data>

@@ -17,37 +17,26 @@
         <local:BoolToVisibilityConverter x:Key="BoolToVisibility" />
         <local:HasPercentToVisibilityConverter x:Key="PercentToVisibility" />
 
-        <!-- 文件行：图标 / 名称（+链接目标）/ 大小 / 修改时间 -->
+        <!-- §6.5：文件行用 AppListRow 重做——类型图标 / 名称 / 大小·时间（副标题）/ 更多操作（尾槽）。
+             行点按由 ListView.ItemClick 处理；长按/右键保留行菜单；尾槽按钮触发更多 flyout。
+             IsCompact 走 ListRowCompactHeight（48），与旧模板一致。 -->
         <DataTemplate x:Key="EntryRowTemplate">
-            <Grid MinHeight="{StaticResource ListRowCompactHeight}"
-                  Padding="{StaticResource PagePadding}"
-                  Background="Transparent"
-                  RightTapped="OnRowRightTapped"
-                  Holding="OnRowHolding">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <FontIcon Glyph="{Binding Glyph}"
-                          FontSize="{StaticResource FontBody}"
-                          Foreground="{ThemeResource AppAccentBrush}"
-                          VerticalAlignment="Center" />
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}">
-                    <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}"
-                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{Binding LinkText}" Style="{StaticResource CaptionTextStyle}"
-                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                               Visibility="{Binding LinkText, Converter={StaticResource NonEmptyToVisibility}}" />
-                </StackPanel>
-                <TextBlock Grid.Column="2" Text="{Binding SizeText}"
-                           Style="{StaticResource MonoCaptionTextStyle}"
-                           VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
-                <TextBlock Grid.Column="3" Text="{Binding MtimeText}"
-                           Style="{StaticResource CaptionTextStyle}"
-                           VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
-            </Grid>
+            <controls:AppListRow IconGlyph="{Binding Glyph}"
+                                 Title="{Binding Name}"
+                                 Subtitle="{Binding SubtitleText}"
+                                 IsCompact="True"
+                                 RightTapped="OnRowRightTapped"
+                                 Holding="OnRowHolding">
+                <controls:AppListRow.TrailingContent>
+                    <Button Style="{StaticResource IconButtonStyle}"
+                            MinWidth="{StaticResource TouchTargetMin}"
+                            MinHeight="{StaticResource TouchTargetMin}"
+                            AutomationProperties.Name="{Binding MoreButtonName}"
+                            Click="OnRowMoreClick">
+                        <FontIcon Glyph="{StaticResource IconMore}" FontSize="{StaticResource FontBody}" />
+                    </Button>
+                </controls:AppListRow.TrailingContent>
+            </controls:AppListRow>
         </DataTemplate>
 
         <!-- 传输行：方向图标 / 名称 / 状态 / 进度条 / 速率 / [取消][重试] -->

@@ -189,6 +189,8 @@
   <data name="Sftp_ErrSessionGone" xml:space="preserve"><value>会话已结束，请从主机列表重新打开 SFTP</value></data>
   <data name="Sftp_ErrNotConnected" xml:space="preserve"><value>会话未连接，SFTP 需要在线会话</value></data>
   <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>传输失败（错误码 {0}）</value></data>
+  <!-- §6.5：文件行尾槽「更多」按钮无障碍名（x:Uid 不适用于 DataTemplate 实例，由 SftpRowVm.MoreButtonName 提供）。 -->
+  <data name="Sftp_RowMoreButton_A11yName" xml:space="preserve"><value>更多操作</value></data>
   <data name="Terminal_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多</value></data>
   <!-- V03a（C-06）：终端菜单项文案（代码构造，走 resw 双语）。 -->
   <data name="Terminal_MenuSessions" xml:space="preserve"><value>会话</value></data>

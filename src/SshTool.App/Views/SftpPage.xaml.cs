@@ -60,7 +60,7 @@ namespace SshTool.App.Views
             }
             catch (Exception ex)
             {
-                AppLog.Error("Sftp", "SFTP 页加载失败", ex);
+                AppLog.Error("Sftp.Page", "load failed", ex);
             }
         }
 
@@ -232,7 +232,7 @@ namespace SshTool.App.Views
             }
         }
 
-        // ---- 行菜单（长按 / 右键；§5.17：下载、重命名、权限、删除、复制路径） ----
+        // ---- 行菜单（长按 / 右键 / 尾槽更多按钮；§5.17 + §6.5） ----
 
         private void OnRowRightTapped(object sender, RightTappedRoutedEventArgs e)
         {
@@ -245,6 +245,17 @@ namespace SshTool.App.Views
             if (e.HoldingState == HoldingState.Started)
             {
                 ShowRowMenu(sender as FrameworkElement, null);
+            }
+            e.Handled = true;
+        }
+
+        // §6.5：尾槽「更多」按钮——与长按/右键共享同一条行菜单。
+        private void OnRowMoreClick(object sender, RoutedEventArgs e)
+        {
+            var anchor = sender as FrameworkElement;
+            if (anchor != null)
+            {
+                ShowRowMenu(anchor, null);
             }
             e.Handled = true;
         }

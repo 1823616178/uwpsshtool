@@ -35,6 +35,8 @@ namespace SshTool.App.ViewModels
     // 故为 INPC：只推变化的展示字段，避免整表重建的闪动。
     public sealed class SftpRowVm : ObservableObject
     {
+        private static readonly ResourceLoader RowLoader = ResourceLoader.GetForCurrentView();
+
         private RemoteEntry _entry;
         private string _name;
         private string _sizeText;
@@ -91,6 +93,34 @@ namespace SshTool.App.ViewModels
             get { return Entry != null && Entry.IsDirectory && !Entry.IsSymlink; }
         }
 
+        // §6.5：AppListRow 副标题。符号链接显示目标路径；普通条目显示「大小 · 修改时间」。
+        public string SubtitleText
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(_linkText))
+                {
+                    return _linkText;
+                }
+                var parts = new List<string>(2);
+                if (!string.IsNullOrEmpty(_sizeText))
+                {
+                    parts.Add(_sizeText);
+                }
+                if (!string.IsNullOrEmpty(_mtimeText))
+                {
+                    parts.Add(_mtimeText);
+                }
+                return string.Join(" · ", parts);
+            }
+        }
+
+        // §6.5：行尾「更多」按钮的无障碍名（x:Uid 不适用于模板实例，故由行提供）。
+        public string MoreButtonName
+        {
+            get { return RowLoader.GetString("Sftp_RowMoreButton_A11yName"); }
+        }
+
         // 复用行对象刷新：字段值不变就不发通知（SetProperty 内部比对）。
         public void Update(RemoteEntry entry, string sizeText, string mtimeText, string linkText)
         {
@@ -105,6 +135,7 @@ namespace SshTool.App.ViewModels
             SetProperty(ref _sizeText, sizeText);
             SetProperty(ref _mtimeText, mtimeText);
             SetProperty(ref _linkText, linkText);
+            RaisePropertyChanged("SubtitleText");
         }
     }
 
@@ -301,21 +332,26 @@ namespace SshTool.App.ViewModels
             _transferRows = new ObservableCollection<TransferRowVm>();
             _transferById = new Dictionary<string, TransferRowVm>(StringComparer.Ordinal);
 
-            RefreshCommand = new RelayCommand(() => { var ignore = RefreshAsync(); });
+            // R03 (C-05)：无参命令改 AsyncCommand——执行中 CanExecute=false 防重入，异常走 onError 记日志。
+            RefreshCommand = new AsyncCommand(() => RefreshAsync(),
+                onError: ex => AppLog.Error("Sftp.Refresh", "refresh", ex));
             UpCommand = new RelayCommand(GoUp, () => !IsBusy && _currentPath != RemotePath.Root);
             NavigateCommand = new RelayCommand<SftpBreadcrumb>(NavigateBreadcrumb);
             EnterRowCommand = new RelayCommand<SftpRowVm>(EnterRow);
+            // 行命令带参数（AsyncCommand 无泛型版），改用 .Forget(context, logger) 统一观察异常。
             DownloadRowCommand = new RelayCommand<SftpRowVm>(
-                row => { var ignore = DownloadRow(row); });
+                row => DownloadRow(row).Forget("Sftp.Download", AppLog.Logger));
             RenameRowCommand = new RelayCommand<SftpRowVm>(
-                row => { var ignore = RenameRow(row); });
+                row => RenameRow(row).Forget("Sftp.Rename", AppLog.Logger));
             PermissionsRowCommand = new RelayCommand<SftpRowVm>(
-                row => { var ignore = PermissionsRow(row); });
+                row => PermissionsRow(row).Forget("Sftp.Permissions", AppLog.Logger));
             DeleteRowCommand = new RelayCommand<SftpRowVm>(
-                row => { var ignore = DeleteRow(row); });
+                row => DeleteRow(row).Forget("Sftp.Delete", AppLog.Logger));
             CopyPathCommand = new RelayCommand<SftpRowVm>(CopyPath);
-            UploadCommand = new RelayCommand(() => { var ignore = UploadAsync(); });
-            NewFolderCommand = new RelayCommand(() => { var ignore = NewFolderAsync(); });
+            UploadCommand = new AsyncCommand(() => UploadAsync(),
+                onError: ex => AppLog.Error("Sftp.Upload", "upload", ex));
+            NewFolderCommand = new AsyncCommand(() => NewFolderAsync(),
+                onError: ex => AppLog.Error("Sftp.NewFolder", "create folder", ex));
             SetSortCommand = new RelayCommand<SftpSortMode>(SetSort);
             ToggleHiddenCommand = new RelayCommand(ToggleHidden);
             ToggleTransfersCommand = new RelayCommand(() => TransfersExpanded = !TransfersExpanded);
@@ -532,7 +568,7 @@ namespace SshTool.App.ViewModels
                 }
                 _queue = new TransferQueue();
                 _queue.ItemChanged += OnQueueItemChanged;
-                var ignore = RefreshAsync();
+                RefreshAsync().Forget("Sftp.Refresh", AppLog.Logger);
             }
             finally
             {
@@ -591,7 +627,7 @@ namespace SshTool.App.ViewModels
             if (info.State == SessionUiState.Connected && info.NativeSession != null
                 && !ReferenceEquals(info.NativeSession, _clientNative))
             {
-                var ignore = ReconnectClientAsync();
+                ReconnectClientAsync().Forget("Sftp.Reconnect", AppLog.Logger);
             }
             else if (info.State == SessionUiState.Error || info.State == SessionUiState.Disconnected
                 || info.State == SessionUiState.Reconnecting)
@@ -613,7 +649,7 @@ namespace SshTool.App.ViewModels
                 if (await ConnectClientAsync().ConfigureAwait(true))
                 {
                     HasError = false;
-                    var ignore = RefreshAsync();
+                    RefreshAsync().Forget("Sftp.Refresh", AppLog.Logger);
                 }
             }
             finally
@@ -859,7 +895,7 @@ namespace SshTool.App.ViewModels
             }
             _currentPath = normalized;
             RaisePropertyChanged("CurrentPath");
-            var ignore = RefreshAsync();
+            RefreshAsync().Forget("Sftp.Refresh", AppLog.Logger);
         }
 
         private void NavigateBreadcrumb(SftpBreadcrumb item)
@@ -915,7 +951,7 @@ namespace SshTool.App.ViewModels
                     return;
                 }
                 Notify(Loader.GetString("Sftp_FolderCreated"));
-                var ignore = RefreshAsync();
+                RefreshAsync().Forget("Sftp.Refresh", AppLog.Logger);
             }
             finally
             {
@@ -948,7 +984,7 @@ namespace SshTool.App.ViewModels
                     return;
                 }
                 Notify(Loader.GetString("Sftp_Renamed"));
-                var ignore = RefreshAsync();
+                RefreshAsync().Forget("Sftp.Refresh", AppLog.Logger);
             }
             finally
             {
@@ -982,7 +1018,7 @@ namespace SshTool.App.ViewModels
                     return;
                 }
                 Notify(Loader.GetString("Sftp_PermissionsChanged"));
-                var ignore = RefreshAsync();
+                RefreshAsync().Forget("Sftp.Refresh", AppLog.Logger);
             }
             finally
             {
@@ -1026,7 +1062,7 @@ namespace SshTool.App.ViewModels
                     return;
                 }
                 Notify(Loader.GetString("Sftp_Deleted"));
-                var ignore = RefreshAsync();
+                RefreshAsync().Forget("Sftp.Refresh", AppLog.Logger);
             }
             finally
             {
@@ -1274,7 +1310,7 @@ namespace SshTool.App.ViewModels
                 && RemotePath.GetDirectoryName(item.RemotePath) == _currentPath)
             {
                 // 新文件落在当前目录：刷新可见。
-                var ignore = RefreshAsync();
+                RefreshAsync().Forget("Sftp.Refresh", AppLog.Logger);
             }
         }
 
