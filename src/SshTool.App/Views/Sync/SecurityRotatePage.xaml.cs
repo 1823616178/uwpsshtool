@@ -3,6 +3,7 @@ using System.ComponentModel;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Sync;
+using SshTool.Core.Common;
 using SshTool.Core.Sync;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -14,6 +15,11 @@ namespace SshTool.App.Views.Sync
     // 共用页（SecurityRotateMode）：账号登录密码 + 新同步密码 ×2 → 轮换；成功弹 RecoveryKeyDialog。
     public sealed partial class SecurityRotatePage : Page
     {
+        // O04（C-02）：导航世代。恢复密钥对话框可能开着很久，
+        // 期间用户返回时不得再导航或刷新本页。
+        private readonly SshTool.Core.Common.NavigationLifetime _lifetime =
+            new SshTool.Core.Common.NavigationLifetime();
+
         public SecurityRotatePage()
         {
             this.InitializeComponent();
@@ -24,6 +30,7 @@ namespace SshTool.App.Views.Sync
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            _lifetime.Begin();
             SecurityRotateMode mode = SecurityRotateMode.DisableSensitiveSync;
             if (e.Parameter is SecurityRotateMode)
             {
@@ -43,6 +50,7 @@ namespace SshTool.App.Views.Sync
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            _lifetime.End(); // O04：恢复密钥流程若仍在飞行，之后不再碰本页
             if (ViewModel != null)
             {
                 ViewModel.SubmitCommand.CanExecuteChanged -= OnCanExecuteChanged;
@@ -85,13 +93,31 @@ namespace SshTool.App.Views.Sync
 
         private void OnRotationCompleted(object sender, string recoveryKey)
         {
-            var ignore = ShowRecoveryKeyAsync(recoveryKey);
+            ShowRecoveryKeyAsync(recoveryKey).Forget("SecurityRotatePage.ShowRecoveryKey", AppLog.Logger);
         }
 
+        // O04 修正：原实现写的是 `var ignored = RecoveryKeyDialog.ShowAsync(...)`
+        // ——任务被丢弃，于是 GoBack() 在对话框刚弹出时就执行了，用户根本没机会
+        // 看到、更没机会保存轮换后的新恢复密钥（注释写的「勾选『已保存』后返回」
+        // 从未成立）。恢复密钥丢失不可找回，这里改为与 VaultSetupPage 同一套：
+        // 等到用户勾选确认为止，未确认就带警告重弹。
         private async System.Threading.Tasks.Task ShowRecoveryKeyAsync(string recoveryKey)
         {
-            // RecoveryKeyDialog 静态工厂；勾选「已保存」后返回。
-            var ignored = RecoveryKeyDialog.ShowAsync(recoveryKey);
+            int generation = _lifetime.Current;
+            bool warned = false;
+            while (true)
+            {
+                RecoveryDialogResult result = await RecoveryKeyDialog.ShowAsync(recoveryKey, warned);
+                if (result.SavedConfirmed)
+                {
+                    break;
+                }
+                warned = true;
+            }
+            if (!_lifetime.IsCurrent(generation))
+            {
+                return; // 已离开本页：GoBack 属于旧页面
+            }
             // 完成后回状态页（路由到 AccountSyncPage）。
             if (Frame != null && Frame.CanGoBack)
             {

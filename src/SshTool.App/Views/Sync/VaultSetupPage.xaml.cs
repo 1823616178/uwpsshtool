@@ -16,6 +16,11 @@ namespace SshTool.App.Views.Sync
     // 重弹并警告）→ FinishSetupAsync 自动首次同步 → GoAfterAuth 去状态页（U17 后为 AccountSyncPage）。
     public sealed partial class VaultSetupPage : Page
     {
+        // O04（C-02）：导航世代。恢复密钥对话框可能开着很久，
+        // 期间用户返回时不得再导航或刷新本页。
+        private readonly SshTool.Core.Common.NavigationLifetime _lifetime =
+            new SshTool.Core.Common.NavigationLifetime();
+
         public VaultSetupPage()
         {
             ViewModel = CreateViewModel();
@@ -30,6 +35,7 @@ namespace SshTool.App.Views.Sync
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            _lifetime.Begin();
             ViewModel.SetupCompleted += OnSetupCompleted;
             // 保险库已就绪（本页已无意义，如从旧入口重复进入）：直接去状态路由。
             if (VaultIsReady())
@@ -40,6 +46,7 @@ namespace SshTool.App.Views.Sync
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
+            _lifetime.End(); // O04：恢复密钥流程若仍在飞行，之后不再碰本页
             ViewModel.SetupCompleted -= OnSetupCompleted;
             ViewModel.Detach(); // O03：VM 挂在应用级 SyncCoordinator 上
             base.OnNavigatedFrom(e);
@@ -118,6 +125,7 @@ namespace SshTool.App.Views.Sync
         // 保险库已创建，恢复密钥丢失将无法找回，必须等到勾选确认。
         private async void OnSetupCompleted(object sender, string recoveryKey)
         {
+            int generation = _lifetime.Current;
             bool warned = false;
             try
             {
@@ -131,6 +139,10 @@ namespace SshTool.App.Views.Sync
                     warned = true;
                 }
                 await ViewModel.FinishSetupAsync();
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return; // O04：用户已离开，导航与刷新都属于旧页面
+                }
                 SyncNavigation.GoAfterAuth(Frame, 2);
             }
             catch (Exception)
@@ -139,7 +151,10 @@ namespace SshTool.App.Views.Sync
             }
             finally
             {
-                RefreshAll();
+                if (_lifetime.IsCurrent(generation))
+                {
+                    RefreshAll();
+                }
             }
         }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using SshTool.Core.Common;
 using Xunit;
@@ -133,6 +133,57 @@ namespace SshTool.Core.Tests.Common
             life.Track(null);
             // 静默忽略不抛；End 同样正常。
             life.End();
+        }
+
+        // ---------- O04：Current（事件处理器在 await 前取世代号） ----------
+
+        [Fact]
+        public void Current_BeforeFirstBegin_IsZero_AndNotCurrent()
+        {
+            var life = new NavigationLifetime();
+
+            Assert.Equal(0, life.Current);
+            Assert.False(life.IsCurrent(life.Current));
+        }
+
+        [Fact]
+        public void Current_MatchesBeginResult()
+        {
+            var life = new NavigationLifetime();
+
+            int gen = life.Begin();
+
+            Assert.Equal(gen, life.Current);
+            Assert.True(life.IsCurrent(life.Current));
+        }
+
+        // 事件处理器的真实用法：await 前取号，await 后判活。
+        [Fact]
+        public void Current_CapturedBeforeEnd_IsStaleAfterEnd()
+        {
+            var life = new NavigationLifetime();
+            life.Begin();
+            int captured = life.Current;
+
+            life.End();
+
+            Assert.False(life.IsCurrent(captured));
+            Assert.Equal(0, life.Current);
+        }
+
+        // 离开又回来（新世代）：旧号作废，新号有效。
+        [Fact]
+        public void Current_CapturedBeforeRenavigate_IsStale()
+        {
+            var life = new NavigationLifetime();
+            life.Begin();
+            int captured = life.Current;
+
+            life.End();
+            life.Begin();
+
+            Assert.False(life.IsCurrent(captured));
+            Assert.True(life.IsCurrent(life.Current));
         }
     }
 }

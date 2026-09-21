@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using SshTool.App.ViewModels;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.ApplicationModel.Resources;
@@ -29,6 +30,11 @@ namespace SshTool.App.Views
         private const string ReswAgentTimeoutDesc = "Settings_AgentTimeout_Description";
 
         private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
+
+        // O04（C-02）：导航世代。本页的 await 之后都要回头写 XAML
+        // （外观名、Toast），用户在等待期间返回就会操作已弃用的页面。
+        private readonly SshTool.Core.Common.NavigationLifetime _lifetime =
+            new SshTool.Core.Common.NavigationLifetime();
 
         // C-07：Slider 不在拖动中连续持久化。统一 debounce 定时器（150 ms）；
         // 指针拖动由 ManipulationCompleted 立刻提交；键盘/点击由定时器到期提交。
@@ -62,15 +68,18 @@ namespace SshTool.App.Views
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            int generation = _lifetime.Begin();
             ViewModel.RefreshDiagnostics();
             BindAll();
-            RefreshAppearanceName();
+            RefreshAppearanceNameAsync(generation).Forget("SettingsPage.RefreshAppearanceName", AppLog.Logger);
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             // 离开页前提交任何 pending 值，防丢失。
             CommitPendingSlider();
+            // O04：世代作废，进行中的加载不再回写本页 XAML。
+            _lifetime.End();
             // O03：SettingsRepository 是应用级单例，本页 VM 随页面重建。
             ViewModel.Detach();
             base.OnNavigatedFrom(e);
@@ -481,7 +490,9 @@ namespace SshTool.App.Views
 
         // A03：默认外观显示名称（解析失败兜底「系统默认」，不显示内部 id）；
         // 从外观列表返回时刷新。
-        private async void RefreshAppearanceName()
+        // O04：改 async Task + 世代守卫（原为 async void，await 之后无条件写
+        // AppearanceValue.Text）。调用方用 Forget 观察异常。
+        private async System.Threading.Tasks.Task RefreshAppearanceNameAsync(int generation)
         {
             string id = ViewModel.DefaultAppearanceId;
             string resolved = Load(AppearanceFallbackResw);
@@ -505,6 +516,10 @@ namespace SshTool.App.Views
                 {
                     resolved = Load(AppearanceFallbackResw);
                 }
+            }
+            if (!_lifetime.IsCurrent(generation))
+            {
+                return; // 已离开本页：不碰旧页面的 XAML
             }
             _appearanceName = resolved;
             if (AppearanceValue != null)
@@ -582,12 +597,18 @@ namespace SshTool.App.Views
 
         private async void OnExportLogsClick(object sender, RoutedEventArgs e)
         {
+            int generation = _lifetime.Current;
             string result = await ViewModel.ExportLogsAsync();
+            if (!_lifetime.IsCurrent(generation))
+            {
+                return; // 导出期间用户返回了：Toast 属于旧页面
+            }
             Toast.Show(result);
         }
 
         private async void OnClearLogsClick(object sender, RoutedEventArgs e)
         {
+            int generation = _lifetime.Current;
             var confirm = await Dialogs.ConfirmDialog.ShowAsync(
                 Load("Settings_About_ClearLogs"),
                 Load("Settings_Confirm_ClearLogs"),
@@ -598,6 +619,10 @@ namespace SshTool.App.Views
                 return;
             }
             string result = await ViewModel.ClearLogsAsync();
+            if (!_lifetime.IsCurrent(generation))
+            {
+                return;
+            }
             Toast.Show(result);
         }
 

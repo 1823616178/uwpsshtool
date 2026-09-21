@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -54,6 +54,14 @@ namespace SshTool.Core.Common
         public bool IsCurrent(int generation)
         {
             return !_ended && generation == _generation;
+        }
+
+        // O04：事件处理器（点击、完成回调）拿不到 OnNavigatedTo 里的局部世代号，
+        // 用这个在 await 之前取一份。世代之外返回 0——首次 Begin 就把世代推到 1，
+        // 所以 IsCurrent(0) 恒 false，End 之后捕获的值自然判定为失效。
+        public int Current
+        {
+            get { return _ended ? 0 : _generation; }
         }
 
         public CancellationToken Token

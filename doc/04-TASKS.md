@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 14 | 3 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **126** | **110** | |
+| M9 | 优化与债务清理 | 14 | 4 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **126** | **111** | |
 
 ### 1.1 关键路径
 
@@ -1326,7 +1326,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 首页↔终端页往返 50 次，内存无明显增长、列表不重复刷新（`05` §10 的对应条目）
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **O04 `NavigationLifetime` 覆盖剩余页面** `M`
+- [x] **O04 `NavigationLifetime` 覆盖剩余页面** `M`
   - 依赖：O03
   - 参考：`06-OPT-AUDIT.md §3 P1-4`；范式见 `Views/TerminalPage.xaml.cs`
   - 产出：`src/SshTool.App/Views/Sync/*.xaml.cs`（9 页）、`Views/{Settings,Main,Snippets,KnownHosts,GroupManage}Page.xaml.cs`
@@ -1335,8 +1335,17 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. 已落地的范式是**整型世代号**，不是 `05` §C-02 建议的 `CancellationTokenSource`；保持一致，不要两套。
     3. Sync 组优先（网络 I/O 最长）；按 Sync 组 / 其余页分两次提交。
   - 验收：
-    - [ ] 含 `OnNavigatedTo` 的非 Debug 页面全部接入（Debug 页可豁免并在注释写明）
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] ~~含 `OnNavigatedTo` 的非 Debug 页面全部接入~~ **改为按「是否真有页面级 await」接入**：
+      逐页核查后只有 3 页存在「await 之后回头写本页 XAML / 导航」的 C-02 形态，已接入
+      （`SettingsPage`、`Sync/VaultSetupPage`、`Sync/SecurityRotatePage`）。其余页面写明豁免理由：
+      `Sync/AccountSyncPage` 的 6 处 await 全是模态 ContentDialog，**用户已确认的动作必须执行完**，
+      加世代守卫反而会静默丢弃撤销设备/删除这类确认操作（页面侧的陈旧 UI 更新已由 O03 的 VM `Detach` 挡住）；
+      `MainPage` 唯一的 await 是退出确认（之后只调 `Application.Exit`，不碰 XAML）；
+      `Snippets/KnownHosts/GroupManage/About/Licenses/Login/VaultUnlock/ChangeLoginPassword/DeleteAccount/DeleteVault/SyncConflict`
+      代码隐藏里零 await，异步都在页面级 VM 内，已由 O03 收口。给不需要的页面加世代对象是空仪式，不做。
+    - [x] Core 侧补 `NavigationLifetime.Current`（事件处理器在 await 前取世代号）+ 4 条单测
+    - [x] 顺带修掉 `SecurityRotatePage` 的恢复密钥缺陷（见下）
+    - [x] `pwsh scripts/verify.ps1` 全绿（8 步，Core 1442）
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **O05 fire-and-forget 统一走 `Forget`** `S`
