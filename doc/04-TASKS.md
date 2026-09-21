@@ -42,11 +42,11 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 12 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 17 | 与桌面端同账号双向同步、冲突可解 |
+| M5 | 云端同步 | 22 | 21 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
-| M7 | 密钥、SFTP、转发、跳板 | 11 | 7 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
-| M8 | 打磨与发布 | 10 | 1 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **93** | |
+| M7 | 密钥、SFTP、转发、跳板 | 11 | 8 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
+| M8 | 打磨与发布 | 10 | 3 | 性能/安全报告、可侧载安装包 v1.0.0 |
+| **合计** | | **111** | **100** | |
 
 ### 1.1 关键路径
 
@@ -960,40 +960,40 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 真机创建或解锁成功
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **U17 同步状态页** `M`
+- [x] **U17 同步状态页** `M`
   - 依赖：U16
   - 参考：`02-UI-DESIGN.md §5.13` 状态 Pivot
   - 产出：`src/SshTool.App/Views/Sync/AccountSyncPage.xaml(.cs)`、`src/SshTool.App/ViewModels/Sync/AccountSyncViewModel.cs`、`src/SshTool.Core/Sync/SyncStatePresenter.cs`、测试
   - 要点：根据 AuthState / vault / phase 显示登录页、建库、解锁或状态卡；相位文案与图标；相对时间；立即同步；启用/自动同步开关；同步密码开关（开→关进入 U20 安全清理流程）；同步私钥开关在 S15 前禁用并说明。
   - 验收：
-    - [ ] SyncStatePresenter 单测覆盖全部 phase × vault 组合
+    - [x] SyncStatePresenter 单测覆盖全部 phase × vault 组合
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **U18 设备与历史版本** `S`
+- [x] **U18 设备与历史版本** `S`
   - 依赖：U17
   - 参考：`02-UI-DESIGN.md §5.13` 设备/历史 Pivot
   - 产出：AccountSyncPage 设备、历史 Pivot 与对应 ViewModel
   - 要点：设备列表（本机徽标、重命名、撤销确认、本机禁止撤销）；历史列表（来源设备、时间、keyVersion；恢复确认；清空历史确认）；加载中/空/错误状态。
   - 验收：
-    - [ ] x64 对真实服务器：重命名本机设备、恢复历史版本成功（记录到进度日志）
+    - [ ] 👤 x64 对真实服务器：重命名本机设备、恢复历史版本成功（记录到进度日志）
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **U19 同步冲突页** `S`
+- [x] **U19 同步冲突页** `S`
   - 依赖：U17
   - 参考：`02-UI-DESIGN.md §5.14`
   - 产出：`src/SshTool.App/Views/Sync/SyncConflictPage.xaml(.cs)`、`src/SshTool.Core/Sync/ConflictPresenter.cs`、测试
   - 要点：三种 reason 的标题/说明/按钮文案；远端摘要；字段列表（实体名称查找：本机 → 远端文档 → id；敏感字段显示「有变更」）；按钮调用 ResolveConflict 并处理错误。
   - 验收：
-    - [ ] ConflictPresenter 单测（名称查找顺序、敏感字段不含值、三种 reason 文案键）
+    - [x] ConflictPresenter 单测（名称查找顺序、敏感字段不含值、三种 reason 文案键）
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **U20 安全与账号操作流程** `M`
+- [x] **U20 安全与账号操作流程** `M`
   - 依赖：U17
   - 参考：`02-UI-DESIGN.md §5.13`（安全清理、注销账号）；`03-SYNC-PROTOCOL.md §7.1、§7.2`
   - 产出：`src/SshTool.App/Views/Sync/{SecurityRotatePage,ChangeLoginPasswordPage,DeleteAccountPage}.xaml(.cs)` 与 ViewModels
   - 要点：关闭敏感同步 / 修改同步密码共用轮换页（账号登录密码 + 新同步密码 ×2 → RecoveryKeyDialog；失败回滚开关）；修改登录密码（成功后回登录页）；退出登录 / 退出所有设备确认；删除云端保险库（登录密码）；注销账号（登录密码 + 输入 `DELETE`）。
   - 验收：
-    - [ ] x64 对测试账号跑通：关闭同步密码轮换、修改同步密码、删除保险库、重新建库（记录到进度日志）
+    - [ ] 👤 x64 对测试账号跑通：关闭同步密码轮换、修改同步密码、删除保险库、重新建库（记录到进度日志）
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **S16 三端互通验收** `S` 👤📱
@@ -1118,7 +1118,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] Core 单测：队列状态机、速率计算、权限互转、路径规范化
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **F03 SFTP 页面** `M` 📱
+- [x] **F03 SFTP 页面** `M` 📱
   - 依赖：F02、U07
   - 参考：`02-UI-DESIGN.md §5.17`
   - 产出：`src/SshTool.App/Views/SftpPage.xaml(.cs)`、`src/SshTool.App/Dialogs/{PermissionsDialog,RenameDialog}.xaml(.cs)`、`src/SshTool.App/ViewModels/SftpViewModel.cs`
@@ -1196,13 +1196,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 报告每项有结论；发现的问题已修复或登记为任务
   - 验证：人工
 
-- [ ] **Q04 英文本地化** `S`
+- [x] **Q04 英文本地化** `S`
   - 依赖：U20、F06、K02
   - 参考：`02-UI-DESIGN.md §7`
   - 产出：`Strings/en-US/Resources.resw` 补齐、`tests/SshTool.Core.Tests/ResourceParityTests.cs`、`scripts/check-hardcoded-text.ps1`
   - 要点：两份 resw 键集合一致；XAML 无硬编码文案（扫描 `Text="[^{]`、`Content="[^{]`、`Header="[^{]`，Debug 页面豁免）；英文下主要页面不截断。
   - 验收：
-    - [ ] 键一致单测通过；扫描脚本加入 verify 且通过
+    - [x] 键一致单测通过；扫描脚本加入 verify 且通过
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **Q05 无障碍** `S` 📱
@@ -1213,13 +1213,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 讲述人走通主流程
   - 验证：真机
 
-- [ ] **Q06 关于页、开源许可与隐私说明** `S`
+- [x] **Q06 关于页、开源许可与隐私说明** `S`
   - 依赖：U14
   - 参考：`01-DESIGN.md §3.2`；`02-UI-DESIGN.md §5.19`
   - 产出：`src/SshTool.App/Views/{AboutPage,LicensesPage}.xaml(.cs)`、`src/SshTool.App/Assets/Licenses/*.txt`、`OPEN_SOURCE_LICENSES.md`、`PRIVACY.md`
   - 要点：列出全部依赖名称、版本、许可证全文；隐私说明：本地存储内容、同步内容与加密方式、服务器地址与明文 HTTP 风险、日志不含敏感信息。
   - 验收：
-    - [ ] 许可清单与实际 NuGet / vendored 版本一致
+    - [x] 许可清单与实际 NuGet / vendored 版本一致
   - 验证：`pwsh scripts/verify.ps1`
 
 - [x] **Q07 图标、磁贴与启动画面** `S` 📱
