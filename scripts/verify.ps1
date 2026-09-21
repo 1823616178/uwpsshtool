@@ -105,7 +105,7 @@ try {
             }
         $tasks = Join-Path $RepoRoot 'doc\04-TASKS.md'
         $all = (Select-String -Path $tasks -Pattern '^- \[( |x)\] \*\*[A-Z]+\d+' -AllMatches).Count
-        if ($all -ne 112) { throw "04-TASKS.md 的任务条目数为 $all，应为 112（文件可能被截断或误改）" }
+        if ($all -ne 126) { throw "04-TASKS.md 的任务条目数为 $all，应为 126（文件可能被截断或误改）" }
             Write-Host "OK：doc/*.md 共 $($docs.Count) 份，04-TASKS 任务条目 $all"
         }
 

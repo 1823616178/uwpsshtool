@@ -57,6 +57,17 @@
 - **P1**：高概率形成线上故障、重复工作或难以定位的问题，本轮 UI 改造期间处理；
 - **P2**：维护性和体验债务，可按模块逐步收敛。
 
+> **2026-09-21 复核（见 `06-OPT-AUDIT.md`）**：本节证据行号多数已过时，改动前先核对当前代码。
+> - **C-01 已修**：`Views/TerminalPage.xaml.cs:181/195` 与 `ViewModels/TerminalViewModel.cs:129/143`
+>   已是具名处理器 + 对称 `-=` + 显式 `Detach()`，不要再按原文重修；但**同类问题在别处仍在**
+>   （`SessionsPivot` 与 6 个页面级 VM 订阅应用级单例后从不解除），见 `06-OPT-AUDIT.md §3 P0-2`。
+> - **C-02 已实现，形式不同**：落地的是 `Common/NavigationLifetime.cs` 的整型世代号，
+>   不是本文建议的 `CancellationTokenSource`；以世代号为准，不要再引入第二套。覆盖率 9/28，见任务 O04。
+> - **C-05 基础设施已建**：`Core/Common/TaskExtensions.Forget` 与 `Mvvm/AsyncCommand` 可用，缺的是调用点迁移（任务 O05）。
+> - **C-07 完成一半**：`Views/SettingsPage.xaml.cs` 的 150 ms 去抖已实现；
+>   缺 `Storage/SettingsRepository.cs:63-76` 的相等值短路（任务 O02）。
+> - 新增的 native / 同步 / 渲染层优化项见 `06-OPT-AUDIT.md`，任务编排见 `04-TASKS.md §11 M9`。
+
 ### C-01 · P0 · 终端页事件订阅未释放
 
 **证据**
@@ -504,9 +515,9 @@ App 中大量使用 `var ignore = XxxAsync()`，覆盖终端外观、分屏、�
 - [x] Core、Native、错误码、文档、XAML 检查全部通过；
 - [ ] ARM Debug 和 x64 Debug 构建通过，无新增警告；
 - [ ] `PRI257` 清零；
-- [x] 页面级订阅均有对应解除或明确的同生命周期 owner；
-- [x] 页面级异步任务可取消或有世代保护；
-- [x] fire-and-forget 异常全部可观察；
+- [ ] 页面级订阅均有对应解除或明确的同生命周期 owner；（2026-09-21 复核改回：`ViewModels/HostListViewModel.cs:65-68`、`MainViewModel.cs:63`、`SettingsViewModel.cs:77`、4 个 Sync VM 与 `Views/Main/SessionsPivot.xaml.cs:30` 订阅应用级单例后无 `-=`，见 `06-OPT-AUDIT.md §3 P0-2` / 任务 O03）
+- [ ] 页面级异步任务可取消或有世代保护；（2026-09-21 复核改回：`NavigationLifetime` 覆盖 9/28 个含 `OnNavigatedTo` 的页面，Sync 组全未接入，见 `06-OPT-AUDIT.md §3 P1-4` / 任务 O04。落地范式是**整型世代号**而非本文 §C-02 建议的 `CancellationTokenSource`）
+- [ ] fire-and-forget 异常全部可观察；（2026-09-21 复核改回：48 处 `var ignore = …` 对 37 处 `.Forget(`，只有 `HostListViewModel` 一个文件真正收口，见 `06-OPT-AUDIT.md §3 P1-5` / 任务 O05）
 - [x] 日志不包含密码、私钥、token、终端正文。
 
 ### UI
@@ -516,7 +527,7 @@ App 中大量使用 `var ignore = XxxAsync()`，覆盖终端外观、分屏、�
 - [ ] 深色、浅色和高对比主题可读；
 - [ ] 200% 文本缩放下主流程可完成；
 - [x] 所有图标按钮有中英无障碍名称；
-- [x] 可见文案全部资源化，中英文不混排；
+- [ ] 可见文案全部资源化，中英文不混排；（2026-09-21 复核改回：非 Debug XAML 仍有 137 处中文字面量、C# 中用户可见属性赋值 37 处；根因是 `scripts/check-hardcoded-text.ps1:30-31` 把含中文的行整行豁免，门禁量不到它要量的东西。见 `06-OPT-AUDIT.md §3 P2-13` / 任务 O12、O13）
 - [x] 不使用 W10M 15063 之后才提供的控件/API。
 
 ### 终端与真机

@@ -46,7 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **112** | **107** | |
+| M9 | 优化与债务清理 | 14 | 0 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **126** | **107** | |
 
 ### 1.1 关键路径
 
@@ -1268,7 +1269,210 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 
 ---
 
-## 11. 真机验收待办
+## 11. M9 — 优化与债务清理
+
+> 依据：`06-OPT-AUDIT.md`（2026-09-21 三层逐文件核查）。本里程碑**不加功能、不动同步线格式、不做 UI 换皮**，
+> 只做可度量的优化与债务清理，为 Q01 真机采数（`01-DESIGN.md §15`）与 Q02 长稳扫清已知障碍。
+> 顺序即优先级；O01/O02/O03 是 P0，应先做。
+
+- [ ] **O01 删除 `pendingOutput_` 过渡取数链** `S`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P0-1`；`01-DESIGN.md §6.2`、§7.2、§15
+  - 产出：`src/SshTool.Native/Bridge/SshSession.{h,cpp}`、`src/SshTool.Core/Sessions/ISshSession.cs`、`src/SshTool.App/Platform/NativeSshSession.cs`、`tests/SshTool.Core.Tests/Fakes/FakeSshSession.cs`
+  - 要点：
+    1. 删除 `pendingOutput_` / `outputMutex_` / `FetchPendingOutput()`（Native + 接口 + 透传 + Fake + 对应单测）。`SshSession.h:28` 自述其为「T03 接管后移除」的过渡 API，T03 已接管（渲染走 `TerminalScreen.Revision` + `CopyDirtyRows`）。
+    2. 理清 `ContentDirty` 契约：`markConsumed()` 原本只在 `FetchPendingOutput` 里调用，删除后标志将永久为真。二选一并在 `SshSession.h` 注释写明：要么保留事件但每次 `OnShellData` 都投递（去掉合并标志），要么连同 `DirtyCoalescer` 一起移除、`Views/Debug/DebugConnectPage.xaml.cs` 改为轮询 `Revision`。
+    3. 不要顺手改 `TerminalScreen.Feed` 与脏行拷贝路径——那是生产渲染路径，本任务只拆过渡链。
+  - 验收：
+    - [ ] 全仓 `grep -r FetchPendingOutput` 仅剩文档提及（或零命中）
+    - [ ] `native/tests` 中涉及该 API 的断言一并清理，ctest 全过
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [ ] 📱 PerfPage「Q02 连接/断开 ×100」与长稳复测，内存 Δ 与 `sessions/threads/sockets/screens` 回填 `doc/PERF-REPORT.md §5.1`
+  - 验证：`pwsh scripts/verify.ps1`；真机 Q02
+
+- [ ] **O02 `SettingsRepository.Set` 相等值短路** `S`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P0-3`；`05-CODE-AUDIT-UI-REDESIGN.md §C-07`
+  - 产出：`src/SshTool.Core/Storage/SettingsRepository.cs`、`tests/SshTool.Core.Tests/Storage/SettingsRepositoryTests.cs`
+  - 要点：
+    1. `Set` 校验通过后先经 `Read(def)` 取当前有效值，`Equals(current, value)` 则直接返回：不写 `_store`、不触发 `Changed`。
+    2. 注意「未写过的键」的当前有效值是 `def.DefaultValue`——首次显式写入默认值时应保持不写不广播（与读回结果一致），并在注释中写明该语义。
+    3. 页面侧 150 ms 去抖（`Views/SettingsPage.xaml.cs:35,54,73,279`）已实现，本任务不动。
+  - 验收：
+    - [ ] 新增单测：同值 `Set` 不写 store、不触发 `Changed`；异值 `Set` 行为不变；首次写入等于默认值的行为有断言固定
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+  - 验证：`dotnet test tests/SshTool.Core.Tests`
+
+- [ ] **O03 页面级订阅收口（内存泄漏）** `M`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P0-2`；既有正确范式 `ViewModels/TerminalViewModel.cs` 的 `Detach()`、`ViewModels/TunnelsViewModel.cs:206`
+  - 产出：`src/SshTool.App/Views/Main/SessionsPivot.xaml.cs`、`Controls/SessionsPane.xaml.cs`、`ViewModels/{HostList,Main,Settings}ViewModel.cs`、`ViewModels/Sync/{AccountSync,SecurityRotate,VaultSetup,VaultUnlock}ViewModel.cs`、对应页面的 `OnNavigatedFrom`
+  - 要点：
+    1. 视图侧：`SessionsPivot.Attach` 的匿名 lambda 改具名处理器并提供 `Detach()`；`Detach` 里同时把 `ItemsSource` 置空（单例 `ObservableCollection` 会经 CollectionChanged 攥住已弃用的 ListView）。`Controls/SessionsPane` 同样处理。
+    2. VM 侧：为每个在构造函数里订阅应用级单例的 VM 增加 `Detach()`，解除全部 `+=`；由拥有它的页面在 `OnNavigatedFrom` 调用。
+    3. `MainPage` 每次导航回来都 `new MainViewModel()`（全仓无 `NavigationCacheMode`），`MainViewModel.Detach()` 需级联 `Hosts.Detach()`；`Sessions` 是 `ServiceRegistry` 单例，**不要** Detach 它本身，只拆视图侧订阅。
+    4. `Detach` 必须幂等（重复 GoBack / Frame 重复回调）。
+  - 验收：
+    - [ ] 上述文件中每个订阅应用级单例的 `+=` 都有对应 `-=`
+    - [ ] 新增 Core 侧可测部分的回归（VM 的 `Detach` 后不再响应仓库 `Changed`）
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [ ] 📱 首页↔终端页往返 50 次，内存无明显增长、列表不重复刷新（`05` §10 的对应条目）
+  - 验证：`pwsh scripts/verify.ps1`；真机
+
+- [ ] **O04 `NavigationLifetime` 覆盖剩余页面** `M`
+  - 依赖：O03
+  - 参考：`06-OPT-AUDIT.md §3 P1-4`；范式见 `Views/TerminalPage.xaml.cs`
+  - 产出：`src/SshTool.App/Views/Sync/*.xaml.cs`（9 页）、`Views/{Settings,Main,Snippets,KnownHosts,GroupManage}Page.xaml.cs`
+  - 要点：
+    1. `OnNavigatedTo` → `int gen = _lifetime.Begin()`；每个 `await` 之后 `if (!_lifetime.IsCurrent(gen)) return;`；订阅一律经 `_lifetime.Track(() => … -= …)`；`OnNavigatedFrom` → `_lifetime.End()`。
+    2. 已落地的范式是**整型世代号**，不是 `05` §C-02 建议的 `CancellationTokenSource`；保持一致，不要两套。
+    3. Sync 组优先（网络 I/O 最长）；按 Sync 组 / 其余页分两次提交。
+  - 验收：
+    - [ ] 含 `OnNavigatedTo` 的非 Debug 页面全部接入（Debug 页可豁免并在注释写明）
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+  - 验证：`pwsh scripts/verify.ps1`
+
+- [ ] **O05 fire-and-forget 统一走 `Forget`** `S`
+  - 依赖：O04
+  - 参考：`06-OPT-AUDIT.md §3 P1-5`；`src/SshTool.Core/Common/TaskExtensions.cs`
+  - 产出：28 个文件中的 48 处 `var ignore = …`；`src/SshTool.App/Infrastructure/DispatcherHelper.cs`
+  - 要点：
+    1. 机械替换为 `X().Forget("模块.动作", AppLog.Logger)`；context 用「类名.方法」，不得拼入主机名/路径/用户名。
+    2. 用户命令类调用优先改 `AsyncCommand`（执行期间管理 `CanExecute`），而不是简单加 `Forget`。
+    3. `DispatcherHelper.cs:92` 是 UI 封送原语，其自身失败也要可观察；注意别在日志失败路径上递归（`TaskExtensions` 注释已说明 `FileLogger` 的例外）。
+  - 验收：
+    - [ ] 非 Debug 代码中 `var ignore = ` 计数为 0
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+  - 验证：`pwsh scripts/verify.ps1`
+
+- [ ] **O06 `UwpHttpTransport` 复用 filter 与 client** `S`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P1-6`；`03-SYNC-PROTOCOL.md §2.1`
+  - 产出：`src/SshTool.App/Platform/UwpHttpTransport.cs`
+  - 要点：
+    1. `HttpBaseProtocolFilter` 与 `HttpClient` 提升为只读字段（一次构造、长期复用；`Windows.Web.Http.HttpClient` 线程安全），`HttpRequestMessage`/`HttpResponseMessage` 仍按请求 `using`。
+    2. NoCache / NoCookies / `AllowAutoRedirect=false` 语义一字不改（§2.1：凭证只走 `Authorization` 头）。
+    3. 超时与取消语义保持：超时抛 `TimeoutException`，调用方取消原样抛 `OperationCanceledException`。
+  - 验收：
+    - [ ] 现有 `ApiClient` 相关测试全过（Core 侧用假传输，不受影响）
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [ ] 📱 真机登录 + 一次完整同步周期成功（Wi-Fi 与蜂窝各一次）
+  - 验证：`pwsh scripts/verify.ps1`；真机
+
+- [ ] **O07 同步路径去重复序列化** `M`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P1-7`；`03-SYNC-PROTOCOL.md §3.1、§7.3、§8`；`01-DESIGN.md R8`
+  - 产出：`src/SshTool.Core/Sync/SyncCoordinator.cs`、`Sync/Protocol/SyncDocumentWriter.cs`、`Sync/SyncMerge.cs`
+  - 要点：
+    1. `PendingUpload` 缓存创建时已算出的规范 JSON，`SameContent` 只重建 `local` 一侧。
+    2. 核实 `BuildLocalDocumentAsync()` 返回的是独占快照；是则去掉 `Document = doc.Clone()` 的整图深拷贝。
+    3. `SyncMerge` 改「模型 → `JObject`」直转，跳过输入侧的字符串往返与排序/校验；**保留**结尾 `SyncDocumentReader.Read` 的全量校验（R8 的兜底，不可省）。
+    4. **上传字节必须零偏差**：本任务只改「算几遍」，不改「算成什么」。
+  - 验收：
+    - [ ] Sync 相关单测（Coordinator/Merge/Writer/Reader）全过，无新增断言放宽
+    - [ ] `pwsh scripts/verify.ps1 -Quick -Interop` 全绿（桌面端 zod 校验 3 份原文 + Core 重写输出 3 份）
+  - 验证：`pwsh scripts/verify.ps1 -Quick -Interop`
+
+- [ ] **O08 `Repository<T>` id 索引** `S`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P1-8`
+  - 产出：`src/SshTool.Core/Storage/Repository.cs`、`Storage/Repositories/KnownHostRepository.cs`、`Sessions/SessionManager.cs`
+  - 要点：
+    1. `Repository<T>` 内维护 `Dictionary<string,int>`（id → `_items` 下标），`_items` 整体替换处（`AddAsync`/`UpdateManyAsync`/`RemoveManyAsync`/`ReplaceAllAsync`/`EnsureLoadedCoreAsync`）统一重建；`FindIndex` 改查字典。
+    2. `KnownHostRepository` 另加 `(host,port)` 索引，让 `SessionManager.FindKnownAsync` 与跳板链每跳的查找降为 O(1)。
+    3. 纯内存结构，不动持久化格式与 `IEntityCodec`。
+  - 验收：
+    - [ ] 现有仓库单测全过；新增「增删改后按 id 查仍正确」的回归
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+  - 验证：`dotnet test tests/SshTool.Core.Tests`
+
+- [ ] **O09 Native 终端热路径去重复解析** `M`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P1-9`；`01-DESIGN.md §7.1、§7.5`；`PERF-REPORT.md §2`
+  - 产出：`native/core/term/vterm_screen.{h,cpp}`、`native/tests/vterm_screen_test.cpp`
+  - 要点：
+    1. 删掉 `feed()` 里的手写 CSI 扫描器（`csiPending_` + `erase(0, …)`），DECCKM / SGR 鼠标(1006) / bracketed paste(2004) 三个模式位改从 libvterm 的 `VTermState` 读取或经已有回调面维护。
+    2. `refreshSoftWrapFlags()` 改为只扫本次 damage rect 覆盖的行，或按 `VTERM_LINEINFO` 变更增量维护，不再每次 `feed` 全表扫。
+    3. 软换行标记的语义（写在行末格的 bit9）不得改变——`SelectionModel` 的复制逻辑依赖它（§7.1、§7.6）。
+  - 验收：
+    - [ ] `vterm_screen_test` 覆盖三个模式位的开关与软换行标记，ctest 全过
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [ ] 📱 PerfPage 场景①②③ 的「喂 x ms/帧」较优化前下降，数据回填 `doc/PERF-REPORT.md §3.1`
+  - 验证：ctest；`pwsh scripts/verify.ps1`；真机 Q01
+
+- [ ] **O10 Native 转发与事件循环的分配收口** `S`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P2-11、P2-12`；范式见 `native/core/ssh/channel.cpp` 的 `PendingWriteQueue`
+  - 产出：`native/core/fwd/pump.{h,cpp}`、`native/core/io/EventLoop.{h,cpp}`
+  - 要点：
+    1. `BidirectionalPump` 的 `erase(0, sent)` 改为 head-offset 排空（或 `deque<string>` + 偏移），向 `PendingWriteQueue` 看齐；256 KiB 缓冲上限与背压语义不变。
+    2. `EventLoop::run()` 的 `pollDescriptors` 提升为成员，每轮 `clear()` 复用；构建 pollfd 时并行存回调，派发时不再二次 `registrations_.find()`。
+    3. 唤醒机制（回环 UDP + 50 ms 兜底轮询）不动。
+  - 验收：
+    - [ ] `fwd_test`、`event_loop_test` 全过（含部分写与背压用例）
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+  - 验证：ctest；`pwsh scripts/verify.ps1`
+
+- [ ] **O11 `TerminalRenderer` 渲染分配收口** `M`
+  - 依赖：O09
+  - 参考：`06-OPT-AUDIT.md §3 P1-10`；`01-DESIGN.md §7.3`（SP04 实测纪律）
+  - 产出：`src/SshTool.App/Terminal/TerminalRenderer.cs`、`src/SshTool.Core/Terminal/RowRunBuilder.cs`
+  - 要点：
+    1. `RowRunBuilder` 增加「写入调用方提供的 `List<CellRun>`」重载（保留现有返回新表的重载给测试），渲染器持实例级缓冲，每行 clear + 重填。
+    2. `DrawGlyphRun` 不再每 run 新建 `CanvasTextLayout`：预缓存左对齐/居中两种 `CanvasTextFormat`，改用 `DrawText(text, rect, color, format)`；宽字符居中与 fake-bold 偏移的视觉结果必须与现状一致。
+    3. **不得退回逐格绘制**——§7.3 SP04 纪律第 1 条（逐格 50–70 µs/格）是硬性红线，run 合并保留。
+  - 验收：
+    - [ ] `RowRunBuilder` 单测覆盖新重载，输出与旧重载一致
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [ ] 📱 PerfPage 场景①②③ 的 `draw/s` 不低于优化前、`帧 max` 无新长尾，数据回填 `doc/PERF-REPORT.md §3.1`
+  - 验证：`pwsh scripts/verify.ps1`；真机 Q01
+
+- [ ] **O12 修复硬编码文案门禁** `S`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P2-13 ①`
+  - 产出：`scripts/check-hardcoded-text.ps1`
+  - 要点：
+    1. 把「含中文的行」从**豁免**改为**命中即报错**（现在的 `$chinesePattern` → `continue` 恰好让这把尺子量不到它要量的东西）。
+    2. 扫描范围加上 `.cs` 中对 `.Text/.Title/.Content/.Header/PrimaryButtonText/SecondaryButtonText/PlaceholderText` 的中文字面量赋值；**日志字符串不在范围内**，避免误伤。
+    3. 保留 `Views/Debug/`、`obj`、`bin` 豁免；输出按文件分组并给出总数，便于 O13 分批清零。
+    4. 改完 `verify.ps1` ④b 会立刻变红——这是预期结果，把当次输出作为 O13 的待清单基线记进进度日志。
+  - 验收：
+    - [ ] 脚本能报出 `Controls/SessionOverlay.xaml` 与 `Views/Sync/AccountSyncPage.xaml.cs:86` 这类真实命中
+    - [ ] 脚本对日志字符串与 `Views/Debug/` 不报警
+  - 验证：`pwsh scripts/check-hardcoded-text.ps1`
+
+- [ ] **O13 硬编码文案清零** `M`
+  - 依赖：O12
+  - 参考：`06-OPT-AUDIT.md §3 P2-13 ②`；`05-CODE-AUDIT-UI-REDESIGN.md §7.3`
+  - 产出：非 Debug 的 XAML / `.xaml.cs`、`src/SshTool.App/Strings/{zh-cn,en-us}/Resources.resw`
+  - 要点：
+    1. 按「Controls + Dialogs」→「Views 主干」→「Views/Sync」三批推进，每批一个提交。
+    2. `x:Uid` 用稳定语义名；两份 resw 的 key 集合必须完全一致（`ResourceParityTests` 已有该断言）。
+    3. 英文标签更长，改完顺手看一眼按钮宽度与 ContentDialog 的换行。
+  - 验收：
+    - [ ] `pwsh scripts/check-hardcoded-text.ps1` 零命中
+    - [ ] `ResourceParityTests` 全过；`pwsh scripts/verify.ps1` 全绿
+    - [ ] 回头把 `05-CODE-AUDIT-UI-REDESIGN.md §10` 的「可见文案全部资源化」重新勾上
+  - 验证：`pwsh scripts/verify.ps1`
+
+- [ ] **O14 零散优化项** `S`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P2-14`
+  - 产出：`src/SshTool.App/Platform/AppEntityLookup.cs`、`src/SshTool.Core/Terminal/PaneTree.cs`、`src/SshTool.Core/Common/BackoffTable.cs`（新增）、`src/SshTool.App/Infrastructure/ColorHex.cs`（新增）
+  - 要点：
+    1. `AppEntityLookup` 去掉三处 `.Result`（改异步签名或进页面前预取名称缓存）。
+    2. `PaneTree.FindLeaf` 改树内直接查找，不再经 `Leaves()` 建表。
+    3. 抽 `BackoffTable.DelayFor(int[] steps, int attempt)` 供三处调用——**三张退避表本身按协议各不相同，不要合表**。
+    4. 抽 `ColorHex.TryParse`，替换 `ColorSwatchPicker` / `GroupHeader` / `AppearanceListViewModel` 三处逐字重复的解析。
+    5. `Properties/Default.rd.xml` 的收窄**不在本任务**：需 ARM Release 实测包体与冷启动，归 Q09。
+  - 验收：
+    - [ ] 新增 `BackoffTable` / `ColorHex` 的单测；三处/三处调用点全部改完
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+  - 验证：`pwsh scripts/verify.ps1`
+
+---
+
+## 12. 真机验收待办
 
 > AI 完成任务时把未能验证的 📱 项抄到这里，格式：`- [ ] <任务ID> <验收项原文>`。人工验证后勾选。
 
@@ -1357,7 +1561,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 
 ---
 
-## 12. 进度日志
+## 13. 进度日志
 
 > 格式：`日期 | 任务ID | commit | 说明 / 遗留 / ⏳ 等待项`
 
@@ -1494,3 +1698,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-21 | Q01 | f184236 | **代码任务完成**。PerfPage 六场景（⓪静止/①base64/②yes/③vim/④100主机滚动/⑤4×5000回滚）+ FPS 双口径叠加（tick/s、draw/s）+ MemoryManager 守卫读数 + 报告落盘 spike-reports\perf-*.txt，随 Phase0 基线入库；本次逐项核验页面引用的 token 与 API（FeedBytes/ResizeGrid/ScrollbackCount/FrameSchedulerCore.IsRunning/HostsPivot.Attach/DebugReport.*）均存在，入口 DevToolsPage（DEBUG_PAGES 默认开，Release 可用），修正 PERF-REPORT.md 入口路径描述。操作指南见 doc/PERF-REPORT.md §2。⏳ 📱 Release ARM 实测回填 §3/§4 并按结论做针对性优化（已登记待办）。verify 7 步全绿。 |
 | 2026-09-21 | Q02 | af10e7b | **代码任务完成**。native diag_counters 四生命周期计数（SshSession/SessionThread/EventLoop sockets/TerminalScreen，Release 可读，析构扣除残留保证可回归）+ NativeInfo.DiagCounters() 导出 + PerfPage Q02 区（「连接/断开×100」每 10 轮采样+GC 静置 Δ% 判定、「长稳 4h」60s 采样+开 shell 挂页面终端渲染+1s 停止响应、挂起/恢复自动计数随报告落盘 perf-q02-*.txt）；EnsureTerminal 幂等重绑。口径与操作指南 doc/PERF-REPORT.md §5。⏳ 📱 100 次循环内存 ≤ 基线+10%、4h 无崩溃、挂起/恢复 20 次（已登记待办；发现泄漏时在此任务追加修复提交）。verify 7 步全绿（Core 1430 + native 306）。 |
 | 2026-09-21 | Q03 | ef735ed | **完成**。产出 doc/SECURITY-REPORT.md：§1–§5 逐项给结论与人工操作指南（LocalFolder 搜索/日志抽查/抓包/删主机凭据级联/WACK），代码层证据齐（LogRedactor+单测、DpapiSecureFile LOCAL=user、ConfigService 级联删凭据+单测、登录明文 Banner/SyncApiBaseUrl 配置）；§6 CVE 检查完成——**发现 libssh2 1.11.1 四个高危 CVE（CVE-2026-55200 CVSS 9.2 认证前可触发 PoC 公开等），上游无修复版** → 登记新任务 Q11（cherry-pick 修复 + OpenSSL 3.6.3→3.6.4），Q10 依赖加 Q11，verify 文档计数 111→112。⏳ 👤 §1–§5 人工项已登记待办。 |
+| 2026-09-21 | M9 立项 | （本次） | **优化审查落档**。三层逐文件核查产出 `doc/06-OPT-AUDIT.md`：确认 2 条内存泄漏路径（`SshSession::pendingOutput_` 无人消费却按字节无上限累积、`SessionsPivot` 与 6 个页面级 VM 订阅应用级单例后从不解除）、1 处门禁失效（`check-hardcoded-text.ps1` 把含中文的行整行豁免，导致 Q04 量不到自己要量的东西；实测 XAML 137 处 + C# 37 处中文字面量未资源化），以及同步路径重复全文档序列化、`Repository<T>` 线性查找、`UwpHttpTransport` 每请求新建 filter/client、vterm 每 feed 重复 CSI 解析、`TerminalRenderer` 每 run 新建 `CanvasTextLayout` 等 14 项。新增 §11 M9 里程碑与 O01–O14 任务，verify 文档计数 112→126。同时订正 `05-CODE-AUDIT-UI-REDESIGN.md`：§10 四条与实测不符的勾选改回 `[ ]` 并注明证据行号，§3 增复核说明（C-01 已修、C-02 落地为整型世代号而非 CTS、C-07 只完成页面侧去抖）。本次不改产品代码。 |
