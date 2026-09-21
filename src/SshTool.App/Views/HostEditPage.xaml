@@ -179,7 +179,7 @@
                     <!-- 折叠头部：点击切换下方内容可见性，chevron 随状态翻转 -->
                     <Button x:Name="AdvancedToggle" Grid.Row="0"
                             HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                            Background="Transparent" BorderThickness="0"
+                            Background="Transparent" BorderThickness="{StaticResource BorderNone}"
                             Padding="{StaticResource PadNone}"
                             Click="OnAdvancedToggleClick">
                         <Grid>
