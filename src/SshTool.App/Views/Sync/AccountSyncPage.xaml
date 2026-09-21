@@ -50,13 +50,11 @@
                                            Margin="{StaticResource GapXsTop}"
                                            Visibility="Collapsed" />
                                 <Button x:Name="SyncNowButton" x:Uid="AccountSync_SyncNow"
-                                        Content="立即同步"
                                         Style="{StaticResource PrimaryButtonStyle}"
                                         Margin="{StaticResource GapMdTop}"
                                         HorizontalAlignment="Stretch"
                                         Click="OnSyncNowClick" />
                                 <Button x:Name="ResolveConflictButton" x:Uid="AccountSync_ResolveConflict"
-                                        Content="处理冲突"
                                         Margin="{StaticResource GapSmTop}"
                                         HorizontalAlignment="Stretch"
                                         Click="OnResolveConflictClick"
@@ -68,10 +66,8 @@
                         <controls:FormSection x:Name="SyncSettingsSection"
                                               x:Uid="AccountSync_SyncSettings"
                                               Margin="{StaticResource GapMdTop}">
-                            <controls:FormSection.Header>
-                                <controls:GroupHeader x:Uid="AccountSync_SyncSettingsHeader" Text="同步设置" />
-                            </controls:FormSection.Header>
-                            <Grid>
+                            <controls:FormSection.SectionContent>
+                                <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
@@ -113,61 +109,60 @@
                                               Margin="{StaticResource GapSmTop}"
                                               IsEnabled="False" />
                             </Grid>
+                            </controls:FormSection.SectionContent>
                         </controls:FormSection>
 
                         <!-- 保险库 -->
                         <controls:FormSection x:Name="VaultSection"
+                                              x:Uid="AccountSync_Vault"
                                               Margin="{StaticResource GapMdTop}">
-                            <controls:FormSection.Header>
-                                <controls:GroupHeader x:Uid="AccountSync_VaultHeader" Text="保险库" />
-                            </controls:FormSection.Header>
-                            <Button x:Name="ChangeSyncPasswordButton" x:Uid="AccountSync_ChangeSyncPassword"
-                                    Content="修改同步密码"
-                                    HorizontalAlignment="Stretch"
-                                    Margin="{StaticResource GapSmTop}"
-                                    Click="OnChangeSyncPasswordClick" />
+                            <controls:FormSection.SectionContent>
+                                <Button x:Name="ChangeSyncPasswordButton" x:Uid="AccountSync_ChangeSyncPassword"
+                                        HorizontalAlignment="Stretch"
+                                        Margin="{StaticResource GapSmTop}"
+                                        Click="OnChangeSyncPasswordClick" />
+                            </controls:FormSection.SectionContent>
                         </controls:FormSection>
 
                         <!-- 账号 -->
                         <controls:FormSection x:Name="AccountSection"
+                                              x:Uid="AccountSync_Account"
                                               Margin="{StaticResource GapMdTop}">
-                            <controls:FormSection.Header>
-                                <controls:GroupHeader x:Uid="AccountSync_AccountHeader" Text="账号" />
-                            </controls:FormSection.Header>
-                            <Button x:Name="ChangeLoginPasswordButton" x:Uid="AccountSync_ChangeLoginPassword"
-                                    Content="修改登录密码"
-                                    HorizontalAlignment="Stretch"
-                                    Click="OnChangeLoginPasswordClick" />
-                            <Button x:Name="LogoutButton" x:Uid="AccountSync_Logout"
-                                    Content="退出登录"
-                                    Margin="{StaticResource GapSmTop}"
-                                    HorizontalAlignment="Stretch"
-                                    Click="OnLogoutClick" />
-                            <Button x:Name="LogoutAllButton" x:Uid="AccountSync_LogoutAll"
-                                    Content="退出所有设备"
-                                    Margin="{StaticResource GapSmTop}"
-                                    HorizontalAlignment="Stretch"
-                                    Click="OnLogoutAllClick" />
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <Button x:Name="ChangeLoginPasswordButton" x:Uid="AccountSync_ChangeLoginPassword"
+                                            HorizontalAlignment="Stretch"
+                                            Click="OnChangeLoginPasswordClick" />
+                                    <Button x:Name="LogoutButton" x:Uid="AccountSync_Logout"
+                                            Margin="{StaticResource GapSmTop}"
+                                            HorizontalAlignment="Stretch"
+                                            Click="OnLogoutClick" />
+                                    <Button x:Name="LogoutAllButton" x:Uid="AccountSync_LogoutAll"
+                                            Margin="{StaticResource GapSmTop}"
+                                            HorizontalAlignment="Stretch"
+                                            Click="OnLogoutAllClick" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
                         </controls:FormSection>
 
                         <!-- 危险操作 -->
                         <controls:FormSection x:Name="DangerSection"
+                                              x:Uid="AccountSync_Danger"
                                               Margin="{StaticResource GapMdTop}">
-                            <controls:FormSection.Header>
-                                <controls:GroupHeader x:Uid="AccountSync_DangerHeader" Text="危险操作" />
-                            </controls:FormSection.Header>
-                            <Button x:Name="DeleteVaultButton" x:Uid="AccountSync_DeleteVault"
-                                    Content="删除云端保险库…"
-                                    Style="{StaticResource DangerButtonStyle}"
-                                    HorizontalAlignment="Stretch"
-                                    Margin="{StaticResource GapSmTop}"
-                                    Click="OnDeleteVaultClick" />
-                            <Button x:Name="DeleteAccountButton" x:Uid="AccountSync_DeleteAccount"
-                                    Content="注销账号…"
-                                    Style="{StaticResource DangerButtonStyle}"
-                                    Margin="{StaticResource GapSmTop}"
-                                    HorizontalAlignment="Stretch"
-                                    Click="OnDeleteAccountClick" />
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <Button x:Name="DeleteVaultButton" x:Uid="AccountSync_DeleteVault"
+                                            Style="{StaticResource DangerButtonStyle}"
+                                            HorizontalAlignment="Stretch"
+                                            Margin="{StaticResource GapSmTop}"
+                                            Click="OnDeleteVaultClick" />
+                                    <Button x:Name="DeleteAccountButton" x:Uid="AccountSync_DeleteAccount"
+                                            Style="{StaticResource DangerButtonStyle}"
+                                            Margin="{StaticResource GapSmTop}"
+                                            HorizontalAlignment="Stretch"
+                                            Click="OnDeleteAccountClick" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
                         </controls:FormSection>
 
                         <TextBlock x:Name="ErrorText"
@@ -236,7 +231,6 @@
                                   HorizontalAlignment="Center" VerticalAlignment="Center"
                                   Visibility="Collapsed" />
                     <Button x:Name="ClearHistoryButton" x:Uid="AccountSync_ClearHistory"
-                            Content="清空历史"
                             Grid.Row="1"
                             Margin="{StaticResource PagePadding}"
                             HorizontalAlignment="Stretch"

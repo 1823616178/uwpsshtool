@@ -41,8 +41,8 @@
                     </StackPanel>
                 </Border>
 
-                <controls:GroupHeader x:Name="FieldsHeader" x:Uid="Conflict_FieldsHeader"
-                                      Text="涉及项目" Margin="{StaticResource GapMdTop}" />
+                <TextBlock x:Name="FieldsHeader" x:Uid="Conflict_FieldsHeader" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapMdTop}" />
                 <ListView x:Name="FieldsList"
                           SelectionMode="None"
                           IsItemClickEnabled="False">

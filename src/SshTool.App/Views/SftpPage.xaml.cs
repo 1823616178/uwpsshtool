@@ -250,6 +250,7 @@ namespace SshTool.App.Views
         }
 
         // §6.5：尾槽「更多」按钮——与长按/右键共享同一条行菜单。
+        // 尾槽在 AppListRow.IsWithin 溯源中已被排除，行 Click 不会由此触发，无需 MarkHandled。
         private void OnRowMoreClick(object sender, RoutedEventArgs e)
         {
             var anchor = sender as FrameworkElement;
@@ -257,7 +258,6 @@ namespace SshTool.App.Views
             {
                 ShowRowMenu(anchor, null);
             }
-            e.Handled = true;
         }
 
         private void ShowRowMenu(FrameworkElement anchor, Point? point)
