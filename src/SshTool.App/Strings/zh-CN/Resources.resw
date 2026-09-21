@@ -401,4 +401,124 @@
   <data name="DevTools_RowInput.Title" xml:space="preserve"><value>SP05 输入采集</value></data>
   <data name="DevTools_RowPlatform.Title" xml:space="preserve"><value>SP06 平台 Spike</value></data>
   <data name="DevTools_RowGenHosts.Title" xml:space="preserve"><value>生成 100 台测试主机</value></data>
+
+  <!-- V04a（C-06 + C-07 + §6.4）：SettingsPage 全量文案走 resw 双语 -->
+  <data name="Settings_PageTitle" xml:space="preserve"><value>设置</value></data>
+  <data name="Settings_Pivot_General.Header" xml:space="preserve"><value>通用</value></data>
+  <data name="Settings_Pivot_Terminal.Header" xml:space="preserve"><value>终端</value></data>
+  <data name="Settings_Pivot_Keyboard.Header" xml:space="preserve"><value>键盘</value></data>
+  <data name="Settings_Pivot_Connection.Header" xml:space="preserve"><value>连接</value></data>
+  <data name="Settings_Pivot_About.Header" xml:space="preserve"><value>关于</value></data>
+  <data name="Settings_ResetDefault" xml:space="preserve"><value>恢复默认</value></data>
+  <data name="Settings_Unit_Pt" xml:space="preserve"><value>{0} pt</value></data>
+  <data name="Settings_Unit_Lines" xml:space="preserve"><value>{0} 行</value></data>
+  <data name="Settings_Unit_Times" xml:space="preserve"><value>{0} 次</value></data>
+  <data name="Settings_Unit_Seconds" xml:space="preserve"><value>{0} 秒</value></data>
+  <data name="Settings_Unit_Minutes" xml:space="preserve"><value>{0} 分钟</value></data>
+  <data name="Settings_Unit_Never" xml:space="preserve"><value>永不超时</value></data>
+  <data name="Settings_Unit_Keys" xml:space="preserve"><value>个键</value></data>
+  <data name="Settings_Unit_Conflicts" xml:space="preserve"><value>处冲突</value></data>
+  <data name="Settings_Unit_Actions" xml:space="preserve"><value>个动作</value></data>
+  <data name="Settings_Confirm_ClearLogs" xml:space="preserve"><value>删除本机全部日志文件？</value></data>
+  <data name="Settings_AppearanceFallback" xml:space="preserve"><value>系统默认</value></data>
+  <data name="Settings_Diagnostics_OsVersion" xml:space="preserve"><value>系统版本：{0}</value></data>
+  <data name="Settings_Diagnostics_DeviceFamily" xml:space="preserve"><value>设备系列：{0}</value></data>
+  <data name="Settings_Diagnostics_Memory" xml:space="preserve"><value>内存：{0}</value></data>
+
+  <!-- V04a：FormSection 说明（动态拼装：当前值 + 范围） -->
+  <data name="Settings_FontSize_Description" xml:space="preserve"><value>{0}（8–28）</value></data>
+  <data name="Settings_Scrollback_Description" xml:space="preserve"><value>{0}（1000–50000）</value></data>
+  <data name="Settings_Reconnect_Description" xml:space="preserve"><value>{0}（0–10）</value></data>
+  <data name="Settings_Timeout_Description" xml:space="preserve"><value>{0}（5–60）</value></data>
+  <data name="Settings_AgentTimeout_Description" xml:space="preserve"><value>{0}（0–120）</value></data>
+
+  <!-- V04a：Toast 文案 -->
+  <data name="Settings_Toast_ThemeChanged" xml:space="preserve"><value>已切换主题</value></data>
+  <data name="Settings_Toast_AccentChanged" xml:space="preserve"><value>已切换强调色</value></data>
+  <data name="Settings_Toast_LanguageChanged" xml:space="preserve"><value>重启应用后生效</value></data>
+  <data name="Settings_Toast_KeepScreenChanged" xml:space="preserve"><value>常亮设置已生效</value></data>
+  <data name="Settings_Toast_LogLevelChanged" xml:space="preserve"><value>日志级别已生效</value></data>
+  <data name="Settings_Toast_DiagnosticsRefreshed" xml:space="preserve"><value>诊断信息已刷新</value></data>
+  <data name="Settings_Toast_DiagnosticsCopied" xml:space="preserve"><value>诊断信息已复制</value></data>
+  <data name="Settings_Toast_CopyFailed" xml:space="preserve"><value>复制失败</value></data>
+
+  <!-- V04a：通用 Pivot -->
+  <data name="Settings_General_Theme_Header" xml:space="preserve"><value>主题</value></data>
+  <data name="Settings_General_Theme_System" xml:space="preserve"><value>跟随系统</value></data>
+  <data name="Settings_General_Theme_Dark" xml:space="preserve"><value>深色</value></data>
+  <data name="Settings_General_Theme_Light" xml:space="preserve"><value>浅色</value></data>
+  <data name="Settings_General_Theme_Note" xml:space="preserve"><value>切换后立即生效，无需重启</value></data>
+  <data name="Settings_General_Accent_Header" xml:space="preserve"><value>使用系统强调色</value></data>
+  <data name="Settings_General_Sort_Header" xml:space="preserve"><value>主机排序</value></data>
+  <data name="Settings_General_Sort_Name" xml:space="preserve"><value>按名称</value></data>
+  <data name="Settings_General_Sort_Recent" xml:space="preserve"><value>按最近连接</value></data>
+  <data name="Settings_General_QuickConnect_Header" xml:space="preserve"><value>显示快速连接卡</value></data>
+  <data name="Settings_General_Haptics_Header" xml:space="preserve"><value>触感反馈</value></data>
+  <data name="Settings_General_Language_Header" xml:space="preserve"><value>语言</value></data>
+  <data name="Settings_General_Language_System" xml:space="preserve"><value>跟随系统</value></data>
+  <data name="Settings_General_Language_Zh" xml:space="preserve"><value>简体中文</value></data>
+  <data name="Settings_General_Language_En" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_General_Language_Note" xml:space="preserve"><value>切换语言后重启应用生效</value></data>
+
+  <!-- V04a：终端 Pivot -->
+  <data name="Settings_Terminal_Appearance_Header" xml:space="preserve"><value>默认外观</value></data>
+  <data name="Settings_Terminal_Appearance_Select" xml:space="preserve"><value>选择外观</value></data>
+  <data name="Settings_Terminal_FontSize_Header" xml:space="preserve"><value>默认字号</value></data>
+  <data name="Settings_Terminal_Scrollback_Header" xml:space="preserve"><value>回滚行数</value></data>
+  <data name="Settings_Terminal_Scrollback_Note" xml:space="preserve"><value>1000–50000，越大越占内存</value></data>
+  <data name="Settings_Terminal_AltScroll_Header" xml:space="preserve"><value>Alt-screen 滚动</value></data>
+  <data name="Settings_Terminal_AltScroll_Arrows" xml:space="preserve"><value>方向键</value></data>
+  <data name="Settings_Terminal_AltScroll_Wheel" xml:space="preserve"><value>滚轮</value></data>
+  <data name="Settings_Terminal_PasteConfirm_Header" xml:space="preserve"><value>多行粘贴前确认</value></data>
+  <data name="Settings_Terminal_CursorBlink_Header" xml:space="preserve"><value>光标闪烁跟随外观</value></data>
+  <data name="Settings_Terminal_CursorBlink_Note" xml:space="preserve"><value>在外观页中修改</value></data>
+  <data name="Settings_Terminal_CursorBlink_Link" xml:space="preserve"><value>去外观</value></data>
+
+  <!-- V04a：键盘 Pivot -->
+  <data name="Settings_Keyboard_KeyBar_Header" xml:space="preserve"><value>显示键条</value></data>
+  <data name="Settings_Keyboard_KeyBarLayout_Header" xml:space="preserve"><value>键条布局</value></data>
+  <data name="Settings_Keyboard_KeyBarLayout_Edit" xml:space="preserve"><value>编辑键条布局</value></data>
+  <data name="Settings_Keyboard_Backspace_Header" xml:space="preserve"><value>退格默认发送</value></data>
+  <data name="Settings_Keyboard_Backspace_Note" xml:space="preserve"><value>退格发送为每台主机单独设置（主机编辑页 → 终端 → 退格发送 Ctrl+H）</value></data>
+  <data name="Settings_Keyboard_Shortcuts_Header" xml:space="preserve"><value>快捷键表</value></data>
+  <data name="Settings_Keyboard_Shortcuts_Edit" xml:space="preserve"><value>编辑快捷键</value></data>
+
+  <!-- V04a：连接 Pivot -->
+  <data name="Settings_Connection_KeepScreen_Header" xml:space="preserve"><value>屏幕常亮</value></data>
+  <data name="Settings_Connection_KeepScreen_Never" xml:space="preserve"><value>从不</value></data>
+  <data name="Settings_Connection_KeepScreen_Session" xml:space="preserve"><value>会话中有连接时</value></data>
+  <data name="Settings_Connection_KeepScreen_Always" xml:space="preserve"><value>总是</value></data>
+  <data name="Settings_Connection_KeepAlive_Header" xml:space="preserve"><value>后台保持连接</value></data>
+  <data name="Settings_Connection_KeepAlive_Note" xml:space="preserve"><value>关闭后进入后台立即断开，回到应用后自动重连</value></data>
+  <data name="Settings_Connection_BgDisc_Header" xml:space="preserve"><value>后台 N 分钟后断开</value></data>
+  <data name="Settings_Connection_BgDisc_Off" xml:space="preserve"><value>关</value></data>
+  <data name="Settings_Connection_BgDisc_5" xml:space="preserve"><value>5 分钟</value></data>
+  <data name="Settings_Connection_BgDisc_15" xml:space="preserve"><value>15 分钟</value></data>
+  <data name="Settings_Connection_BgDisc_30" xml:space="preserve"><value>30 分钟</value></data>
+  <data name="Settings_Connection_BgDisc_60" xml:space="preserve"><value>60 分钟</value></data>
+  <data name="Settings_Connection_Reconnect_Header" xml:space="preserve"><value>自动重连次数</value></data>
+  <data name="Settings_Connection_Reconnect_Note" xml:space="preserve"><value>0 = 不自动重连</value></data>
+  <data name="Settings_Connection_Timeout_Header" xml:space="preserve"><value>连接超时</value></data>
+  <data name="Settings_Connection_AgentTimeout_Header" xml:space="preserve"><value>Agent 密钥保留</value></data>
+  <data name="Settings_Connection_AgentTimeout_Note" xml:space="preserve"><value>解锁后私钥在内存中保留的时长；挂起时立即清除</value></data>
+  <data name="Settings_Connection_Poll_Header" xml:space="preserve"><value>同步轮询间隔</value></data>
+  <data name="Settings_Connection_Poll_Off" xml:space="preserve"><value>关</value></data>
+  <data name="Settings_Connection_Poll_1" xml:space="preserve"><value>1 分钟</value></data>
+  <data name="Settings_Connection_Poll_5" xml:space="preserve"><value>5 分钟</value></data>
+  <data name="Settings_Connection_Poll_15" xml:space="preserve"><value>15 分钟</value></data>
+  <data name="Settings_Connection_Poll_Note" xml:space="preserve"><value>前台轮询，后台不轮询</value></data>
+
+  <!-- V04a：关于 Pivot -->
+  <data name="Settings_About_Version_Header" xml:space="preserve"><value>版本</value></data>
+  <data name="Settings_About_Licenses" xml:space="preserve"><value>开源许可</value></data>
+  <data name="Settings_About_LogLevel_Header" xml:space="preserve"><value>日志级别</value></data>
+  <data name="Settings_About_LogLevel_Debug" xml:space="preserve"><value>调试</value></data>
+  <data name="Settings_About_LogLevel_Info" xml:space="preserve"><value>信息</value></data>
+  <data name="Settings_About_LogLevel_Warn" xml:space="preserve"><value>警告</value></data>
+  <data name="Settings_About_LogLevel_Error" xml:space="preserve"><value>错误</value></data>
+  <data name="Settings_About_ExportLogs" xml:space="preserve"><value>导出日志</value></data>
+  <data name="Settings_About_ClearLogs" xml:space="preserve"><value>清空日志</value></data>
+  <data name="Settings_About_Diagnostics_Header" xml:space="preserve"><value>诊断信息</value></data>
+  <data name="Settings_About_Refresh" xml:space="preserve"><value>刷新</value></data>
+  <data name="Settings_About_Copy" xml:space="preserve"><value>复制</value></data>
 </root>

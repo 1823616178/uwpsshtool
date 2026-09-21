@@ -400,4 +400,124 @@
   <data name="DevTools_RowInput.Title" xml:space="preserve"><value>SP05 Input capture</value></data>
   <data name="DevTools_RowPlatform.Title" xml:space="preserve"><value>SP06 Platform spike</value></data>
   <data name="DevTools_RowGenHosts.Title" xml:space="preserve"><value>Generate 100 test hosts</value></data>
+
+  <!-- V04a (C-06 + C-07 + §6.4): SettingsPage text all resw bilingual -->
+  <data name="Settings_PageTitle" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Pivot_General.Header" xml:space="preserve"><value>General</value></data>
+  <data name="Settings_Pivot_Terminal.Header" xml:space="preserve"><value>Terminal</value></data>
+  <data name="Settings_Pivot_Keyboard.Header" xml:space="preserve"><value>Keyboard</value></data>
+  <data name="Settings_Pivot_Connection.Header" xml:space="preserve"><value>Connection</value></data>
+  <data name="Settings_Pivot_About.Header" xml:space="preserve"><value>About</value></data>
+  <data name="Settings_ResetDefault" xml:space="preserve"><value>Reset to default</value></data>
+  <data name="Settings_Unit_Pt" xml:space="preserve"><value>{0} pt</value></data>
+  <data name="Settings_Unit_Lines" xml:space="preserve"><value>{0} lines</value></data>
+  <data name="Settings_Unit_Times" xml:space="preserve"><value>{0} times</value></data>
+  <data name="Settings_Unit_Seconds" xml:space="preserve"><value>{0} sec</value></data>
+  <data name="Settings_Unit_Minutes" xml:space="preserve"><value>{0} min</value></data>
+  <data name="Settings_Unit_Never" xml:space="preserve"><value>Never</value></data>
+  <data name="Settings_Unit_Keys" xml:space="preserve"><value> keys</value></data>
+  <data name="Settings_Unit_Conflicts" xml:space="preserve"><value> conflicts</value></data>
+  <data name="Settings_Unit_Actions" xml:space="preserve"><value> actions</value></data>
+  <data name="Settings_Confirm_ClearLogs" xml:space="preserve"><value>Delete all local log files?</value></data>
+  <data name="Settings_AppearanceFallback" xml:space="preserve"><value>System default</value></data>
+  <data name="Settings_Diagnostics_OsVersion" xml:space="preserve"><value>OS: {0}</value></data>
+  <data name="Settings_Diagnostics_DeviceFamily" xml:space="preserve"><value>Device: {0}</value></data>
+  <data name="Settings_Diagnostics_Memory" xml:space="preserve"><value>Memory: {0}</value></data>
+
+  <!-- V04a: FormSection descriptions (dynamic: current value + range) -->
+  <data name="Settings_FontSize_Description" xml:space="preserve"><value>{0} (8–28)</value></data>
+  <data name="Settings_Scrollback_Description" xml:space="preserve"><value>{0} (1000–50000)</value></data>
+  <data name="Settings_Reconnect_Description" xml:space="preserve"><value>{0} (0–10)</value></data>
+  <data name="Settings_Timeout_Description" xml:space="preserve"><value>{0} (5–60)</value></data>
+  <data name="Settings_AgentTimeout_Description" xml:space="preserve"><value>{0} (0–120)</value></data>
+
+  <!-- V04a: Toast text -->
+  <data name="Settings_Toast_ThemeChanged" xml:space="preserve"><value>Theme changed</value></data>
+  <data name="Settings_Toast_AccentChanged" xml:space="preserve"><value>Accent changed</value></data>
+  <data name="Settings_Toast_LanguageChanged" xml:space="preserve"><value>Restart the app to apply</value></data>
+  <data name="Settings_Toast_KeepScreenChanged" xml:space="preserve"><value>Keep-screen-on setting applied</value></data>
+  <data name="Settings_Toast_LogLevelChanged" xml:space="preserve"><value>Log level applied</value></data>
+  <data name="Settings_Toast_DiagnosticsRefreshed" xml:space="preserve"><value>Diagnostics refreshed</value></data>
+  <data name="Settings_Toast_DiagnosticsCopied" xml:space="preserve"><value>Diagnostics copied</value></data>
+  <data name="Settings_Toast_CopyFailed" xml:space="preserve"><value>Copy failed</value></data>
+
+  <!-- V04a: General Pivot -->
+  <data name="Settings_General_Theme_Header" xml:space="preserve"><value>Theme</value></data>
+  <data name="Settings_General_Theme_System" xml:space="preserve"><value>System</value></data>
+  <data name="Settings_General_Theme_Dark" xml:space="preserve"><value>Dark</value></data>
+  <data name="Settings_General_Theme_Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Settings_General_Theme_Note" xml:space="preserve"><value>Takes effect immediately, no restart needed</value></data>
+  <data name="Settings_General_Accent_Header" xml:space="preserve"><value>Use system accent color</value></data>
+  <data name="Settings_General_Sort_Header" xml:space="preserve"><value>Host sort order</value></data>
+  <data name="Settings_General_Sort_Name" xml:space="preserve"><value>By name</value></data>
+  <data name="Settings_General_Sort_Recent" xml:space="preserve"><value>By recent connection</value></data>
+  <data name="Settings_General_QuickConnect_Header" xml:space="preserve"><value>Show quick connect card</value></data>
+  <data name="Settings_General_Haptics_Header" xml:space="preserve"><value>Haptic feedback</value></data>
+  <data name="Settings_General_Language_Header" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_General_Language_System" xml:space="preserve"><value>System</value></data>
+  <data name="Settings_General_Language_Zh" xml:space="preserve"><value>简体中文</value></data>
+  <data name="Settings_General_Language_En" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_General_Language_Note" xml:space="preserve"><value>Restart the app to apply the new language</value></data>
+
+  <!-- V04a: Terminal Pivot -->
+  <data name="Settings_Terminal_Appearance_Header" xml:space="preserve"><value>Default appearance</value></data>
+  <data name="Settings_Terminal_Appearance_Select" xml:space="preserve"><value>Select appearance</value></data>
+  <data name="Settings_Terminal_FontSize_Header" xml:space="preserve"><value>Default font size</value></data>
+  <data name="Settings_Terminal_Scrollback_Header" xml:space="preserve"><value>Scrollback lines</value></data>
+  <data name="Settings_Terminal_Scrollback_Note" xml:space="preserve"><value>1000–50000, more uses more memory</value></data>
+  <data name="Settings_Terminal_AltScroll_Header" xml:space="preserve"><value>Alt-screen scroll</value></data>
+  <data name="Settings_Terminal_AltScroll_Arrows" xml:space="preserve"><value>Arrow keys</value></data>
+  <data name="Settings_Terminal_AltScroll_Wheel" xml:space="preserve"><value>Scroll wheel</value></data>
+  <data name="Settings_Terminal_PasteConfirm_Header" xml:space="preserve"><value>Confirm before pasting multiple lines</value></data>
+  <data name="Settings_Terminal_CursorBlink_Header" xml:space="preserve"><value>Cursor blink follows appearance</value></data>
+  <data name="Settings_Terminal_CursorBlink_Note" xml:space="preserve"><value>Change in appearance page</value></data>
+  <data name="Settings_Terminal_CursorBlink_Link" xml:space="preserve"><value>Go to appearance</value></data>
+
+  <!-- V04a: Keyboard Pivot -->
+  <data name="Settings_Keyboard_KeyBar_Header" xml:space="preserve"><value>Show key bar</value></data>
+  <data name="Settings_Keyboard_KeyBarLayout_Header" xml:space="preserve"><value>Key bar layout</value></data>
+  <data name="Settings_Keyboard_KeyBarLayout_Edit" xml:space="preserve"><value>Edit key bar layout</value></data>
+  <data name="Settings_Keyboard_Backspace_Header" xml:space="preserve"><value>Backspace default</value></data>
+  <data name="Settings_Keyboard_Backspace_Note" xml:space="preserve"><value>Backspace is set per host (Host edit → Terminal → Backspace sends Ctrl+H)</value></data>
+  <data name="Settings_Keyboard_Shortcuts_Header" xml:space="preserve"><value>Shortcuts</value></data>
+  <data name="Settings_Keyboard_Shortcuts_Edit" xml:space="preserve"><value>Edit shortcuts</value></data>
+
+  <!-- V04a: Connection Pivot -->
+  <data name="Settings_Connection_KeepScreen_Header" xml:space="preserve"><value>Keep screen on</value></data>
+  <data name="Settings_Connection_KeepScreen_Never" xml:space="preserve"><value>Never</value></data>
+  <data name="Settings_Connection_KeepScreen_Session" xml:space="preserve"><value>When connected</value></data>
+  <data name="Settings_Connection_KeepScreen_Always" xml:space="preserve"><value>Always</value></data>
+  <data name="Settings_Connection_KeepAlive_Header" xml:space="preserve"><value>Keep alive in background</value></data>
+  <data name="Settings_Connection_KeepAlive_Note" xml:space="preserve"><value>Disconnect immediately when app goes to background, auto-reconnect on return</value></data>
+  <data name="Settings_Connection_BgDisc_Header" xml:space="preserve"><value>Disconnect after N minutes in background</value></data>
+  <data name="Settings_Connection_BgDisc_Off" xml:space="preserve"><value>Off</value></data>
+  <data name="Settings_Connection_BgDisc_5" xml:space="preserve"><value>5 min</value></data>
+  <data name="Settings_Connection_BgDisc_15" xml:space="preserve"><value>15 min</value></data>
+  <data name="Settings_Connection_BgDisc_30" xml:space="preserve"><value>30 min</value></data>
+  <data name="Settings_Connection_BgDisc_60" xml:space="preserve"><value>60 min</value></data>
+  <data name="Settings_Connection_Reconnect_Header" xml:space="preserve"><value>Reconnect attempts</value></data>
+  <data name="Settings_Connection_Reconnect_Note" xml:space="preserve"><value>0 = no auto-reconnect</value></data>
+  <data name="Settings_Connection_Timeout_Header" xml:space="preserve"><value>Connection timeout</value></data>
+  <data name="Settings_Connection_AgentTimeout_Header" xml:space="preserve"><value>Agent key retention</value></data>
+  <data name="Settings_Connection_AgentTimeout_Note" xml:space="preserve"><value>How long private keys stay in memory after unlock; cleared on suspend</value></data>
+  <data name="Settings_Connection_Poll_Header" xml:space="preserve"><value>Sync poll interval</value></data>
+  <data name="Settings_Connection_Poll_Off" xml:space="preserve"><value>Off</value></data>
+  <data name="Settings_Connection_Poll_1" xml:space="preserve"><value>1 min</value></data>
+  <data name="Settings_Connection_Poll_5" xml:space="preserve"><value>5 min</value></data>
+  <data name="Settings_Connection_Poll_15" xml:space="preserve"><value>15 min</value></data>
+  <data name="Settings_Connection_Poll_Note" xml:space="preserve"><value>Poll in foreground, not in background</value></data>
+
+  <!-- V04a: About Pivot -->
+  <data name="Settings_About_Version_Header" xml:space="preserve"><value>Version</value></data>
+  <data name="Settings_About_Licenses" xml:space="preserve"><value>Open source licenses</value></data>
+  <data name="Settings_About_LogLevel_Header" xml:space="preserve"><value>Log level</value></data>
+  <data name="Settings_About_LogLevel_Debug" xml:space="preserve"><value>Debug</value></data>
+  <data name="Settings_About_LogLevel_Info" xml:space="preserve"><value>Info</value></data>
+  <data name="Settings_About_LogLevel_Warn" xml:space="preserve"><value>Warning</value></data>
+  <data name="Settings_About_LogLevel_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="Settings_About_ExportLogs" xml:space="preserve"><value>Export logs</value></data>
+  <data name="Settings_About_ClearLogs" xml:space="preserve"><value>Clear logs</value></data>
+  <data name="Settings_About_Diagnostics_Header" xml:space="preserve"><value>Diagnostics</value></data>
+  <data name="Settings_About_Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Settings_About_Copy" xml:space="preserve"><value>Copy</value></data>
 </root>

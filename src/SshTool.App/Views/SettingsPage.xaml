@@ -12,209 +12,283 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Text="设置" Style="{StaticResource PageTitleTextStyle}"
+        <TextBlock x:Uid="Settings_PageTitle" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
         <Pivot x:Name="SettingsPivot" Grid.Row="1">
-            <PivotItem Header="通用">
+            <PivotItem x:Uid="Settings_Pivot_General">
                 <ScrollViewer>
                     <StackPanel Padding="{StaticResource PagePadding}">
-                        <ComboBox x:Name="ThemeBox" Header="主题" HorizontalAlignment="Stretch"
-                                   SelectionChanged="OnThemeChanged">
-                             <ComboBoxItem Content="跟随系统" />
-                             <ComboBoxItem Content="深色" />
-                             <ComboBoxItem Content="浅色" />
-                         </ComboBox>
-                         <TextBlock Text="切换后立即生效，无需重启"
-                                    Style="{StaticResource CaptionTextStyle}" />
-                        <ToggleSwitch x:Name="AccentSwitch" Header="使用系统强调色"
+                        <ComboBox x:Name="ThemeBox" x:Uid="Settings_General_Theme"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="OnThemeChanged" />
+                        <TextBlock x:Uid="Settings_General_Theme_Note"
+                                   Style="{StaticResource CaptionTextStyle}" />
+                        <ToggleSwitch x:Name="AccentSwitch" x:Uid="Settings_General_Accent"
                                       Margin="{StaticResource GapSmTop}"
                                       Toggled="OnAccentToggled" />
-                        <ComboBox x:Name="SortBox" Header="主机排序" HorizontalAlignment="Stretch"
+                        <ComboBox x:Name="SortBox" x:Uid="Settings_General_Sort"
+                                  HorizontalAlignment="Stretch"
                                   Margin="{StaticResource GapSmTop}"
-                                  SelectionChanged="OnSortChanged">
-                            <ComboBoxItem Content="按名称" />
-                            <ComboBoxItem Content="按最近连接" />
-                        </ComboBox>
-                        <ToggleSwitch x:Name="QuickConnectSwitch" Header="显示快速连接卡"
+                                  SelectionChanged="OnSortChanged" />
+                        <ToggleSwitch x:Name="QuickConnectSwitch" x:Uid="Settings_General_QuickConnect"
                                       Margin="{StaticResource GapSmTop}"
                                       Toggled="OnQuickConnectToggled" />
-                        <ToggleSwitch x:Name="HapticsSwitch" Header="触感反馈"
+                        <ToggleSwitch x:Name="HapticsSwitch" x:Uid="Settings_General_Haptics"
                                       Margin="{StaticResource GapSmTop}"
                                       Toggled="OnHapticsToggled" />
-                        <ComboBox x:Name="LanguageBox" Header="语言" HorizontalAlignment="Stretch"
+                        <ComboBox x:Name="LanguageBox" x:Uid="Settings_General_Language"
+                                  HorizontalAlignment="Stretch"
                                   Margin="{StaticResource GapSmTop}"
-                                  SelectionChanged="OnLanguageChanged">
-                            <ComboBoxItem Content="跟随系统" />
-                            <ComboBoxItem Content="简体中文" />
-                            <ComboBoxItem Content="English" />
-                        </ComboBox>
-                        <TextBlock Text="切换语言后重启应用生效"
+                                  SelectionChanged="OnLanguageChanged" />
+                        <TextBlock x:Uid="Settings_General_Language_Note"
                                    Style="{StaticResource CaptionTextStyle}" />
                     </StackPanel>
                 </ScrollViewer>
             </PivotItem>
-            <PivotItem Header="终端">
+            <PivotItem x:Uid="Settings_Pivot_Terminal">
                 <ScrollViewer>
                     <StackPanel Padding="{StaticResource PagePadding}">
-                        <TextBlock Text="默认外观" Style="{StaticResource BodyTextStyle}" />
-                        <TextBlock x:Name="AppearanceValue" Style="{StaticResource CaptionTextStyle}" />
-                        <HyperlinkButton Content="选择外观" Click="OnAppearanceClick" />
-                        <TextBlock Text="默认字号" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <Slider x:Name="FontSlider" Minimum="8" Maximum="28"
-                                StepFrequency="1" ValueChanged="OnFontChanged" />
-                        <TextBlock x:Name="FontValue" Style="{StaticResource CaptionTextStyle}" />
-                        <TextBlock Text="回滚行数" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <Slider x:Name="ScrollbackSlider" Minimum="1000" Maximum="50000"
-                                StepFrequency="1000" ValueChanged="OnScrollbackChanged" />
-                        <TextBlock x:Name="ScrollbackValue" Style="{StaticResource CaptionTextStyle}" />
-                        <TextBlock Text="1000–50000，越大越占内存"
-                                   Style="{StaticResource CaptionTextStyle}" />
-                        <ComboBox x:Name="AltScrollBox" Header="Alt-screen 滚动"
-                                  HorizontalAlignment="Stretch"
-                                  Margin="{StaticResource GapSmTop}"
-                                  SelectionChanged="OnAltScrollChanged">
-                            <ComboBoxItem Content="方向键" />
-                            <ComboBoxItem Content="滚轮" />
-                        </ComboBox>
-                        <ToggleSwitch x:Name="PasteConfirmSwitch" Header="多行粘贴前确认"
-                                      Margin="{StaticResource GapSmTop}"
-                                      Toggled="OnPasteConfirmToggled" />
-                        <TextBlock Text="光标闪烁跟随外观" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <TextBlock Text="在外观页中修改"
-                                   Style="{StaticResource CaptionTextStyle}" />
-                        <HyperlinkButton Content="去外观" Click="OnAppearanceClick" />
-                    </StackPanel>
-                </ScrollViewer>
-            </PivotItem>
-            <PivotItem Header="键盘">
-                <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <ToggleSwitch x:Name="KeyBarVisibleSwitch" Header="显示键条"
-                                      Toggled="OnKeyBarVisibleToggled" />
-                        <TextBlock Text="键条布局" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <TextBlock x:Name="KeyBarSummary" Style="{StaticResource CaptionTextStyle}" />
-                        <HyperlinkButton Content="编辑键条布局" Click="OnEditKeyBarClick" />
-                        <TextBlock Text="退格默认发送" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <TextBlock Text="退格发送为每台主机单独设置（主机编辑页 → 终端 → 退格发送 Ctrl+H）"
-                                   Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
-                        <TextBlock Text="快捷键表" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <TextBlock x:Name="ShortcutSummary" Style="{StaticResource CaptionTextStyle}" />
-                        <HyperlinkButton Content="编辑快捷键" Click="OnEditShortcutsClick" />
-                    </StackPanel>
-                </ScrollViewer>
-            </PivotItem>
-            <PivotItem Header="连接">
-                <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <ComboBox x:Name="KeepScreenBox" Header="屏幕常亮"
-                                  HorizontalAlignment="Stretch"
-                                  SelectionChanged="OnKeepScreenChanged">
-                            <ComboBoxItem Content="从不" />
-                            <ComboBoxItem Content="会话中有连接时" />
-                            <ComboBoxItem Content="总是" />
-                        </ComboBox>
-                        <ToggleSwitch x:Name="KeepAliveSwitch" Header="后台保持连接"
-                                      Margin="{StaticResource GapSmTop}"
-                                      Toggled="OnKeepAliveToggled" />
-                        <TextBlock Text="关闭后进入后台立即断开，回到应用后自动重连"
-                                   Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
-                        <ComboBox x:Name="BgDiscBox" Header="后台 N 分钟后断开"
-                                  HorizontalAlignment="Stretch"
-                                  Margin="{StaticResource GapSmTop}"
-                                  SelectionChanged="OnBgDiscChanged">
-                            <ComboBoxItem Content="关" />
-                            <ComboBoxItem Content="5 分钟" />
-                            <ComboBoxItem Content="15 分钟" />
-                            <ComboBoxItem Content="30 分钟" />
-                            <ComboBoxItem Content="60 分钟" />
-                        </ComboBox>
-                        <TextBlock Text="自动重连次数" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <Slider x:Name="ReconnectSlider" Minimum="0" Maximum="10"
-                                StepFrequency="1" ValueChanged="OnReconnectChanged" />
-                        <TextBlock x:Name="ReconnectValue" Style="{StaticResource CaptionTextStyle}" />
-                        <TextBlock Text="0 = 不自动重连"
-                                   Style="{StaticResource CaptionTextStyle}" />
-                        <TextBlock Text="连接超时" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <Slider x:Name="TimeoutSlider" Minimum="5" Maximum="60"
-                                 StepFrequency="1" ValueChanged="OnTimeoutChanged" />
-                        <TextBlock x:Name="TimeoutValue" Style="{StaticResource CaptionTextStyle}" />
-                        <!-- K03：Agent 密钥保留时间（分钟，0 = 永不超时） -->
-                        <TextBlock Text="Agent 密钥保留" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <Slider x:Name="AgentTimeoutSlider" Minimum="0" Maximum="120"
-                                 StepFrequency="5" ValueChanged="OnAgentTimeoutChanged" />
-                        <TextBlock x:Name="AgentTimeoutValue" Style="{StaticResource CaptionTextStyle}" />
-                        <TextBlock Text="解锁后私钥在内存中保留的时长；挂起时立即清除"
-                                   Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
-                        <ComboBox x:Name="PollBox" Header="同步轮询间隔"
-                                  HorizontalAlignment="Stretch"
-                                  Margin="{StaticResource GapSmTop}"
-                                  SelectionChanged="OnPollChanged">
-                            <ComboBoxItem Content="关" />
-                            <ComboBoxItem Content="1 分钟" />
-                            <ComboBoxItem Content="5 分钟" />
-                            <ComboBoxItem Content="15 分钟" />
-                        </ComboBox>
-                        <TextBlock Text="前台轮询，后台不轮询"
-                                   Style="{StaticResource CaptionTextStyle}" />
-                    </StackPanel>
-                </ScrollViewer>
-            </PivotItem>
-            <PivotItem Header="关于">
-                <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <TextBlock Text="版本" Style="{StaticResource BodyTextStyle}" />
-                        <TextBlock x:Name="AppVersionValue" Style="{StaticResource MonoCaptionTextStyle}" />
-                        <HyperlinkButton Content="开源许可" Click="OnLicensesClick" />
-                        <ComboBox x:Name="LogLevelBox" Header="日志级别"
-                                  HorizontalAlignment="Stretch"
-                                  Margin="{StaticResource GapSmTop}"
-                                  SelectionChanged="OnLogLevelChanged">
-                            <ComboBoxItem Content="调试" />
-                            <ComboBoxItem Content="信息" />
-                            <ComboBoxItem Content="警告" />
-                            <ComboBoxItem Content="错误" />
-                        </ComboBox>
-                        <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
-                            <Button Content="导出日志" Click="OnExportLogsClick" />
-                            <Button Content="清空日志" Click="OnClearLogsClick"
-                                    Margin="{StaticResource GapSmLeft}" />
-                        </StackPanel>
-                        <TextBlock Text="诊断信息" Style="{StaticResource SectionTitleTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <TextBlock x:Name="OsVersionValue" Style="{StaticResource CaptionTextStyle}" />
-                        <TextBlock x:Name="DeviceFamilyValue" Style="{StaticResource CaptionTextStyle}" />
-                        <TextBlock x:Name="MemoryValue" Style="{StaticResource CaptionTextStyle}" />
-                        <ListView x:Name="ProbeList" SelectionMode="None"
-                                  Margin="{StaticResource GapSmTop}">
-                            <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Padding="{StaticResource PagePadding}">
+                        <controls:FormSection x:Name="AppearanceSection">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <TextBlock x:Name="AppearanceValue" Style="{StaticResource CaptionTextStyle}" />
+                                    <HyperlinkButton x:Uid="Settings_Terminal_Appearance_Select" Click="OnAppearanceClick" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                        <controls:FormSection x:Name="FontSection" Margin="{StaticResource GapSmTop}">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock Text="{Binding Name}"
-                                                   Style="{StaticResource BodyTextStyle}" />
-                                        <TextBlock Grid.Column="1" Text="{Binding Status}"
-                                                   Style="{StaticResource CaptionTextStyle}" />
+                                        <Slider x:Name="FontSlider" Grid.Column="0"
+                                                Minimum="8" Maximum="28" StepFrequency="1"
+                                                ManipulationMode="All"
+                                                ValueChanged="OnFontChanged"
+                                                ManipulationStarted="OnSliderManipulationStarted"
+                                                ManipulationCompleted="OnFontManipulationCompleted" />
+                                        <HyperlinkButton x:Uid="Settings_ResetDefault" Grid.Column="1"
+                                                         Click="OnResetFontClick" />
                                     </Grid>
-                                </DataTemplate>
-                            </ListView.ItemTemplate>
-                        </ListView>
+                                    <TextBlock x:Name="FontValue" Style="{StaticResource CaptionTextStyle}" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                        <controls:FormSection x:Name="ScrollbackSection" Margin="{StaticResource GapSmTop}">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="ScrollbackSlider" Grid.Column="0"
+                                                Minimum="1000" Maximum="50000" StepFrequency="1000"
+                                                ManipulationMode="All"
+                                                ValueChanged="OnScrollbackChanged"
+                                                ManipulationStarted="OnSliderManipulationStarted"
+                                                ManipulationCompleted="OnScrollbackManipulationCompleted" />
+                                        <HyperlinkButton x:Uid="Settings_ResetDefault" Grid.Column="1"
+                                                         Click="OnResetScrollbackClick" />
+                                    </Grid>
+                                    <TextBlock x:Name="ScrollbackValue" Style="{StaticResource CaptionTextStyle}" />
+                                    <TextBlock x:Uid="Settings_Terminal_Scrollback_Note"
+                                               Style="{StaticResource CaptionTextStyle}" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                        <ComboBox x:Name="AltScrollBox" x:Uid="Settings_Terminal_AltScroll"
+                                  HorizontalAlignment="Stretch"
+                                  Margin="{StaticResource GapSmTop}"
+                                  SelectionChanged="OnAltScrollChanged" />
+                        <ToggleSwitch x:Name="PasteConfirmSwitch" x:Uid="Settings_Terminal_PasteConfirm"
+                                      Margin="{StaticResource GapSmTop}"
+                                      Toggled="OnPasteConfirmToggled" />
+                        <controls:FormSection Margin="{StaticResource GapSmTop}">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <TextBlock x:Uid="Settings_Terminal_CursorBlink_Note"
+                                               Style="{StaticResource CaptionTextStyle}" />
+                                    <HyperlinkButton x:Uid="Settings_Terminal_CursorBlink_Link" Click="OnAppearanceClick" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+            <PivotItem x:Uid="Settings_Pivot_Keyboard">
+                <ScrollViewer>
+                    <StackPanel Padding="{StaticResource PagePadding}">
+                        <ToggleSwitch x:Name="KeyBarVisibleSwitch" x:Uid="Settings_Keyboard_KeyBar"
+                                      Toggled="OnKeyBarVisibleToggled" />
+                        <controls:FormSection x:Name="KeyBarLayoutSection" Margin="{StaticResource GapSmTop}">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <TextBlock x:Name="KeyBarSummary" Style="{StaticResource CaptionTextStyle}" />
+                                    <HyperlinkButton x:Uid="Settings_Keyboard_KeyBarLayout_Edit" Click="OnEditKeyBarClick" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                        <controls:FormSection Margin="{StaticResource GapSmTop}">
+                            <controls:FormSection.SectionContent>
+                                <TextBlock x:Uid="Settings_Keyboard_Backspace_Note"
+                                           Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                        <controls:FormSection x:Name="ShortcutsSection" Margin="{StaticResource GapSmTop}">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <TextBlock x:Name="ShortcutSummary" Style="{StaticResource CaptionTextStyle}" />
+                                    <HyperlinkButton x:Uid="Settings_Keyboard_Shortcuts_Edit" Click="OnEditShortcutsClick" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+            <PivotItem x:Uid="Settings_Pivot_Connection">
+                <ScrollViewer>
+                    <StackPanel Padding="{StaticResource PagePadding}">
+                        <ComboBox x:Name="KeepScreenBox" x:Uid="Settings_Connection_KeepScreen"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="OnKeepScreenChanged" />
+                        <ToggleSwitch x:Name="KeepAliveSwitch" x:Uid="Settings_Connection_KeepAlive"
+                                      Margin="{StaticResource GapSmTop}"
+                                      Toggled="OnKeepAliveToggled" />
+                        <TextBlock x:Uid="Settings_Connection_KeepAlive_Note"
+                                   Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                        <ComboBox x:Name="BgDiscBox" x:Uid="Settings_Connection_BgDisc"
+                                  HorizontalAlignment="Stretch"
+                                  Margin="{StaticResource GapSmTop}"
+                                  SelectionChanged="OnBgDiscChanged" />
+                        <controls:FormSection x:Name="ReconnectSection" Margin="{StaticResource GapSmTop}">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="ReconnectSlider" Grid.Column="0"
+                                                Minimum="0" Maximum="10" StepFrequency="1"
+                                                ManipulationMode="All"
+                                                ValueChanged="OnReconnectChanged"
+                                                ManipulationStarted="OnSliderManipulationStarted"
+                                                ManipulationCompleted="OnReconnectManipulationCompleted" />
+                                        <HyperlinkButton x:Uid="Settings_ResetDefault" Grid.Column="1"
+                                                         Click="OnResetReconnectClick" />
+                                    </Grid>
+                                    <TextBlock x:Name="ReconnectValue" Style="{StaticResource CaptionTextStyle}" />
+                                    <TextBlock x:Uid="Settings_Connection_Reconnect_Note"
+                                               Style="{StaticResource CaptionTextStyle}" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                        <controls:FormSection x:Name="TimeoutSection" Margin="{StaticResource GapSmTop}">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="TimeoutSlider" Grid.Column="0"
+                                                Minimum="5" Maximum="60" StepFrequency="1"
+                                                ManipulationMode="All"
+                                                ValueChanged="OnTimeoutChanged"
+                                                ManipulationStarted="OnSliderManipulationStarted"
+                                                ManipulationCompleted="OnTimeoutManipulationCompleted" />
+                                        <HyperlinkButton x:Uid="Settings_ResetDefault" Grid.Column="1"
+                                                         Click="OnResetTimeoutClick" />
+                                    </Grid>
+                                    <TextBlock x:Name="TimeoutValue" Style="{StaticResource CaptionTextStyle}" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                        <controls:FormSection x:Name="AgentTimeoutSection" Margin="{StaticResource GapSmTop}">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Slider x:Name="AgentTimeoutSlider" Grid.Column="0"
+                                                Minimum="0" Maximum="120" StepFrequency="5"
+                                                ManipulationMode="All"
+                                                ValueChanged="OnAgentTimeoutChanged"
+                                                ManipulationStarted="OnSliderManipulationStarted"
+                                                ManipulationCompleted="OnAgentTimeoutManipulationCompleted" />
+                                        <HyperlinkButton x:Uid="Settings_ResetDefault" Grid.Column="1"
+                                                         Click="OnResetAgentTimeoutClick" />
+                                    </Grid>
+                                    <TextBlock x:Name="AgentTimeoutValue" Style="{StaticResource CaptionTextStyle}" />
+                                    <TextBlock x:Uid="Settings_Connection_AgentTimeout_Note"
+                                               Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                        <ComboBox x:Name="PollBox" x:Uid="Settings_Connection_Poll"
+                                  HorizontalAlignment="Stretch"
+                                  Margin="{StaticResource GapSmTop}"
+                                  SelectionChanged="OnPollChanged" />
+                        <TextBlock x:Uid="Settings_Connection_Poll_Note"
+                                   Style="{StaticResource CaptionTextStyle}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </PivotItem>
+            <PivotItem x:Uid="Settings_Pivot_About">
+                <ScrollViewer>
+                    <StackPanel Padding="{StaticResource PagePadding}">
+                        <controls:FormSection x:Name="VersionSection">
+                            <controls:FormSection.SectionContent>
+                                <TextBlock x:Name="AppVersionValue" Style="{StaticResource MonoCaptionTextStyle}" />
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                        <HyperlinkButton x:Uid="Settings_About_Licenses" Click="OnLicensesClick" />
+                        <ComboBox x:Name="LogLevelBox" x:Uid="Settings_About_LogLevel"
+                                  HorizontalAlignment="Stretch"
+                                  Margin="{StaticResource GapSmTop}"
+                                  SelectionChanged="OnLogLevelChanged" />
                         <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
-                            <Button Content="刷新" Click="OnRefreshDiagClick" />
-                            <Button Content="复制" Click="OnCopyDiagClick"
+                            <Button x:Uid="Settings_About_ExportLogs" Click="OnExportLogsClick" />
+                            <Button x:Uid="Settings_About_ClearLogs" Click="OnClearLogsClick"
                                     Margin="{StaticResource GapSmLeft}" />
                         </StackPanel>
+                        <controls:FormSection x:Name="DiagnosticsSection" Margin="{StaticResource GapSmTop}">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <TextBlock x:Name="OsVersionValue" Style="{StaticResource CaptionTextStyle}" />
+                                    <TextBlock x:Name="DeviceFamilyValue" Style="{StaticResource CaptionTextStyle}" />
+                                    <TextBlock x:Name="MemoryValue" Style="{StaticResource CaptionTextStyle}" />
+                                    <ListView x:Name="ProbeList" SelectionMode="None"
+                                              Margin="{StaticResource GapSmTop}">
+                                        <ListView.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Padding="{StaticResource PagePadding}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Text="{Binding Name}"
+                                                               Style="{StaticResource BodyTextStyle}" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding Status}"
+                                                               Style="{StaticResource CaptionTextStyle}" />
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListView.ItemTemplate>
+                                    </ListView>
+                                    <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                                        <Button x:Uid="Settings_About_Refresh" Click="OnRefreshDiagClick" />
+                                        <Button x:Uid="Settings_About_Copy" Click="OnCopyDiagClick"
+                                                Margin="{StaticResource GapSmLeft}" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
                     </StackPanel>
                 </ScrollViewer>
             </PivotItem>

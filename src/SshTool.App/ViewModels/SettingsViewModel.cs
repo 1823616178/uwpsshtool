@@ -44,6 +44,13 @@ namespace SshTool.App.ViewModels
         public const int MinAgentKeyTimeout = 0;
         public const int MaxAgentKeyTimeout = 120;
 
+        // V04a：各 Slider 恢复默认值（与 SafeGetInt 的 fallback 同源）。
+        public const int DefaultFontSize = 12;
+        public const int DefaultScrollback = 5000;
+        public const int DefaultReconnectAttempts = 6;
+        public const int DefaultConnectTimeout = 15;
+        public const int DefaultAgentKeyTimeout = 15;
+
         private static readonly int[] BackgroundDisconnectOptions = { 0, 5, 15, 30, 60 };
         private static readonly int[] SyncPollOptions = { 0, 60, 300, 900 };
 
@@ -154,7 +161,7 @@ namespace SshTool.App.ViewModels
 
         public int TerminalFontSize
         {
-            get { return SafeGetInt("terminalFontSize", 12); }
+            get { return SafeGetInt("terminalFontSize", DefaultFontSize); }
             set
             {
                 int clamped = Clamp(value, MinFontSize, MaxFontSize);
@@ -165,7 +172,7 @@ namespace SshTool.App.ViewModels
 
         public int ScrollbackLines
         {
-            get { return SafeGetInt("scrollbackLines", 5000); }
+            get { return SafeGetInt("scrollbackLines", DefaultScrollback); }
             set
             {
                 int clamped = Clamp(value, MinScrollback, MaxScrollback);
@@ -305,7 +312,7 @@ namespace SshTool.App.ViewModels
 
         public int ReconnectMaxAttempts
         {
-            get { return SafeGetInt("reconnectMaxAttempts", 6); }
+            get { return SafeGetInt("reconnectMaxAttempts", DefaultReconnectAttempts); }
             set
             {
                 int clamped = Clamp(value, MinReconnectAttempts, MaxReconnectAttempts);
@@ -316,7 +323,7 @@ namespace SshTool.App.ViewModels
 
         public int ConnectTimeoutSeconds
         {
-            get { return SafeGetInt("connectTimeoutSeconds", 15); }
+            get { return SafeGetInt("connectTimeoutSeconds", DefaultConnectTimeout); }
             set
             {
                 int clamped = Clamp(value, MinConnectTimeout, MaxConnectTimeout);
@@ -328,7 +335,7 @@ namespace SshTool.App.ViewModels
         // K03：Agent 密钥保留时间（分钟）。0 = 永不超时（native 惰性语义）。
         public int AgentKeyTimeoutMinutes
         {
-            get { return SafeGetInt("agentKeyTimeoutMinutes", 15); }
+            get { return SafeGetInt("agentKeyTimeoutMinutes", DefaultAgentKeyTimeout); }
             set
             {
                 int clamped = Clamp(value, MinAgentKeyTimeout, MaxAgentKeyTimeout);
