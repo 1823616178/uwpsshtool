@@ -18,6 +18,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml.Media;
 
 namespace SshTool.App.Terminal
@@ -714,7 +715,7 @@ namespace SshTool.App.Terminal
             Haptics.VibrateLight(true);
             if (CopiedToast != null)
             {
-                CopiedToast.Show("已复制");
+                CopiedToast.Show(ResourceLoader.GetForCurrentView().GetString("Terminal_CopiedToast"));
             }
         }
 
@@ -947,10 +948,12 @@ namespace SshTool.App.Terminal
         private void OnMouseContextMenu(object sender, Point point)
         {
             _ignoreNextTap = true;
+            // C-06：可见文案走 resw 双语（代码构造，走 ResourceLoader）。
+            var loader = ResourceLoader.GetForCurrentView();
             var flyout = new MenuFlyout();
-            flyout.Items.Add(MenuItem("复制", (s, a) => CopySelection()));
-            flyout.Items.Add(MenuItem("粘贴", (s, a) => PasteFromClipboard()));
-            flyout.Items.Add(MenuItem("全选", (s, a) =>
+            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuCopy"), (s, a) => CopySelection()));
+            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuPaste"), (s, a) => PasteFromClipboard()));
+            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuSelectAll"), (s, a) =>
             {
                 ISelectionGrid grid = CurrentGrid();
                 if (grid != null)
@@ -959,8 +962,8 @@ namespace SshTool.App.Terminal
                     RefreshSelectionOverlay();
                 }
             }));
-            flyout.Items.Add(MenuItem("清屏", (s, a) => SendInput(new byte[] { 0x1B, (byte)'[', (byte)'H', 0x1B, (byte)'[', (byte)'2', (byte)'J' })));
-            flyout.Items.Add(MenuItem("发送片段", (s, a) =>
+            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuClearScreen"), (s, a) => SendInput(new byte[] { 0x1B, (byte)'[', (byte)'H', 0x1B, (byte)'[', (byte)'2', (byte)'J' })));
+            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuSendSnippet"), (s, a) =>
             {
                 EventHandler handler = SnippetRequested;
                 if (handler != null)

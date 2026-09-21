@@ -14,6 +14,7 @@ namespace SshTool.App.Controls
     {
         private readonly DispatcherTimer _repeatTimer = new DispatcherTimer();
         private readonly Dictionary<string, Border> _modifierChrome = new Dictionary<string, Border>();
+        private readonly Dictionary<string, Border> _accentBars = new Dictionary<string, Border>();
         private string _layout = KeyBarLayout.DefaultString;
         private StickyModifiers _sticky = new StickyModifiers();
         private KeyBarKey _repeatKey;
@@ -115,6 +116,7 @@ namespace SshTool.App.Controls
             StopRepeat();
             KeysPanel.Children.Clear();
             _modifierChrome.Clear();
+            _accentBars.Clear();
             // V01a：收起键盘按钮图标固定在 XAML（IconKeyboard 字形），不再从布局表取 ⌨ 文本。
             IReadOnlyList<KeyBarKey> keys = KeyBarLayout.Parse(_layout);
             bool first = true;
@@ -142,9 +144,21 @@ namespace SshTool.App.Controls
                 VerticalAlignment = VerticalAlignment.Center,
                 Foreground = Brush("AppTextBrush")
             };
+            // V03b（05 §6.2 第 4 点）：键 Border 内叠一层 Grid，底部放 accent 条
+            //（Locked 态显示，其余态隐藏），与 Active/Off 明确区分。
+            var accentBar = new Border
+            {
+                Height = TokenDouble("KeyBarAccentBarHeight"),
+                VerticalAlignment = VerticalAlignment.Bottom,
+                Background = Brush("AppAccentBrush"),
+                Visibility = Visibility.Collapsed
+            };
+            var grid = new Grid();
+            grid.Children.Add(label);
+            grid.Children.Add(accentBar);
             var chrome = new Border
             {
-                Child = label,
+                Child = grid,
                 Background = Brush("KeyBarKeyBrush"),
                 MinWidth = TokenDouble("KeyBarKeyMinWidth"),
                 Height = TokenDouble("KeyBarHeight"),
@@ -166,6 +180,7 @@ namespace SshTool.App.Controls
             if (key.Kind == KeyBarKeyKind.Modifier)
             {
                 _modifierChrome[key.Id] = chrome;
+                _accentBars[key.Id] = accentBar;
             }
             return chrome;
         }
@@ -323,11 +338,31 @@ namespace SshTool.App.Controls
             {
                 return;
             }
-            var label = chrome.Child as TextBlock;
+            // V03b：键 Border 的 Child 是 Grid（含 TextBlock + accent 条），
+            // 需从 Grid 中取 TextBlock 改前景。
+            TextBlock label = null;
+            var grid = chrome.Child as Grid;
+            if (grid != null)
+            {
+                for (int i = 0; i < grid.Children.Count; i++)
+                {
+                    label = grid.Children[i] as TextBlock;
+                    if (label != null)
+                    {
+                        break;
+                    }
+                }
+            }
+            Border accentBar;
+            _accentBars.TryGetValue(id, out accentBar);
             if (state == StickyState.Off)
             {
                 chrome.Background = Brush("KeyBarKeyBrush");
                 chrome.BorderThickness = TokenThickness("BorderNone");
+                if (accentBar != null)
+                {
+                    accentBar.Visibility = Visibility.Collapsed;
+                }
                 if (label != null)
                 {
                     label.Foreground = Brush("AppTextBrush");
@@ -337,12 +372,21 @@ namespace SshTool.App.Controls
             if (state == StickyState.Locked)
             {
                 chrome.Background = Brush("KeyBarKeyLockedBrush");
-                chrome.BorderThickness = TokenThickness("KeyBarLockedBorder");
+                // V03b：accent 条替代 KeyBarLockedBorder 描边，作为 Locked 态主视觉区分。
+                chrome.BorderThickness = TokenThickness("BorderNone");
+                if (accentBar != null)
+                {
+                    accentBar.Visibility = Visibility.Visible;
+                }
             }
             else
             {
                 chrome.Background = Brush("KeyBarKeyActiveBrush");
                 chrome.BorderThickness = TokenThickness("BorderNone");
+                if (accentBar != null)
+                {
+                    accentBar.Visibility = Visibility.Collapsed;
+                }
             }
             if (label != null)
             {

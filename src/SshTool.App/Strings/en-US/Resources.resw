@@ -198,10 +198,30 @@
   <data name="Terminal_MenuAppearance" xml:space="preserve"><value>Appearance</value></data>
   <data name="Terminal_MenuDisconnect" xml:space="preserve"><value>Disconnect</value></data>
   <data name="Terminal_MenuCloseSession" xml:space="preserve"><value>Close session</value></data>
+  <!-- V03b (C-06): terminal right-click menu items + copied toast (assembled in code, resw bilingual). -->
+  <data name="Terminal_MenuCopy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Terminal_MenuPaste" xml:space="preserve"><value>Paste</value></data>
+  <data name="Terminal_MenuSelectAll" xml:space="preserve"><value>Select all</value></data>
+  <data name="Terminal_MenuClearScreen" xml:space="preserve"><value>Clear screen</value></data>
+  <data name="Terminal_MenuSendSnippet" xml:space="preserve"><value>Send snippet</value></data>
+  <data name="Terminal_CopiedToast" xml:space="preserve"><value>Copied</value></data>
   <data name="TabStrip_AddButton.AutomationProperties.Name" xml:space="preserve"><value>New tab</value></data>
   <data name="TabStrip_CloseButton_A11yName" xml:space="preserve"><value>Close tab</value></data>
+  <!-- V03b (C-06): TabStrip right-click menu item text (assembled in code, resw bilingual). -->
+  <data name="TabStrip_MenuRename" xml:space="preserve"><value>Rename</value></data>
+  <data name="TabStrip_MenuDuplicateSession" xml:space="preserve"><value>Duplicate session</value></data>
+  <data name="TabStrip_MenuCloseOthers" xml:space="preserve"><value>Close others</value></data>
+  <data name="TabStrip_MenuClose" xml:space="preserve"><value>Close</value></data>
+  <data name="TabStrip_RenameDialogTitle" xml:space="preserve"><value>Rename tab</value></data>
   <data name="Workspace_SplitButton_A11yName" xml:space="preserve"><value>Split pane</value></data>
   <data name="Workspace_CloseButton_A11yName" xml:space="preserve"><value>Close session</value></data>
+  <!-- V03b (C-06): split menu items + empty state + host picker empty (assembled in code, resw bilingual). -->
+  <data name="Workspace_SplitRight" xml:space="preserve"><value>Split right</value></data>
+  <data name="Workspace_SplitDown" xml:space="preserve"><value>Split down</value></data>
+  <data name="Workspace_EmptyTitle" xml:space="preserve"><value>No open tabs</value></data>
+  <data name="Workspace_EmptyDescription" xml:space="preserve"><value>Select a host on the left, or create a new tab to start.</value></data>
+  <data name="Workspace_EmptyPrimaryText" xml:space="preserve"><value>New tab</value></data>
+  <data name="Workspace_HostPickerEmpty" xml:space="preserve"><value>No hosts yet, add one first</value></data>
   <data name="Dialog_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Dialog_Ok" xml:space="preserve"><value>OK</value></data>
   <data name="Placeholder_Title" xml:space="preserve"><value>Coming soon</value></data>

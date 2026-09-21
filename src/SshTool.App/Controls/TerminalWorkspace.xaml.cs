@@ -50,6 +50,20 @@ namespace SshTool.App.Controls
             this.InitializeComponent();
             this.Unloaded += OnUnloaded;
             this.SizeChanged += OnSizeChanged;
+            ApplyEmptyStateText();
+        }
+
+        // C-06：空状态可见文案走 resw 双语（x:Uid 不覆盖 Title/Description/PrimaryText）。
+        private void ApplyEmptyStateText()
+        {
+            if (Empty == null)
+            {
+                return;
+            }
+            var loader = ResourceLoader.GetForCurrentView();
+            Empty.Title = loader.GetString("Workspace_EmptyTitle");
+            Empty.Description = loader.GetString("Workspace_EmptyDescription");
+            Empty.PrimaryText = loader.GetString("Workspace_EmptyPrimaryText");
         }
 
         public void Attach(WorkspaceViewModel viewModel)
@@ -816,8 +830,9 @@ namespace SshTool.App.Controls
                 return;
             }
             _viewModel.FocusPane(sessionId);
+            var loader = ResourceLoader.GetForCurrentView();
             var flyout = new MenuFlyout();
-            var right = new MenuFlyoutItem { Text = "向右分屏" };
+            var right = new MenuFlyoutItem { Text = loader.GetString("Workspace_SplitRight") };
             right.Click += (s, args) =>
             {
                 WorkspaceViewModel vm = _viewModel;
@@ -826,7 +841,7 @@ namespace SshTool.App.Controls
                     vm.SplitFocusedPaneAsync(SplitOrientation.Column).Forget("TerminalWorkspace.SplitPane", AppLog.Logger);
                 }
             };
-            var down = new MenuFlyoutItem { Text = "向下分屏" };
+            var down = new MenuFlyoutItem { Text = loader.GetString("Workspace_SplitDown") };
             down.Click += (s, args) =>
             {
                 WorkspaceViewModel vm = _viewModel;
@@ -1070,10 +1085,11 @@ namespace SshTool.App.Controls
                 AppLog.Error("TerminalWorkspace", "加载主机列表失败", ex);
                 return;
             }
+            var loader = ResourceLoader.GetForCurrentView();
             var flyout = new MenuFlyout();
             if (hosts == null || hosts.Count == 0)
             {
-                var empty = new MenuFlyoutItem { Text = "还没有主机，请先添加", IsEnabled = false };
+                var empty = new MenuFlyoutItem { Text = loader.GetString("Workspace_HostPickerEmpty"), IsEnabled = false };
                 flyout.Items.Add(empty);
             }
             else

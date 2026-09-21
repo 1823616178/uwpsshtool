@@ -198,10 +198,30 @@
   <data name="Terminal_MenuAppearance" xml:space="preserve"><value>外观</value></data>
   <data name="Terminal_MenuDisconnect" xml:space="preserve"><value>断开</value></data>
   <data name="Terminal_MenuCloseSession" xml:space="preserve"><value>关闭会话</value></data>
+  <!-- V03b（C-06）：终端右键菜单项 + 复制提示（代码构造，走 resw 双语）。 -->
+  <data name="Terminal_MenuCopy" xml:space="preserve"><value>复制</value></data>
+  <data name="Terminal_MenuPaste" xml:space="preserve"><value>粘贴</value></data>
+  <data name="Terminal_MenuSelectAll" xml:space="preserve"><value>全选</value></data>
+  <data name="Terminal_MenuClearScreen" xml:space="preserve"><value>清屏</value></data>
+  <data name="Terminal_MenuSendSnippet" xml:space="preserve"><value>发送片段</value></data>
+  <data name="Terminal_CopiedToast" xml:space="preserve"><value>已复制</value></data>
   <data name="TabStrip_AddButton.AutomationProperties.Name" xml:space="preserve"><value>新建标签</value></data>
   <data name="TabStrip_CloseButton_A11yName" xml:space="preserve"><value>关闭标签</value></data>
+  <!-- V03b（C-06）：TabStrip 右键菜单项文案（代码构造，走 resw 双语）。 -->
+  <data name="TabStrip_MenuRename" xml:space="preserve"><value>重命名</value></data>
+  <data name="TabStrip_MenuDuplicateSession" xml:space="preserve"><value>复制会话</value></data>
+  <data name="TabStrip_MenuCloseOthers" xml:space="preserve"><value>关闭其他</value></data>
+  <data name="TabStrip_MenuClose" xml:space="preserve"><value>关闭</value></data>
+  <data name="TabStrip_RenameDialogTitle" xml:space="preserve"><value>重命名标签</value></data>
   <data name="Workspace_SplitButton_A11yName" xml:space="preserve"><value>分屏</value></data>
   <data name="Workspace_CloseButton_A11yName" xml:space="preserve"><value>关闭会话</value></data>
+  <!-- V03b（C-06）：分屏菜单项 + 空状态 + 主机选择器空态（代码构造，走 resw 双语）。 -->
+  <data name="Workspace_SplitRight" xml:space="preserve"><value>向右分屏</value></data>
+  <data name="Workspace_SplitDown" xml:space="preserve"><value>向下分屏</value></data>
+  <data name="Workspace_EmptyTitle" xml:space="preserve"><value>没有打开的标签</value></data>
+  <data name="Workspace_EmptyDescription" xml:space="preserve"><value>在左侧选择主机，或新建一个标签开始。</value></data>
+  <data name="Workspace_EmptyPrimaryText" xml:space="preserve"><value>新建标签</value></data>
+  <data name="Workspace_HostPickerEmpty" xml:space="preserve"><value>还没有主机，请先添加</value></data>
   <data name="Dialog_Cancel" xml:space="preserve"><value>取消</value></data>
   <data name="Dialog_Ok" xml:space="preserve"><value>确定</value></data>
   <data name="Placeholder_Title" xml:space="preserve"><value>即将推出</value></data>

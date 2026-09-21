@@ -191,28 +191,30 @@ namespace SshTool.App.Controls
         }
 
         // §5.7 标签右键：重命名、复制会话、向右分屏、向下分屏、关闭其他（+关闭）。
+        // C-06：可见文案走 resw 双语（代码构造，走 ResourceLoader）。
         private void ShowTabMenu(FrameworkElement anchor, string tabId)
         {
             if (_viewModel == null || string.IsNullOrEmpty(tabId) || anchor == null)
             {
                 return;
             }
+            var loader = ResourceLoader.GetForCurrentView();
             var flyout = new MenuFlyout();
-            flyout.Items.Add(MenuItem("重命名", () => RenameAsync(tabId)));
-            flyout.Items.Add(MenuItem("复制会话", () =>
+            flyout.Items.Add(MenuItem(loader.GetString("TabStrip_MenuRename"), () => RenameAsync(tabId)));
+            flyout.Items.Add(MenuItem(loader.GetString("TabStrip_MenuDuplicateSession"), () =>
             {
                 _viewModel.DuplicateFocusedSessionAsync(tabId).Forget("TabStrip.DuplicateSession", AppLog.Logger);
             }));
-            flyout.Items.Add(MenuItem("向右分屏", () =>
+            flyout.Items.Add(MenuItem(loader.GetString("Workspace_SplitRight"), () =>
             {
                 _viewModel.SplitTabPaneAsync(tabId, SplitOrientation.Column).Forget("TabStrip.SplitPane", AppLog.Logger);
             }));
-            flyout.Items.Add(MenuItem("向下分屏", () =>
+            flyout.Items.Add(MenuItem(loader.GetString("Workspace_SplitDown"), () =>
             {
                 _viewModel.SplitTabPaneAsync(tabId, SplitOrientation.Row).Forget("TabStrip.SplitPane", AppLog.Logger);
             }));
-            flyout.Items.Add(MenuItem("关闭其他", () => _viewModel.CloseOthers(tabId)));
-            flyout.Items.Add(MenuItem("关闭", () => _viewModel.CloseTab(tabId)));
+            flyout.Items.Add(MenuItem(loader.GetString("TabStrip_MenuCloseOthers"), () => _viewModel.CloseOthers(tabId)));
+            flyout.Items.Add(MenuItem(loader.GetString("TabStrip_MenuClose"), () => _viewModel.CloseTab(tabId)));
             try
             {
                 flyout.ShowAt(anchor);
@@ -240,13 +242,14 @@ namespace SshTool.App.Controls
             {
                 return;
             }
+            var loader = ResourceLoader.GetForCurrentView();
             var box = new TextBox { Text = tab.Title ?? string.Empty };
             var dialog = new ContentDialog
             {
-                Title = "重命名标签",
+                Title = loader.GetString("TabStrip_RenameDialogTitle"),
                 Content = box,
-                PrimaryButtonText = "确定",
-                SecondaryButtonText = "取消",
+                PrimaryButtonText = loader.GetString("Dialog_Ok"),
+                SecondaryButtonText = loader.GetString("Dialog_Cancel"),
                 MaxWidth = (double)Application.Current.Resources["DialogMaxWidth"]
             };
             ContentDialogResult result;

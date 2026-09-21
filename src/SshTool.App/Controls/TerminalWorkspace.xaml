@@ -12,10 +12,9 @@
         </Grid.RowDefinitions>
         <controls:TabStrip x:Name="Strip" />
         <Canvas x:Name="PaneHost" Grid.Row="1" Background="{ThemeResource AppBgBrush}" />
+        <!-- V03b（C-06）：空状态文案走 resw 双语，代码后置赋值（x:Uid 不覆盖
+             Title/Description/PrimaryText 依赖属性）。 -->
         <controls:EmptyState x:Name="Empty" Grid.Row="1"
-                             Glyph="{StaticResource IconTerminal}"
-                             Title="没有打开的标签"
-                             Description="在左侧选择主机，或新建一个标签开始。"
-                             PrimaryText="新建标签" />
+                             Glyph="{StaticResource IconTerminal}" />
     </Grid>
 </UserControl>
