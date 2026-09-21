@@ -1329,6 +1329,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] V03a 📱 终端页信息条回归：单行紧凑/点击展开双行详情/横屏隐藏地址；菜单项（会话/键条/片段/SFTP/外观/断开/关闭）与重连倒计时 en-US 截断
 - [ ] V03b 📱 终端宽屏工作区：键条 keycap 底边+颜色双表达、TabStrip/分屏/手机信息条命令状态共享模型、Workspace 多标签+分屏操作、断线/重连蒙层
 - [ ] V04 📱 表单/Settings 回归：Slider 拖动中不重复落盘（C-07 fb057f8 证据为 x64 Debug 构建日志 0 编译错误）、恢复默认按钮、HostEdit 五 Section 与高级折叠、en-US 标签截断
+- [ ] V05 📱 SFTP/同步页回归：文件行 AppListRow、传输队列、U17 同步状态 Pivot/开关、U19 冲突解决、U20 安全清理流程（关闭同步密码/修改密码/删除保险库/注销账号）；SyncStatePresenter/ConflictPresenter 已单测（+36）
 - [ ] C-07 👤 设置滑块去重验证：x64 Debug 构建日志 0 编译错误（2026-09-21 verify ⑤ 步已覆盖，无需复跑）
 
 ---
@@ -1460,4 +1461,5 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-21 | V03b | 4f95e48 | **完成**（05 Phase 3 后半：KeyBar Locked 底边 accent 条 + C-06 清理 + 命令共享举证）。KeyBar 键 Border 内叠 Grid+底部 accent 条（Token KeyBarAccentBarHeight=2, AppAccentBrush），Locked 态显示/Off-Active 隐藏。C-06 清理 TerminalView 右键菜单+Toast、TabStrip 菜单+对话框、Workspace 分屏菜单+空态（+13 组双语键）。命令/状态共享举证：TabStrip 与 Workspace 经同一 WorkspaceVM。verify 全绿。 |
 | 2026-09-21 | V04a | fb057f8 | **完成**（05 Phase 4 前半：SettingsPage C-07 + §6.4 分组 + C-06）。C-07 修复：Slider 拖动中仅更新显示，ManipulationCompleted 立即提交 VM，键盘/点击 150ms debounce。§6.4：终端/连接页 Slider 用 FormSection 分组（+恢复默认按钮），VM 新增 Default* 常量。C-06：+85 组双语键。verify 全绿。 |
 | 2026-09-21 | V04b | dab8f86 | **完成**（05 Phase 4 后半：HostEdit/Keys/Snippets §6.4 + C-06）。HostEdit→五 FormSection + 高级折叠 + BottomActionBar。Keys 行改 AppListRow + BottomActionBar。Snippets 发送改 IconForward+resw。C-06：+77 组双语键。verify 全绿。遗留：HostEditVM.DescribeCredentialState() 中文待 V06。 |
-| 2026-09-21 | V05a | 34140bd | **完成**（05 Phase 5 前半：SFTP §6.5 视觉 + SftpViewModel C-05 迁移）。文件行改 AppListRow（IconGlyph/Title/Subtitle/TrailingContent 更多按钮）；面包屑/空态/传输行举证保留。C-05：Refresh/Upload/NewFolder 改 AsyncCommand（onError→AppLog），行命令(Reconnect等) + 8 处 RefreshAsync 调 `.Forget("Sftp.Xxx", AppLog.Logger)`；保留 `_refreshSeq`「最后一次+路径校验」机制。verify 全绿。 |
+| 2026-09-21 | V05a | 34140bd | **完成**（05 Phase 5 前半：SFTP §6.5 + SftpViewModel C-05 迁移）。文件行改 AppListRow；C-05：Refresh/Upload/NewFolder→AsyncCommand，行命令+8 处 RefreshAsync→`.Forget`；保留 `_refreshSeq`。verify 全绿。 |
+| 2026-09-21 | V05b | 4fa3562 | **完成**（05 Phase 5 后半：U17~U20 同步页 + Presenter + 单测）。新建 Views/Sync/{AccountSyncPage(U17+U18),SyncConflictPage(U19),SecurityRotatePage,ChangeLoginPasswordPage,DeleteAccountPage,DeleteVaultPage} + 6 VM。Core 新增 SyncStatePresenter(DetermineScreen/FormatRelativeTime/StatusCardText) + ConflictPresenter(ResolveTitle/Desc/Button/FieldDisplayName)，+36 单测(1416 总计)。C-06：+117 组双语键(zh-CN/en-US 各 649 条 parity 一致)。verify 全绿。遗留：SecurityRotateViewModel.RollbackSwitch() 保留未调用（Coordinator 内部回滚）；U18 设备撤销由 Core 抛错 VM 吞错记日志。 |
