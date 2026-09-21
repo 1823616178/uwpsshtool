@@ -12,7 +12,7 @@ class SessionThread final {
 public:
     using Task = EventLoop::Task;
 
-    SessionThread() = default;
+    SessionThread();
     ~SessionThread();
 
     SessionThread(const SessionThread&) = delete;

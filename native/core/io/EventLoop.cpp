@@ -1,5 +1,6 @@
 #include "EventLoop.h"
 #include "debug_log.h"
+#include "diag_counters.h"
 
 #include <ws2tcpip.h>
 #include <windows.h>
@@ -24,6 +25,9 @@ EventLoop::EventLoop(bool disableSocketWakeupForTesting)
 
 EventLoop::~EventLoop()
 {
+    // Q02：把未显式 removeSocket 的残留注册从计数器中扣除，保证计数可回归基线。
+    diagnostics::GlobalDiagCounters().eventLoopSockets.fetch_sub(
+        static_cast<std::int64_t>(registrations_.size()), std::memory_order_relaxed);
     closeWakeupPair();
 }
 
@@ -33,6 +37,7 @@ bool EventLoop::addSocket(Socket socket, short events, SocketCallback callback)
         return false;
     }
     registrations_.emplace(socket, Registration{events, std::move(callback)});
+    diagnostics::GlobalDiagCounters().eventLoopSockets.fetch_add(1, std::memory_order_relaxed);
     return true;
 }
 
@@ -48,7 +53,11 @@ bool EventLoop::modifySocket(Socket socket, short events)
 
 bool EventLoop::removeSocket(Socket socket)
 {
-    return registrations_.erase(socket) != 0;
+    const bool removed = registrations_.erase(socket) != 0;
+    if (removed) {
+        diagnostics::GlobalDiagCounters().eventLoopSockets.fetch_sub(1, std::memory_order_relaxed);
+    }
+    return removed;
 }
 
 void EventLoop::post(Task task)

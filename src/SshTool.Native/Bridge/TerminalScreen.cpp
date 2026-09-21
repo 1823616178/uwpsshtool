@@ -2,6 +2,8 @@
 #include "term/vterm_screen.h"
 #include "term/snapshot.h"
 
+#include "diag_counters.h"
+
 #include "pch.h"
 #include "Bridge/TerminalScreen.h"
 #include "Bridge/BridgeUtil.h"
@@ -38,10 +40,12 @@ namespace SshTool
             TerminalScreen::TerminalScreen()
                 : impl_(new Impl(80, 24))
             {
+                sshclient::diagnostics::GlobalDiagCounters().nativeScreens.fetch_add(1, std::memory_order_relaxed);
             }
 
             TerminalScreen::~TerminalScreen()
             {
+                sshclient::diagnostics::GlobalDiagCounters().nativeScreens.fetch_sub(1, std::memory_order_relaxed);
                 delete impl_;
                 impl_ = nullptr;
             }

@@ -9,8 +9,11 @@ using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
 using SshTool.App.Terminal;
 using SshTool.App.ViewModels;
+using SshTool.Core.Common;
 using SshTool.Core.Hosts;
+using SshTool.Core.Sessions;
 using SshTool.Core.Terminal;
+using Windows.ApplicationModel;
 using Windows.Foundation.Metadata;
 using Windows.System;
 using Windows.UI.Xaml;
@@ -18,6 +21,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using NativeBridge = SshTool.Native.Bridge;
+using NativeInfoBridge = SshTool.Native.NativeInfo;
 
 namespace SshTool.App.Views.Debug
 {
@@ -29,6 +33,11 @@ namespace SshTool.App.Views.Debug
     /// 内存读 MemoryManager.AppMemoryUsage（ApiInformation 守卫，15063 缺失时报不可用）。
     /// 结果整份经 DebugReport 落盘 LocalState\spike-reports\perf-*.txt（phone-portal 自取）。
     /// §15 中无法自动化的指标（冷启动/连接/按键回显/Argon2）见 doc/PERF-REPORT.md 占位。
+    ///
+    /// Q02（稳定性与泄漏）：对 DebugSshDefaults/页面输入的目标做「连接/断开 ×100」
+    /// 与「长稳 4h」两个脚本（需真机局域网可达的服务器），采样托管内存与 native
+    /// 资源计数（NativeInfo.DiagCounters：sessions/threads/sockets/screens）；
+    /// 挂起/恢复计数经应用生命周期事件自动记录并随报告落盘。
     /// </summary>
     public sealed partial class PerfPage : Page
     {
@@ -56,6 +65,18 @@ namespace SshTool.App.Views.Debug
         private const int FpsWindowMs = 500;          // 叠加读数刷新周期（SP04 同款）
         private const int MaxSampledIntervalMs = 1000; // 更大的间隔视为页面中断，不进样本
         private const double Mb = 1048576.0;
+
+        // ---- Q02（稳定性与泄漏，01-DESIGN §6.4 / 04-TASKS Q02）----
+        private const int Q2LoopCount = 100;          // 连接/断开循环次数
+        private const int Q2SampleEvery = 10;         // 每 N 次采一行样
+        private const int Q2ConnectTimeoutMs = 10000;
+        private const int Q2SettleMs = 5000;          // 结束后静置，观察内存回落
+        private const int Q2LongTickMs = 1000;        // 长稳停止响应粒度
+        private const int Q2LongSampleMs = 60000;     // 长稳采样间隔
+        private const long Q2LongTotalMs = 4L * 60 * 60 * 1000; // 长稳总时长 4 h
+        private const int Q2Cols = 80;
+        private const int Q2Rows = 24;
+        private const int Q2KeepaliveSeconds = 30;    // 长稳期间防 NAT/服务器空闲断开
 
         private readonly Stopwatch _clock = Stopwatch.StartNew();
         private readonly Random _rnd = new Random(20260920);
@@ -95,9 +116,19 @@ namespace SshTool.App.Views.Debug
         private bool _running;
         private int _generation;
 
+        // ---- Q02 状态 ----
+        private readonly NativeSshSessionFactory _q02Factory = new NativeSshSessionFactory();
+        private int _suspendCount;
+        private int _resumeCount;
+        private readonly StringBuilder _lifecycleLog = new StringBuilder();
+
         public PerfPage()
         {
             this.InitializeComponent();
+            Q02HostBox.Text = DebugSshDefaults.Host;
+            Q02PortBox.Text = DebugSshDefaults.PortText;
+            Q02UserBox.Text = DebugSshDefaults.User;
+            Q02PasswordBox.Password = DebugSshDefaults.Password;
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -107,6 +138,9 @@ namespace SshTool.App.Views.Debug
             _winStartMs = _liveLastMs;
             CompositionTarget.Rendering += OnRendering;
             HookTermCanvas();
+            // Q02：挂起/恢复计数（应用生命周期事件，UI 线程触发）
+            Application.Current.Suspending += OnAppSuspending;
+            Application.Current.Resuming += OnAppResuming;
             if (AppServices.Current != null)
             {
                 _hostsVm = new HostListViewModel(AppServices.Current);
@@ -138,6 +172,8 @@ namespace SshTool.App.Views.Debug
             _scrollActive = false;
             _scrollViewer = null;
             CompositionTarget.Rendering -= OnRendering;
+            Application.Current.Suspending -= OnAppSuspending;
+            Application.Current.Resuming -= OnAppResuming;
             Term.Screen = null;
             DisposeScreen();
             DisposeScrollScreens();
@@ -351,8 +387,10 @@ namespace SshTool.App.Views.Debug
             {
                 _nativeScreen = new NativeBridge.TerminalScreen();
                 _managedScreen = new NativeTerminalScreen(_nativeScreen);
-                Term.Screen = _managedScreen;
             }
+            // Q02 长稳期间会把 Term.Screen 换成会话的 screen，结束后要恢复本页绑定，
+            // 所以每次都重绑（幂等）。
+            Term.Screen = _managedScreen;
             SyncGrid();
             FrameScheduler.Instance.Wake();
         }
@@ -832,6 +870,8 @@ namespace SshTool.App.Views.Debug
             HostListButton.IsEnabled = enabled;
             ScrollbackButton.IsEnabled = enabled;
             GenerateHostsButton.IsEnabled = enabled;
+            Q02LoopButton.IsEnabled = enabled;
+            Q02LongButton.IsEnabled = enabled;
         }
 
         private async Task RunStepAsync(StringBuilder sb, string title, Func<StringBuilder, Task> body)
@@ -961,6 +1001,355 @@ namespace SshTool.App.Views.Debug
             else
             {
                 StatsText.Text = "生成命令不可用（AppServices 未就绪？）";
+            }
+        }
+
+        // ------------------------------------------------------------ Q02 稳定性与泄漏
+
+        private void UpdateLifecycleText()
+        {
+            Q02LifecycleText.Text = "挂起 " + _suspendCount + " / 恢复 " + _resumeCount;
+        }
+
+        private void OnAppSuspending(object sender, SuspendingEventArgs e)
+        {
+            // 应用挂起（UI 线程）：只计数与记录，不做清理（P01/LifecycleService 负责 SSH 存活）。
+            _suspendCount++;
+            lock (_lifecycleLog)
+            {
+                _lifecycleLog.AppendLine("挂起 #" + _suspendCount + " t=" + TotalMinutes().ToString("F1", CultureInfo.InvariantCulture) + "min");
+            }
+            UpdateLifecycleText();
+        }
+
+        private void OnAppResuming(object sender, object e)
+        {
+            _resumeCount++;
+            ulong mem;
+            string extra = TryMemory(out mem, out _) ? " 内存=" + FormatMb(mem) + "MB" : string.Empty;
+            lock (_lifecycleLog)
+            {
+                _lifecycleLog.AppendLine("恢复 #" + _resumeCount + " t=" + TotalMinutes().ToString("F1", CultureInfo.InvariantCulture) + "min" + extra + " " + NativeInfoBridge.DiagCounters());
+            }
+            UpdateLifecycleText();
+        }
+
+        private double TotalMinutes()
+        {
+            return _clock.Elapsed.TotalMinutes;
+        }
+
+        private bool TryParseQ02Target(out string host, out int port, out string user, out string password)
+        {
+            host = null;
+            port = 0;
+            user = null;
+            password = null;
+            if (!int.TryParse(Q02PortBox.Text, NumberStyles.None, CultureInfo.InvariantCulture, out port)
+                || port <= 0 || port > 65535)
+            {
+                StatsText.Text = "Q02：端口不合法";
+                return false;
+            }
+            host = Q02HostBox.Text == null ? string.Empty : Q02HostBox.Text.Trim();
+            user = Q02UserBox.Text == null ? string.Empty : Q02UserBox.Text.Trim();
+            password = Q02PasswordBox.Password ?? string.Empty;
+            if (host.Length == 0 || user.Length == 0)
+            {
+                StatsText.Text = "Q02：主机/用户名不能为空";
+                return false;
+            }
+            return true;
+        }
+
+        private SshConnectRequest BuildQ02Request(string host, int port, string user)
+        {
+            return new SshConnectRequest
+            {
+                Host = host,
+                Port = port,
+                Username = user,
+                ConnectTimeoutMs = Q2ConnectTimeoutMs,
+                KeepaliveSeconds = Q2KeepaliveSeconds,
+                TermType = "xterm-256color",
+                Cols = Q2Cols,
+                Rows = Q2Rows,
+            };
+        }
+
+        // 完整一轮：连接 → 主机密钥自动接受 → 密码认证 → 立即 Close/Dispose。
+        // 返回 null 成功；否则返回失败原因（不抛异常，循环继续）。
+        private async Task<string> Q02OneCycleAsync(string host, int port, string user, string password)
+        {
+            ISshSession session = _q02Factory.Create();
+            EventHandler<HostKeyCheckEventArgs> onKey = (s, e) => e.Accept();
+            try
+            {
+                session.HostKeyCheck += onKey;
+                SshErrorCode code = await session.ConnectAsync(BuildQ02Request(host, port, user)).ConfigureAwait(true);
+                if (code != SshErrorCode.None)
+                {
+                    return "connect=" + code;
+                }
+                code = await session.AuthenticatePasswordAsync(password).ConfigureAwait(true);
+                if (code != SshErrorCode.None)
+                {
+                    return "auth=" + code;
+                }
+                return null;
+            }
+            finally
+            {
+                session.HostKeyCheck -= onKey;
+                session.Close();
+                session.Dispose();
+            }
+        }
+
+        private async void OnQ02LoopClick(object sender, RoutedEventArgs e)
+        {
+            if (_running)
+            {
+                return;
+            }
+            string host;
+            int port;
+            string user;
+            string password;
+            if (!TryParseQ02Target(out host, out port, out user, out password))
+            {
+                return;
+            }
+
+            _running = true;
+            SetButtonsEnabled(false);
+            Q02StopButton.IsEnabled = true;
+            try
+            {
+                int gen = _generation;
+                StringBuilder sb = NewReport("Q02 连接/断开 ×" + Q2LoopCount +
+                    "（" + host + ":" + port + " user=" + user + "；密码不落报告）");
+                ulong mem0;
+                bool hasMem0 = TryMemory(out mem0, out _);
+                sb.AppendLine("基线" + (hasMem0 ? " 内存=" + FormatMb(mem0) + "MB" : "") + " " + NativeInfoBridge.DiagCounters());
+                int failures = 0;
+                for (int i = 1; i <= Q2LoopCount; i++)
+                {
+                    if (_generation != gen)
+                    {
+                        sb.AppendLine("已中止于第 " + i + " 次（停止或页面离开）");
+                        break;
+                    }
+                    string err = await Q02OneCycleAsync(host, port, user, password).ConfigureAwait(true);
+                    if (err != null)
+                    {
+                        failures++;
+                        sb.AppendLine("第 " + i + " 次失败：" + err);
+                    }
+                    if (i % Q2SampleEvery == 0)
+                    {
+                        ulong m;
+                        TryMemory(out m, out _);
+                        sb.AppendLine("第 " + i + " 次" + (m > 0 ? " 内存=" + FormatMb(m) + "MB" : string.Empty)
+                            + " " + NativeInfoBridge.DiagCounters());
+                    }
+                }
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                await Task.Delay(Q2SettleMs).ConfigureAwait(true);
+                ulong mem1;
+                bool hasMem1 = TryMemory(out mem1, out _);
+                sb.AppendLine("结束" + (hasMem1 ? " 内存=" + FormatMb(mem1) + "MB" : string.Empty) + " " + NativeInfoBridge.DiagCounters());
+                if (hasMem0 && hasMem1 && mem0 > 0)
+                {
+                    double pct = (double)(mem1 - mem0) * 100.0 / mem0;
+                    sb.AppendLine("Δ=" + pct.ToString("F1", CultureInfo.InvariantCulture) +
+                        "%（验收 ≤ +10%）失败=" + failures + "/" + Q2LoopCount);
+                }
+                else
+                {
+                    sb.AppendLine("失败=" + failures + "/" + Q2LoopCount);
+                }
+                AppendLifecycleLog(sb);
+                string report = sb.ToString();
+                ShowReport(report);
+                StatsText.Text = await DebugReport.PublishAsync("perf-q02-loop", "Q02", report);
+            }
+            catch (Exception ex)
+            {
+                StatsText.Text = "Q02 循环中断：" + ex.GetType().Name + " " + ex.Message;
+            }
+            finally
+            {
+                _running = false;
+                SetButtonsEnabled(true);
+                Q02StopButton.IsEnabled = false;
+            }
+        }
+
+        private async void OnQ02LongClick(object sender, RoutedEventArgs e)
+        {
+            if (_running)
+            {
+                // 长稳进行中再点 = 请求停止（generation 作废由 OnQ02StopClick 承担，这里防重入即可）
+                return;
+            }
+            string host;
+            int port;
+            string user;
+            string password;
+            if (!TryParseQ02Target(out host, out port, out user, out password))
+            {
+                return;
+            }
+
+            _running = true;
+            SetButtonsEnabled(false);
+            Q02StopButton.IsEnabled = true;
+            ISshSession session = null;
+            try
+            {
+                int gen = _generation;
+                StringBuilder sb = NewReport("Q02 长稳（最长 4 小时，每 60 s 采样；" +
+                    host + ":" + port + " user=" + user + "；密码不落报告）");
+                session = _q02Factory.Create();
+                EventHandler<HostKeyCheckEventArgs> onKey = (s, keyArgs) => keyArgs.Accept();
+                session.HostKeyCheck += onKey;
+                try
+                {
+                    SshErrorCode code = await session.ConnectAsync(BuildQ02Request(host, port, user)).ConfigureAwait(true);
+                    if (code != SshErrorCode.None)
+                    {
+                        sb.AppendLine("连接失败 " + code);
+                        string early = sb.ToString();
+                        ShowReport(early);
+                        StatsText.Text = await DebugReport.PublishAsync("perf-q02-long", "Q02", early);
+                        return;
+                    }
+                    code = await session.AuthenticatePasswordAsync(password).ConfigureAwait(true);
+                    if (code != SshErrorCode.None)
+                    {
+                        sb.AppendLine("认证失败 " + code);
+                        string early = sb.ToString();
+                        ShowReport(early);
+                        StatsText.Text = await DebugReport.PublishAsync("perf-q02-long", "Q02", early);
+                        return;
+                    }
+                    // 开 shell 并挂到页面终端：长稳同时覆盖「会话保活 + 输出渲染」路径。
+                    code = await session.OpenShellAsync(Q2Cols, Q2Rows).ConfigureAwait(true);
+                    if (code != SshErrorCode.None)
+                    {
+                        sb.AppendLine("open shell 失败 " + code + "（仅保活采数继续）");
+                    }
+                }
+                finally
+                {
+                    session.HostKeyCheck -= onKey;
+                }
+                Term.Screen = session.Screen;
+                FrameScheduler.Instance.Wake();
+                ulong mem0;
+                TryMemory(out mem0, out _);
+                sb.AppendLine("基线" + (mem0 > 0 ? " 内存=" + FormatMb(mem0) + "MB" : string.Empty) + " " + NativeInfoBridge.DiagCounters());
+                ShowReport(sb.ToString());
+                long startMs = _clock.ElapsedMilliseconds;
+                long nextSampleMs = startMs + Q2LongSampleMs;
+                bool aborted = false;
+                while (true)
+                {
+                    await Task.Delay(Q2LongTickMs).ConfigureAwait(true);
+                    if (_generation != gen)
+                    {
+                        sb.AppendLine("已中止（停止或页面离开）t=" + ((_clock.ElapsedMilliseconds - startMs) / 60000) + "min");
+                        aborted = true;
+                        break;
+                    }
+                    long now = _clock.ElapsedMilliseconds;
+                    if (now < nextSampleMs && now - startMs < Q2LongTotalMs)
+                    {
+                        continue;
+                    }
+                    nextSampleMs += Q2LongSampleMs;
+                    long elapsed = now - startMs;
+                    SessionStateKind kind = session.State;
+                    if (kind != SessionStateKind.Established)
+                    {
+                        sb.AppendLine("t=" + (elapsed / 60000) + "min 会话状态变为 " + kind + "，结束采数（非崩溃，记录供分析）");
+                        break;
+                    }
+                    ulong m;
+                    TryMemory(out m, out _);
+                    sb.AppendLine("t=" + (elapsed / 60000) + "min" + (m > 0 ? " 内存=" + FormatMb(m) + "MB" : string.Empty)
+                        + " " + NativeInfoBridge.DiagCounters());
+                    ReportBox.Text = sb.ToString();
+                    StatsText.Text = "Q02 长稳进行中 " + (elapsed / 60000) + "/" + (Q2LongTotalMs / 60000) + " min";
+                    if (elapsed >= Q2LongTotalMs)
+                    {
+                        sb.AppendLine("达到 4 小时，正常结束");
+                        break;
+                    }
+                }
+                session.Close();
+                session.Dispose();
+                session = null;
+                Term.Screen = _managedScreen;
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                await Task.Delay(Q2SettleMs).ConfigureAwait(true);
+                ulong mem1;
+                TryMemory(out mem1, out _);
+                sb.AppendLine("结束" + (mem1 > 0 ? " 内存=" + FormatMb(mem1) + "MB" : string.Empty) + " " + NativeInfoBridge.DiagCounters());
+                if (mem0 > 0 && mem1 > 0)
+                {
+                    double pct = (double)(mem1 - mem0) * 100.0 / mem0;
+                    sb.AppendLine("Δ=" + pct.ToString("F1", CultureInfo.InvariantCulture) + "%（长稳不设上限，仅记录）");
+                }
+                AppendLifecycleLog(sb);
+                sb.AppendLine(aborted ? "结论：中途停止，数据仍有效供分析" : "结论：完整跑完");
+                string report = sb.ToString();
+                ShowReport(report);
+                StatsText.Text = await DebugReport.PublishAsync("perf-q02-long", "Q02", report);
+            }
+            catch (Exception ex)
+            {
+                StatsText.Text = "Q02 长稳中断：" + ex.GetType().Name + " " + ex.Message;
+            }
+            finally
+            {
+                if (session != null)
+                {
+                    try
+                    {
+                        session.Close();
+                        session.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+                Term.Screen = _managedScreen;
+                _running = false;
+                SetButtonsEnabled(true);
+                Q02StopButton.IsEnabled = false;
+            }
+        }
+
+        private void OnQ02StopClick(object sender, RoutedEventArgs e)
+        {
+            // 与页面离开同一语义：作废在跑循环的 generation，方法自行收尾并出报告。
+            _generation++;
+            StatsText.Text = "Q02：已请求停止，等待在跑脚本收尾…";
+        }
+
+        private void AppendLifecycleLog(StringBuilder sb)
+        {
+            sb.AppendLine("挂起 " + _suspendCount + " / 恢复 " + _resumeCount);
+            lock (_lifecycleLog)
+            {
+                if (_lifecycleLog.Length > 0)
+                {
+                    sb.Append(_lifecycleLog.ToString());
+                }
             }
         }
 

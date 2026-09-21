@@ -2,6 +2,7 @@
 
 #include "channel.h"
 #include "debug_log.h"
+#include "diag_counters.h"
 #include "fwd/direct_tcpip.h"
 #include "fwd/local_listener.h"
 #include "fwd/remote_listen.h"
@@ -108,10 +109,12 @@ SshSession::SshSession(io::SessionThread& thread,
     : thread_(thread), options_(options), stateCallback_(std::move(callback))
 {
     EnsureLibssh2Initialized();
+    diagnostics::GlobalDiagCounters().sshSessions.fetch_add(1, std::memory_order_relaxed);
 }
 
 SshSession::~SshSession()
 {
+    diagnostics::GlobalDiagCounters().sshSessions.fetch_sub(1, std::memory_order_relaxed);
     // The owner stops the session thread or waits for a terminal state before
     // destruction. Terminal transitions already release on the loop thread.
     if (session_ != nullptr) {

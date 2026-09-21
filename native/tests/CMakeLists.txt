@@ -28,6 +28,7 @@ enable_testing()
 
 add_library(ssh_core_host STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/core_info.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/diag_counters.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/io/EventLoop.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/io/SessionThread.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/io/WinsockInit.cpp)

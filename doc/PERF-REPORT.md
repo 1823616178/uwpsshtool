@@ -81,7 +81,36 @@ Q09 正式包才会关）→「Q01 性能基准」进入。叠加读数每 500 m
     两者之和才是每帧真实负担；
   - 场景⑤只量 native 回滚 + 网格的内存（不渲染）；「4 会话」的会话管理开销另由 Q02 长稳覆盖。
 
-## 5. 变更记录
+## 5. Q02 稳定性与泄漏（脚本口径与操作指南）
+
+PerfPage 新增 Q02 区（目标主机/端口/用户名/密码输入框，默认取 `DebugSshDefaults`，
+需真机局域网可达一台 SSH 服务器；密码不落报告）：
+
+| 脚本 | 按钮 | 做什么 | 看什么 |
+|---|---|---|---|
+| 连接/断开 ×100 | `Q02 连接/断开×100` | 完整走 连接→主机密钥自动接受→密码认证→立即 Close/Dispose 共 100 轮，每 10 轮采一行（内存 + native 计数），结束后 GC 静置 5 s | 「Δ=…%（验收 ≤ +10%）」；`sessions/threads/sockets/screens` 应全部回到基线，回不去的项即泄漏点 |
+| 长稳 | `Q02 长稳开始/停止` | 连接 + 认证 + 开 shell 并挂到页面终端实时渲染（覆盖保活 + 渲染路径），每 60 s 采样，最长 4 h；`Q02 停止` 可随时中止（数据仍落盘） | 内存曲线是否单调上涨；会话掉线（Disconnected 非崩溃但记录）；4 h 无崩溃 |
+| 挂起/恢复 | （自动） | 页面订阅应用 Suspending/Resuming，自动计数并记录每次恢复时的内存与 native 计数 | 目标 20 次循环后会话存活、内存回落；计数随两份报告落盘 |
+
+native 资源计数（Q02 新增 `NativeInfo.DiagCounters()`，实现在
+`native/core/diag_counters.{h,cpp}`，Debug/Release 都编译——真机 Release ARM 采数可读）：
+
+- `sessions`：ssh::SshSession 存活数（构造/析构）；
+- `threads`：io::SessionThread 存活数；
+- `sockets`：EventLoop 注册 socket 数（析构时扣除残留，保证可回归）；
+- `screens`：Bridge TerminalScreen 存活数（终端网格对象）。
+
+报告落盘：`perf-q02-loop-*.txt` 与 `perf-q02-long-*.txt`（设备门户自取）。
+
+### 5.1 实测数据（待真机回填）
+
+```
+（待真机：连接/断开×100 的基线/每 10 轮采样/结束/Δ；长稳逐分钟曲线摘要；
+  挂起/恢复计数。回填后按「100 次循环内存 ≤ 基线 +10%、4 h 无崩溃」判定，
+  发现泄漏在此追加剖析与修复提交记录。）
+```
+
+## 6. 变更记录
 
 - 2026-09-20：建立报告骨架与 PerfPage 脚手架（场景全部本地化，Bridge.TerminalScreen
   新增 FeedBytes/ResizeGrid 公开入口供字节流直喂）；📱 数据待真机采集。

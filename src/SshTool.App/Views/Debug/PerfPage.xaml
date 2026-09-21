@@ -19,6 +19,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -60,7 +61,27 @@
         <TextBlock x:Name="StatsText" Grid.Row="3" Style="{StaticResource MonoCaptionTextStyle}"
                    TextWrapping="Wrap" Margin="{StaticResource GapSmTop}" Text="未开始" />
 
-        <Grid Grid.Row="4" Margin="{StaticResource GapMdTop}">
+        <!-- Q02：稳定性与泄漏（连接/断开×100、长稳、挂起/恢复计数；口径与操作见 doc/PERF-REPORT.md Q02 节） -->
+        <StackPanel Grid.Row="4" Margin="{StaticResource GapMdTop}">
+            <StackPanel Orientation="Horizontal">
+                <TextBox x:Name="Q02HostBox" PlaceholderText="主机" Width="150" />
+                <TextBox x:Name="Q02PortBox" PlaceholderText="端口" Width="80" Margin="{StaticResource GapSmLeft}" />
+                <TextBox x:Name="Q02UserBox" PlaceholderText="用户名" Width="120" Margin="{StaticResource GapSmLeft}" />
+                <PasswordBox x:Name="Q02PasswordBox" PlaceholderText="密码" Width="150" Margin="{StaticResource GapSmLeft}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                <Button x:Name="Q02LoopButton" Content="Q02 连接/断开×100" Click="OnQ02LoopClick" />
+                <Button x:Name="Q02LongButton" Content="Q02 长稳开始/停止" Click="OnQ02LongClick"
+                        Margin="{StaticResource GapSmLeft}" />
+                <Button x:Name="Q02StopButton" Content="Q02 停止" Click="OnQ02StopClick"
+                        Margin="{StaticResource GapSmLeft}" IsEnabled="False" />
+                <TextBlock x:Name="Q02LifecycleText" Style="{StaticResource MonoCaptionTextStyle}"
+                           VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}"
+                           Text="挂起 0 / 恢复 0" />
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="5" Margin="{StaticResource GapMdTop}">
             <Grid x:Name="TermHost">
                 <term:TerminalView x:Name="Term" />
                 <!-- FPS 叠加（不可点，盖在终端左上） -->

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "NativeInfo.h"
+#include "diag_counters.h"
 
 #include <openssl/crypto.h>
 #include <string>
@@ -23,6 +24,18 @@ String^ NativeInfo::OpenSslVersion()
             ws += static_cast<wchar_t>(*v);
             ++v;
         }
+    }
+    return ref new String(ws.c_str());
+}
+
+String^ NativeInfo::DiagCounters()
+{
+    const std::string snapshot = sshclient::diagnostics::DiagCountersSnapshot();
+    std::wstring ws;
+    ws.reserve(snapshot.size());
+    for (size_t i = 0; i < snapshot.size(); ++i)
+    {
+        ws += static_cast<wchar_t>(static_cast<unsigned char>(snapshot[i]));
     }
     return ref new String(ws.c_str());
 }

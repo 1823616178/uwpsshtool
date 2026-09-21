@@ -1,12 +1,20 @@
 #include "SessionThread.h"
 
+#include "diag_counters.h"
+
 #include <windows.h>
 
 namespace sshclient {
 namespace io {
 
+SessionThread::SessionThread()
+{
+    diagnostics::GlobalDiagCounters().sessionThreads.fetch_add(1, std::memory_order_relaxed);
+}
+
 SessionThread::~SessionThread()
 {
+    diagnostics::GlobalDiagCounters().sessionThreads.fetch_sub(1, std::memory_order_relaxed);
     stop();
 }
 

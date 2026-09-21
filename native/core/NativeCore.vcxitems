@@ -17,6 +17,8 @@
 
   <ItemGroup Label="Core">
     <ClInclude Include="$(NativeCoreDir)core_info.h" />
+    <ClInclude Include="$(NativeCoreDir)debug_log.h" />
+    <ClInclude Include="$(NativeCoreDir)diag_counters.h" />
     <ClInclude Include="$(NativeCoreDir)io\EventLoop.h" />
     <ClInclude Include="$(NativeCoreDir)io\SessionThread.h" />
     <ClInclude Include="$(NativeCoreDir)io\WinsockInit.h" />
@@ -46,7 +48,7 @@
     <ClInclude Include="$(NativeCoreDir)fwd\remote_listen.h" />
     <ClInclude Include="$(NativeCoreDir)fwd\socks5.h" />
     <ClInclude Include="$(NativeCoreDir)fwd\jump_transport.h" />
-    <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp;$(NativeCoreDir)ssh\session.cpp;$(NativeCoreDir)ssh\hostkey.cpp;$(NativeCoreDir)ssh\auth.cpp;$(NativeCoreDir)ssh\agent.cpp;$(NativeCoreDir)ssh\channel.cpp;$(NativeCoreDir)term\grid.cpp;$(NativeCoreDir)term\vterm_screen.cpp;$(NativeCoreDir)term\scrollback.cpp;$(NativeCoreDir)term\snapshot.cpp;$(NativeCoreDir)crypto\aad.cpp;$(NativeCoreDir)crypto\vault.cpp;$(NativeCoreDir)crypto\keytool.cpp;$(NativeCoreDir)sftp\sftp_session.cpp;$(NativeCoreDir)sftp\transfer.cpp;$(NativeCoreDir)fwd\pump.cpp;$(NativeCoreDir)fwd\direct_tcpip.cpp;$(NativeCoreDir)fwd\local_listener.cpp;$(NativeCoreDir)fwd\remote_listen.cpp;$(NativeCoreDir)fwd\socks5.cpp;$(NativeCoreDir)fwd\jump_transport.cpp">
+    <ClCompile Include="$(NativeCoreDir)core_info.cpp;$(NativeCoreDir)diag_counters.cpp;$(NativeCoreDir)io\EventLoop.cpp;$(NativeCoreDir)io\SessionThread.cpp;$(NativeCoreDir)io\WinsockInit.cpp;$(NativeCoreDir)ssh\session.cpp;$(NativeCoreDir)ssh\hostkey.cpp;$(NativeCoreDir)ssh\auth.cpp;$(NativeCoreDir)ssh\agent.cpp;$(NativeCoreDir)ssh\channel.cpp;$(NativeCoreDir)term\grid.cpp;$(NativeCoreDir)term\vterm_screen.cpp;$(NativeCoreDir)term\scrollback.cpp;$(NativeCoreDir)term\snapshot.cpp;$(NativeCoreDir)crypto\aad.cpp;$(NativeCoreDir)crypto\vault.cpp;$(NativeCoreDir)crypto\keytool.cpp;$(NativeCoreDir)sftp\sftp_session.cpp;$(NativeCoreDir)sftp\transfer.cpp;$(NativeCoreDir)fwd\pump.cpp;$(NativeCoreDir)fwd\direct_tcpip.cpp;$(NativeCoreDir)fwd\local_listener.cpp;$(NativeCoreDir)fwd\remote_listen.cpp;$(NativeCoreDir)fwd\socks5.cpp;$(NativeCoreDir)fwd\jump_transport.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>false</CompileAsWinRT>
       <!-- core 与 Bridge 文件名可能仅大小写不同（如 crypto/keytool.cpp 与
