@@ -30,7 +30,8 @@
 ## 2. 场景操作指南（真机）
 
 前置：**Release/ARM 包**（.NET Native 才算数，见 doc/ENV.md），侧载后从
-主机页底部 ⋯ →「Q01 性能基准」进入。叠加读数每 500 ms 刷新：
+主页 ⋯ 溢出菜单 →「开发工具」（DevToolsPage，DEBUG_PAGES 门控，默认开；
+Q09 正式包才会关）→「Q01 性能基准」进入。叠加读数每 500 ms 刷新：
 `tick x/s | 实绘 x/s | 帧 x ms | 喂 x ms/帧 | 内存 xMB`。
 
 口径（与报告文件头部一致）：
@@ -84,3 +85,8 @@
 
 - 2026-09-20：建立报告骨架与 PerfPage 脚手架（场景全部本地化，Bridge.TerminalScreen
   新增 FeedBytes/ResizeGrid 公开入口供字节流直喂）；📱 数据待真机采集。
+- 2026-09-21：Q01 代码任务完成核验——PerfPage 六场景/FPS 叠加/内存读数/报告落盘
+  均已实现并随 verify 全绿构建；页面引用的 token 与 API（FeedBytes/ResizeGrid/
+  ScrollbackCount/FrameSchedulerCore.IsRunning/HostsPivot.Attach/DebugReport.*）
+  逐一核对存在，入口经 DevToolsPage（DEBUG_PAGES 默认开，Release 可用）。📱
+  数据采集指南见 §2，真机回填后按 §4 判定并追加针对性优化。
