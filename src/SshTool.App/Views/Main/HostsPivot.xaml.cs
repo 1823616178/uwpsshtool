@@ -1,6 +1,8 @@
 using System;
 using SshTool.App.Controls;
+using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
+using SshTool.Core.Common;
 using SshTool.Core.Hosts;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
@@ -218,7 +220,7 @@ namespace SshTool.App.Views.Main
         {
             if (ViewModel != null)
             {
-                var ignore = ViewModel.DeleteAsync(RowOf(sender));
+                ViewModel.DeleteAsync(RowOf(sender)).Forget("HostsPivot.Delete", AppLog.Logger);
             }
         }
     }

@@ -481,7 +481,7 @@ namespace SshTool.App.Platform
                 {
                     // 同步入口（会话数/设置变化）上的补申请：尽力而为，不阻塞调用方。
                     // EnteredBackground 路径由 deferral 覆盖，此处不会重复（策略机幂等）。
-                    var ignore = RequestExecutionAsync();
+                    RequestExecutionAsync().Forget("Lifecycle.RequestExecution", AppLog.Logger);
                 }
                 else
                 {

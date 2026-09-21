@@ -5,6 +5,7 @@ using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
 using SshTool.App.Views.Debug;
 using SshTool.Core;
+using SshTool.Core.Common;
 using SshTool.Native;
 using Windows.ApplicationModel.Resources;
 using Windows.Foundation.Metadata;
@@ -32,7 +33,10 @@ namespace SshTool.App.Views
                 HostsPaneWide.WorkspaceOpen = row =>
                 {
                     WorkspaceViewModel workspace = EnsureWorkspace();
-                    var ignore = workspace.OpenHostInNewTabAsync(row.HostId);
+                    if (workspace != null)
+                    {
+                        workspace.OpenHostInNewTabAsync(row.HostId).Forget("MainPage.OpenHostInNewTab", AppLog.Logger);
+                    }
                     return true;
                 };
             }
@@ -113,8 +117,9 @@ namespace SshTool.App.Views
                     SyncSpinStory.Stop();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                AppLog.Error("MainPage", "同步旋转动画控制失败", ex);
             }
         }
 
@@ -135,7 +140,8 @@ namespace SshTool.App.Views
                 && AppServices.Current.Sessions != null
                 && AppServices.Current.Sessions.ActiveSessionCount > 0)
             {
-                var ignoreExit = ConfirmExitAsync();
+                // R03 (C-05)：退出确认是 fire-and-forget，经 Forget 统一观察。
+                ConfirmExitAsync().Forget("MainPage.ConfirmExit", AppLog.Logger);
                 return true;
             }
             return false;

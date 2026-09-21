@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using SshTool.App.Dialogs;
@@ -65,7 +66,7 @@ namespace SshTool.App.ViewModels
             _groups.Changed += OnRepoChanged;
             _tunnels.Changed += OnRepoChanged;
             _settings.Changed += OnSettingChanged;
-            var ignore = RefreshAsync();
+            RefreshAsync().Forget("HostListViewModel.Refresh", AppLog.Logger);
         }
 
         public ObservableCollection<HostListGroup> Groups { get; private set; }
@@ -85,7 +86,7 @@ namespace SshTool.App.ViewModels
             {
                 if (SetProperty(ref _searchText, value ?? string.Empty))
                 {
-                    var ignore = RefreshAsync();
+                    RefreshAsync().Forget("HostListViewModel.Refresh", AppLog.Logger);
                 }
             }
         }
@@ -185,7 +186,7 @@ namespace SshTool.App.ViewModels
             HashSet<string> current = HostListBuilder.DecodeCollapsed(_settings.HostGroupCollapsed);
             HashSet<string> next = HostListBuilder.ToggleCollapsed(current, groupId ?? HostListGroup.UngroupedId);
             _settings.HostGroupCollapsed = HostListBuilder.EncodeCollapsed(next);
-            var ignore = RefreshAsync();
+            RefreshAsync().Forget("HostListViewModel.Refresh", AppLog.Logger);
         }
 
         public void Connect(HostListRow row)
@@ -255,11 +256,23 @@ namespace SshTool.App.ViewModels
             await _config.DeleteHostAsync(row.HostId).ConfigureAwait(true);
         }
 
+        // R03 (C-05)：刷新类操作「最后一次请求生效」——搜索/排序/分组/仓库变更都可
+        // 并发触发 RefreshAsync；每次调用前取当前世代，await 后若世代已推进则丢弃本次结果，
+        // 避免旧刷新覆盖新刷新。
+        private int _refreshGeneration;
+
         public async Task RefreshAsync()
         {
+            int generation = Interlocked.Increment(ref _refreshGeneration);
             IReadOnlyList<Host> hosts = await _hosts.GetAllAsync().ConfigureAwait(true);
             IReadOnlyList<HostGroup> groups = await _groups.GetAllAsync().ConfigureAwait(true);
             IReadOnlyList<Tunnel> tunnels = await _tunnels.GetAllAsync().ConfigureAwait(true);
+            int current = Volatile.Read(ref _refreshGeneration);
+            if (current != generation)
+            {
+                // 排队期间已有更新的刷新请求启动：本次结果丢弃，由新请求的最新一次 Apply。
+                return;
+            }
             HostListSnapshot snap = HostListBuilder.Build(
                 hosts, groups, tunnels, _searchText, _settings.HostSortMode,
                 _settings.HostGroupCollapsed, _status);
@@ -380,7 +393,7 @@ namespace SshTool.App.ViewModels
         {
             DispatcherHelper.Post(() =>
             {
-                var ignore = RefreshAsync();
+                RefreshAsync().Forget("HostListViewModel.Refresh", AppLog.Logger);
             });
         }
 
@@ -395,7 +408,7 @@ namespace SshTool.App.ViewModels
             {
                 DispatcherHelper.Post(() =>
                 {
-                    var ignore = RefreshAsync();
+                    RefreshAsync().Forget("HostListViewModel.Refresh", AppLog.Logger);
                 });
             }
         }

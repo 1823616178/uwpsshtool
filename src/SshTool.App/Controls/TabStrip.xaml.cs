@@ -1,6 +1,8 @@
 using System;
+using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
+using SshTool.Core.Common;
 using SshTool.Core.Terminal;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Input;
@@ -199,15 +201,15 @@ namespace SshTool.App.Controls
             flyout.Items.Add(MenuItem("重命名", () => RenameAsync(tabId)));
             flyout.Items.Add(MenuItem("复制会话", () =>
             {
-                var ignore = _viewModel.DuplicateFocusedSessionAsync(tabId);
+                _viewModel.DuplicateFocusedSessionAsync(tabId).Forget("TabStrip.DuplicateSession", AppLog.Logger);
             }));
             flyout.Items.Add(MenuItem("向右分屏", () =>
             {
-                var ignore = _viewModel.SplitTabPaneAsync(tabId, SplitOrientation.Column);
+                _viewModel.SplitTabPaneAsync(tabId, SplitOrientation.Column).Forget("TabStrip.SplitPane", AppLog.Logger);
             }));
             flyout.Items.Add(MenuItem("向下分屏", () =>
             {
-                var ignore = _viewModel.SplitTabPaneAsync(tabId, SplitOrientation.Row);
+                _viewModel.SplitTabPaneAsync(tabId, SplitOrientation.Row).Forget("TabStrip.SplitPane", AppLog.Logger);
             }));
             flyout.Items.Add(MenuItem("关闭其他", () => _viewModel.CloseOthers(tabId)));
             flyout.Items.Add(MenuItem("关闭", () => _viewModel.CloseTab(tabId)));
@@ -252,8 +254,9 @@ namespace SshTool.App.Controls
             {
                 result = await ServiceRegistry.Get<DialogService>().ShowAsync(dialog).ConfigureAwait(true);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                AppLog.Error("TabStrip", "重命名对话框失败", ex);
                 return;
             }
             if (result == ContentDialogResult.Primary)

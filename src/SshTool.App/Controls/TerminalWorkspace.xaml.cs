@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
 using SshTool.App.Terminal;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;
+using SshTool.Core.Common;
 using SshTool.Core.Models;
 using SshTool.Core.Sessions;
 using SshTool.Core.Terminal;
@@ -39,6 +41,9 @@ namespace SshTool.App.Controls
         private Point _dragStart;
         private double _dragStartRatio;
         private bool _appearanceSubscribed;
+        // R03 (C-05)：每个 TerminalView 的外观应用世代号——同一视图的并发解析
+        // 「最后一次请求生效」，旧解析完成时不得覆盖新解析（全部在 UI 线程读写）。
+        private readonly Dictionary<TerminalView, int> _appearanceGenerations = new Dictionary<TerminalView, int>();
 
         public TerminalWorkspace()
         {
@@ -218,6 +223,8 @@ namespace SshTool.App.Controls
                 {
                     view.Shortcut -= OnPaneShortcut;
                     view.Session = null;
+                    // R03：视图拆除后其在途的外观解析随之失效（查不到世代即丢弃）。
+                    _appearanceGenerations.Remove(view);
                 }
             }
             SessionInfo bound;
@@ -268,11 +275,12 @@ namespace SshTool.App.Controls
                     view.Session = info.NativeSession;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                AppLog.Error("TerminalWorkspace", "绑定会话失败", ex);
             }
             // A03：叶子绑定会话时按主机外观初始化（之后 Changed 事件里刷新）。
-            var ignoreAppearance = AppearanceApplier.ApplyForHostAsync(view, info.HostId);
+            ApplyAppearanceForHost(view, info.HostId);
         }
 
         private void OnSessionPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -297,8 +305,9 @@ namespace SshTool.App.Controls
                     {
                         view.Session = info.NativeSession;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        AppLog.Error("TerminalWorkspace", "切换 native 会话失败", ex);
                     }
                 }
             });
@@ -350,8 +359,49 @@ namespace SshTool.App.Controls
                 {
                     continue;
                 }
-                var ignore = AppearanceApplier.ApplyForHostAsync(pair.Value, hostId);
+                ApplyAppearanceForHost(pair.Value, hostId);
             }
+        }
+
+        // R03 (C-05)：外观应用「最后一次请求生效」——递增该视图的世代号后发起解析，
+        // 旧世代的解析完成时被丢弃（AppearanceApplier.ApplyForHostAsync 内部无此防护）。
+        private void ApplyAppearanceForHost(TerminalView view, string hostId)
+        {
+            if (view == null)
+            {
+                return;
+            }
+            int generation;
+            _appearanceGenerations.TryGetValue(view, out generation);
+            generation++;
+            _appearanceGenerations[view] = generation;
+            ApplyAppearanceAsync(view, hostId, generation).Forget("TerminalWorkspace.ApplyAppearance", AppLog.Logger);
+        }
+
+        private async Task ApplyAppearanceAsync(TerminalView view, string hostId, int generation)
+        {
+            AppearanceProfile profile = await AppearanceApplier.ResolveForHostAsync(hostId).ConfigureAwait(false);
+            if (profile == null)
+            {
+                return;
+            }
+            DispatcherHelper.Post(() =>
+            {
+                // 权威判定在 UI 线程（与世代递增同线程串行）：排队期间有更新请求即丢弃。
+                int current;
+                if (!_appearanceGenerations.TryGetValue(view, out current) || current != generation)
+                {
+                    return;
+                }
+                try
+                {
+                    view.ApplyAppearance(profile);
+                }
+                catch (Exception ex)
+                {
+                    AppLog.Error("TerminalWorkspace", "应用外观失败", ex);
+                }
+            });
         }
 
         private string HostIdOf(string sessionId)
@@ -770,12 +820,20 @@ namespace SshTool.App.Controls
             var right = new MenuFlyoutItem { Text = "向右分屏" };
             right.Click += (s, args) =>
             {
-                var ignore = _viewModel.SplitFocusedPaneAsync(SplitOrientation.Column);
+                WorkspaceViewModel vm = _viewModel;
+                if (vm != null)
+                {
+                    vm.SplitFocusedPaneAsync(SplitOrientation.Column).Forget("TerminalWorkspace.SplitPane", AppLog.Logger);
+                }
             };
             var down = new MenuFlyoutItem { Text = "向下分屏" };
             down.Click += (s, args) =>
             {
-                var ignore = _viewModel.SplitFocusedPaneAsync(SplitOrientation.Row);
+                WorkspaceViewModel vm = _viewModel;
+                if (vm != null)
+                {
+                    vm.SplitFocusedPaneAsync(SplitOrientation.Row).Forget("TerminalWorkspace.SplitPane", AppLog.Logger);
+                }
             };
             flyout.Items.Add(right);
             flyout.Items.Add(down);
@@ -783,8 +841,9 @@ namespace SshTool.App.Controls
             {
                 flyout.ShowAt(anchor);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                AppLog.Error("TerminalWorkspace", "打开分屏菜单失败", ex);
             }
         }
 
@@ -833,8 +892,9 @@ namespace SshTool.App.Controls
                     {
                         view.Renderer.FontSize = (float)Defaults.DefaultAppearance().FontSize;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        AppLog.Error("TerminalWorkspace", "重置字号失败", ex);
                     }
                     break;
                 default:
@@ -1005,8 +1065,9 @@ namespace SshTool.App.Controls
             {
                 hosts = await AppServices.Current.Hosts.GetAllAsync().ConfigureAwait(true);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                AppLog.Error("TerminalWorkspace", "加载主机列表失败", ex);
                 return;
             }
             var flyout = new MenuFlyout();
@@ -1031,7 +1092,11 @@ namespace SshTool.App.Controls
                     };
                     item.Click += (s, args) =>
                     {
-                        var ignore = _viewModel.OpenHostInNewTabAsync(hostId);
+                        WorkspaceViewModel vm = _viewModel;
+                        if (vm != null)
+                        {
+                            vm.OpenHostInNewTabAsync(hostId).Forget("TerminalWorkspace.OpenHostInNewTab", AppLog.Logger);
+                        }
                     };
                     flyout.Items.Add(item);
                 }

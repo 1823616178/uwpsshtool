@@ -6,6 +6,7 @@ using System.Windows.Input;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.Views;
+using SshTool.Core.Common;
 using SshTool.Core.Models;
 using SshTool.Core.Mvvm;
 using SshTool.Core.Sessions;
@@ -144,8 +145,9 @@ namespace SshTool.App.ViewModels
             RaisePropertyChanged("RestoreCount");
             for (int i = 1; i < ids.Count; i++)
             {
-                var ignore = _services.Sessions.StartOpenAsync(
-                    new SessionOpenRequest { HostId = ids[i] });
+                _services.Sessions.StartOpenAsync(
+                    new SessionOpenRequest { HostId = ids[i] })
+                    .Forget("SessionsPane.RestoreSession", AppLog.Logger);
             }
             Navigation.Navigate<TerminalPage>(new TerminalArgs { HostId = ids[0] });
         }

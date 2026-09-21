@@ -1,5 +1,8 @@
 using System;
+using System.Threading.Tasks;
+using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
+using SshTool.Core.Common;
 using SshTool.Core.Sessions;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -26,7 +29,7 @@ namespace SshTool.App.Views.Main
             SessionList.ItemsSource = vm.Items;
             vm.PropertyChanged += (s, e) => UpdateChrome();
             UpdateChrome();
-            var ignore = vm.LoadRestoreAsync();
+            vm.LoadRestoreAsync().Forget("SessionsPivot.LoadRestore", AppLog.Logger);
         }
 
         private void UpdateChrome()

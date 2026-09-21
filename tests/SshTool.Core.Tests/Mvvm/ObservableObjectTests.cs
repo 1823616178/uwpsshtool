@@ -62,5 +62,19 @@ namespace SshTool.Core.Tests.Mvvm
             vm.Name = "x";
             Assert.Equal("Name", raised);
         }
+
+        [Fact]
+        public void SetProperty_DispatcherPostThrows_NotificationDropped()
+        {
+            // R03 (C-04)：封送失败（页面/窗口销毁中的 dispatcher）丢弃通知，
+            // 不回退为当前线程直发（后台线程直发会重新引入 0x8001010E）。
+            var vm = new Vm();
+            vm.SetDispatcherPost(a => throw new InvalidOperationException("dispatcher gone"));
+            int raised = 0;
+            vm.PropertyChanged += (s, e) => raised++;
+            vm.Name = "kim";
+            Assert.Equal("kim", vm.Name);
+            Assert.Equal(0, raised);
+        }
     }
 }

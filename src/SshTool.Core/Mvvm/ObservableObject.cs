@@ -55,8 +55,10 @@ namespace SshTool.Core.Mvvm
             }
             catch (Exception)
             {
-                // 封送失败时退化为直发，避免状态永久不可见；调用方仍负责线程安全。
-                handler(this, new PropertyChangedEventArgs(propertyName));
+                // R03 (C-04)：封送失败只可能发生在 dispatcher 已停止（页面/窗口正在
+                // 销毁）的场景，此时丢弃通知是允许的；不再回退为当前线程直发——后台
+                // 线程直发正是本机制要规避的 0x8001010E 来源。Core 层不依赖 logger，
+                // 保持静默（字段已同步更新，下一次成功封送的通知会带出最新状态）。
             }
         }
     }

@@ -92,7 +92,8 @@ namespace SshTool.App.Views
             {
                 keepAwake.SetTerminalVisible(true);
             }
-            var ignore = LoadAndBindAsync(generation, e.Parameter as TerminalArgs);
+            // R01 (C-02) + R03 (C-05)：加载/绑定共享世代；fire-and-forget 经 Forget 统一观察。
+            LoadAndBindAsync(generation, e.Parameter as TerminalArgs).Forget("TerminalPage.LoadAndBind", AppLog.Logger);
         }
 
         // R01 (C-02)：加载/绑定共享同一世代——用户在加载期间返回时，await 之后的
@@ -283,7 +284,7 @@ namespace SshTool.App.Views
             {
                 return;
             }
-            var ignore = ApplyAppearanceAsync(_generation, info.HostId);
+            ApplyAppearanceAsync(_generation, info.HostId).Forget("TerminalPage.ApplyAppearance", AppLog.Logger);
         }
 
         // R01 (C-02)：外观解析是 fire-and-forget，离场后 continuation 不得再触碰 Term。
@@ -306,8 +307,9 @@ namespace SshTool.App.Views
                 {
                     Term.ApplyAppearance(profile);
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    AppLog.Error("TerminalPage", "应用外观失败", ex);
                 }
             });
         }
@@ -481,8 +483,9 @@ namespace SshTool.App.Views
                     {
                         Term.Renderer.FontSize = (float)SshTool.Core.Models.Defaults.DefaultAppearance().FontSize;
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        AppLog.Error("TerminalPage", "重置字号失败", ex);
                     }
                     break;
                 default:

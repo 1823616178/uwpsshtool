@@ -7,6 +7,17 @@ namespace SshTool.App.Infrastructure
     // 异常时静默降级——页面导航路径不允许因日志再抛一次。
     public static class AppLog
     {
+        // R03 (C-05)：Forget 调用点的 logger 安全解析；服务未就绪返回 null
+        //（Forget 容许 null logger，fire-and-forget 路径上绝不因取日志再抛）。
+        public static ILogger Logger
+        {
+            get
+            {
+                ILogger log;
+                return ServiceRegistry.TryGet(out log) ? log : null;
+            }
+        }
+
         public static void Error(string tag, string message, Exception ex)
         {
             ILogger log;
