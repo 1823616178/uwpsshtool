@@ -30,7 +30,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{DBAC9252-457E-4A8F-A6F5-2EED170A6255}</ProjectGuid>
     <RootNamespace>SshTool.Native</RootNamespace>
-    <DefaultLanguage>zh-CN</DefaultLanguage>
+    <DefaultLanguage>zh-cn</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <AppContainerApplication>true</AppContainerApplication>
     <WindowsAppContainer>true</WindowsAppContainer>

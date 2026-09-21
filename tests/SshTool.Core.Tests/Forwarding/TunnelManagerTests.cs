@@ -87,7 +87,7 @@ namespace SshTool.Core.Tests.Forwarding
         }
 
         [Fact]
-        public void RelayIsRejectedBeforeAnyRuntimeCall()
+        public async Task RelayIsRejectedBeforeAnyRuntimeCall()
         {
             var runtime = new FakeTunnelRuntime();
             ManualTimerFactory timers = new ManualTimerFactory();
@@ -95,7 +95,7 @@ namespace SshTool.Core.Tests.Forwarding
             Tunnel relay = MakeTunnel("r1", TunnelType.Relay);
             manager.ApplyConfig(new[] { relay });
 
-            TunnelStartResult result = manager.StartAsync(relay).Result;
+            TunnelStartResult result = await manager.StartAsync(relay);
 
             Assert.False(result.Success);
             Assert.Contains("桌面端", result.Message);
@@ -106,7 +106,7 @@ namespace SshTool.Core.Tests.Forwarding
         }
 
         [Fact]
-        public void FirstStartFailureGoesToErrorWithMessage()
+        public async Task FirstStartFailureGoesToErrorWithMessage()
         {
             var runtime = new FakeTunnelRuntime();
             runtime.StartResults["t1"] = new TunnelRuntimeStartResult
@@ -119,7 +119,7 @@ namespace SshTool.Core.Tests.Forwarding
             Tunnel tunnel = MakeTunnel("t1");
             manager.ApplyConfig(new[] { tunnel });
 
-            TunnelStartResult result = manager.StartAsync(tunnel).Result;
+            TunnelStartResult result = await manager.StartAsync(tunnel);
 
             Assert.False(result.Success);
             AssertState(TunnelStateKind.Error, manager.GetStatus("t1"));
@@ -278,11 +278,11 @@ namespace SshTool.Core.Tests.Forwarding
 
             AssertState(TunnelStateKind.Idle, manager.GetStatus("gone"));
             Assert.Contains("gone", runtime.StoppedIds);
-            Assert.Equal(1, manager.Configurations.Count);
+            Assert.Single(manager.Configurations);
         }
 
         [Fact]
-        public void AutoStartOnlyEnabledAndMarked()
+        public async Task AutoStartOnlyEnabledAndMarked()
         {
             var runtime = new FakeTunnelRuntime();
             runtime.StartResults["bad"] = new TunnelRuntimeStartResult
@@ -300,12 +300,12 @@ namespace SshTool.Core.Tests.Forwarding
                 MakeTunnel("bad", autoStart: true)
             });
 
-            IReadOnlyList<string> errors = manager.StartAutoStartAsync().Result;
+            IReadOnlyList<string> errors = await manager.StartAutoStartAsync();
 
             Assert.Equal(2, runtime.Started.Count(t => t.AutoStart && t.Enabled));
             Assert.DoesNotContain("start:notmarked", runtime.Calls);
             Assert.DoesNotContain("start:disabled", runtime.Calls);
-            Assert.Equal(1, errors.Count);
+            Assert.Single(errors);
             Assert.StartsWith("t-bad：", errors[0]);
         }
 
@@ -368,10 +368,9 @@ namespace SshTool.Core.Tests.Forwarding
         }
 
         [Fact]
-        public void IsBusyProbeMatchesStates()
+        public async Task IsBusyReportsTrueDuringConnectingAndRunning()
         {
             var runtime = new FakeTunnelRuntime();
-            runtime.StartDelayMs = 30;
             ManualTimerFactory timers = new ManualTimerFactory();
             TunnelManager manager = MakeManager(runtime, timers, out var ui);
             Tunnel tunnel = MakeTunnel("t1");
@@ -379,7 +378,7 @@ namespace SshTool.Core.Tests.Forwarding
 
             Task<TunnelStartResult> pending = manager.StartAsync(tunnel);
             Assert.True(manager.IsBusy("t1")); // connecting
-            Task.WaitAll(pending);
+            await pending;
             Assert.True(manager.IsBusy("t1")); // running
 
             manager.Stop("t1");
@@ -388,7 +387,7 @@ namespace SshTool.Core.Tests.Forwarding
         }
 
         [Fact]
-        public void StopGroupStopsOnlyMatchingGroup()
+        public async Task StopGroupStopsOnlyMatchingGroup()
         {
             var runtime = new FakeTunnelRuntime();
             ManualTimerFactory timers = new ManualTimerFactory();
@@ -399,8 +398,8 @@ namespace SshTool.Core.Tests.Forwarding
                 MakeTunnel("b", groupId: "g2"),
                 MakeTunnel("c", groupId: null)
             });
-            var one = manager.StartAsync(manager.Configurations.First(t => t.Id == "a")).Result;
-            var two = manager.StartAsync(manager.Configurations.First(t => t.Id == "b")).Result;
+            var one = await manager.StartAsync(manager.Configurations.First(t => t.Id == "a"));
+            var two = await manager.StartAsync(manager.Configurations.First(t => t.Id == "b"));
 
             manager.StopGroup("g1");
 
