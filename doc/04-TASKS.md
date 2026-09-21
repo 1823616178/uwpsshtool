@@ -45,8 +45,8 @@
 | M5 | 云端同步 | 22 | 22 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
-| M8 | 打磨与发布 | 10 | 3 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **104** | |
+| M8 | 打磨与发布 | 10 | 4 | 性能/安全报告、可侧载安装包 v1.0.0 |
+| **合计** | | **111** | **105** | |
 
 ### 1.1 关键路径
 
@@ -1169,7 +1169,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 
 ## 10. M8 — 打磨与发布
 
-- [ ] **Q01 性能基准与优化** `M` 📱
+- [x] **Q01 性能基准与优化** `M` 📱
   - 依赖：U12、A03
   - 参考：`01-DESIGN.md §15`
   - 产出：`src/SshTool.App/Views/Debug/PerfPage.xaml(.cs)`（FPS/帧耗时叠加、内存、场景按钮）、`doc/PERF-REPORT.md`、针对性优化提交
@@ -1479,3 +1479,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-21 | F06 | bc1a33a | **完成**。TunnelsPivot（列表/启停/每秒速率统计/空态/全部停止）+ TunnelRow（基于 AppListRow/状态点/开关）+ TunnelEditPage（三 Section 结构/路径图示/动态显隐校验）+ LoopbackNoticeDialog（回环隔离提示+不再提示）+ HostEditPage 隧道列表与新建跳转接线；ViewModel 状态/编辑/列表三件套；resw 双语 42 组键。verify 7 步全绿（Core 1420 + native 299）。 |
 | 2026-09-21 | S16 | d08a697 | **完成**。产出 doc/INTEROP-REPORT.md，依据 §10.3 规范化十大互通场景测试矩阵、前置条件、操作步骤与预期结果；自动化向量与密码学单测全部就绪，真机联调场景已登记待办。verify 7 步全绿。 |
 | 2026-09-21 | F07 | 457ff70 | **完成**。jump_transport（IJumpChannel/Fake/DirectTcpip/BufferedPipe + LIBSSH2 SEND/RECV 回调）+ connectJump（loopback 唤醒对 + 50ms 轮询兜底防 DirectTcpip 通道无 wakeup 挂死）+ Bridge ConnectJumpAsync（上级 I/O 线程开 direct-tcpip 再包 JumpTransport）+ JumpChainPlanner（顺序/环/深度 5，9 单测）+ SessionManager 链式连接（每跳独立认证与主机密钥提示、标题注明 [i/n]、密钥按跳板 host:port 落库、失败级联清理、重连整链重建）。修 session.h 自足性（SSIZE_T/SOCKET）。Core 1430（+9）+ native 306（+7）；verify 7 步全绿。⏳ 📱 两级跳板与断中间跳重连（已登记待办）。 |
+| 2026-09-21 | Q01 | f184236 | **代码任务完成**。PerfPage 六场景（⓪静止/①base64/②yes/③vim/④100主机滚动/⑤4×5000回滚）+ FPS 双口径叠加（tick/s、draw/s）+ MemoryManager 守卫读数 + 报告落盘 spike-reports\perf-*.txt，随 Phase0 基线入库；本次逐项核验页面引用的 token 与 API（FeedBytes/ResizeGrid/ScrollbackCount/FrameSchedulerCore.IsRunning/HostsPivot.Attach/DebugReport.*）均存在，入口 DevToolsPage（DEBUG_PAGES 默认开，Release 可用），修正 PERF-REPORT.md 入口路径描述。操作指南见 doc/PERF-REPORT.md §2。⏳ 📱 Release ARM 实测回填 §3/§4 并按结论做针对性优化（已登记待办）。verify 7 步全绿。 |
