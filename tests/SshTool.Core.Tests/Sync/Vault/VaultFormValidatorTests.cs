@@ -105,8 +105,8 @@ namespace SshTool.Core.Tests.Sync.Vault
 
         public static IEnumerable<object[]> ReswFiles()
         {
-            yield return new object[] { "zh-CN" };
-            yield return new object[] { "en-US" };
+            yield return new object[] { "zh-cn" };
+            yield return new object[] { "en-us" };
         }
 
         [Theory]

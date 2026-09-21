@@ -13,8 +13,8 @@ namespace SshTool.Core.Tests.Common
     {
         public static IEnumerable<object[]> ReswFiles()
         {
-            yield return new object[] { "zh-CN" };
-            yield return new object[] { "en-US" };
+            yield return new object[] { "zh-cn" };
+            yield return new object[] { "en-us" };
         }
 
         [Theory]
@@ -38,8 +38,8 @@ namespace SshTool.Core.Tests.Common
         [Fact]
         public void BothLanguages_SameKeys()
         {
-            var zh = KeySet(FindResw("zh-CN"));
-            var en = KeySet(FindResw("en-US"));
+            var zh = KeySet(FindResw("zh-cn"));
+            var en = KeySet(FindResw("en-us"));
             Assert.Equal(zh, en);
         }
 

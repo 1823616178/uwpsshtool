@@ -16,8 +16,8 @@ namespace SshTool.Core.Tests
         [Fact]
         public void ZhCnAndEnUs_KeySetsAreIdentical()
         {
-            var zh = KeySet(FindResw("zh-CN"));
-            var en = KeySet(FindResw("en-US"));
+            var zh = KeySet(FindResw("zh-cn"));
+            var en = KeySet(FindResw("en-us"));
             var missingInEn = zh.Except(en, StringComparer.Ordinal).ToList();
             var missingInZh = en.Except(zh, StringComparer.Ordinal).ToList();
             Assert.True(missingInEn.Count == 0,
@@ -27,8 +27,8 @@ namespace SshTool.Core.Tests
         }
 
         [Theory]
-        [InlineData("en-US")]
-        [InlineData("zh-CN")]
+        [InlineData("en-us")]
+        [InlineData("zh-cn")]
         public void EveryKey_ValueIsNonEmpty(string lang)
         {
             var values = ReadValues(FindResw(lang));
@@ -41,7 +41,7 @@ namespace SshTool.Core.Tests
         [Fact]
         public void EnUsValues_ContainNoChineseCharacters()
         {
-            var values = ReadValues(FindResw("en-US"));
+            var values = ReadValues(FindResw("en-us"));
             var bad = values.Where(kvp => ChineseChar.IsMatch(kvp.Value))
                             .Select(kvp => kvp.Key).ToList();
             Assert.True(bad.Count == 0,

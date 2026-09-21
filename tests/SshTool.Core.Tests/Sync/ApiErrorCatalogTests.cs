@@ -89,8 +89,8 @@ namespace SshTool.Core.Tests.Sync
 
         public static IEnumerable<object[]> ReswFiles()
         {
-            yield return new object[] { "zh-CN" };
-            yield return new object[] { "en-US" };
+            yield return new object[] { "zh-cn" };
+            yield return new object[] { "en-us" };
         }
 
         [Theory]
@@ -122,7 +122,7 @@ namespace SshTool.Core.Tests.Sync
         public void RateLimitedTemplate_HasSecondPlaceholder()
         {
             // LoginViewModel 用 RetryAfterMs 秒数填充 {0}；模板缺占位符会导致文案丢失数字。
-            foreach (string lang in new string[] { "zh-CN", "en-US" })
+            foreach (string lang in new string[] { "zh-cn", "en-us" })
             {
                 var names = LoadResw(lang);
                 Assert.Contains("{0}", names[ApiErrorCatalog.ResourceKey(ApiErrorCatalog.RateLimited)]);
