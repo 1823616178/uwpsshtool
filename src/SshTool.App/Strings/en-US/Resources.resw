@@ -606,4 +606,121 @@
   <data name="Snippets_Search_Placeholder" xml:space="preserve"><value>Search Snippets</value></data>
   <data name="Snippets_New.Label" xml:space="preserve"><value>New</value></data>
   <data name="Snippets_SendButton.AutomationProperties.Name" xml:space="preserve"><value>Send</value></data>
+
+  <!-- V05b (U17~U20 sync pages): status / devices / history / conflict / security / delete -->
+  <!-- SyncStatePresenter phase text keys -->
+  <data name="Sync_SignedOut" xml:space="preserve"><value>Not signed in</value></data>
+  <data name="Sync_Disabled" xml:space="preserve"><value>Sync disabled</value></data>
+  <data name="Sync_Locked" xml:space="preserve"><value>Vault locked</value></data>
+  <data name="Sync_Idle" xml:space="preserve"><value>Waiting to sync</value></data>
+  <data name="Sync_Syncing" xml:space="preserve"><value>Syncing…</value></data>
+  <data name="Sync_Synced" xml:space="preserve"><value>Synced</value></data>
+  <data name="Sync_Offline" xml:space="preserve"><value>Offline, will retry later</value></data>
+  <data name="Sync_Conflict" xml:space="preserve"><value>Conflict needs resolving</value></data>
+  <data name="Sync_Error" xml:space="preserve"><value>Sync failed</value></data>
+  <data name="Sync_AuthError" xml:space="preserve"><value>Sign-in expired</value></data>
+
+  <!-- AccountSyncPage -->
+  <data name="AccountSync_Header.Title" xml:space="preserve"><value>Account &amp; Sync</value></data>
+  <data name="AccountSync_TabStatus.Header" xml:space="preserve"><value>Status</value></data>
+  <data name="AccountSync_TabDevices.Header" xml:space="preserve"><value>Devices</value></data>
+  <data name="AccountSync_TabHistory.Header" xml:space="preserve"><value>History</value></data>
+  <data name="AccountSync_LastSynced" xml:space="preserve"><value>Last synced {0}</value></data>
+  <data name="AccountSync_LastSyncedNone" xml:space="preserve"><value>Never synced</value></data>
+  <data name="AccountSync_NextRetry" xml:space="preserve"><value>Next retry {0}</value></data>
+  <data name="AccountSync_Meta" xml:space="preserve"><value>Revision r{0} · key v{1}</value></data>
+  <data name="AccountSync_SyncNow" xml:space="preserve"><value>Sync now</value></data>
+  <data name="AccountSync_ResolveConflict" xml:space="preserve"><value>Resolve conflict</value></data>
+  <data name="AccountSync_SyncSettingsHeader" xml:space="preserve"><value>Sync settings</value></data>
+  <data name="AccountSync_EnableSync" xml:space="preserve"><value>Enable sync</value></data>
+  <data name="AccountSync_AutoSync" xml:space="preserve"><value>Auto-sync</value></data>
+  <data name="AccountSync_SyncPasswords" xml:space="preserve"><value>Sync passwords &amp; phrases</value></data>
+  <data name="AccountSync_SyncPrivateKeys" xml:space="preserve"><value>Sync private keys</value></data>
+  <data name="AccountSync_VaultHeader" xml:space="preserve"><value>Vault</value></data>
+  <data name="AccountSync_ChangeSyncPassword" xml:space="preserve"><value>Change sync password</value></data>
+  <data name="AccountSync_AccountHeader" xml:space="preserve"><value>Account</value></data>
+  <data name="AccountSync_ChangeLoginPassword" xml:space="preserve"><value>Change login password</value></data>
+  <data name="AccountSync_Logout" xml:space="preserve"><value>Sign out</value></data>
+  <data name="AccountSync_LogoutAll" xml:space="preserve"><value>Sign out all devices</value></data>
+  <data name="AccountSync_DangerHeader" xml:space="preserve"><value>Danger zone</value></data>
+  <data name="AccountSync_DeleteVault" xml:space="preserve"><value>Delete cloud vault…</value></data>
+  <data name="AccountSync_DeleteAccount" xml:space="preserve"><value>Delete account…</value></data>
+  <data name="AccountSync_DevicesEmpty" xml:space="preserve"><value>No devices</value></data>
+  <data name="AccountSync_HistoryEmpty" xml:space="preserve"><value>No history</value></data>
+  <data name="AccountSync_RenameDeviceTitle" xml:space="preserve"><value>Rename device</value></data>
+  <data name="AccountSync_Rename" xml:space="preserve"><value>Rename</value></data>
+  <data name="AccountSync_Revoke" xml:space="preserve"><value>Revoke device…</value></data>
+  <data name="AccountSync_RevokeDeviceTitle" xml:space="preserve"><value>Revoke device</value></data>
+  <data name="AccountSync_RevokeDeviceMessage" xml:space="preserve"><value>After revoking, that device must sign in again to sync. This cannot be undone.</value></data>
+  <data name="AccountSync_RestoreTitle" xml:space="preserve"><value>Restore this revision</value></data>
+  <data name="AccountSync_RestoreMessage" xml:space="preserve"><value>Creates a new cloud revision from this one and overwrites local settings.</value></data>
+  <data name="AccountSync_Restore" xml:space="preserve"><value>Restore</value></data>
+  <data name="AccountSync_ClearHistoryTitle" xml:space="preserve"><value>Clear history</value></data>
+  <data name="AccountSync_ClearHistoryMessage" xml:space="preserve"><value>All cloud revisions will be deleted and cannot be recovered.</value></data>
+  <data name="AccountSync_Clear" xml:space="preserve"><value>Clear</value></data>
+  <data name="AccountSync_DeleteVaultTitle" xml:space="preserve"><value>Delete cloud vault</value></data>
+  <data name="AccountSync_DeleteVaultMessage" xml:space="preserve"><value>The cloud vault and history will be deleted; local settings are kept.</value></data>
+  <data name="AccountSync_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="AccountSync_LogoutTitle" xml:space="preserve"><value>Sign out</value></data>
+  <data name="AccountSync_LogoutMessage" xml:space="preserve"><value>Sign out of the current device.</value></data>
+  <data name="AccountSync_LogoutAllTitle" xml:space="preserve"><value>Sign out all devices</value></data>
+  <data name="AccountSync_LogoutAllMessage" xml:space="preserve"><value>All devices will be signed out and must sign in again to sync.</value></data>
+  <data name="AccountSync_DeviceCurrentNote" xml:space="preserve"><value>This is the current device. Renaming works here; to revoke, use "Sign out".</value></data>
+  <data name="AccountSync_DeviceListFailed" xml:space="preserve"><value>Could not load devices</value></data>
+  <data name="AccountSync_HistoryListFailed" xml:space="preserve"><value>Could not load history</value></data>
+  <data name="AccountSync_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Sync_Conflict_SensitiveChanged" xml:space="preserve"><value>Changed</value></data>
+  <data name="Sync_CommandFailed" xml:space="preserve"><value>Action failed, please try again</value></data>
+
+  <!-- SyncConflictPage (U19) -->
+  <data name="Conflict_Header.Title" xml:space="preserve"><value>Sync Conflict</value></data>
+  <data name="Conflict_FieldsHeader" xml:space="preserve"><value>Affected items</value></data>
+  <data name="Conflict_Title_InitialImport" xml:space="preserve"><value>First sync, cloud already has settings</value></data>
+  <data name="Conflict_Title_RemoteDeletion" xml:space="preserve"><value>Cloud deleted the following items</value></data>
+  <data name="Conflict_Title_MergeConflict" xml:space="preserve"><value>These fields changed on both sides</value></data>
+  <data name="Conflict_Description_InitialImport" xml:space="preserve"><value>This is your first sync on this device, but the cloud already has a copy. Choose which to keep.</value></data>
+  <data name="Conflict_Description_RemoteDeletion" xml:space="preserve"><value>The cloud version deleted some items that still exist locally. Confirm to apply.</value></data>
+  <data name="Conflict_Description_MergeConflict" xml:space="preserve"><value>Local and cloud both edited the same fields. Choose which side to keep.</value></data>
+  <data name="Conflict_Button_UseRemote" xml:space="preserve"><value>Use cloud settings</value></data>
+  <data name="Conflict_Button_KeepLocal" xml:space="preserve"><value>Keep local settings</value></data>
+  <data name="Conflict_Button_ApplyDeletion" xml:space="preserve"><value>Apply deletions</value></data>
+  <data name="Conflict_RemoteSummary" xml:space="preserve"><value>Cloud: {0} servers · {1} tunnels · {2} groups</value></data>
+  <data name="Conflict_IncludesPasswords" xml:space="preserve"><value>includes synced passwords</value></data>
+  <data name="Conflict_IncludesPrivateKeys" xml:space="preserve"><value>includes synced private keys</value></data>
+  <data name="Conflict_ResolveFailed" xml:space="preserve"><value>Could not resolve the conflict, please try again</value></data>
+
+  <!-- SecurityRotatePage (U20) -->
+  <data name="SecurityRotate_Header.Title" xml:space="preserve"><value>Security Rotation</value></data>
+  <data name="SecurityRotate_LoginPasswordLabel" xml:space="preserve"><value>Account password</value></data>
+  <data name="SecurityRotate_NewPasswordLabel" xml:space="preserve"><value>New sync password</value></data>
+  <data name="SecurityRotate_ConfirmLabel" xml:space="preserve"><value>Confirm new sync password</value></data>
+  <data name="SecurityRotate_PasswordHint" xml:space="preserve"><value>Sync password must be at least 8 characters.</value></data>
+  <data name="SecurityRotate_Submit" xml:space="preserve"><value>Rotate</value></data>
+  <data name="SecurityRotate_Working" xml:space="preserve"><value>Generating new key (a few seconds)…</value></data>
+  <data name="SecurityRotate_Failed" xml:space="preserve"><value>Action failed, please try again</value></data>
+
+  <!-- ChangeLoginPasswordPage (U20) -->
+  <data name="ChangeLogin_Header.Title" xml:space="preserve"><value>Change Login Password</value></data>
+  <data name="ChangeLogin_CurrentLabel" xml:space="preserve"><value>Current password</value></data>
+  <data name="ChangeLogin_NewLabel" xml:space="preserve"><value>New password</value></data>
+  <data name="ChangeLogin_NewHint" xml:space="preserve"><value>New password must be at least 10 characters.</value></data>
+  <data name="ChangeLogin_ConfirmLabel" xml:space="preserve"><value>Confirm new password</value></data>
+  <data name="ChangeLogin_Submit" xml:space="preserve"><value>Change password</value></data>
+  <data name="ChangeLogin_TooShort" xml:space="preserve"><value>New password must be at least 10 characters.</value></data>
+  <data name="ChangeLogin_Failed" xml:space="preserve"><value>Could not change password, please try again</value></data>
+
+  <!-- DeleteAccountPage (U20) -->
+  <data name="DeleteAccount_Header.Title" xml:space="preserve"><value>Delete Account</value></data>
+  <data name="DeleteAccount_Warning" xml:space="preserve"><value>This permanently deletes your account and cloud vault. This cannot be undone.</value></data>
+  <data name="DeleteAccount_PasswordLabel" xml:space="preserve"><value>Login password</value></data>
+  <data name="DeleteAccount_ConfirmLabel" xml:space="preserve"><value>Type DELETE to confirm</value></data>
+  <data name="DeleteAccount_Submit" xml:space="preserve"><value>Delete account</value></data>
+  <data name="DeleteAccount_Failed" xml:space="preserve"><value>Could not delete account, please try again</value></data>
+
+  <!-- DeleteVaultPage (U20) -->
+  <data name="DeleteVault_Header.Title" xml:space="preserve"><value>Delete Cloud Vault</value></data>
+  <data name="DeleteVault_Explanation" xml:space="preserve"><value>The cloud vault and history will be deleted; local settings are kept.</value></data>
+  <data name="DeleteVault_PasswordLabel" xml:space="preserve"><value>Login password</value></data>
+  <data name="DeleteVault_Submit" xml:space="preserve"><value>Delete cloud vault</value></data>
+  <data name="DeleteVault_Failed" xml:space="preserve"><value>Could not delete vault, please try again</value></data>
 </root>

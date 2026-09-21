@@ -1,0 +1,76 @@
+<Page
+    x:Class="SshTool.App.Views.Sync.SecurityRotatePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- U20 安全清理 / 修改同步密码页（02-UI-DESIGN.md §5.13）：
+         账号登录密码 + 新同步密码 ×2 → 执行 → RecoveryKeyDialog；失败回滚开关。 -->
+    <Grid>
+        <ScrollViewer>
+            <StackPanel Padding="{StaticResource PagePadding}">
+                <controls:AppPageHeader x:Name="Header" x:Uid="SecurityRotate_Header"
+                                        Title="安全清理"
+                                        ShowBackButton="True"
+                                        BackRequested="OnBackRequested" />
+
+                <TextBlock x:Name="ExplanationText" Style="{StaticResource BodyTextStyle}"
+                           TextWrapping="Wrap" Margin="{StaticResource GapSmTop}" />
+
+                <TextBlock x:Uid="SecurityRotate_LoginPasswordLabel" Text="账号登录密码"
+                           Style="{StaticResource BodyTextStyle}"
+                           Margin="{StaticResource GapMdTop}" />
+                <PasswordBox x:Name="LoginPasswordBox" x:Uid="SecurityRotate_LoginPasswordBox"
+                             PlaceholderText="请输入账号登录密码"
+                             Margin="{StaticResource GapSmTop}"
+                             PasswordChanged="OnLoginPasswordChanged" />
+
+                <TextBlock x:Uid="SecurityRotate_NewPasswordLabel" Text="新同步密码"
+                           Style="{StaticResource BodyTextStyle}"
+                           Margin="{StaticResource GapMdTop}" />
+                <PasswordBox x:Name="SyncPasswordBox" x:Uid="SecurityRotate_NewPasswordBox"
+                             PlaceholderText="设置新同步密码（至少 8 位）"
+                             Margin="{StaticResource GapSmTop}"
+                             PasswordChanged="OnSyncPasswordChanged" />
+                <TextBlock x:Uid="SecurityRotate_PasswordHint" Text="同步密码至少 8 位"
+                           Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapXsTop}" />
+
+                <TextBlock x:Uid="SecurityRotate_ConfirmLabel" Text="确认新同步密码"
+                           Style="{StaticResource BodyTextStyle}"
+                           Margin="{StaticResource GapMdTop}" />
+                <PasswordBox x:Name="ConfirmBox" x:Uid="SecurityRotate_ConfirmBox"
+                             PlaceholderText="再次输入新同步密码"
+                             Margin="{StaticResource GapSmTop}"
+                             PasswordChanged="OnConfirmChanged" />
+
+                <TextBlock x:Name="ErrorText"
+                           Foreground="{ThemeResource AppDangerBrush}"
+                           Style="{StaticResource BodyTextStyle}"
+                           Margin="{StaticResource GapSmTop}"
+                           TextWrapping="Wrap"
+                           Visibility="Collapsed" />
+
+                <Button x:Name="SubmitButton" x:Uid="SecurityRotate_Submit"
+                        Content="执行"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Margin="{StaticResource GapMdTop}"
+                        HorizontalAlignment="Stretch"
+                        Click="OnSubmitClick" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid x:Name="BusyOverlay"
+              Background="{ThemeResource AppBgBrush}"
+              Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressRing Width="{StaticResource SpaceXl}" Height="{StaticResource SpaceXl}"
+                              IsActive="True" />
+                <TextBlock x:Name="BusyText" Style="{StaticResource BodyTextStyle}"
+                           Margin="{StaticResource GapSmTop}"
+                           TextAlignment="Center" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>

@@ -49,6 +49,8 @@ namespace SshTool.App.ViewModels
             // S14：同步按钮=手动触发（U17 建 AccountSyncPage 后再加导航）。
             // 同步栈缺失（设计器/构造失败）时回退到占位页，保持可点击。
             SyncCommand = new AsyncCommand(ManualSyncAsync, onError: OnManualSyncError);
+            // U17：同步图标点击 → 同步状态页（AccountSyncPage）。
+            SyncStatusCommand = new RelayCommand(() => Navigation.Navigate<Views.Sync.AccountSyncPage>());
             SettingsCommand = new RelayCommand(() => Navigation.Navigate<SettingsPage>());
             KeysCommand = new RelayCommand(() => Navigation.Navigate<Views.Keys.KeysPage>());
             KnownHostsCommand = new RelayCommand(() => Navigation.Navigate<KnownHostsPage>());
@@ -89,6 +91,7 @@ namespace SshTool.App.ViewModels
         public ICommand SearchCommand { get; private set; }
         public ICommand ToggleQuickConnectCommand { get; private set; }
         public ICommand SyncCommand { get; private set; }
+        public ICommand SyncStatusCommand { get; private set; }
         public ICommand SettingsCommand { get; private set; }
         public ICommand KeysCommand { get; private set; }
         public ICommand KnownHostsCommand { get; private set; }

@@ -138,6 +138,7 @@
     <Compile Include="Platform\KeepAwakeService.cs" />
     <Compile Include="Platform\LifecycleService.cs" />
     <Compile Include="Platform\NetworkMonitor.cs" />
+    <Compile Include="Platform\AppEntityLookup.cs" />
     <Compile Include="Platform\EnergySaverWatcher.cs" />
     <Compile Include="Platform\DispatcherTimerFactory.cs" />
     <Compile Include="Infrastructure\ServiceRegistry.cs" />
@@ -268,20 +269,44 @@
     <Compile Include="ViewModels\Snippets\SnippetEditViewModel.cs" />
     <Compile Include="ViewModels\Snippets\SnippetPickerViewModel.cs" />
     <Compile Include="ViewModels\Snippets\SnippetSendHelper.cs" />
+    <Compile Include="ViewModels\Sync\AccountSyncViewModel.cs" />
+    <Compile Include="ViewModels\Sync\ChangeLoginPasswordViewModel.cs" />
+    <Compile Include="ViewModels\Sync\DeleteAccountViewModel.cs" />
+    <Compile Include="ViewModels\Sync\DeleteVaultViewModel.cs" />
     <Compile Include="ViewModels\Sync\LoginViewModel.cs" />
+    <Compile Include="ViewModels\Sync\SecurityRotateViewModel.cs" />
+    <Compile Include="ViewModels\Sync\SyncConflictViewModel.cs" />
     <Compile Include="ViewModels\Sync\VaultErrorText.cs" />
     <Compile Include="ViewModels\Sync\VaultSetupViewModel.cs" />
     <Compile Include="ViewModels\Sync\VaultUnlockViewModel.cs" />
+    <Compile Include="Views\Sync\AccountSyncPage.xaml.cs">
+      <DependentUpon>AccountSyncPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Sync\ChangeLoginPasswordPage.xaml.cs">
+      <DependentUpon>ChangeLoginPasswordPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Sync\DeleteAccountPage.xaml.cs">
+      <DependentUpon>DeleteAccountPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Sync\DeleteVaultPage.xaml.cs">
+      <DependentUpon>DeleteVaultPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\Sync\LoginPage.xaml.cs">
       <DependentUpon>LoginPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Sync\SecurityRotatePage.xaml.cs">
+      <DependentUpon>SecurityRotatePage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Sync\SyncConflictPage.xaml.cs">
+      <DependentUpon>SyncConflictPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Sync\SyncNavigation.cs" />
     <Compile Include="Views\Sync\VaultSetupPage.xaml.cs">
       <DependentUpon>VaultSetupPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Sync\VaultUnlockPage.xaml.cs">
       <DependentUpon>VaultUnlockPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Sync\SyncNavigation.cs" />
     <Compile Include="ViewModels\Keys\KeysViewModel.cs" />
     <Compile Include="ViewModels\Keys\KeyDetailViewModel.cs" />
     <Compile Include="ViewModels\Keys\KeyImportViewModel.cs" />
@@ -680,6 +705,30 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\Sync\VaultUnlockPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Sync\AccountSyncPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Sync\ChangeLoginPasswordPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Sync\DeleteAccountPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Sync\DeleteVaultPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Sync\SecurityRotatePage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Sync\SyncConflictPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

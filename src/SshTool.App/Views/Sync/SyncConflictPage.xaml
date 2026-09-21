@@ -1,0 +1,85 @@
+<Page
+    x:Class="SshTool.App.Views.Sync.SyncConflictPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- U19 同步冲突页（02-UI-DESIGN.md §5.14）：远端摘要 + 涉及项目（敏感字段显示「有变更」）
+         + [使用云端配置] / [保留本机配置] 按钮 → ResolveConflict。 -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:AppPageHeader x:Name="Header" x:Uid="Conflict_Header"
+                                Title="同步冲突"
+                                ShowBackButton="True"
+                                BackRequested="OnBackRequested" />
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}">
+                <controls:EmptyState x:Name="NoConflictEmpty" Visibility="Collapsed" />
+
+                <Border x:Name="SummaryCard"
+                        Background="{ThemeResource AppSurfaceBrush}"
+                        BorderBrush="{ThemeResource AppBorderBrush}"
+                        BorderThickness="{StaticResource BorderThin}"
+                        CornerRadius="{StaticResource RadiusMd}"
+                        Padding="{StaticResource PadMd}">
+                    <StackPanel>
+                        <TextBlock x:Name="TitleText" Style="{StaticResource SectionTitleTextStyle}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock x:Name="DescriptionText" Style="{StaticResource BodyTextStyle}"
+                                   TextWrapping="Wrap" Margin="{StaticResource GapSmTop}" />
+                        <TextBlock x:Name="RemoteSummaryText" Style="{StaticResource CaptionTextStyle}"
+                                   TextWrapping="Wrap" Margin="{StaticResource GapSmTop}" />
+                        <TextBlock x:Name="UpdatedAtText" Style="{StaticResource CaptionTextStyle}"
+                                   Margin="{StaticResource GapXsTop}" />
+                    </StackPanel>
+                </Border>
+
+                <controls:GroupHeader x:Name="FieldsHeader" x:Uid="Conflict_FieldsHeader"
+                                      Text="涉及项目" Margin="{StaticResource GapMdTop}" />
+                <ListView x:Name="FieldsList"
+                          SelectionMode="None"
+                          IsItemClickEnabled="False">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <controls:AppListRow Title="{Binding EntityName}"
+                                                 Subtitle="{Binding FieldLabel}"
+                                                 ShowChevron="False" />
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <TextBlock x:Name="ErrorText"
+                           Foreground="{ThemeResource AppDangerBrush}"
+                           Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapMdTop}"
+                           TextWrapping="Wrap"
+                           Visibility="Collapsed" />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Background="{ThemeResource AppBgBrush}"
+                Padding="{StaticResource PagePadding}">
+            <StackPanel>
+                <Button x:Name="PrimaryButton"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        HorizontalAlignment="Stretch"
+                        Click="OnPrimaryClick" />
+                <Button x:Name="SecondaryButton"
+                        Margin="{StaticResource GapSmTop}"
+                        HorizontalAlignment="Stretch"
+                        Click="OnSecondaryClick" />
+                <ProgressRing x:Name="Progress" Width="{StaticResource SpaceLg}" Height="{StaticResource SpaceLg}"
+                              Margin="{StaticResource GapSmTop}"
+                              HorizontalAlignment="Center"
+                              Visibility="Collapsed" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>

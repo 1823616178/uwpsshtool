@@ -64,6 +64,8 @@ namespace SshTool.App.Infrastructure
         public SyncLocalAdapter SyncLocal { get; private set; }
         public SyncCoordinator Sync { get; private set; }
         public SyncTriggers SyncTriggers { get; private set; }
+        // U17/U18：设备重命名/撤销（SyncCoordinator 未封装这两项，直接消费 AuthService）。
+        public AuthService AuthService { get; private set; }
         public List<string> LoadWarnings { get; private set; }
 
         public static AppServices Initialize()
@@ -200,6 +202,7 @@ namespace SshTool.App.Infrastructure
                 Auth, VaultCache, SyncApi, new NativeVaultCrypto(Logger),
                 new UwpDeviceDescriptorProvider(), Logger, timers: new DispatcherTimerFactory());
             ServiceRegistry.Register(Sync);
+            AuthService = new AuthService(Auth, SyncApi, new UwpDeviceDescriptorProvider(), Logger);
             SyncTriggers = new SyncTriggers(
                 Sync, Hosts, Groups, Tunnels, Secrets, Settings, new DispatcherTimerFactory(), null, Logger);
             ServiceRegistry.Register(SyncTriggers);

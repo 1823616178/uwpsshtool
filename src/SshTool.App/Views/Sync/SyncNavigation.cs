@@ -35,10 +35,10 @@ namespace SshTool.App.Views.Sync
                     target = typeof(VaultUnlockPage);
                     break;
                 default:
-                    // ready，或状态不可读（同步栈缺失/异常）→ 占位页，避免被按进
-                    // 建库/解锁页再被「请先登录/组件不可用」顶出来。
-                    target = typeof(PlaceholderPage);
-                    parameter = new PlaceholderArgs("同步状态", "U17");
+                    // ready → 状态页（U17 AccountSyncPage）；状态不可读（同步栈缺失/异常）
+                    // → 仍走状态页（其 VM 会按 NeedsRouting 自行转出），避免被按进建库/解锁页
+                    // 再被「请先登录/组件不可用」顶出来。
+                    target = typeof(AccountSyncPage);
                     break;
             }
             frame.Navigate(target, parameter);
