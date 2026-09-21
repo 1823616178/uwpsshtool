@@ -35,6 +35,9 @@ namespace SshTool.Core.Sessions
         ITerminalScreen Screen { get; }
 
         Task<SshErrorCode> ConnectAsync(SshConnectRequest request);
+        // F07: ProxyJump — connect via direct-tcpip channel through jumpSession.
+        // jumpSession must be authenticated (Established state) already.
+        Task<SshErrorCode> ConnectJumpAsync(SshConnectRequest request, ISshSession jumpSession);
         Task<SshErrorCode> AuthenticatePasswordAsync(string password);
         Task<SshErrorCode> AuthenticatePublicKeyAsync(byte[] privateKeyPem, string passphrase);
         // K03：应用内 agent 认证——只传 keyId，私钥材料由 native 直接从 agent

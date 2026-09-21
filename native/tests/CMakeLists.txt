@@ -96,7 +96,8 @@ add_library(ssh_session_host STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/fwd/direct_tcpip.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/fwd/local_listener.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../core/fwd/remote_listen.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../core/fwd/socks5.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/fwd/socks5.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../core/fwd/jump_transport.cpp)
 target_include_directories(ssh_session_host PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../core)
 # hostkey.cpp 用 OpenSSL EVP 算指纹；native_dependencies_host 的 OpenSSL include 是 PRIVATE，这里单独补。
 target_include_directories(ssh_session_host PRIVATE ${OPENSSL_DIR}/include)
@@ -219,6 +220,10 @@ target_compile_definitions(fwd_test PRIVATE SSH_TEST_SOURCE_DIR="${CMAKE_CURRENT
 add_executable(socks5_test socks5_test.cpp)
 target_link_libraries(socks5_test PRIVATE ssh_session_host GTest::gtest_main)
 
+# F07：ProxyJump 多级跳板传输层（假通道单测）
+add_executable(jump_transport_test jump_transport_test.cpp)
+target_link_libraries(jump_transport_test PRIVATE ssh_session_host GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(smoke_test)
 gtest_discover_tests(deps_smoke_test)
@@ -244,3 +249,4 @@ gtest_discover_tests(agent_test)
 gtest_discover_tests(sftp_test)
 gtest_discover_tests(fwd_test)
 gtest_discover_tests(socks5_test)
+gtest_discover_tests(jump_transport_test)

@@ -98,6 +98,20 @@ namespace SshTool.Core.Tests.Fakes
             return SshErrorCode.None;
         }
 
+        // F07: ProxyJump fake — behaves like ConnectAsync for testing purposes.
+        public async Task<SshErrorCode> ConnectJumpAsync(SshConnectRequest request, ISshSession jumpSession)
+        {
+            Calls.Add("ConnectJump");
+            LastConnectRequest = request;
+            if (ConnectResult != SshErrorCode.None)
+            {
+                FireStateChanged(SessionStateKind.Error, ConnectResult);
+                return ConnectResult;
+            }
+            FireStateChanged(SessionStateKind.Authenticating);
+            return SshErrorCode.None;
+        }
+
         public Task<SshErrorCode> AuthenticatePasswordAsync(string password)
         {
             Calls.Add("AuthPassword");

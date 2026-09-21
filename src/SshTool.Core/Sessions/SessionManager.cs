@@ -180,6 +180,8 @@ namespace SshTool.Core.Sessions
             info.UserClosed = true;
             CancelTimer(info.SessionId);
             Detach(info);
+            // F07: tear down intermediate hop sessions before closing the main session.
+            CloseJumpSessions(info);
             if (info.NativeSession != null)
             {
                 info.NativeSession.Close();
@@ -190,6 +192,7 @@ namespace SshTool.Core.Sessions
             _sessions.Remove(info);
             RaiseChanged();
         }
+
 
         public void CloseAll()
         {
@@ -420,6 +423,9 @@ namespace SshTool.Core.Sessions
 
         private async Task ConnectCoreAsync(SessionInfo info, Host host, bool reconnect)
         {
+            // F07: tear down stale jump sessions from any previous connect attempt.
+            CloseJumpSessions(info);
+
             ISshSession native = _factory.Create();
             ISshSession old = info.NativeSession;
             info.NativeSession = native;
@@ -453,7 +459,18 @@ namespace SshTool.Core.Sessions
                 Rows = info.Rows,
                 Env = host == null ? null : host.EnvVars
             };
-            SshErrorCode code = await native.ConnectAsync(req).ConfigureAwait(false);
+
+            // F07: ProxyJump — if this host has a jump chain, open each hop first.
+            SshErrorCode code;
+            if (host != null && !string.IsNullOrEmpty(host.JumpHostId))
+            {
+                code = await ConnectViaJumpChainAsync(info, host, native, req).ConfigureAwait(false);
+            }
+            else
+            {
+                code = await native.ConnectAsync(req).ConfigureAwait(false);
+            }
+
             native.HostKeyCheck -= onKey;
             if (info.UserClosed)
             {
@@ -474,6 +491,8 @@ namespace SshTool.Core.Sessions
             }
             if (code != SshErrorCode.None)
             {
+                // F07：目标认证失败时跳板链已无用（重连会整链重建），释放。
+                CloseJumpSessions(info);
                 Fail(info, code, false);
                 return;
             }
@@ -506,6 +525,135 @@ namespace SshTool.Core.Sessions
             RaiseChanged();
             await AfterSuccessAsync(info, host).ConfigureAwait(false);
         }
+
+        // F07: Open each intermediate hop session, authenticate it, then connect the
+        // target session through the final hop's direct-tcpip channel.
+        private async Task<SshErrorCode> ConnectViaJumpChainAsync(
+            SessionInfo info, Host host, ISshSession targetNative, SshConnectRequest targetReq)
+        {
+            IReadOnlyList<SshTool.Core.Models.Host> allHosts =
+                await _hosts.GetAllAsync().ConfigureAwait(false);
+            JumpChainPlan plan;
+            try
+            {
+                plan = JumpChainPlanner.Plan(host, allHosts);
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (_logger != null)
+                {
+                    _logger.Log(LogLevel.Warning, "Session", "jump plan error: " + ex.Message);
+                }
+                return SshErrorCode.InternalError;
+            }
+
+            if (!plan.HasJump)
+            {
+                // No intermediate hops — treat as direct connect.
+                return await targetNative.ConnectAsync(targetReq).ConfigureAwait(false);
+            }
+
+            // Open and authenticate each intermediate hop (all except the last).
+            // 每一跳是独立 SSH 会话：主机密钥提示与认证提示的标题都要注明第几跳
+            // （hop.Title = "[i/n] 名称"）；不挂 HostKeyCheck 的会话在 native 侧
+            // fail-closed 直接拒绝，所以每跳必须有自己的密钥处理器。
+            ISshSession lastHopSession = null;
+            for (int i = 0; i < plan.TotalHops - 1; i++)
+            {
+                JumpHopInfo hop = plan.Hops[i];
+                Host hopHost = hop.Host;
+                ISshSession hopSession = _factory.Create();
+                info.JumpSessions.Add(hopSession);
+
+                var hopReq = new SshConnectRequest
+                {
+                    Host = hopHost.HostName,
+                    Port = hopHost.Port,
+                    Username = hopHost.Username,
+                    ConnectTimeoutMs = targetReq.ConnectTimeoutMs,
+                    KeepaliveSeconds = hopHost.Keepalive > 0 ? hopHost.Keepalive : 30,
+                    TermType = string.IsNullOrEmpty(hopHost.TermType) ? "xterm-256color" : hopHost.TermType,
+                    Cols = 80,
+                    Rows = 24,
+                };
+
+                string hopTitle = hop.Title;
+                KnownHost hopKnown = await FindKnownAsync(hopHost.HostName, hopHost.Port).ConfigureAwait(false);
+                string hopFp = hopHost.HostFingerprint;
+                List<HostKeyInfo> hopAcceptedKeys = new List<HostKeyInfo>();
+                EventHandler<HostKeyCheckEventArgs> onHopKey =
+                    (s, e) => HandleHopHostKey(hopKnown, hopFp, hopTitle, hopAcceptedKeys, e);
+                hopSession.HostKeyCheck += onHopKey;
+
+                SshErrorCode hopCode;
+                try
+                {
+                    if (i == 0 || lastHopSession == null)
+                    {
+                        // Outermost hop — direct TCP connection.
+                        hopCode = await hopSession.ConnectAsync(hopReq).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        // Inner hop — route through previous hop.
+                        hopCode = await hopSession.ConnectJumpAsync(hopReq, lastHopSession).ConfigureAwait(false);
+                    }
+
+                    if (hopCode == SshErrorCode.None)
+                    {
+                        // Authenticate the hop with its own saved credentials;
+                        // prompts carry the hop title.
+                        hopCode = await AuthenticateAsync(info, hopHost, hopSession, hopTitle).ConfigureAwait(false);
+                    }
+                }
+                finally
+                {
+                    hopSession.HostKeyCheck -= onHopKey;
+                }
+
+                if (hopCode != SshErrorCode.None)
+                {
+                    if (_logger != null)
+                    {
+                        _logger.Log(LogLevel.Warning, "Session",
+                            "jump hop " + hopTitle + " failed: " + hopCode.ToString());
+                    }
+                    CloseJumpSessions(info);
+                    return hopCode;
+                }
+
+                // Persist the hop's accepted host key so the next connect is prompt-free.
+                for (int k = 0; k < hopAcceptedKeys.Count; k++)
+                {
+                    await PersistKnownHostAsync(hopHost.HostName, hopHost.Port, hopAcceptedKeys[k]).ConfigureAwait(false);
+                }
+
+                lastHopSession = hopSession;
+            }
+
+            // Connect the target through the final hop.
+            SshErrorCode targetCode = await targetNative.ConnectJumpAsync(targetReq, lastHopSession).ConfigureAwait(false);
+            if (targetCode != SshErrorCode.None)
+            {
+                // 链已建立但目标握手失败：跳板会话随之释放（重连会整链重建）。
+                CloseJumpSessions(info);
+            }
+            return targetCode;
+        }
+
+        // F07: close and dispose all intermediate jump sessions tracked in info.JumpSessions.
+        private static void CloseJumpSessions(SessionInfo info)
+        {
+            for (int i = info.JumpSessions.Count - 1; i >= 0; i--)
+            {
+                ISshSession js = info.JumpSessions[i];
+                js.Close();
+                js.Dispose();
+            }
+            info.JumpSessions.Clear();
+        }
+
+
 
         private void SendAutoRun(ISshSession native, Host host)
         {
@@ -562,7 +710,73 @@ namespace SshTool.Core.Sessions
             }
         }
 
-        private async Task<SshErrorCode> AuthenticateAsync(SessionInfo info, Host host, ISshSession native)
+        // F07：跳板会话的主机密钥处理。判定与 HandleHostKey 相同，但不写
+        // info.AcceptedKey/WriteKnownHost（那是目标主机的记录，写错会污染
+        // 目标的 known_hosts 行）；接受的密钥由调用方在该跳认证成功后经
+        // PersistKnownHostAsync 以跳板自己的 host:port 落库。
+        private void HandleHopHostKey(
+            KnownHost known, string hostFp, string hopTitle,
+            List<HostKeyInfo> acceptedKeys, HostKeyCheckEventArgs e)
+        {
+            HostKeyVerdict verdict = HostKeyVerifier.Verify(known, hostFp, e.Info);
+            if (verdict.Kind == HostKeyVerdictKind.Accept)
+            {
+                acceptedKeys.Add(e.Info);
+                e.Accept();
+                return;
+            }
+            if (verdict.Kind == HostKeyVerdictKind.RejectMismatch)
+            {
+                e.Reject();
+                var ignoreMismatch = _ui.RunAsync(() => _hostKeys.PromptMismatchAsync(
+                    e.Info, hopTitle, known == null ? hostFp : known.FingerprintSha256));
+                return;
+            }
+            _ui.Post(async () =>
+            {
+                bool ok = await _hostKeys.PromptUnknownAsync(e.Info, hopTitle).ConfigureAwait(true);
+                if (ok)
+                {
+                    acceptedKeys.Add(e.Info);
+                    e.Accept();
+                }
+                else
+                {
+                    e.Reject();
+                }
+            });
+        }
+
+        // F07：把一次握手接受的密钥写入 known_hosts（目标主机在 AfterSuccessAsync、
+        // 跳板在每跳认证成功后调用）。
+        private async Task PersistKnownHostAsync(string hostName, int port, HostKeyInfo key)
+        {
+            KnownHost existing = await FindKnownAsync(hostName, port).ConfigureAwait(false);
+            if (existing == null)
+            {
+                var kh = new KnownHost
+                {
+                    Id = IdGenerator.NewId(),
+                    Host = hostName,
+                    Port = port,
+                    KeyType = key.KeyType,
+                    FingerprintSha256 = key.FingerprintSha256,
+                    AddedAt = IsoNow(),
+                    LastSeenAt = IsoNow()
+                };
+                await _knownHosts.AddAsync(kh, ChangeOrigin.User).ConfigureAwait(false);
+            }
+            else
+            {
+                existing.LastSeenAt = IsoNow();
+                existing.FingerprintSha256 = key.FingerprintSha256;
+                await _knownHosts.UpdateAsync(existing, ChangeOrigin.User).ConfigureAwait(false);
+            }
+        }
+
+        // F07：titleOverride 供跳板认证使用——对话框标题注明第几跳；为 null 时用 info.Title。
+        private async Task<SshErrorCode> AuthenticateAsync(
+            SessionInfo info, Host host, ISshSession native, string titleOverride = null)
         {
             EventHandler<AuthPromptEventArgs> onPrompt = (s, e) =>
             {
@@ -581,9 +795,9 @@ namespace SshTool.Core.Sessions
                 }
                 if (type == AuthType.Agent)
                 {
-                    return await AuthenticateAgentAsync(info, host, native).ConfigureAwait(false);
+                    return await AuthenticateAgentAsync(info, host, native, titleOverride).ConfigureAwait(false);
                 }
-                return await AuthenticatePasswordAsync(info, host, native).ConfigureAwait(false);
+                return await AuthenticatePasswordAsync(info, host, native, titleOverride).ConfigureAwait(false);
             }
             finally
             {
@@ -604,7 +818,8 @@ namespace SshTool.Core.Sessions
             }
         }
 
-        private async Task<SshErrorCode> AuthenticatePasswordAsync(SessionInfo info, Host host, ISshSession native)
+        private async Task<SshErrorCode> AuthenticatePasswordAsync(
+            SessionInfo info, Host host, ISshSession native, string titleOverride = null)
         {
             int attempts = 0;
             string stored = host == null ? null : await _secrets.GetAsync(SecretKeys.HostPassword(host.Id)).ConfigureAwait(false);
@@ -630,7 +845,7 @@ namespace SshTool.Core.Sessions
             while (attempts < 3)
             {
                 PasswordPromptResult prompt = await _ui.RunAsync(
-                    () => _credentials.PromptPasswordAsync(info.Title, error)).ConfigureAwait(false);
+                    () => _credentials.PromptPasswordAsync(titleOverride ?? info.Title, error)).ConfigureAwait(false);
                 if (prompt == null || prompt.Cancelled)
                 {
                     return SshErrorCode.NoLocalCredential;
@@ -693,7 +908,7 @@ namespace SshTool.Core.Sessions
         //      一把（204 同样 lock 掉并返回，不循环弹框）。
         // 私钥明文只在 SecretStore→agent 的单程中短暂存在，C# 侧不保留。
         private async Task<SshErrorCode> AuthenticateAgentAsync(
-            SessionInfo info, Host host, ISshSession native)
+            SessionInfo info, Host host, ISshSession native, string titleOverride = null)
         {
             ISshAgent agent = _agent;
             if (agent == null)
@@ -748,7 +963,7 @@ namespace SshTool.Core.Sessions
             }
 
             AgentUnlockAttempt attempt =
-                await PromptUnlockAndStoreAsync(info, host, agent).ConfigureAwait(false);
+                await PromptUnlockAndStoreAsync(info, host, agent, titleOverride).ConfigureAwait(false);
             if (attempt.Cancelled || string.IsNullOrEmpty(attempt.KeyId))
             {
                 return attempt.Cancelled ? SshErrorCode.NoLocalCredential : SshErrorCode.PrivateKeyLoadFailed;
@@ -779,7 +994,7 @@ namespace SshTool.Core.Sessions
         }
 
         private async Task<AgentUnlockAttempt> PromptUnlockAndStoreAsync(
-            SessionInfo info, Host host, ISshAgent agent)
+            SessionInfo info, Host host, ISshAgent agent, string titleOverride = null)
         {
             IReadOnlyList<KeyEntry> all = await _keys.GetAllAsync().ConfigureAwait(false);
             if (all.Count == 0)
@@ -813,7 +1028,7 @@ namespace SshTool.Core.Sessions
                 return new AgentUnlockAttempt { Cancelled = true };
             }
             AgentUnlockResult pick = await _ui.RunAsync(
-                () => _credentials.PromptAgentUnlockAsync(choices, info.Title)).ConfigureAwait(false);
+                () => _credentials.PromptAgentUnlockAsync(choices, titleOverride ?? info.Title)).ConfigureAwait(false);
             if (pick == null || pick.Cancelled || string.IsNullOrEmpty(pick.KeyId))
             {
                 return new AgentUnlockAttempt { Cancelled = true };
@@ -913,27 +1128,7 @@ namespace SshTool.Core.Sessions
         {
             if (info.WriteKnownHost && info.AcceptedKey != null)
             {
-                KnownHost existing = await FindKnownAsync(info.HostName, info.Port).ConfigureAwait(false);
-                if (existing == null)
-                {
-                    var kh = new KnownHost
-                    {
-                        Id = IdGenerator.NewId(),
-                        Host = info.HostName,
-                        Port = info.Port,
-                        KeyType = info.AcceptedKey.KeyType,
-                        FingerprintSha256 = info.AcceptedKey.FingerprintSha256,
-                        AddedAt = IsoNow(),
-                        LastSeenAt = IsoNow()
-                    };
-                    await _knownHosts.AddAsync(kh, ChangeOrigin.User).ConfigureAwait(false);
-                }
-                else
-                {
-                    existing.LastSeenAt = IsoNow();
-                    existing.FingerprintSha256 = info.AcceptedKey.FingerprintSha256;
-                    await _knownHosts.UpdateAsync(existing, ChangeOrigin.User).ConfigureAwait(false);
-                }
+                await PersistKnownHostAsync(info.HostName, info.Port, info.AcceptedKey).ConfigureAwait(false);
             }
             if (host != null)
             {

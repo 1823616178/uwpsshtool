@@ -99,6 +99,42 @@ namespace SshTool.App.Platform
             return (SshErrorCode)code;
         }
 
+        // F07: ProxyJump — route new session through jumpSession's direct-tcpip channel.
+        public async Task<SshErrorCode> ConnectJumpAsync(SshConnectRequest request, ISshSession jumpSession)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (jumpSession == null) throw new ArgumentNullException(nameof(jumpSession));
+            var jumpNative = jumpSession as NativeSshSession;
+            if (jumpNative == null)
+            {
+                throw new ArgumentException("jumpSession must be a NativeSshSession", nameof(jumpSession));
+            }
+            var options = new NativeBridge.ConnectOptions
+            {
+                Host = request.Host,
+                Port = request.Port,
+                Username = request.Username,
+                ConnectTimeoutMs = request.ConnectTimeoutMs,
+                KeepaliveSeconds = request.KeepaliveSeconds,
+                TermType = request.TermType,
+                Cols = request.Cols,
+                Rows = request.Rows,
+                JumpSessionId = string.Empty,
+            };
+            if (request.Env != null)
+            {
+                var env = new System.Collections.Generic.Dictionary<string, string>();
+                foreach (var pair in request.Env)
+                {
+                    env[pair.Key] = pair.Value;
+                }
+                options.Env = env;
+            }
+            int code = await _native.ConnectJumpAsync(options, jumpNative.Native).AsTask().ConfigureAwait(false);
+            return (SshErrorCode)code;
+        }
+
+
         public async Task<SshErrorCode> AuthenticatePasswordAsync(string password)
         {
             int code = await _native.AuthenticatePasswordAsync(password).AsTask().ConfigureAwait(false);

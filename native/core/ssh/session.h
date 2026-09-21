@@ -1,6 +1,7 @@
 #pragma once
 
 #include <winsock2.h>
+#include <BaseTsd.h> // SSIZE_T（session.h 不引入 libssh2.h，见下方 jumpSendCb 注释）
 
 #include <atomic>
 #include <condition_variable>
@@ -32,6 +33,7 @@ namespace fwd {
 class ForwardedConnection; // F04: fwd/direct_tcpip.h（端口转发连接；仅引用，不包含头）
 class LocalListener;       // F04: fwd/local_listener.h（本地监听；仅引用，不包含头）
 class RemoteListener;      // F04: fwd/remote_listen.h（远端监听；仅引用，不包含头）
+class JumpTransport;       // F07: fwd/jump_transport.h（ProxyJump 跳板传输层）
 } // namespace fwd
 namespace ssh {
 
@@ -187,7 +189,13 @@ public:
     // Only Idle accepts connect. Parameters are copied before work is posted
     // to the session thread.
     bool connect(std::string host, std::uint16_t port, std::string username);
+    // F07: ProxyJump 跳板传输连接（使用已有 jump transport 直通）
+    bool connectJump(std::shared_ptr<fwd::JumpTransport> transport,
+                     std::string host, std::uint16_t port, std::string username);
     void close();
+
+    _LIBSSH2_SESSION* rawSession() const { return session_; }
+    std::shared_ptr<fwd::JumpTransport> jumpTransport() const { return jumpTransport_; }
 
     SshSessionState state() const { return state_.load(); }
     SshSessionError lastError() const;
@@ -271,6 +279,12 @@ private:
     friend class fwd::RemoteListener; // F04: accept drive, raw handle access
 
     void doConnect();
+    void doConnectJump();
+    void beginHandshakeJump();
+    // F07：签名与 libssh2 的 LIBSSH2_SEND_FUNC/RECV_FUNC 一致（libssh2_socket_t
+    // 即 SOCKET、ssize_t 即 SSIZE_T）；用 Win32 类型避免在头文件里引入 libssh2。
+    static SSIZE_T jumpSendCb(SOCKET sock, const void* buffer, size_t length, int flags, void** abstract);
+    static SSIZE_T jumpRecvCb(SOCKET sock, void* buffer, size_t length, int flags, void** abstract);
     void onSocketEvent(SOCKET socket, short events);
     void beginHandshake();
     void driveHandshake();
@@ -419,6 +433,12 @@ private:
     std::atomic<std::uint32_t> keepaliveSendCount_{0};
     std::atomic<std::uint32_t> keepaliveMissCount_{0};
     std::atomic<std::uint32_t> keepaliveProbeCount_{0};
+
+    // ---- F07 ProxyJump jump transport ----
+    std::shared_ptr<fwd::JumpTransport> jumpTransport_;
+    SOCKET jumpWakeSock_ = INVALID_SOCKET; // loopback wake-up socket (server side)
+    SOCKET jumpWakePeer_ = INVALID_SOCKET; // loopback wake-up socket (client side, wakeup writes here)
+    io::EventLoop::TimerId jumpPollTimer_ = 0; // F07: poll-drive fallback (no wakeup path on DirectTcpipJumpChannel)
 };
 
 const char* toString(SshSessionState state);

@@ -128,6 +128,10 @@ namespace SshTool
 
                 // 返回值是 N08 统一错误码（0 = 成功），与 C# SshErrorCode 一致。
                 Windows::Foundation::IAsyncOperation<int>^ ConnectAsync(ConnectOptions^ options);
+                // F07：ProxyJump 跳板连接——通过 jumpSession 的 direct-tcpip 通道
+                // 连接目标主机（跳过 DNS/TCP，使用 jump transport 层）。
+                Windows::Foundation::IAsyncOperation<int>^ ConnectJumpAsync(
+                    ConnectOptions^ options, SshSession^ jumpSession);
                 Windows::Foundation::IAsyncOperation<int>^ AuthenticatePasswordAsync(Platform::String^ password);
                 Windows::Foundation::IAsyncOperation<int>^ AuthenticatePublicKeyAsync(
                     const Platform::Array<uint8>^ privateKeyPem, Platform::String^ passphrase);
@@ -249,6 +253,12 @@ namespace SshTool
                                                  int connectTimeoutMs, int keepaliveSeconds,
                                                  std::string termType,
                                                  std::vector<std::pair<std::string, std::string>> envVars);
+                // F07: open direct-tcpip via jumpSession and route through it
+                concurrency::task<int> DoConnectJump(std::string host, uint16 port, std::string username,
+                                                     int connectTimeoutMs, int keepaliveSeconds,
+                                                     std::string termType,
+                                                     std::vector<std::pair<std::string, std::string>> envVars,
+                                                     SshSession^ jumpSession);
                 concurrency::task<int> DoOpenShell(int cols, int rows);
                 concurrency::task<int> DoAuthenticate(
                     std::function<bool(sshclient::ssh::SshSession* session,

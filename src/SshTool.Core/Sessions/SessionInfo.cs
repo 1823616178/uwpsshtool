@@ -114,5 +114,9 @@ namespace SshTool.Core.Sessions
         public string HostName { get; set; }
         public int Port { get; set; }
         public string Username { get; set; }
+
+        // F07：ProxyJump 多级跳板中间会话（生命周期与主会话绑定；断开/重连时级联释放）
+        public System.Collections.Generic.List<ISshSession> JumpSessions { get; } =
+            new System.Collections.Generic.List<ISshSession>();
     }
 }

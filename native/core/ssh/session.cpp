@@ -5,6 +5,7 @@
 #include "fwd/direct_tcpip.h"
 #include "fwd/local_listener.h"
 #include "fwd/remote_listen.h"
+#include "fwd/jump_transport.h"
 #include "io/SessionThread.h"
 
 #include <libssh2.h>
@@ -12,6 +13,7 @@
 #include <ws2tcpip.h>
 
 #include <algorithm>
+#include <cerrno>
 #include <chrono>
 #include <cstdio>
 #include <mutex>
@@ -22,6 +24,10 @@
 namespace sshclient {
 namespace ssh {
 namespace {
+
+// F07：跳板模式的轮询驱动间隔（毫秒）。DirectTcpipJumpChannel 无 wakeup 通知，
+// 见 beginHandshakeJump 内注释。
+constexpr std::uint64_t kJumpPollIntervalMs = 50;
 
 std::once_flag g_libssh2InitOnce;
 bool g_libssh2InitSucceeded = false;
@@ -129,6 +135,186 @@ bool SshSession::connect(std::string host, std::uint16_t port, std::string usern
     username_ = std::move(username);
     thread_.post([this] { doConnect(); });
     return true;
+}
+
+bool SshSession::connectJump(std::shared_ptr<fwd::JumpTransport> transport,
+                             std::string host, std::uint16_t port, std::string username)
+{
+    if (!transport) {
+        return false;
+    }
+    bool expected = false;
+    if (!connectAdmitted_.compare_exchange_strong(expected, true)) {
+        return false;
+    }
+    jumpTransport_ = std::move(transport);
+    host_ = std::move(host);
+    port_ = port;
+    username_ = std::move(username);
+    thread_.post([this] { doConnectJump(); });
+    return true;
+}
+
+// ---- F07 jump helpers ------------------------------------------------
+
+// Creates a loopback socket pair (server, client) for event-loop wake-up.
+// Returns false and closes both on failure.
+static bool MakeLoopbackPair(SOCKET& server, SOCKET& client)
+{
+    server = INVALID_SOCKET;
+    client = INVALID_SOCKET;
+
+    // Bind a TCP listener on 127.0.0.1:0
+    SOCKET listener = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (listener == INVALID_SOCKET) {
+        return false;
+    }
+    sockaddr_in addr{};
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = ::htonl(INADDR_LOOPBACK);
+    addr.sin_port = 0;
+    if (::bind(listener, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) != 0 ||
+        ::listen(listener, 1) != 0) {
+        ::closesocket(listener);
+        return false;
+    }
+    int addrLen = sizeof(addr);
+    if (::getsockname(listener, reinterpret_cast<sockaddr*>(&addr), &addrLen) != 0) {
+        ::closesocket(listener);
+        return false;
+    }
+
+    // Non-blocking client connect
+    client = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (client == INVALID_SOCKET) {
+        ::closesocket(listener);
+        return false;
+    }
+    // Make client non-blocking temporarily so connect doesn't block
+    u_long nb = 1;
+    ::ioctlsocket(client, FIONBIO, &nb);
+    ::connect(client, reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+
+    // Accept the server side (listener is blocking → completes immediately after client connect)
+    server = ::accept(listener, nullptr, nullptr);
+    ::closesocket(listener);
+    if (server == INVALID_SOCKET) {
+        ::closesocket(client);
+        client = INVALID_SOCKET;
+        return false;
+    }
+    // Make both non-blocking
+    ::ioctlsocket(server, FIONBIO, &nb);
+    return true;
+}
+
+void SshSession::doConnectJump()
+{
+    if (!transitionTo(SshSessionState::Connecting)) {
+        return;
+    }
+    if (!g_libssh2InitSucceeded) {
+        fail(SshSessionError::InternalError, "libssh2_init failed");
+        return;
+    }
+    // Skip DNS and TCP socket creation — jump transport provides the channel.
+    // Transition directly to handshake using the jump callbacks.
+    beginHandshakeJump();
+}
+
+void SshSession::beginHandshakeJump()
+{
+    // Create loopback wake-up socket pair: the BufferedJumpPipe wakeup
+    // callback writes a byte to jumpWakePeer_; the event loop monitors
+    // jumpWakeSock_ and calls onSocketEvent → driveHandshake / driveAuth /
+    // driveChannels as appropriate.
+    if (!MakeLoopbackPair(jumpWakeSock_, jumpWakePeer_)) {
+        fail(SshSessionError::InternalError, "failed to create jump wake-up socket pair");
+        return;
+    }
+
+    // Wire the jump transport wakeup to signal jumpWakePeer_.
+    jumpTransport_->setWakeupCallback([peer = jumpWakePeer_] {
+        char byte = 1;
+        ::send(peer, &byte, 1, 0);
+    });
+
+    session_ = ::libssh2_session_init_ex(nullptr, nullptr, nullptr, this);
+    if (session_ == nullptr) {
+        fail(SshSessionError::InternalError, "libssh2_session_init failed (jump)");
+        return;
+    }
+    // Register jump transport send/recv callbacks so libssh2 uses our channel.
+    ::libssh2_session_callback_set2(session_, LIBSSH2_CALLBACK_SEND,
+        reinterpret_cast<libssh2_cb_generic*>(jumpSendCb));
+    ::libssh2_session_callback_set2(session_, LIBSSH2_CALLBACK_RECV,
+        reinterpret_cast<libssh2_cb_generic*>(jumpRecvCb));
+    ::libssh2_session_set_blocking(session_, 0);
+
+    transitionTo(SshSessionState::Handshaking);
+    handshakeTimer_ = thread_.loop().runAfter(options_.handshakeTimeoutMs, [this] {
+        if (state() == SshSessionState::Handshaking) {
+            fail(SshSessionError::HandshakeTimeout, "SSH handshake timed out (jump)");
+        }
+    });
+
+    // Register the wake-up socket with the event loop. Use jumpWakeSock_ as the
+    // socket_ alias so that the standard onSocketEvent path is reused.
+    // We store it in socket_ so that addSocket / updateSocketInterest / removeSocket
+    // all use the same variable. jumpWakePeer_ is purely the write-end.
+    socket_ = jumpWakeSock_;
+    if (!thread_.loop().addSocket(socket_, io::EventLoop::Readable,
+                                  [this](SOCKET socket, short events) {
+                                      // Drain any wakeup bytes, then drive.
+                                      char buf[64];
+                                      while (::recv(socket, buf, sizeof(buf), 0) > 0) {}
+                                      onSocketEvent(socket, events | io::EventLoop::Readable);
+                                  })) {
+        fail(SshSessionError::InternalError, "failed to register jump wake socket with event loop");
+        return;
+    }
+    socketRegistered_ = true;
+
+    // F07：DirectTcpipJumpChannel 没有 wakeup 通知路径（JumpTransport::
+    // setWakeupCallback 仅对 BufferedJumpPipe 生效），上级通道的数据到达无法
+    // 唤醒本会话的事件循环。用轮询兜底周期驱动状态机：recv 无数据时 EAGAIN
+    // 空转，代价可接受。真机验收通过后如需省电可再接 hop 会话的 I/O 进度回调。
+    jumpPollTimer_ = thread_.loop().runEvery(kJumpPollIntervalMs, [this] {
+        const SshSessionState current = state();
+        if (current != SshSessionState::Handshaking &&
+            current != SshSessionState::Authenticating &&
+            current != SshSessionState::Established) {
+            return;
+        }
+        if (jumpWakeSock_ == INVALID_SOCKET) {
+            return;
+        }
+        char buf[64];
+        while (::recv(jumpWakeSock_, buf, sizeof(buf), 0) > 0) {}
+        onSocketEvent(jumpWakeSock_, io::EventLoop::Readable);
+    });
+
+    // Drive the first handshake attempt immediately (may complete with data
+    // already in the pipe from upstream).
+    driveHandshake();
+}
+
+SSIZE_T SshSession::jumpSendCb(SOCKET /*sock*/, const void* buffer,
+                                size_t length, int flags, void** abstract)
+{
+    if (!abstract || !*abstract) { return static_cast<SSIZE_T>(-ECONNRESET); }
+    auto* self = static_cast<SshSession*>(*abstract);
+    if (!self->jumpTransport_) { return static_cast<SSIZE_T>(-ECONNRESET); }
+    return self->jumpTransport_->send(buffer, length, flags);
+}
+
+SSIZE_T SshSession::jumpRecvCb(SOCKET /*sock*/, void* buffer,
+                                size_t length, int flags, void** abstract)
+{
+    if (!abstract || !*abstract) { return static_cast<SSIZE_T>(-ECONNRESET); }
+    auto* self = static_cast<SshSession*>(*abstract);
+    if (!self->jumpTransport_) { return static_cast<SSIZE_T>(-ECONNRESET); }
+    return self->jumpTransport_->recv(buffer, length, flags);
 }
 
 void SshSession::close()
@@ -652,13 +838,20 @@ void SshSession::releaseResources()
     if (socket_ != INVALID_SOCKET) {
         ::closesocket(socket_);
         socket_ = INVALID_SOCKET;
+        jumpWakeSock_ = INVALID_SOCKET; // socket_ == jumpWakeSock_ in jump mode
     }
+    // F07: close the write-end of the jump wake-up pair and release transport.
+    if (jumpWakePeer_ != INVALID_SOCKET) {
+        ::closesocket(jumpWakePeer_);
+        jumpWakePeer_ = INVALID_SOCKET;
+    }
+    jumpTransport_.reset();
 }
 
 void SshSession::cancelTimers()
 {
     for (io::EventLoop::TimerId* timer :
-         {&connectTimer_, &handshakeTimer_, &closeTimer_, &keepaliveTimer_}) {
+         {&connectTimer_, &handshakeTimer_, &closeTimer_, &keepaliveTimer_, &jumpPollTimer_}) {
         if (*timer != 0) {
             thread_.loop().cancelTimer(*timer);
             *timer = 0;

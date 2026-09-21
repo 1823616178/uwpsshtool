@@ -5,6 +5,7 @@
 #include "Bridge/SshAgent.h"
 
 #include "fwd/local_listener.h"
+#include "fwd/jump_transport.h"
 #include "fwd/pump.h"
 #include "fwd/remote_listen.h"
 #include "sftp/sftp_session.h"
@@ -408,6 +409,153 @@ namespace SshTool
                 }
                 return concurrency::create_task(*tce);
             }
+
+            // ---------------------------------------------------------------- F07 jump connect
+
+            Windows::Foundation::IAsyncOperation<int>^ SshSession::ConnectJumpAsync(
+                ConnectOptions^ options, SshSession^ jumpSession)
+            {
+                if (options == nullptr || jumpSession == nullptr)
+                {
+                    throw ref new Platform::NullReferenceException();
+                }
+                const std::string host = ToUtf8(options->Host);
+                const int port = options->Port;
+                const std::string username = ToUtf8(options->Username);
+                const int connectTimeoutMs = options->ConnectTimeoutMs;
+                const int keepaliveSeconds = options->KeepaliveSeconds;
+                const std::string termType = ToUtf8(options->TermType);
+                std::vector<std::pair<std::string, std::string>> envVars;
+                if (options->Env != nullptr)
+                {
+                    for (auto pair : options->Env)
+                    {
+                        envVars.push_back({ToUtf8(pair->Key), ToUtf8(pair->Value)});
+                    }
+                }
+                SshSession^ self = this;
+                return concurrency::create_async(
+                    [self, host, port, username, connectTimeoutMs, keepaliveSeconds, termType,
+                     envVars, jumpSession]() -> task<int> {
+                        return self->DoConnectJump(host, static_cast<uint16>(port), username,
+                                                   connectTimeoutMs, keepaliveSeconds, termType,
+                                                   envVars, jumpSession);
+                    });
+            }
+
+            task<int> SshSession::DoConnectJump(std::string host, uint16 port, std::string username,
+                                                int connectTimeoutMs, int keepaliveSeconds,
+                                                std::string termType,
+                                                std::vector<std::pair<std::string, std::string>> envVars,
+                                                SshSession^ jumpSession)
+            {
+                if (closed_.load())
+                {
+                    return concurrency::task_from_result(ssh::kSshErrorCodeInternalError);
+                }
+
+                // Step 1: open a direct-tcpip channel on the jump session's I/O thread.
+                // The jump session must be Established (authenticated) already.
+                // Temporarily switch to blocking mode so the EAGAIN open loop completes.
+                auto channelTce = std::make_shared<task_completion_event<struct _LIBSSH2_CHANNEL*>>();
+                {
+                    std::lock_guard<std::mutex> jlock(jumpSession->sessionMutex_);
+                    if (jumpSession->session_ == nullptr || jumpSession->closed_.load())
+                    {
+                        return concurrency::task_from_result(ssh::kSshErrorCodeInternalError);
+                    }
+                    ssh::SshSession* jcore = jumpSession->session_.get();
+                    jumpSession->thread_->post([jcore, host, port, channelTce]() mutable {
+                        _LIBSSH2_SESSION* rawSess = jcore->rawSession();
+                        if (rawSess == nullptr)
+                        {
+                            channelTce->set(nullptr);
+                            return;
+                        }
+                        ::libssh2_session_set_blocking(rawSess, 1);
+                        struct _LIBSSH2_CHANNEL* ch =
+                            ::libssh2_channel_direct_tcpip_ex(rawSess,
+                                host.c_str(), static_cast<int>(port),
+                                "127.0.0.1", 0);
+                        ::libssh2_session_set_blocking(rawSess, 0);
+                        channelTce->set(ch);
+                    });
+                }
+
+                // Capture by value for the continuation.
+                SshSession^ self = this;
+                return concurrency::create_task(*channelTce).then(
+                    [self, host = std::move(host), port, username = std::move(username),
+                     connectTimeoutMs, keepaliveSeconds, termType = std::move(termType),
+                     envVars = std::move(envVars)]
+                    (struct _LIBSSH2_CHANNEL* channel) mutable -> task<int> {
+
+                    if (channel == nullptr)
+                    {
+                        return concurrency::task_from_result(ssh::kSshErrorCodeInternalError);
+                    }
+                    if (self->closed_.load())
+                    {
+                        ::libssh2_channel_free(channel); // leak guard if already closing
+                        return concurrency::task_from_result(ssh::kSshErrorCodeInternalError);
+                    }
+
+                    // Step 2: wrap channel in JumpTransport.
+                    auto jumpCh = std::make_shared<sshclient::fwd::DirectTcpipJumpChannel>(channel);
+                    auto transport = std::make_shared<sshclient::fwd::JumpTransport>(std::move(jumpCh));
+
+                    // Step 3: set up the target core session routed through the transport.
+                    auto tce = std::make_shared<task_completion_event<int>>();
+                    {
+                        std::lock_guard<std::mutex> lock(self->sessionMutex_);
+                        if (self->session_ != nullptr)
+                        {
+                            return concurrency::task_from_result(ssh::kSshErrorCodeInternalError);
+                        }
+                        ssh::SshSessionOptions coreOptions;
+                        coreOptions.connectTimeoutMs = static_cast<std::uint32_t>(connectTimeoutMs);
+                        coreOptions.authPromptTimeoutMs = kAuthPromptTimeoutMs;
+                        Platform::WeakReference weak(self);
+                        coreOptions.hostKeyCallback = [weak](const ssh::HostKeyInfo& info) {
+                            SshSession^ s = weak.Resolve<SshSession>();
+                            if (s == nullptr) { return ssh::HostKeyDecision::Reject; }
+                            return s->OnCoreHostKey(info);
+                        };
+                        coreOptions.authPromptSink = &self->sink_;
+                        auto stateCallback = [weak, tce](ssh::SshSessionState from, ssh::SshSessionState to) {
+                            SshSession^ s = weak.Resolve<SshSession>();
+                            if (s != nullptr)
+                            {
+                                s->OnCoreStateChanged(from, to, tce);
+                            }
+                            else if (to == ssh::SshSessionState::Error ||
+                                     to == ssh::SshSessionState::Disconnected ||
+                                     to == ssh::SshSessionState::Closed)
+                            {
+                                tce->set(ssh::kSshErrorCodeInternalError);
+                            }
+                        };
+                        auto session = std::make_unique<ssh::SshSession>(
+                            *self->thread_, coreOptions, stateCallback);
+                        if (keepaliveSeconds > 0)
+                        {
+                            session->setKeepaliveConfig(
+                                static_cast<std::uint32_t>(keepaliveSeconds),
+                                ssh::kDefaultKeepaliveMaxMisses);
+                        }
+                        if (!session->connectJump(transport, std::move(host), port, std::move(username)))
+                        {
+                            return concurrency::task_from_result(ssh::kSshErrorCodeInternalError);
+                        }
+                        self->termType_ = std::move(termType);
+                        self->envVars_ = std::move(envVars);
+                        self->connectTce_ = tce;
+                        self->session_ = std::move(session);
+                    }
+                    return concurrency::create_task(*tce);
+                });
+            }
+
 
             task<int> SshSession::DoAuthenticate(
                 std::function<bool(ssh::SshSession*, const ssh::AuthCallback&)> admit)
