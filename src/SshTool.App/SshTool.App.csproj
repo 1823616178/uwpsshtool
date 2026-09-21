@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SshTool.App</RootNamespace>
     <AssemblyName>SshTool.App</AssemblyName>
-    <DefaultLanguage>zh-CN</DefaultLanguage>
+    <DefaultLanguage>zh-cn</DefaultLanguage>
     <TargetPlatformIdentifier>UAP</TargetPlatformIdentifier>
     <TargetPlatformVersion>10.0.19041.0</TargetPlatformVersion>
     <TargetPlatformMinVersion>10.0.15063.0</TargetPlatformMinVersion>
@@ -338,6 +338,12 @@
     <Compile Include="Views\KeyBarLayoutEditorPage.xaml.cs">
       <DependentUpon>KeyBarLayoutEditorPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\AboutPage.xaml.cs">
+      <DependentUpon>AboutPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\LicensesPage.xaml.cs">
+      <DependentUpon>LicensesPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ShortcutEditorPage.xaml.cs">
       <DependentUpon>ShortcutEditorPage.xaml</DependentUpon>
     </Compile>
@@ -501,6 +507,14 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\KeyBarLayoutEditorPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\AboutPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\LicensesPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
