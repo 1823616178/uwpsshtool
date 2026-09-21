@@ -1,0 +1,37 @@
+<Page
+    x:Class="SshTool.App.Views.AboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <controls:AppPageHeader x:Name="PageHeader" x:Uid="About_Header"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnBackRequested" />
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}">
+                <TextBlock x:Uid="About_AppName" Style="{StaticResource TitleTextStyle}" />
+                <TextBlock x:Name="VersionText" Style="{StaticResource BodyTextStyle}"
+                           Margin="{StaticResource GapXsTop}" />
+
+                <controls:SectionHeader x:Uid="About_DepsHeader"
+                                        Margin="{StaticResource GapMdTop}" />
+                <controls:MonoText x:Name="DepsText" Compact="True" />
+
+                <controls:SectionHeader x:Uid="About_LicenseHeader"
+                                        Margin="{StaticResource GapMdTop}" />
+                <Button x:Uid="About_LicensesButton" Click="OnLicensesClick"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        HorizontalAlignment="Stretch" />
+
+                <TextBlock x:Uid="About_PrivacyLink" Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource GapSmTop}" TextWrapping="Wrap" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

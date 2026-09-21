@@ -56,7 +56,7 @@ namespace SshTool.App.ViewModels
             KnownHostsCommand = new RelayCommand(() => Navigation.Navigate<KnownHostsPage>());
             SnippetsCommand = new RelayCommand(() => Navigation.Navigate<SnippetsPage>(SnippetsArgs.Manage()));
             AppearanceCommand = new RelayCommand(() => Navigation.Navigate<AppearanceListPage>());
-            AboutCommand = new RelayCommand(() => OpenPlaceholder("关于", "M8"));
+            AboutCommand = new RelayCommand(() => Navigation.Navigate<AboutPage>());
             RefreshSyncIcon(services != null && services.Sync != null ? services.Sync.State : null);
             if (services != null && services.Sync != null)
             {

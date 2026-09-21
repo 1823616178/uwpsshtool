@@ -1,0 +1,27 @@
+<Page
+    x:Class="SshTool.App.Views.LicensesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <controls:AppPageHeader x:Name="PageHeader" x:Uid="Licenses_Header"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnBackRequested" />
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}">
+                <controls:SectionHeader x:Uid="Licenses_OssHeader"
+                                        Margin="{StaticResource GapSmTop}" />
+                <controls:MonoText x:Name="OssText" Compact="True" />
+                <controls:SectionHeader x:Uid="Licenses_FontsHeader"
+                                        Margin="{StaticResource GapMdTop}" />
+                <controls:MonoText x:Name="FontsText" Compact="True" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>
