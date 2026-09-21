@@ -115,6 +115,7 @@
     <Compile Include="Platform\NativeVaultCrypto.cs" />
     <Compile Include="Platform\NativeKeyTool.cs" />
     <Compile Include="Platform\NativeTerminalScreen.cs" />
+    <Compile Include="Platform\NativeForwarder.cs" />
     <Compile Include="Terminal\FrameScheduler.cs" />
     <Compile Include="Terminal\FontMetrics.cs" />
     <Compile Include="Terminal\SoftKeyboardInput.cs" />

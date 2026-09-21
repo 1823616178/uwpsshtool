@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using SshTool.App.Platform;
 using SshTool.Core.Appearance;
 using SshTool.Core.Common;
+using SshTool.Core.Forwarding;
 using SshTool.Core.Sessions;
 using SshTool.Core.Storage;
 using SshTool.Core.Storage.Repositories;
@@ -56,6 +57,8 @@ namespace SshTool.App.Infrastructure
         public KeepAwakeService KeepAwake { get; private set; }
         public LifecycleService Lifecycle { get; private set; }
         public NetworkMonitor Network { get; private set; }
+        // F05：多隧道管理器与转发运行时。
+        public TunnelManager TunnelManager { get; private set; }
         // S14：同步栈（任一环节构造失败时保持 null，本地 SSH 功能不受影响；
         // MainViewModel 与触发器调用方一律做空判断）。
         public AuthStore Auth { get; private set; }
@@ -151,6 +154,24 @@ namespace SshTool.App.Infrastructure
                 Lifecycle.WatchNetwork(Network);
                 Network.Start();
             });
+            // F05：多隧道管理器与原生转发运行时（01-DESIGN.md §11.2；04-TASKS F05）。
+            Time("Tunnels", () =>
+            {
+                try
+                {
+                    var runtime = new NativeForwarder(Hosts, KnownHosts, Keys, Secrets, Settings, Agent, Logger);
+                    TunnelManager = new TunnelManager(
+                        runtime,
+                        new DispatcherTimerFactory(),
+                        new DispatcherUiDispatcher(),
+                        Logger);
+                    ServiceRegistry.Register(TunnelManager);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(LogLevel.Warning, "Tunnels", "隧道管理器构造失败 " + ex.GetType().Name);
+                }
+            });
             // S14：同步栈与触发器接线（03-SYNC-PROTOCOL.md §7.5）。
             // 构造失败（配置/DPAPI 异常）只记日志：同步是增值功能，绝不阻断本地启动。
             // 初始化失败同样不阻断：触发器按当前状态门控，未登录/未启用时静默跳过。
@@ -181,6 +202,29 @@ namespace SshTool.App.Infrastructure
                 SyncTriggers.NotifyStartup();
                 SyncTriggers.NotifyForeground();
             }
+            if (TunnelManager != null && Tunnels != null)
+            {
+                try
+                {
+                    var allTunnels = await Tunnels.GetAllAsync().ConfigureAwait(true);
+                    TunnelManager.ApplyConfig(allTunnels);
+                    Tunnels.Changed += (s, e) =>
+                    {
+                        Tunnels.GetAllAsync().ContinueWith(t =>
+                        {
+                            if (!t.IsFaulted && t.Result != null)
+                            {
+                                TunnelManager.ApplyConfig(t.Result);
+                            }
+                        });
+                    };
+                    await TunnelManager.StartAutoStartAsync().ConfigureAwait(true);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Log(LogLevel.Warning, "Tunnels", "隧道初始化失败 " + ex.GetType().Name);
+                }
+            }
             Logger.Log(LogLevel.Info, "App",
                 "启动完成 " + total.ElapsedMilliseconds.ToString(System.Globalization.CultureInfo.InvariantCulture) + " ms");
         }
@@ -196,7 +240,7 @@ namespace SshTool.App.Infrastructure
             SyncApi = new ApiClient(
                 AppConfig.Current.SyncApiBaseUrl, Auth, new UwpHttpTransport(), AppConfig.Current.AllowHttp);
             ServiceRegistry.Register(SyncApi);
-            SyncLocal = new SyncLocalAdapter(Hosts, Groups, Tunnels, Keys, Secrets);
+            SyncLocal = new SyncLocalAdapter(Hosts, Groups, Tunnels, Keys, Secrets, TunnelManager);
             ServiceRegistry.Register(SyncLocal);
             Sync = new SyncCoordinator(
                 Auth, VaultCache, SyncApi, new NativeVaultCrypto(Logger),
