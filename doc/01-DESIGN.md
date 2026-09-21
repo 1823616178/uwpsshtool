@@ -161,6 +161,7 @@ native → C# 事件经 WinRT event 在 I/O 线程触发，C# 侧统一由 `Disp
 > 后台回调里取 `Window.Current.Dispatcher` 必然 NRE；`DispatcherHelper` 在 `OnLaunched` 缓存 UI 线程的 `CoreDispatcher`，
 > 兜底用可跨线程访问的 `CoreApplication.MainView.CoreWindow.Dispatcher`。同理 `UISettings.ColorValuesChanged` 在后台线程触发。
 **终端字节流不走事件**：I/O 线程只把 `ContentDirty(sessionId)` 合并投递（同一帧内多次只投一次）。
+> O01（2026-09-21）：合并由 `DirtyCoalescer` 的 **16 ms 时间窗**实现（自复位）。原先是「投递后置位、消费者拉取时复位」的标志，复位只在过渡取数 API `FetchPendingOutput()` 里做；T03 接管后无人调用它，标志永久为真、事件每会话只触发一次。O01 删除该 API 与其无上限累积的 `pendingOutput_` 缓冲，并补上本节时序里一直缺失的 App 侧接线（`TerminalView` 订阅 `ContentDirty` → `FrameScheduler.Wake()`）。
 
 ### 4.3 关键数据通路
 
@@ -321,7 +322,7 @@ public:
   event EventHandler<StateChangedEventArgs^>^ StateChanged;
   event EventHandler<HostKeyCheckEventArgs^>^ HostKeyCheck;
   event EventHandler<AuthPromptEventArgs^>^ AuthPrompt;
-  event EventHandler<Object^>^ ContentDirty;     // 合并投递
+  event EventHandler<Object^>^ ContentDirty;     // 合并投递（16 ms 窗）
   event EventHandler<String^>^ TitleChanged;
   event EventHandler<Object^>^ Bell;
   event EventHandler<int>^ ChannelClosed;        // exit-status
@@ -364,7 +365,7 @@ public ref class KeyTool sealed {
 
 > **N09a 实现注记（2026-09-19 回写）**：
 > - 状态映射：core 的 `Closing` 瞬态不上抛；`Closed` 映射为 `Disconnected`（`ErrorCode` 带 `lastError` 映射码，本地主动 Close 为 0）。
-> - `FetchPendingOutput(): byte[]` 为过渡取数 API——`ContentDirty` 的拉取配对（拉取复位合并标志），T03 `TerminalScreen` 接管后移除。`Screen`/`TitleChanged`/`Bell`/`ChannelClosed` 属 T03，N09a 未实现。
+> - ~~`FetchPendingOutput(): byte[]` 为过渡取数 API——`ContentDirty` 的拉取配对（拉取复位合并标志），T03 `TerminalScreen` 接管后移除。~~ **O01 已移除**（2026-09-21）：T03 接管后它再无调用方，却仍在 `OnShellData` 里按字节无上限累积；合并标志随之改为自复位的 16 ms 时间窗，通道关闭走 `forcePost`。`Screen`/`TitleChanged`/`Bell`/`ChannelClosed` 属 T03，N09a 未实现。
 > - `HostKeyCheck`：无订阅 = TOFU 直通 Accept；有订阅则事件 + 60 s 决策窗（`DecisionGate`：Deferral 挂起暂停计时，最后一个 Complete 重启整窗；超时/取消 = Reject，fail-closed 303）。
 > - `AuthPrompt`：120 s 硬窗口由 core `authPromptTimeoutMs` 兜底，**不因 Deferral 暂停**；无订阅立即空答复。`Name`/`Instruction` 暂为空串（N05 的 sink 接口未携带，对话框只展示 `Prompts`）。
 > - `ExecAsync` 返回 `ExecResult{ ExitCode, Stdout, Stderr }`（新增 ref class）；打开/传输失败 `ExitCode=-1`、`Stderr` 带诊断。
@@ -375,7 +376,7 @@ public ref class KeyTool sealed {
 > **N09b 实现注记（2026-09-19）**：
 > - Core `ISshSession` 镜像本节，只用 Core 自有类型（`Task<SshErrorCode>`、`byte[]`、`SshExecResult`）；`ITerminalScreen` 先定义、T03 实现，N09b 的 `Screen` 恒为 null。
 > - `NativeSshSession` 始终订阅 native `HostKeyCheck`（因此 native 的「0 订阅 TOFU」不再发生）：Core 无编排则 fail-closed `Reject`；有编排则 `GetDeferral` 挂起 60 s 窗。`AuthPrompt` 无编排立即 `Cancel`。
-> - 过渡 `FetchPendingOutput` 挂在 `ISshSession` 上，T03 接管后移除。
+> - ~~过渡 `FetchPendingOutput` 挂在 `ISshSession` 上，T03 接管后移除。~~ **O01 已从 `ISshSession` 移除**；`ContentDirty` 保留为重绘唤醒信号，语义见 §4.2/§4.3。
 
 ### 6.3 错误码（C# `SshErrorCode` 与 `native/core/ssh/error_codes.h` 数值完全一致）
 

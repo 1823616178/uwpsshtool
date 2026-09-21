@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SshTool.Core.Common;
@@ -200,11 +200,6 @@ namespace SshTool.App.Platform
         public void ProbeNow()
         {
             _native.ProbeNow();
-        }
-
-        public byte[] FetchPendingOutput()
-        {
-            return _native.FetchPendingOutput();
         }
 
         public void Close()

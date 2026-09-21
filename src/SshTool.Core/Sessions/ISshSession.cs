@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using SshTool.Core.Common;
 using SshTool.Core.Terminal;
@@ -53,13 +53,13 @@ namespace SshTool.Core.Sessions
         void ProbeNow();
         void Close();
 
-        // 过渡取数 API：拉走待显示输出并复位 ContentDirty 合并标志
-        //（T03 TerminalScreen 接管后移除，见 §6.2 注记）。
-        byte[] FetchPendingOutput();
-
         event EventHandler<SessionStateChangedEventArgs> StateChanged;
         event EventHandler<HostKeyCheckEventArgs> HostKeyCheck;
         event EventHandler<AuthPromptEventArgs> AuthPrompt;
+
+        // 重绘唤醒信号（01-DESIGN §4.2）：native 的 I/O 线程按 16 ms 窗合并投递，
+        // 订阅方收到后唤醒帧调度器，再按 Screen.Revision 拷脏行——终端字节不走事件。
+        // 事件在 I/O 线程触发，订阅方自行封送 UI 线程。
         event EventHandler ContentDirty;
     }
 }

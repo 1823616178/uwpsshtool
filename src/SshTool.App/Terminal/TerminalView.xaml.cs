@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI;
@@ -41,6 +41,7 @@ namespace SshTool.App.Terminal
         private bool _ignoreNextTap;
         private CoreCursor _savedCursor;
         private ISshSession _session;
+        private ISshSession _contentDirtySource;
         private ITerminalScreen _screen;
         private byte[] _cells = new byte[0];
         private byte[] _dirty = new byte[0];
@@ -325,7 +326,18 @@ namespace SshTool.App.Terminal
                 {
                     return;
                 }
+                // O01：ContentDirty 是空闲后的重绘唤醒信号（01-DESIGN §4.2 时序
+                // 「若本帧未通知：ContentDirty 事件 → FrameScheduler.Wake()」）。
+                // 没有它，终端失焦后帧调度器约 500 ms 就退订（FrameSchedulerCore
+                // 的 30 帧空闲阈值先于 530 ms 闪烁到期），新到的远端输出就再没有
+                // 任何东西把它唤回来。订阅/退订与会话切换严格成对。
+                UnsubscribeContentDirty();
                 _session = value;
+                if (_session != null)
+                {
+                    _session.ContentDirty += OnSessionContentDirty;
+                    _contentDirtySource = _session;
+                }
                 _lastResizeCols = 0;
                 _lastResizeRows = 0;
                 Screen = value != null ? value.Screen : null;
@@ -428,9 +440,26 @@ namespace SshTool.App.Terminal
             FrameScheduler.Instance.Wake();
         }
 
+        // ISshSession 的生命周期长于本视图（SessionManager 持有），订阅必须解除。
+        private void UnsubscribeContentDirty()
+        {
+            if (_contentDirtySource != null)
+            {
+                _contentDirtySource.ContentDirty -= OnSessionContentDirty;
+                _contentDirtySource = null;
+            }
+        }
+
+        // I/O 线程触发；Wake 内部经 DispatcherHelper.Post 封送，任意线程可调。
+        private void OnSessionContentDirty(object sender, EventArgs e)
+        {
+            FrameScheduler.Instance.Wake();
+        }
+
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             _loaded = false;
+            UnsubscribeContentDirty();
             _resizeTimer.Stop();
             _softKeyboard.Detach();
             _hardwareKeyboard.Detach();

@@ -24,9 +24,16 @@
 // （120 s 硬窗口，不因 Deferral 暂停）兜底空答复；无订阅时立即空答复，
 // 避免干等。
 //
-// ContentDirty（要点 3）：DirtyCoalescer 合并投递——标志 0→1 才触发事件；
-// C# 调 FetchPendingOutput() 拉走字节并复位标志。FetchPendingOutput 是
-// 过渡取数 API，T03 TerminalScreen 接管后移除（已回写 §6.2）。
+// ContentDirty（要点 3 / O01）：重绘唤醒信号，DirtyCoalescer 按 16 ms 时间窗
+// 合并投递（§4.2「同一帧内多次脏只投递一次」）。终端字节不走事件——消费者收到
+// 通知后按 TerminalScreen::Revision 拷脏行（§4.2 时序：「若本帧未通知：
+// ContentDirty 事件 → FrameScheduler.Wake()」），所以窗内合并掉的通知不丢内容。
+// 通道关闭走 forcePost：最后一批输出必须落地。
+//
+// O01 之前这里是「投递后置位、消费者复位」的标志，复位只在过渡取数 API
+// FetchPendingOutput() 里做；T03 TerminalScreen 接管后无人再调用它，标志永久
+// 为真，ContentDirty 每会话只触发一次。O01 删除该过渡 API 与其累积缓冲
+// （pendingOutput_ 按字节无上限增长），合并标志改为自复位的时间窗。
 //
 // §6.2 草图中 Screen/TitleChanged/Bell/ChannelClosed 属 T03 终端渲染范围，
 // N09a 不实现（已回写 §6.2）。
@@ -148,10 +155,6 @@ namespace SshTool
                 void Resize(int cols, int rows);
                 void ProbeNow();
                 void Close();
-
-                // 过渡取数 API：拉走待显示输出并复位 ContentDirty 合并标志
-                // （T03 TerminalScreen 接管后移除）。
-                Platform::Array<uint8>^ FetchPendingOutput();
 
                 event Windows::Foundation::EventHandler<StateChangedEventArgs^>^ StateChanged;
                 event Windows::Foundation::EventHandler<Platform::Object^>^ ContentDirty;
@@ -294,10 +297,8 @@ namespace SshTool
                 std::shared_ptr<concurrency::task_completion_event<int>> connectTce_;
                 std::shared_ptr<concurrency::task_completion_event<int>> shellOpenTce_;
 
-                // ContentDirty 合并投递 + 待取输出缓冲。
+                // ContentDirty 的 16 ms 合并窗（O01：无消费者复位，自复位时间窗）。
                 sshclient::bridge::DirtyCoalescer dirtyCoalescer_;
-                std::mutex outputMutex_;
-                std::string pendingOutput_;
                 TerminalScreen^ screen_;
 
                 // F02：SFTP 挂载状态（构造时创建、Shutdown 时先行拆除）。

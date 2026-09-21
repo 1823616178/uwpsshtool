@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SshTool.Core.Common;
@@ -25,7 +25,6 @@ namespace SshTool.Core.Tests.Fakes
         public readonly List<string> AgentAttempts = new List<string>();
         public SshErrorCode OpenShellResult = SshErrorCode.None;
         public SshExecResult ExecResult = new SshExecResult(0, string.Empty, string.Empty);
-        public byte[] PendingOutput = new byte[0];
         public string Id { get; set; } = "fake-1";
         public ITerminalScreen ScreenInstance;
 
@@ -203,14 +202,6 @@ namespace SshTool.Core.Tests.Fakes
         {
             Calls.Add("Close");
             CloseCount++;
-        }
-
-        public byte[] FetchPendingOutput()
-        {
-            Calls.Add("FetchPendingOutput");
-            byte[] chunk = PendingOutput;
-            PendingOutput = new byte[0]; // 与真身一致：拉取即复位
-            return chunk;
         }
 
         public void Dispose()

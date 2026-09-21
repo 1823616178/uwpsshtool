@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -86,16 +86,6 @@ namespace SshTool.Core.Tests.Sessions
             Assert.Equal(30, fake.LastResizeRows);
             Assert.Equal(2, fake.ProbeNowCount);
             Assert.Equal(1, fake.CloseCount);
-        }
-
-        [Fact]
-        public void FetchPendingOutput_PullsAndResets()
-        {
-            var fake = new FakeSshSession { PendingOutput = new byte[] { 1, 2 } };
-
-            Assert.Equal(new byte[] { 1, 2 }, fake.FetchPendingOutput());
-            Assert.Equal(new byte[0], fake.FetchPendingOutput()); // 拉取即复位
-            Assert.Equal(new[] { "FetchPendingOutput", "FetchPendingOutput" }, fake.Calls);
         }
 
         [Fact]

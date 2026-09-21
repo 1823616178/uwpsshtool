@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 14 | 0 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **126** | **107** | |
+| M9 | 优化与债务清理 | 14 | 1 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **126** | **108** | |
 
 ### 1.1 关键路径
 
@@ -1275,18 +1275,19 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 > 只做可度量的优化与债务清理，为 Q01 真机采数（`01-DESIGN.md §15`）与 Q02 长稳扫清已知障碍。
 > 顺序即优先级；O01/O02/O03 是 P0，应先做。
 
-- [ ] **O01 删除 `pendingOutput_` 过渡取数链** `S`
+- [x] **O01 删除 `pendingOutput_` 过渡取数链** `S`
   - 依赖：—
   - 参考：`06-OPT-AUDIT.md §3 P0-1`；`01-DESIGN.md §6.2`、§7.2、§15
   - 产出：`src/SshTool.Native/Bridge/SshSession.{h,cpp}`、`src/SshTool.Core/Sessions/ISshSession.cs`、`src/SshTool.App/Platform/NativeSshSession.cs`、`tests/SshTool.Core.Tests/Fakes/FakeSshSession.cs`
   - 要点：
     1. 删除 `pendingOutput_` / `outputMutex_` / `FetchPendingOutput()`（Native + 接口 + 透传 + Fake + 对应单测）。`SshSession.h:28` 自述其为「T03 接管后移除」的过渡 API，T03 已接管（渲染走 `TerminalScreen.Revision` + `CopyDirtyRows`）。
     2. 理清 `ContentDirty` 契约：`markConsumed()` 原本只在 `FetchPendingOutput` 里调用，删除后标志将永久为真。二选一并在 `SshSession.h` 注释写明：要么保留事件但每次 `OnShellData` 都投递（去掉合并标志），要么连同 `DirtyCoalescer` 一起移除、`Views/Debug/DebugConnectPage.xaml.cs` 改为轮询 `Revision`。
+       **实做取第三条（更贴 §4.2）**：`DirtyCoalescer` 改为自复位的 16 ms 时间窗（无需消费者回调），并补上 §4.3 时序里一直缺失的 App 侧接线——`TerminalView` 订阅 `ContentDirty` → `FrameScheduler.Wake()`。原因：不接线的话，终端失焦后帧调度器约 500 ms 退订（30 帧空闲阈值先于 530 ms 闪烁到期），新到的远端输出没有任何东西能把它唤回来。
     3. 不要顺手改 `TerminalScreen.Feed` 与脏行拷贝路径——那是生产渲染路径，本任务只拆过渡链。
   - 验收：
-    - [ ] 全仓 `grep -r FetchPendingOutput` 仅剩文档提及（或零命中）
-    - [ ] `native/tests` 中涉及该 API 的断言一并清理，ctest 全过
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] 全仓 `grep -r FetchPendingOutput` 仅剩两处文档注释（`SshSession.h` 与 `dirty_coalescer.h` 的「为什么删」说明），代码零命中
+    - [x] `native/tests` 中涉及该 API 的断言一并清理（`bridge_logic_test` 的 3 条 consume-rearm 用例 → 6 条时间窗用例），ctest 309 全过
+    - [x] `pwsh scripts/verify.ps1` 全绿（Core 1429 + native 309，7 步全通过）
     - [ ] 📱 PerfPage「Q02 连接/断开 ×100」与长稳复测，内存 Δ 与 `sessions/threads/sockets/screens` 回填 `doc/PERF-REPORT.md §5.1`
   - 验证：`pwsh scripts/verify.ps1`；真机 Q02
 
@@ -1558,6 +1559,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] S16 📱 场景 1–8、10 通过（参见 doc/INTEROP-REPORT.md）
 - [ ] S16 📱 场景 9（鸿蒙端参与）通过，或记录鸿蒙端侧已知差异（参见 doc/INTEROP-REPORT.md）
 - [ ] F07 📱 两级跳板连接成功；断开中间跳后下级进入重连而非挂死
+- [ ] O01 📱 PerfPage「Q02 连接/断开 ×100」与长稳复测，内存 Δ 与 `sessions/threads/sockets/screens` 回填 `doc/PERF-REPORT.md §5.1`（验证 `pendingOutput_` 删除后的内存曲线）
 
 ---
 

@@ -10,6 +10,8 @@
 #include "fwd/remote_listen.h"
 #include "sftp/sftp_session.h"
 
+#include <chrono>
+#include <cstdint>
 #include <cstring>
 #include <map>
 
@@ -25,6 +27,15 @@ namespace SshTool
             using concurrency::task_completion_event;
             using Windows::Foundation::EventHandler;
             using Windows::Foundation::EventRegistrationToken;
+
+            // O01：ContentDirty 合并窗的时钟。steady_clock 不受系统时间调整影响，
+            // 单调递增正是 DirtyCoalescer 的前提。
+            static std::int64_t NowMs()
+            {
+                return std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::steady_clock::now().time_since_epoch())
+                    .count();
+            }
 
             // N09a 要点 2 的超时（毫秒）：HostKeyCheck 60 s / KI 120 s。
             static constexpr unsigned kHostKeyDecisionTimeoutMs = 60000;
@@ -303,17 +314,16 @@ namespace SshTool
                 AuthPrompt(this, args);
             }
 
+            // O01：字节只进 vterm（TerminalScreen），不再另存一份待取缓冲。
+            // ContentDirty 只是「有新内容，重绘吧」的唤醒信号，16 ms 窗内合并；
+            // 消费者按 TerminalScreen::Revision 拉脏行，合并掉的通知不丢内容。
             void SshSession::OnShellData(const std::string& data)
             {
-                {
-                    std::lock_guard<std::mutex> lock(outputMutex_);
-                    pendingOutput_ += data;
-                }
                 if (screen_ != nullptr)
                 {
                     screen_->Feed(data.data(), data.size());
                 }
-                if (dirtyCoalescer_.markDirty()) // 0→1 才投递，已挂起则合并
+                if (dirtyCoalescer_.markDirty(NowMs()))
                 {
                     ContentDirty(this, nullptr);
                 }
@@ -689,7 +699,9 @@ namespace SshTool
                         SshSession^ self = weak.Resolve<SshSession>();
                         if (self != nullptr)
                         {
-                            self->dirtyCoalescer_.markDirty(); // 唤醒一次拉取，让残量输出被取走
+                            // 通道结束必须通知一次：最后一批输出得落到屏幕上，
+                            // 不能被合并窗吃掉（forcePost 同时把窗推到此刻）。
+                            self->dirtyCoalescer_.forcePost(NowMs());
                             self->ContentDirty(self, nullptr);
                         }
                     };
@@ -782,22 +794,6 @@ namespace SshTool
                 {
                     session_->probeNow(0); // 0 = core 默认 5 s 判定窗口
                 }
-            }
-
-            Platform::Array<uint8>^ SshSession::FetchPendingOutput()
-            {
-                std::string chunk;
-                {
-                    std::lock_guard<std::mutex> lock(outputMutex_);
-                    chunk.swap(pendingOutput_);
-                }
-                dirtyCoalescer_.markConsumed(); // C# 拉取后复位合并标志
-                auto result = ref new Platform::Array<uint8>(static_cast<unsigned int>(chunk.size()));
-                if (!chunk.empty())
-                {
-                    std::memcpy(result->Data, chunk.data(), chunk.size());
-                }
-                return result;
             }
 
             // ---------------------------------------------------------------- F02 SFTP 挂载

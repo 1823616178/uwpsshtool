@@ -1,7 +1,9 @@
 // N09a bridge pure-logic tests — native/core/bridge_logic/.
 //
-// DirtyCoalescer: the ContentDirty merge flag (01-DESIGN section 4.2:
-// dirties within one frame post once; the consumer's pull rearms).
+// DirtyCoalescer: the ContentDirty merge gate (01-DESIGN section 4.2:
+// dirties within one frame post once). O01 replaced the consume-to-rearm
+// flag with a self-rearming time window; the clock is supplied by the caller
+// so these tests are deterministic.
 // DecisionGate: the deferral-aware wait behind HostKeyCheck/AuthPrompt
 // (submit/cancel/timeout, deferral pauses the timeout, completing the last
 // deferral restarts a fresh window, first conclusion wins).
@@ -9,6 +11,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <thread>
 
 #include "bridge_logic/decision_gate.h"
@@ -23,41 +26,82 @@ namespace {
 
 // ================================================================== DirtyCoalescer
 
-TEST(DirtyCoalescerTest, FirstDirtyNotifiesRestMerge)
+TEST(DirtyCoalescerTest, FirstDirtyNotifiesRestOfWindowMerges)
 {
-    DirtyCoalescer c;
-    EXPECT_FALSE(c.pending());
-    EXPECT_TRUE(c.markDirty());  // clear -> dirty: notify once
-    EXPECT_FALSE(c.markDirty()); // already pending: merged
-    EXPECT_FALSE(c.markDirty());
-    EXPECT_TRUE(c.pending());
+    DirtyCoalescer c(16);
+    EXPECT_TRUE(c.markDirty(1000));  // first ever dirty always posts
+    EXPECT_FALSE(c.markDirty(1000)); // same instant: merged
+    EXPECT_FALSE(c.markDirty(1015)); // still inside the 16 ms window
 }
 
-TEST(DirtyCoalescerTest, ConsumeRearmsNotification)
+TEST(DirtyCoalescerTest, WindowRearmsItself)
 {
-    DirtyCoalescer c;
-    EXPECT_TRUE(c.markDirty());
-    c.markConsumed(); // consumer pulled the content
-    EXPECT_FALSE(c.pending());
-    EXPECT_TRUE(c.markDirty()); // next dirty notifies again
+    DirtyCoalescer c(16);
+    EXPECT_TRUE(c.markDirty(1000));
+    EXPECT_FALSE(c.markDirty(1015));
+    EXPECT_TRUE(c.markDirty(1016)); // window elapsed: post again
+    EXPECT_FALSE(c.markDirty(1031));
+    EXPECT_TRUE(c.markDirty(1032));
 }
 
-// Producer bursts from another thread while the consumer lags: exactly one
-// notification until the consume.
-TEST(DirtyCoalescerTest, ConcurrentBurstCoalesces)
+// The regression O01 was written for: with no consumer calling anything, the
+// gate must keep posting. The old flag stayed set forever once nobody pulled.
+TEST(DirtyCoalescerTest, KeepsPostingWithoutAnyConsumer)
 {
-    DirtyCoalescer c;
+    DirtyCoalescer c(16);
+    int posts = 0;
+    for (std::int64_t now = 0; now < 1000; now += 4) { // 250 dirties over 1 s
+        if (c.markDirty(now)) {
+            ++posts;
+        }
+    }
+    // posts land at t = 0, 16, 32 ... 992 -> 63, i.e. one per window rather
+    // than the single post the old consume-to-rearm flag would have produced.
+    EXPECT_EQ(posts, 63);
+}
+
+// Channel close must notify even mid-window, and must not leave the window
+// open behind it.
+TEST(DirtyCoalescerTest, ForcePostOverridesWindowAndResetsIt)
+{
+    DirtyCoalescer c(16);
+    EXPECT_TRUE(c.markDirty(1000));
+    c.forcePost(1005); // caller posted unconditionally
+    EXPECT_FALSE(c.markDirty(1015)); // window now measured from 1005
+    EXPECT_TRUE(c.markDirty(1021));
+}
+
+TEST(DirtyCoalescerTest, ZeroWindowPostsEveryDirty)
+{
+    DirtyCoalescer c(0);
+    EXPECT_TRUE(c.markDirty(1000));
+    EXPECT_TRUE(c.markDirty(1000));
+    EXPECT_TRUE(c.markDirty(1000));
+}
+
+// A burst from the producer thread must never post more than one notification
+// per window, and never lose the window's first one.
+TEST(DirtyCoalescerTest, ConcurrentBurstCoalescesWithinWindow)
+{
+    DirtyCoalescer c(16);
     std::atomic<int> notifications{0};
-    std::thread producer([&] {
+    std::thread a([&] {
         for (int i = 0; i < 1000; ++i) {
-            if (c.markDirty()) {
+            if (c.markDirty(5000)) {
                 notifications.fetch_add(1);
             }
         }
     });
-    producer.join();
+    std::thread b([&] {
+        for (int i = 0; i < 1000; ++i) {
+            if (c.markDirty(5000)) {
+                notifications.fetch_add(1);
+            }
+        }
+    });
+    a.join();
+    b.join();
     EXPECT_EQ(notifications.load(), 1);
-    EXPECT_TRUE(c.pending());
 }
 
 // ================================================================== DecisionGate
