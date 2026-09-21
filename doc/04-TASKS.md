@@ -45,8 +45,8 @@
 | M5 | 云端同步 | 22 | 22 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
-| M8 | 打磨与发布 | 10 | 5 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **106** | |
+| M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
+| **合计** | | **112** | **107** | |
 
 ### 1.1 关键路径
 
@@ -1187,7 +1187,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 100 次循环后内存回落到基线 +10% 以内；4 小时会话无崩溃
   - 验证：真机
 
-- [ ] **Q03 安全自查** `S` 👤
+- [x] **Q03 安全自查** `S` 👤
   - 依赖：S16、K02
   - 参考：`01-DESIGN.md §12`；`03-SYNC-PROTOCOL.md §11`
   - 产出：`doc/SECURITY-REPORT.md`
@@ -1248,13 +1248,23 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
   - 验证：人工
 
 - [ ] **Q10 v1.0.0 发布前总检** `S` 👤📱
-  - 依赖：Q01、Q02、Q03、Q04、Q05、Q06、Q08、Q09、F03、F06、F07、S15、K03、A04、A05、U06、U10、U13
+  - 依赖：Q01、Q02、Q03、Q04、Q05、Q06、Q08、Q09、Q11、F03、F06、F07、S15、K03、A04、A05、U06、U10、U13
   - 产出：`doc/RELEASE-CHECKLIST.md`、git tag `v1.0.0`
   - 要点：清空「真机验收待办」（逐条验证或明确转入后续版本）；设计文档与实现一致性复核；版本号 1.0.0.0；Release 包归档。
   - 验收：
     - [ ] 📱 真机验收待办清空或每条都有明确处置
     - [ ] `pwsh scripts/verify.ps1 -Arm -Interop` 全绿
   - 验证：人工
+
+- [ ] **Q11 libssh2/OpenSSL 安全升级（CVE-2026-55200 等）** `M` 📱
+  - 依赖：—（最高优先级：v1.0.0 发布前必须完成，Q10 依赖本任务）
+  - 参考：`doc/SECURITY-REPORT.md §6`；上游修复 commits `7acf3df`、`a2ed82d` 等
+  - 产出：`native/third_party/libssh2` 安全补丁（`PATCHES.md` 登记）、OpenSSL 3.6.4 重建（`scripts/build-openssl.ps1`）、全量回归
+  - 要点：cherry-pick 上游修复——CVE-2026-55200（packet_length 越界写，CVSS 9.2，认证前可触发，PoC 已公开）、CVE-2026-66033（AES-GCM 整数下溢，认证前可触发）、CVE-2026-66032（sftp_open 双重释放）等 2026-07-24 批量披露的 4 个高危（1.11.1 受影响，上游尚无修复版）；OpenSSL 3.6.3 → 3.6.4（2026-08-25 公告，11 个 Moderate CVE，本应用攻击面不涉及但顺手升级）；重建后全量回归。
+  - 验收：
+    - [ ] `PATCHES.md` 登记补丁清单与来源 commits；`verify.ps1` 全绿（含 native 全量测试）
+    - [ ] 📱 SP03 真机连接复测（打补丁后握手/认证/通道正常）
+  - 验证：`pwsh scripts/verify.ps1`；真机
 
 ---
 
@@ -1333,6 +1343,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] C-07 👤 设置滑块去重验证：x64 Debug 构建日志 0 编译错误（2026-09-21 verify ⑤ 步已覆盖，无需复跑）
 - [ ] Q01 📱 性能基准：§15 指标全部达标，或报告中说明差距与原因（真机 Release ARM 实测）
 - [ ] Q02 📱 100 次连接/断开循环后内存回落到基线 +10% 以内；4 小时会话无崩溃；挂起/恢复 20 次回归（PerfPage Q02 区脚本，报告 perf-q02-*.txt）
+- [ ] Q03 👤 安全自查人工项（doc/SECURITY-REPORT.md §1–§5）：设备门户下载 LocalFolder 搜测试密码/私钥/恢复密钥；app.log 抽查脱敏；热点抓包确认文档密文并记录登录明文风险；删主机后凭据消失；WACK 结果回填
 - [ ] Q02 📱 稳定性与泄漏治理：100 次连接/断开循环后内存回落到基线 +10% 以内；4 小时会话无崩溃
 - [ ] Q03 👤 安全自查：设备门户下载 LocalFolder 搜索测试密码/私钥片段/恢复密钥；日志抽查；抓包确认文档为密文；WACK 运行结果；OpenSSL/libssh2 CVE 检查
 - [ ] Q05 📱 无障碍：讲述人走通「添加主机 → 连接 → 断开」主流程
@@ -1482,3 +1493,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-21 | F07 | 457ff70 | **完成**。jump_transport（IJumpChannel/Fake/DirectTcpip/BufferedPipe + LIBSSH2 SEND/RECV 回调）+ connectJump（loopback 唤醒对 + 50ms 轮询兜底防 DirectTcpip 通道无 wakeup 挂死）+ Bridge ConnectJumpAsync（上级 I/O 线程开 direct-tcpip 再包 JumpTransport）+ JumpChainPlanner（顺序/环/深度 5，9 单测）+ SessionManager 链式连接（每跳独立认证与主机密钥提示、标题注明 [i/n]、密钥按跳板 host:port 落库、失败级联清理、重连整链重建）。修 session.h 自足性（SSIZE_T/SOCKET）。Core 1430（+9）+ native 306（+7）；verify 7 步全绿。⏳ 📱 两级跳板与断中间跳重连（已登记待办）。 |
 | 2026-09-21 | Q01 | f184236 | **代码任务完成**。PerfPage 六场景（⓪静止/①base64/②yes/③vim/④100主机滚动/⑤4×5000回滚）+ FPS 双口径叠加（tick/s、draw/s）+ MemoryManager 守卫读数 + 报告落盘 spike-reports\perf-*.txt，随 Phase0 基线入库；本次逐项核验页面引用的 token 与 API（FeedBytes/ResizeGrid/ScrollbackCount/FrameSchedulerCore.IsRunning/HostsPivot.Attach/DebugReport.*）均存在，入口 DevToolsPage（DEBUG_PAGES 默认开，Release 可用），修正 PERF-REPORT.md 入口路径描述。操作指南见 doc/PERF-REPORT.md §2。⏳ 📱 Release ARM 实测回填 §3/§4 并按结论做针对性优化（已登记待办）。verify 7 步全绿。 |
 | 2026-09-21 | Q02 | af10e7b | **代码任务完成**。native diag_counters 四生命周期计数（SshSession/SessionThread/EventLoop sockets/TerminalScreen，Release 可读，析构扣除残留保证可回归）+ NativeInfo.DiagCounters() 导出 + PerfPage Q02 区（「连接/断开×100」每 10 轮采样+GC 静置 Δ% 判定、「长稳 4h」60s 采样+开 shell 挂页面终端渲染+1s 停止响应、挂起/恢复自动计数随报告落盘 perf-q02-*.txt）；EnsureTerminal 幂等重绑。口径与操作指南 doc/PERF-REPORT.md §5。⏳ 📱 100 次循环内存 ≤ 基线+10%、4h 无崩溃、挂起/恢复 20 次（已登记待办；发现泄漏时在此任务追加修复提交）。verify 7 步全绿（Core 1430 + native 306）。 |
+| 2026-09-21 | Q03 | — | **完成**。产出 doc/SECURITY-REPORT.md：§1–§5 逐项给结论与人工操作指南（LocalFolder 搜索/日志抽查/抓包/删主机凭据级联/WACK），代码层证据齐（LogRedactor+单测、DpapiSecureFile LOCAL=user、ConfigService 级联删凭据+单测、登录明文 Banner/SyncApiBaseUrl 配置）；§6 CVE 检查完成——**发现 libssh2 1.11.1 四个高危 CVE（CVE-2026-55200 CVSS 9.2 认证前可触发 PoC 公开等），上游无修复版** → 登记新任务 Q11（cherry-pick 修复 + OpenSSL 3.6.3→3.6.4），Q10 依赖加 Q11，verify 文档计数 111→112。⏳ 👤 §1–§5 人工项已登记待办。 |

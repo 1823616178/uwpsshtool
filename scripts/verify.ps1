@@ -103,9 +103,9 @@ try {
                 $lines = (Get-Content $d.FullName | Measure-Object -Line).Lines
                 if ($lines -lt 20) { throw "$($d.Name) 只有 $lines 行，疑似被写坏" }
             }
-            $tasks = Join-Path $RepoRoot 'doc\04-TASKS.md'
-            $all = (Select-String -Path $tasks -Pattern '^- \[( |x)\] \*\*[A-Z]+\d+' -AllMatches).Count
-            if ($all -ne 111) { throw "04-TASKS.md 的任务条目数为 $all，应为 111（文件可能被截断或误改）" }
+        $tasks = Join-Path $RepoRoot 'doc\04-TASKS.md'
+        $all = (Select-String -Path $tasks -Pattern '^- \[( |x)\] \*\*[A-Z]+\d+' -AllMatches).Count
+        if ($all -ne 112) { throw "04-TASKS.md 的任务条目数为 $all，应为 112（文件可能被截断或误改）" }
             Write-Host "OK：doc/*.md 共 $($docs.Count) 份，04-TASKS 任务条目 $all"
         }
 
