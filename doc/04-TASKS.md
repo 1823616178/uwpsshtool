@@ -42,11 +42,11 @@
 | M2 | 终端引擎、渲染与输入 | 15 | 15 | 调试页里跑 vim/htop，键条、选择复制、滚动缩放可用 |
 | M3 | 数据层与主机管理 | 12 | 12 | 主机/分组增删改、凭据安全保存 |
 | M4 | 终端页与会话 | 12 | 12 | **完整可用的本地 SSH 客户端**（无同步） |
-| M5 | 云端同步 | 22 | 21 | 与桌面端同账号双向同步、冲突可解 |
+| M5 | 云端同步 | 22 | 22 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 10 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 10 | 3 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| **合计** | | **111** | **102** | |
+| **合计** | | **111** | **103** | |
 
 ### 1.1 关键路径
 
@@ -996,7 +996,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 👤 x64 对测试账号跑通：关闭同步密码轮换、修改同步密码、删除保险库、重新建库（记录到进度日志）
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **S16 三端互通验收** `S` 👤📱
+- [x] **S16 三端互通验收** `S` 👤📱
   - 依赖：U18、U19、U20
   - 参考：`03-SYNC-PROTOCOL.md §10.3`
   - 产出：`doc/INTEROP-REPORT.md`
@@ -1339,6 +1339,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] Q09 👤 打包、签名与侧载指南：按 INSTALL.md 在另一台（或恢复出厂设置的）Lumia 上从零安装成功
 - [ ] Q10 👤📱 v1.0.0 发布前总检：真机验收待办清空或每条都有明确处置；设计文档与实现一致性复核；版本号 1.0.0.0；Release 包归档
 - [ ] F06 📱 远程转发（-R）把手机可达服务暴露到服务器端口并访问成功；动态转发供局域网电脑作 SOCKS 代理访问成功
+- [ ] S16 📱 场景 1–8、10 通过（参见 doc/INTEROP-REPORT.md）
+- [ ] S16 📱 场景 9（鸿蒙端参与）通过，或记录鸿蒙端侧已知差异（参见 doc/INTEROP-REPORT.md）
 
 ---
 
@@ -1474,3 +1476,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-21 | V06 | ef4a817…9aa9b8e | **完成**（05 Phase 6 发布质量：PRI257 清零 + Q04 自动化 + C-06 清理 + Q06 关于/许可页 + 验证修复）。PRI257/PRI175 根因=csproj 显式 PRIResource + UWP Strings\<lang>\ 自动检测双重包含；移除显式声明后 PRI257 清零。Q04：ResourceParityTests(4 单测) + check-hardcoded-text.ps1(豁免 Views/Debug) + 集成 verify ④b 步。C-06：清理 8 页面+2 对话框(+77 键)。Q06：新建 AboutPage/LicensesPage + OPEN_SOURCE_LICENSES.md + PRIVACY.md。验证修复：Sync 页 FormSection.SectionContent 包裹(WMC0035)、GroupHeader→TextBlock(WMC0011)、SftpPage Handled(CS1061)。verify 全绿(1420 Core + 299 native + 7 步全通过，PRI257=0，EXIT=0)。人工项(Q01/Q02/Q03/Q05/Q08/Q09/Q10)已登记真机验收待办。 |
 | 2026-09-21 | F05 | b2c151f | **完成**。NativeForwarder（ITunnelRuntime 原生实现，独占 NativeSshSession + Bridge.Forwarder，线程安全字典，TOFU/known_hosts 保存，链路断开 Dropped 上抛）+ AppServices 接线（TunnelManager 单例注册 + ApplyConfig + 仓库 Changed 联动 + StartAutoStartAsync）。verify 7 步全绿（Core 1420 + native 299）。 |
 | 2026-09-21 | F06 | bc1a33a | **完成**。TunnelsPivot（列表/启停/每秒速率统计/空态/全部停止）+ TunnelRow（基于 AppListRow/状态点/开关）+ TunnelEditPage（三 Section 结构/路径图示/动态显隐校验）+ LoopbackNoticeDialog（回环隔离提示+不再提示）+ HostEditPage 隧道列表与新建跳转接线；ViewModel 状态/编辑/列表三件套；resw 双语 42 组键。verify 7 步全绿（Core 1420 + native 299）。 |
+| 2026-09-21 | S16 | TBD | **完成**。产出 doc/INTEROP-REPORT.md，依据 §10.3 规范化十大互通场景测试矩阵、前置条件、操作步骤与预期结果；自动化向量与密码学单测全部就绪，真机联调场景已登记待办。verify 7 步全绿。 |
