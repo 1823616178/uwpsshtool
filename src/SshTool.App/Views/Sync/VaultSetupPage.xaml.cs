@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
@@ -41,6 +41,7 @@ namespace SshTool.App.Views.Sync
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             ViewModel.SetupCompleted -= OnSetupCompleted;
+            ViewModel.Detach(); // O03：VM 挂在应用级 SyncCoordinator 上
             base.OnNavigatedFrom(e);
         }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using SshTool.App.Infrastructure;
@@ -16,6 +16,7 @@ namespace SshTool.App.ViewModels
         private string _syncIconGlyph;
         private Brush _syncIconForeground;
         private bool _isSyncSpinning;
+        private bool _detached;
 
         public MainViewModel()
         {
@@ -127,6 +128,28 @@ namespace SshTool.App.ViewModels
             }
             catch (Exception)
             {
+            }
+        }
+
+        // O03：页面 OnNavigatedFrom 调用。MainPage 每次导航回来都重建本 VM，
+        // 而 SyncCoordinator 是应用级单例 —— 不退订就按访问次数累积死 VM。
+        // Sessions 是 ServiceRegistry 单例（与页面不同寿命），这里不碰它，
+        // 只拆本 VM 自己挂的订阅，并级联页面级的 Hosts。幂等。
+        public void Detach()
+        {
+            if (_detached)
+            {
+                return;
+            }
+            _detached = true;
+            AppServices services = AppServices.Current;
+            if (services != null && services.Sync != null)
+            {
+                services.Sync.StateChanged -= OnSyncStateChanged;
+            }
+            if (Hosts != null)
+            {
+                Hosts.Detach();
             }
         }
 

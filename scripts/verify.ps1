@@ -1,5 +1,5 @@
-# X06：质量门禁（01-DESIGN.md §13）。
-#   pwsh scripts/verify.ps1           全量：① dotnet test ② native ctest ③ 错误码对拍 ④ 魔法数字 ④b 硬编码文案 ⑤ App x64 Debug（含 WMC0151 契约检查）
+﻿# X06：质量门禁（01-DESIGN.md §13）。
+#   pwsh scripts/verify.ps1           全量：① dotnet test ② native ctest ③ 错误码对拍 ④ 魔法数字 ④b 硬编码文案 ④c 订阅对称性 ⑤ App x64 Debug（含 WMC0151 契约检查）
 #   pwsh scripts/verify.ps1 -Quick    只跑 ①②
 #   pwsh scripts/verify.ps1 -Arm      追加 ARM Release（.NET Native）构建
 #   pwsh scripts/verify.ps1 -Quick -Interop  追加 ⑦ S04 互通向量（generate --check + 桌面端 zod 校验）
@@ -115,6 +115,10 @@ try {
 
         Invoke-Step '④b 硬编码文案（Q04）' {
             & $PSHOME\pwsh.exe -NoProfile -File scripts/check-hardcoded-text.ps1
+        }
+
+        Invoke-Step '④c 订阅对称性（O03）' {
+            & $PSHOME\pwsh.exe -NoProfile -File scripts/check-subscriptions.ps1
         }
 
         # 两段式构建：VS2017(v141) 构建 Native，VS2026 构建 sln（见 doc/ENV.md §5）

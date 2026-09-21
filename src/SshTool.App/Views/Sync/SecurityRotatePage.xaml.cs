@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
@@ -48,6 +48,7 @@ namespace SshTool.App.Views.Sync
                 ViewModel.SubmitCommand.CanExecuteChanged -= OnCanExecuteChanged;
                 ViewModel.PropertyChanged -= OnViewModelChanged;
                 ViewModel.RotationCompleted -= OnRotationCompleted;
+                ViewModel.Detach(); // O03：VM 挂在应用级 SyncCoordinator 上
             }
             base.OnNavigatedFrom(e);
         }

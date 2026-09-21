@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using SshTool.App.Controls;
@@ -148,6 +148,9 @@ namespace SshTool.App.Views
                 keepAwake.SetTerminalVisible(false);
             }
             Term.Session = null;
+            // O03：SessionsPane 绑的是 ServiceRegistry 单例 VM 的 Items，
+            // 不断开则单例的集合经 CollectionChanged 攥住本页的 ListView。
+            SessionsPane.Detach();
             base.OnNavigatedFrom(e);
         }
 

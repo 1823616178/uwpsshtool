@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
@@ -34,6 +34,7 @@ namespace SshTool.App.ViewModels
         private bool _showQuickConnect = true;
         private bool _quickConnectExpanded;
         private bool _isListVisible;
+        private bool _detached;
 
         public HostListViewModel(AppServices services, IHostStatusProvider status = null)
         {
@@ -62,6 +63,9 @@ namespace SshTool.App.ViewModels
             ToggleQuickConnectCommand = new RelayCommand(ToggleQuickConnect);
             GenerateTestHostsCommand = new AsyncCommand(GenerateTestHostsAsync, onError: OnError);
 
+            // O03：仓库与设置都是应用级单例，本 VM 随 MainPage 每次导航重建。
+            // 不退订的话，每回一次首页就多一个永远活着、仍在响应 Changed 并
+            // 触发 RefreshAsync 的死 VM（既泄漏、又是「返回后重复刷新」的成因）。
             _hosts.Changed += OnRepoChanged;
             _groups.Changed += OnRepoChanged;
             _tunnels.Changed += OnRepoChanged;
@@ -387,6 +391,20 @@ namespace SshTool.App.ViewModels
                 }
             }
             return count;
+        }
+
+        // O03：由 MainViewModel.Detach 级联调用（页面 OnNavigatedFrom）。幂等。
+        public void Detach()
+        {
+            if (_detached)
+            {
+                return;
+            }
+            _detached = true;
+            _hosts.Changed -= OnRepoChanged;
+            _groups.Changed -= OnRepoChanged;
+            _tunnels.Changed -= OnRepoChanged;
+            _settings.Changed -= OnSettingChanged;
         }
 
         private void OnRepoChanged(object sender, RepositoryChangedEventArgs e)

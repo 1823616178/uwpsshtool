@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using SshTool.App.Controls;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
@@ -68,6 +68,7 @@ namespace SshTool.App.Views.Sync
         {
             ViewModel.PropertyChanged -= OnViewModelChanged;
             ViewModel.RequestSecurityRotate -= OnRequestSecurityRotate;
+            ViewModel.Detach(); // O03：VM 挂在应用级 SyncCoordinator 上
             base.OnNavigatedFrom(e);
         }
 

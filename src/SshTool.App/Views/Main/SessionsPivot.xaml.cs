@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
@@ -19,17 +20,43 @@ namespace SshTool.App.Views.Main
 
         public SessionsPaneViewModel ViewModel { get; private set; }
 
+        // O03：vm 是 ServiceRegistry 单例（MainViewModel 注册），而本控件随
+        // MainPage 每次导航重建。原来这里挂的是匿名 lambda——永远解不掉，
+        // 于是单例的订阅表里每访问一次首页就多攥住一棵死掉的可视化树。
+        // 改具名处理器 + Detach；重复 Attach 先拆旧的，保证不叠加。
         public void Attach(SessionsPaneViewModel vm)
         {
+            if (ReferenceEquals(ViewModel, vm))
+            {
+                return;
+            }
+            Detach();
             ViewModel = vm;
             if (vm == null)
             {
                 return;
             }
             SessionList.ItemsSource = vm.Items;
-            vm.PropertyChanged += (s, e) => UpdateChrome();
+            vm.PropertyChanged += OnViewModelPropertyChanged;
             UpdateChrome();
             vm.LoadRestoreAsync().Forget("SessionsPivot.LoadRestore", AppLog.Logger);
+        }
+
+        // 页面 OnNavigatedFrom 调用。ItemsSource 也要断开：单例的
+        // ObservableCollection 会经 CollectionChanged 攥住这个 ListView。幂等。
+        public void Detach()
+        {
+            if (ViewModel != null)
+            {
+                ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+                ViewModel = null;
+            }
+            SessionList.ItemsSource = null;
+        }
+
+        private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            UpdateChrome();
         }
 
         private void UpdateChrome()

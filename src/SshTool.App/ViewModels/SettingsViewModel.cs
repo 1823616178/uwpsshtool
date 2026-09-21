@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -55,6 +55,7 @@ namespace SshTool.App.ViewModels
         private static readonly int[] SyncPollOptions = { 0, 60, 300, 900 };
 
         private readonly SettingsRepository _settings;
+        private bool _detached;
 
         private string _osVersion = string.Empty;
         private string _deviceFamily = string.Empty;
@@ -74,8 +75,20 @@ namespace SshTool.App.ViewModels
             }
             _settings = settings;
             Probes = new ObservableCollection<DiagnosticProbeRow>();
+            // O03：SettingsRepository 是应用级单例，本 VM 随 SettingsPage 重建。
             _settings.Changed += OnSettingsChanged;
             RefreshDiagnostics();
+        }
+
+        // O03：页面 OnNavigatedFrom 调用。幂等。
+        public void Detach()
+        {
+            if (_detached)
+            {
+                return;
+            }
+            _detached = true;
+            _settings.Changed -= OnSettingsChanged;
         }
 
         public ObservableCollection<DiagnosticProbeRow> Probes { get; private set; }

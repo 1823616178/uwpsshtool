@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Common;
@@ -20,6 +20,7 @@ namespace SshTool.App.ViewModels.Sync
     public sealed class VaultSetupViewModel : ViewModelBase
     {
         private readonly SyncCoordinator _sync;
+        private bool _detached;
         private string _syncPassword = string.Empty;
         private string _confirmPassword = string.Empty;
         private string _errorMessage;
@@ -35,8 +36,11 @@ namespace SshTool.App.ViewModels.Sync
             // StateChanged 可能在线程池触发：属性通知统一封送回 UI 线程。
             SetDispatcherPost(action => DispatcherHelper.Post(action));
             SubmitCommand = new AsyncCommand(SubmitAsync, CanSubmit, OnSubmitError);
-            // 遮罩文案随 Coordinator 相位驱动（syncing → 正在同步）。VM 与页面同生命周期，
-            // Coordinator 是应用级单例，无需退订（与 MainViewModel 同例）。
+            // 遮罩文案随 Coordinator 相位驱动（syncing → 正在同步）。
+            // O03 订正：这里原本写的是「VM 与页面同生命周期、Coordinator 是应用级
+            // 单例，无需退订」——恰恰说反了。正因为 Coordinator 活得比页面长，
+            // 页面级 VM 才必须退订，否则每进一次页面就往单例的订阅表里塞一个死 VM。
+            // 退订见 Detach()，由页面 OnNavigatedFrom 调用。
             if (sync != null)
             {
                 sync.StateChanged += OnSyncPhaseChanged;
@@ -249,6 +253,21 @@ namespace SshTool.App.ViewModels.Sync
             }
             catch (Exception)
             {
+            }
+        }
+
+        // O03：页面 OnNavigatedFrom 调用。SyncCoordinator 是应用级单例、本 VM
+        // 随页面重建，不退订就按访问次数累积死 VM。幂等。
+        public void Detach()
+        {
+            if (_detached)
+            {
+                return;
+            }
+            _detached = true;
+            if (_sync != null)
+            {
+                _sync.StateChanged -= OnSyncPhaseChanged;
             }
         }
     }

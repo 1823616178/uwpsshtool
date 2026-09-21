@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Sync;
@@ -40,6 +40,7 @@ namespace SshTool.App.Views.Sync
         protected override void OnNavigatedFrom(NavigationEventArgs e)
         {
             ViewModel.Unlocked -= OnUnlocked;
+            ViewModel.Detach(); // O03：VM 挂在应用级 SyncCoordinator 上
             base.OnNavigatedFrom(e);
         }
 

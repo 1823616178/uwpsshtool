@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Common;
@@ -25,6 +25,7 @@ namespace SshTool.App.ViewModels.Sync
     public sealed class SecurityRotateViewModel : ViewModelBase
     {
         private readonly SyncCoordinator _sync;
+        private bool _detached;
         private readonly SecurityRotateMode _mode;
         private readonly ResourceLoader _loader;
 
@@ -276,6 +277,21 @@ namespace SshTool.App.ViewModels.Sync
             }
             catch (Exception)
             {
+            }
+        }
+
+        // O03：页面 OnNavigatedFrom 调用。SyncCoordinator 是应用级单例、本 VM
+        // 随页面重建，不退订就按访问次数累积死 VM。幂等。
+        public void Detach()
+        {
+            if (_detached)
+            {
+                return;
+            }
+            _detached = true;
+            if (_sync != null)
+            {
+                _sync.StateChanged -= OnSyncPhaseChanged;
             }
         }
     }

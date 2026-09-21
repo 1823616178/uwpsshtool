@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
@@ -90,6 +90,12 @@ namespace SshTool.App.Views
             {
                 nav.UnregisterBackHandler(this);
             }
+            // O03：本页每次导航回来都重建（见 EnsureWorkspace 注释），而 Sessions
+            // 与仓库/同步协调器都是应用级单例。不在这里拆，单例的订阅表就会按
+            // 访问次数累积死页面与死 VM。Workspace 由控件自己的 Unloaded 拆。
+            SessionsPivotCtl.Detach();
+            ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
+            ViewModel.Detach();
             base.OnNavigatedFrom(e);
         }
 

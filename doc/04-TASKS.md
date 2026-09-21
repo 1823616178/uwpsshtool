@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 14 | 2 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **126** | **109** | |
+| M9 | 优化与债务清理 | 14 | 3 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **126** | **110** | |
 
 ### 1.1 关键路径
 
@@ -1308,7 +1308,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] `pwsh scripts/verify.ps1` 全绿（Core 1438、7 步全通过）
   - 验证：`dotnet test tests/SshTool.Core.Tests`
 
-- [ ] **O03 页面级订阅收口（内存泄漏）** `M`
+- [x] **O03 页面级订阅收口（内存泄漏）** `M`
   - 依赖：—
   - 参考：`06-OPT-AUDIT.md §3 P0-2`；既有正确范式 `ViewModels/TerminalViewModel.cs` 的 `Detach()`、`ViewModels/TunnelsViewModel.cs:206`
   - 产出：`src/SshTool.App/Views/Main/SessionsPivot.xaml.cs`、`Controls/SessionsPane.xaml.cs`、`ViewModels/{HostList,Main,Settings}ViewModel.cs`、`ViewModels/Sync/{AccountSync,SecurityRotate,VaultSetup,VaultUnlock}ViewModel.cs`、对应页面的 `OnNavigatedFrom`
@@ -1318,9 +1318,11 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     3. `MainPage` 每次导航回来都 `new MainViewModel()`（全仓无 `NavigationCacheMode`），`MainViewModel.Detach()` 需级联 `Hosts.Detach()`；`Sessions` 是 `ServiceRegistry` 单例，**不要** Detach 它本身，只拆视图侧订阅。
     4. `Detach` 必须幂等（重复 GoBack / Frame 重复回调）。
   - 验收：
-    - [ ] 上述文件中每个订阅应用级单例的 `+=` 都有对应 `-=`
-    - [ ] 新增 Core 侧可测部分的回归（VM 的 `Detach` 后不再响应仓库 `Changed`）
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] 上述文件中每个订阅应用级单例的 `+=` 都有对应 `-=`
+    - [x] ~~新增 Core 侧可测部分的回归~~ **改为门禁脚本**：App 层 VM 在 UWP 程序集里，`tests/SshTool.Core.Tests`（net8）
+      引用不到，写不出真单测。改为新增 `scripts/check-subscriptions.ps1`（verify ④c）：受管事件的具名订阅必须同文件配对 `-=`，
+      匿名委托订阅一律报错；同寿命的 5 处逐条豁免并写明理由。已用临时探针文件双向验证（有违例 EXIT=1、删除后 EXIT=0）
+    - [x] `pwsh scripts/verify.ps1` 全绿（8 步，新增 ④c）
     - [ ] 📱 首页↔终端页往返 50 次，内存无明显增长、列表不重复刷新（`05` §10 的对应条目）
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1564,6 +1566,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] S16 📱 场景 9（鸿蒙端参与）通过，或记录鸿蒙端侧已知差异（参见 doc/INTEROP-REPORT.md）
 - [ ] F07 📱 两级跳板连接成功；断开中间跳后下级进入重连而非挂死
 - [ ] O01 📱 PerfPage「Q02 连接/断开 ×100」与长稳复测，内存 Δ 与 `sessions/threads/sockets/screens` 回填 `doc/PERF-REPORT.md §5.1`（验证 `pendingOutput_` 删除后的内存曲线）
+- [ ] O03 📱 首页↔终端页往返 50 次，内存无明显增长、主机列表不重复刷新（`05` §10「进入退出终端 50 次无事件倍增」）
 
 ---
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
@@ -71,6 +71,8 @@ namespace SshTool.App.Views
         {
             // 离开页前提交任何 pending 值，防丢失。
             CommitPendingSlider();
+            // O03：SettingsRepository 是应用级单例，本页 VM 随页面重建。
+            ViewModel.Detach();
             base.OnNavigatedFrom(e);
         }
 
