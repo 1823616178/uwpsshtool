@@ -8,17 +8,17 @@
          内容（多行等宽）/ 发送后回车 / 变量说明。 -->
     <Page.BottomAppBar>
         <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton Label="保存" Click="OnSaveClick">
+            <AppBarButton x:Uid="SnippetEdit_SaveButton" Click="OnSaveClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconEdit}" />
                 </AppBarButton.Icon>
             </AppBarButton>
-            <AppBarButton Label="删除" Click="OnDeleteClick">
+            <AppBarButton x:Uid="SnippetEdit_DeleteButton" Click="OnDeleteClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconDelete}" />
                 </AppBarButton.Icon>
             </AppBarButton>
-            <AppBarButton Label="取消" Click="OnCancelClick">
+            <AppBarButton x:Uid="SnippetEdit_CancelButton" Click="OnCancelClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconDisconnect}" />
                 </AppBarButton.Icon>
@@ -35,14 +35,14 @@
                    Margin="{StaticResource PagePadding}" />
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
-                <TextBox x:Name="NameBox" Header="名称 *" TextChanged="OnNameChanged" />
+                <TextBox x:Name="NameBox" x:Uid="SnippetEdit_NameBox" TextChanged="OnNameChanged" />
                 <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
                            Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                <AutoSuggestBox x:Name="GroupBox" Header="分组" PlaceholderText="可输入新分组"
+                <AutoSuggestBox x:Name="GroupBox" x:Uid="SnippetEdit_GroupBox"
                                 Margin="{StaticResource GapSmTop}"
                                 TextChanged="OnGroupTextChanged"
                                 SuggestionChosen="OnGroupSuggestionChosen" />
-                <TextBox x:Name="ContentBox" Header="内容 *" AcceptsReturn="True"
+                <TextBox x:Name="ContentBox" x:Uid="SnippetEdit_ContentBox" AcceptsReturn="True"
                          TextWrapping="Wrap"
                          FontFamily="{StaticResource AppMonoFontFamily}"
                          MinHeight="{StaticResource ListRowHeight}"
@@ -50,7 +50,7 @@
                          TextChanged="OnContentChanged" />
                 <TextBlock x:Name="ContentError" Style="{StaticResource CaptionTextStyle}"
                            Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                <CheckBox x:Name="SendEnterBox" Content="发送后回车"
+                <CheckBox x:Name="SendEnterBox" x:Uid="SnippetEdit_SendEnter"
                           Margin="{StaticResource GapSmTop}"
                           Checked="OnSendEnterChanged" Unchecked="OnSendEnterChanged" />
                 <TextBlock x:Name="VariableHint" Style="{StaticResource CaptionTextStyle}"

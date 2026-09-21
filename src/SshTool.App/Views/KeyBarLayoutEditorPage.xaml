@@ -23,10 +23,9 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Text="键条布局" Style="{StaticResource PageTitleTextStyle}"
+        <TextBlock x:Uid="KeyBarEditor_Title" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
-        <TextBlock Text="更改立即生效，下次打开终端时使用新布局"
-                   Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
+        <TextBlock x:Uid="KeyBarEditor_Subtitle" Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
                    Margin="{StaticResource PagePadding}" />
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>
@@ -38,7 +37,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Text="可用键" Style="{StaticResource BodyTextStyle}"
+                <TextBlock x:Uid="KeyBarEditor_AvailableHeader" Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource PagePadding}" />
                 <ListView x:Name="AvailableList" Grid.Row="1"
                           ItemTemplate="{StaticResource KeyItemTemplate}"
@@ -49,7 +48,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
-                <TextBlock Text="已选键" Style="{StaticResource BodyTextStyle}"
+                <TextBlock x:Uid="KeyBarEditor_SelectedHeader" Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource PagePadding}" />
                 <ListView x:Name="SelectedList" Grid.Row="1"
                           ItemTemplate="{StaticResource KeyItemTemplate}"
@@ -58,20 +57,20 @@
         </Grid>
         <StackPanel Grid.Row="3" Orientation="Horizontal"
                     Margin="{StaticResource PagePadding}">
-            <Button Content="添加 →" Click="OnAddClick"
+            <Button x:Uid="KeyBarEditor_Add" Click="OnAddClick"
                     Style="{StaticResource PrimaryButtonStyle}" />
-            <Button Content="← 移除" Click="OnRemoveClick"
+            <Button x:Uid="KeyBarEditor_Remove" Click="OnRemoveClick"
                     Style="{StaticResource SecondaryButtonStyle}"
                     Margin="{StaticResource GapSmLeft}" />
         </StackPanel>
         <StackPanel Grid.Row="4" Orientation="Horizontal"
                     Margin="{StaticResource PagePadding}">
-            <Button Content="上移" Click="OnMoveUpClick"
+            <Button x:Uid="KeyBarEditor_MoveUp" Click="OnMoveUpClick"
                     Style="{StaticResource SecondaryButtonStyle}" />
-            <Button Content="下移" Click="OnMoveDownClick"
+            <Button x:Uid="KeyBarEditor_MoveDown" Click="OnMoveDownClick"
                     Style="{StaticResource SecondaryButtonStyle}"
                     Margin="{StaticResource GapSmLeft}" />
-            <Button Content="恢复默认" Click="OnResetClick"
+            <Button x:Uid="KeyBarEditor_Reset" Click="OnResetClick"
                     Style="{StaticResource SecondaryButtonStyle}"
                     Margin="{StaticResource GapSmLeft}" />
         </StackPanel>

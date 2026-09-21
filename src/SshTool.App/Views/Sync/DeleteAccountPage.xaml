@@ -36,7 +36,6 @@
                            Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource GapMdTop}" />
                 <TextBox x:Name="ConfirmBox" x:Uid="DeleteAccount_ConfirmBox"
-                         PlaceholderText="DELETE"
                          Margin="{StaticResource GapSmTop}"
                          TextChanged="OnConfirmChanged" />
 

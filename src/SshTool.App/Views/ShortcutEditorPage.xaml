@@ -17,7 +17,7 @@
                     <TextBlock Text="{Binding DisplayName}" Style="{StaticResource BodyTextStyle}" />
                     <TextBlock Text="{Binding ChordText}" Style="{StaticResource MonoCaptionTextStyle}" />
                 </StackPanel>
-                <Button Grid.Column="1" Content="录制" Click="OnRecordClick"
+                <Button Grid.Column="1" x:Uid="Shortcut_Record" Click="OnRecordClick"
                         MinWidth="{StaticResource TouchTargetMin}"
                         MinHeight="{StaticResource TouchTargetMin}"
                         Margin="{StaticResource GapSmLeft}" />
@@ -33,10 +33,9 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Text="快捷键" Style="{StaticResource PageTitleTextStyle}"
+        <TextBlock x:Uid="Shortcut_Title" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
-        <TextBlock Text="点击录制后按下新组合；默认组合都带 Shift，避免抢占终端按键"
-                   Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
+        <TextBlock x:Uid="Shortcut_Subtitle" Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
                    Margin="{StaticResource PagePadding}" TextWrapping="Wrap" />
         <TextBlock x:Name="ConflictWarning" Grid.Row="2"
                    Style="{StaticResource CaptionTextStyle}"
@@ -48,7 +47,7 @@
                   SelectionMode="None" />
         <StackPanel Grid.Row="4" Orientation="Horizontal"
                     Margin="{StaticResource PagePadding}">
-            <Button Content="恢复默认" Click="OnResetClick" />
+            <Button x:Uid="Shortcut_Reset" Click="OnResetClick" />
         </StackPanel>
         <controls:TransientToast x:Name="Toast" Grid.Row="4" />
     </Grid>

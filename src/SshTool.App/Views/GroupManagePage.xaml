@@ -7,7 +7,7 @@
 
     <Page.BottomAppBar>
         <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton Label="新建" Click="OnAddClick">
+            <AppBarButton x:Uid="GroupManage_AddButton" Click="OnAddClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconAdd}" />
                 </AppBarButton.Icon>
@@ -21,7 +21,7 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Text="分组管理" Style="{StaticResource PageTitleTextStyle}"
+        <TextBlock x:Uid="GroupManage_Title" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
         <ListView x:Name="GroupList" Grid.Row="1" SelectionMode="Single"
                   SelectionChanged="OnSelectionChanged">
@@ -35,14 +35,14 @@
         </ListView>
         <StackPanel x:Name="Editor" Grid.Row="2" Padding="{StaticResource PagePadding}" Visibility="Collapsed"
                     Background="{ThemeResource AppSurfaceBrush}">
-            <TextBox x:Name="NameBox" Header="名称" LostFocus="OnNameLostFocus" />
+            <TextBox x:Name="NameBox" x:Uid="GroupManage_NameBox" LostFocus="OnNameLostFocus" />
             <controls:ColorSwatchPicker x:Name="Picker" Margin="{StaticResource GapSmTop}"
                                         ColorChanged="OnColorChanged" />
             <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
-                <Button Content="上移" Click="OnMoveUp" Style="{StaticResource SecondaryButtonStyle}" />
-                <Button Content="下移" Click="OnMoveDown" Margin="{StaticResource GapSmLeft}"
+                <Button x:Uid="GroupManage_MoveUp" Click="OnMoveUp" Style="{StaticResource SecondaryButtonStyle}" />
+                <Button x:Uid="GroupManage_MoveDown" Click="OnMoveDown" Margin="{StaticResource GapSmLeft}"
                         Style="{StaticResource SecondaryButtonStyle}" />
-                <Button Content="删除" Click="OnDelete" Margin="{StaticResource GapSmLeft}"
+                <Button x:Uid="GroupManage_Delete" Click="OnDelete" Margin="{StaticResource GapSmLeft}"
                         Style="{StaticResource DangerButtonStyle}" />
             </StackPanel>
         </StackPanel>

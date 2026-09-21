@@ -226,7 +226,9 @@
   <data name="Workspace_HostPickerEmpty" xml:space="preserve"><value>还没有主机，请先添加</value></data>
   <data name="Dialog_Cancel" xml:space="preserve"><value>取消</value></data>
   <data name="Dialog_Ok" xml:space="preserve"><value>确定</value></data>
+  <data name="Placeholder_BackButton.Content" xml:space="preserve"><value>返回</value></data>
   <data name="Placeholder_Title" xml:space="preserve"><value>即将推出</value></data>
+  <data name="Placeholder_ComingSoon.Title" xml:space="preserve"><value>即将推出</value></data>
   <data name="Placeholder_ComingSoon" xml:space="preserve"><value>功能还在打磨中，敬请期待后续版本。</value></data>
 
   <data name="ExitDialog.Title" xml:space="preserve"><value>退出应用</value></data>
@@ -347,6 +349,110 @@
   <data name="Gallery_EmptyOffline.Description" xml:space="preserve"><value>网络不可用，显示本机缓存内容。</value></data>
   <data name="Gallery_EmptyFiltered.Title" xml:space="preserve"><value>没有匹配的主机</value></data>
   <data name="Gallery_EmptyFiltered.Description" xml:space="preserve"><value>换个关键词试试。</value></data>
+
+  <!-- Q06：关于页 / 许可页 -->
+  <data name="About_Header.Title" xml:space="preserve"><value>关于</value></data>
+  <data name="About_AppName" xml:space="preserve"><value>Lumia SSH</value></data>
+  <data name="About_DepsHeader.Title" xml:space="preserve"><value>依赖</value></data>
+  <data name="About_LicenseHeader.Title" xml:space="preserve"><value>许可</value></data>
+  <data name="About_LicensesButton.Content" xml:space="preserve"><value>查看开源许可</value></data>
+  <data name="About_PrivacyLink" xml:space="preserve"><value>本应用仅在本地存储主机、密钥与凭据；同步内容经 Argon2id + AES 加密后上传。服务器地址与明文 HTTP 风险详见隐私说明。</value></data>
+  <data name="Licenses_Header.Title" xml:space="preserve"><value>开源许可</value></data>
+  <data name="Licenses_OssHeader.Title" xml:space="preserve"><value>开源组件</value></data>
+  <data name="Licenses_FontsHeader.Title" xml:space="preserve"><value>字体许可</value></data>
+
+  <!-- V06（C-06）：KeyImportDialog 粘贴框占位符（英文文案） -->
+  <data name="KeyImport_PasteBox.Header" xml:space="preserve"><value>粘贴私钥</value></data>
+  <data name="KeyImport_PasteBox.PlaceholderText" xml:space="preserve"><value>-----BEGIN … PRIVATE KEY-----</value></data>
+
+  <!-- V06（C-06）：KeyGenerateDialog RSA 类型（英文文案） -->
+  <data name="KeyGen_TypeEd25519.Content" xml:space="preserve"><value>ED25519（推荐）</value></data>
+  <data name="KeyGen_TypeRsa3072.Content" xml:space="preserve"><value>RSA 3072</value></data>
+  <data name="KeyGen_TypeRsa4096.Content" xml:space="preserve"><value>RSA 4096</value></data>
+
+  <!-- V06（C-06）：KeyDetailPage 硬编码中文清理 -->
+  <data name="KeyDetail_Title.Text" xml:space="preserve"><value>密钥详情</value></data>
+  <data name="KeyDetail_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="KeyDetail_Rename.Content" xml:space="preserve"><value>保存名称</value></data>
+  <data name="KeyDetail_TypeLabel.Text" xml:space="preserve"><value>类型</value></data>
+  <data name="KeyDetail_BitsLabel.Text" xml:space="preserve"><value>位数</value></data>
+  <data name="KeyDetail_FormatLabel.Text" xml:space="preserve"><value>格式</value></data>
+  <data name="KeyDetail_EncryptedLabel.Text" xml:space="preserve"><value>已加密</value></data>
+  <data name="KeyDetail_CreatedLabel.Text" xml:space="preserve"><value>创建时间</value></data>
+  <data name="KeyDetail_FingerprintLabel.Text" xml:space="preserve"><value>指纹</value></data>
+  <data name="KeyDetail_PublicKeyLabel.Text" xml:space="preserve"><value>公钥</value></data>
+  <data name="KeyDetail_Copy.Content" xml:space="preserve"><value>复制</value></data>
+  <data name="KeyDetail_Share.Content" xml:space="preserve"><value>分享</value></data>
+  <data name="KeyDetail_UsedByLabel.Text" xml:space="preserve"><value>使用它的主机</value></data>
+  <data name="KeyDetail_NoHosts.Text" xml:space="preserve"><value>没有主机使用该密钥</value></data>
+  <data name="KeyDetail_Export.Content" xml:space="preserve"><value>导出私钥</value></data>
+  <data name="KeyDetail_Delete.Content" xml:space="preserve"><value>删除密钥</value></data>
+
+  <!-- V06（C-06）：SnippetEditPage 硬编码中文清理 -->
+  <data name="SnippetEdit_SaveButton.Label" xml:space="preserve"><value>保存</value></data>
+  <data name="SnippetEdit_DeleteButton.Label" xml:space="preserve"><value>删除</value></data>
+  <data name="SnippetEdit_CancelButton.Label" xml:space="preserve"><value>取消</value></data>
+  <data name="SnippetEdit_NameBox.Header" xml:space="preserve"><value>名称 *</value></data>
+  <data name="SnippetEdit_GroupBox.Header" xml:space="preserve"><value>分组</value></data>
+  <data name="SnippetEdit_GroupBox.PlaceholderText" xml:space="preserve"><value>可输入新分组</value></data>
+  <data name="SnippetEdit_ContentBox.Header" xml:space="preserve"><value>内容 *</value></data>
+  <data name="SnippetEdit_SendEnter.Content" xml:space="preserve"><value>发送后回车</value></data>
+
+  <!-- V06（C-06）：AppearanceEditPage 硬编码中文清理 -->
+  <data name="AppearanceEdit_SaveButton.Label" xml:space="preserve"><value>保存</value></data>
+  <data name="AppearanceEdit_ResetButton.Label" xml:space="preserve"><value>还原</value></data>
+  <data name="AppearanceEdit_DuplicateButton.Label" xml:space="preserve"><value>复制为新主题</value></data>
+  <data name="AppearanceEdit_PivotFont.Header" xml:space="preserve"><value>字体</value></data>
+  <data name="AppearanceEdit_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="AppearanceEdit_BoldWeight.Header" xml:space="preserve"><value>粗体用粗字重</value></data>
+  <data name="AppearanceEdit_BoldBright.Header" xml:space="preserve"><value>粗体用亮色</value></data>
+  <data name="AppearanceEdit_PivotColor.Header" xml:space="preserve"><value>颜色</value></data>
+  <data name="AppearanceEdit_FgLabel.Text" xml:space="preserve"><value>前景</value></data>
+  <data name="AppearanceEdit_BgLabel.Text" xml:space="preserve"><value>背景</value></data>
+  <data name="AppearanceEdit_CursorLabel.Text" xml:space="preserve"><value>光标</value></data>
+  <data name="AppearanceEdit_SelectionLabel.Text" xml:space="preserve"><value>选区</value></data>
+  <data name="AppearanceEdit_AnsiLabel.Text" xml:space="preserve"><value>ANSI 0–15</value></data>
+  <data name="AppearanceEdit_PivotCursor.Header" xml:space="preserve"><value>光标</value></data>
+  <data name="AppearanceEdit_CursorStyle.Header" xml:space="preserve"><value>光标样式</value></data>
+  <data name="AppearanceEdit_CursorBlock.Content" xml:space="preserve"><value>方块</value></data>
+  <data name="AppearanceEdit_CursorBar.Content" xml:space="preserve"><value>竖线</value></data>
+  <data name="AppearanceEdit_CursorUnderline.Content" xml:space="preserve"><value>下划线</value></data>
+  <data name="AppearanceEdit_CursorBlink.Header" xml:space="preserve"><value>光标闪烁</value></data>
+
+  <!-- V06（C-06）：AppearanceListPage 硬编码中文清理 -->
+  <data name="AppearanceList_NewButton.Label" xml:space="preserve"><value>新建</value></data>
+  <data name="AppearanceList_ImportButton.Label" xml:space="preserve"><value>导入</value></data>
+  <data name="AppearanceList_Title.Text" xml:space="preserve"><value>外观</value></data>
+  <data name="AppearanceList_SetDefault.Content" xml:space="preserve"><value>设为默认</value></data>
+  <data name="AppearanceList_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多</value></data>
+  <data name="AppearanceList_MenuEdit.Text" xml:space="preserve"><value>编辑</value></data>
+  <data name="AppearanceList_MenuDuplicate.Text" xml:space="preserve"><value>复制为新主题</value></data>
+  <data name="AppearanceList_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
+
+  <!-- V06（C-06）：ShortcutEditorPage 硬编码中文清理 -->
+  <data name="Shortcut_Title.Text" xml:space="preserve"><value>快捷键</value></data>
+  <data name="Shortcut_Subtitle.Text" xml:space="preserve"><value>点击录制后按下新组合；默认组合都带 Shift，避免抢占终端按键</value></data>
+  <data name="Shortcut_Record.Content" xml:space="preserve"><value>录制</value></data>
+  <data name="Shortcut_Reset.Content" xml:space="preserve"><value>恢复默认</value></data>
+
+  <!-- V06（C-06）：KeyBarLayoutEditorPage 硬编码中文清理 -->
+  <data name="KeyBarEditor_Title.Text" xml:space="preserve"><value>键条布局</value></data>
+  <data name="KeyBarEditor_Subtitle.Text" xml:space="preserve"><value>更改立即生效，下次打开终端时使用新布局</value></data>
+  <data name="KeyBarEditor_AvailableHeader.Text" xml:space="preserve"><value>可用键</value></data>
+  <data name="KeyBarEditor_SelectedHeader.Text" xml:space="preserve"><value>已选键</value></data>
+  <data name="KeyBarEditor_Add.Content" xml:space="preserve"><value>添加 →</value></data>
+  <data name="KeyBarEditor_Remove.Content" xml:space="preserve"><value>← 移除</value></data>
+  <data name="KeyBarEditor_MoveUp.Content" xml:space="preserve"><value>上移</value></data>
+  <data name="KeyBarEditor_MoveDown.Content" xml:space="preserve"><value>下移</value></data>
+  <data name="KeyBarEditor_Reset.Content" xml:space="preserve"><value>恢复默认</value></data>
+
+  <!-- V06（C-06）：GroupManagePage 硬编码中文清理 -->
+  <data name="GroupManage_AddButton.Label" xml:space="preserve"><value>新建</value></data>
+  <data name="GroupManage_Title.Text" xml:space="preserve"><value>分组管理</value></data>
+  <data name="GroupManage_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="GroupManage_MoveUp.Content" xml:space="preserve"><value>上移</value></data>
+  <data name="GroupManage_MoveDown.Content" xml:space="preserve"><value>下移</value></data>
+  <data name="GroupManage_Delete.Content" xml:space="preserve"><value>删除</value></data>
 
   <!-- V02（05 §6.1）：MainPage 信息架构——页头/Pivot 页签/底栏/隧道占位/加载告警（代码置 Banner.Title） -->
   <data name="Main_PageHeader.Title" xml:space="preserve"><value>Lumia SSH</value></data>
@@ -715,6 +821,7 @@
   <data name="DeleteAccount_Warning" xml:space="preserve"><value>此操作将永久删除你的账号与云端保险库，且不可恢复。</value></data>
   <data name="DeleteAccount_PasswordLabel" xml:space="preserve"><value>登录密码</value></data>
   <data name="DeleteAccount_ConfirmLabel" xml:space="preserve"><value>输入 DELETE 以确认</value></data>
+  <data name="DeleteAccount_ConfirmBox.PlaceholderText" xml:space="preserve"><value>DELETE</value></data>
   <data name="DeleteAccount_Submit" xml:space="preserve"><value>注销账号</value></data>
   <data name="DeleteAccount_Failed" xml:space="preserve"><value>注销账号失败，请稍后重试</value></data>
 

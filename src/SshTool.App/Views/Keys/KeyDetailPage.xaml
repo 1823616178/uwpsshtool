@@ -13,48 +13,48 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Text="密钥详情" Style="{StaticResource PageTitleTextStyle}"
+        <TextBlock x:Uid="KeyDetail_Title" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
-                <TextBox x:Name="NameBox" Header="名称" TextChanged="OnNameChanged" />
-                <Button x:Name="RenameButton" Content="保存名称" Click="OnRenameClick"
+                <TextBox x:Name="NameBox" x:Uid="KeyDetail_NameBox" TextChanged="OnNameChanged" />
+                <Button x:Name="RenameButton" x:Uid="KeyDetail_Rename" Click="OnRenameClick"
                         Style="{StaticResource PrimaryButtonStyle}"
                         IsEnabled="False" Margin="{StaticResource GapXsTop}" />
 
-                <TextBlock Text="类型" Style="{StaticResource CaptionTextStyle}"
+                <TextBlock x:Uid="KeyDetail_TypeLabel" Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapSmTop}" />
                 <TextBlock x:Name="TypeText" Style="{StaticResource BodyTextStyle}" />
-                <TextBlock Text="位数" Style="{StaticResource CaptionTextStyle}"
+                <TextBlock x:Uid="KeyDetail_BitsLabel" Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapXsTop}" />
                 <TextBlock x:Name="BitsText" Style="{StaticResource BodyTextStyle}" />
-                <TextBlock Text="格式" Style="{StaticResource CaptionTextStyle}"
+                <TextBlock x:Uid="KeyDetail_FormatLabel" Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapXsTop}" />
                 <TextBlock x:Name="FormatText" Style="{StaticResource BodyTextStyle}" />
-                <TextBlock Text="已加密" Style="{StaticResource CaptionTextStyle}"
+                <TextBlock x:Uid="KeyDetail_EncryptedLabel" Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapXsTop}" />
                 <TextBlock x:Name="EncryptedText" Style="{StaticResource BodyTextStyle}" />
-                <TextBlock Text="创建时间" Style="{StaticResource CaptionTextStyle}"
+                <TextBlock x:Uid="KeyDetail_CreatedLabel" Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapXsTop}" />
                 <TextBlock x:Name="CreatedText" Style="{StaticResource BodyTextStyle}" />
 
-                <TextBlock Text="指纹" Style="{StaticResource CaptionTextStyle}"
+                <TextBlock x:Uid="KeyDetail_FingerprintLabel" Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapSmTop}" />
                 <controls:MonoText x:Name="FingerprintText" Compact="True" />
 
-                <TextBlock Text="公钥" Style="{StaticResource CaptionTextStyle}"
+                <TextBlock x:Uid="KeyDetail_PublicKeyLabel" Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapSmTop}" />
                 <controls:MonoText x:Name="PublicKeyText" Compact="True" />
                 <StackPanel Orientation="Horizontal" Margin="{StaticResource GapXsTop}">
-                    <Button Content="复制" Click="OnCopyClick"
+                    <Button x:Uid="KeyDetail_Copy" Click="OnCopyClick"
                             Style="{StaticResource SecondaryButtonStyle}" />
-                    <Button Content="分享" Click="OnShareClick" Margin="{StaticResource GapSmLeft}"
+                    <Button x:Uid="KeyDetail_Share" Click="OnShareClick" Margin="{StaticResource GapSmLeft}"
                             Style="{StaticResource SecondaryButtonStyle}" />
                 </StackPanel>
 
-                <TextBlock Text="使用它的主机" Style="{StaticResource CaptionTextStyle}"
+                <TextBlock x:Uid="KeyDetail_UsedByLabel" Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapSmTop}" />
-                <TextBlock x:Name="NoHostsText" Text="没有主机使用该密钥"
+                <TextBlock x:Name="NoHostsText" x:Uid="KeyDetail_NoHosts"
                            Style="{StaticResource BodyTextStyle}" />
                 <ListView x:Name="HostList" SelectionMode="None"
                           IsItemClickEnabled="True" ItemClick="OnHostClick">
@@ -68,10 +68,10 @@
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <Button Content="导出私钥" Click="OnExportClick"
+                <Button x:Uid="KeyDetail_Export" Click="OnExportClick"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Margin="{StaticResource GapSmTop}" />
-                <Button Content="删除密钥" Click="OnDeleteClick"
+                <Button x:Uid="KeyDetail_Delete" Click="OnDeleteClick"
                         Style="{StaticResource DangerButtonStyle}"
                         Margin="{StaticResource GapXsTop}" />
                 <TextBlock x:Name="StatusText" Style="{StaticResource CaptionTextStyle}"

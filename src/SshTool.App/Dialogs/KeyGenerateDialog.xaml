@@ -14,9 +14,9 @@
         <StackPanel>
             <ComboBox x:Name="TypeBox" Header="类型" HorizontalAlignment="Stretch"
                       SelectionChanged="OnTypeChanged">
-                <ComboBoxItem Content="ED25519（推荐）" IsSelected="True" />
-                <ComboBoxItem Content="RSA 3072" />
-                <ComboBoxItem Content="RSA 4096" />
+                <ComboBoxItem x:Uid="KeyGen_TypeEd25519" IsSelected="True" />
+                <ComboBoxItem x:Uid="KeyGen_TypeRsa3072" />
+                <ComboBoxItem x:Uid="KeyGen_TypeRsa4096" />
             </ComboBox>
             <TextBox x:Name="NameBox" Header="名称" Margin="{StaticResource GapSmTop}" />
             <TextBox x:Name="CommentBox" Header="注释" Margin="{StaticResource GapSmTop}" />

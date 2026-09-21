@@ -6,12 +6,12 @@
 
     <Page.BottomAppBar>
         <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton Label="新建" Click="OnNewClick">
+            <AppBarButton x:Uid="AppearanceList_NewButton" Click="OnNewClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconAdd}" />
                 </AppBarButton.Icon>
             </AppBarButton>
-            <AppBarButton Label="导入" Click="OnImportClick">
+            <AppBarButton x:Uid="AppearanceList_ImportButton" Click="OnImportClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconDownload}" />
                 </AppBarButton.Icon>
@@ -25,7 +25,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <TextBlock Text="外观" Style="{StaticResource PageTitleTextStyle}"
+        <TextBlock x:Uid="AppearanceList_Title" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
         <ListView x:Name="AppearanceList" Grid.Row="1" SelectionMode="None">
             <ListView.ItemTemplate>
@@ -48,19 +48,18 @@
                                        Foreground="{ThemeResource AppWarningBrush}"
                                        VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
                         </StackPanel>
-                        <Button Grid.Column="1" Content="设为默认" Click="OnSetDefaultClick"
+                        <Button Grid.Column="1" x:Uid="AppearanceList_SetDefault" Click="OnSetDefaultClick"
                                 Style="{StaticResource SecondaryButtonStyle}" />
-                        <!-- UI 走查：… 文本换 IconMore 字形并补无障碍名；无样式按钮保留手写触控尺寸。 -->
                         <Button Grid.Column="2" Margin="{StaticResource GapSmLeft}"
                                 MinWidth="{StaticResource TouchTargetMin}"
                                 MinHeight="{StaticResource TouchTargetMin}"
-                                AutomationProperties.Name="更多">
+                                x:Uid="AppearanceList_MoreButton">
                             <FontIcon Glyph="{StaticResource IconMore}" />
                             <Button.Flyout>
                                 <MenuFlyout>
-                                    <MenuFlyoutItem Text="编辑" Click="OnEditClick" />
-                                    <MenuFlyoutItem Text="复制为新主题" Click="OnDuplicateClick" />
-                                    <MenuFlyoutItem Text="删除" Click="OnDeleteClick"
+                                    <MenuFlyoutItem x:Uid="AppearanceList_MenuEdit" Click="OnEditClick" />
+                                    <MenuFlyoutItem x:Uid="AppearanceList_MenuDuplicate" Click="OnDuplicateClick" />
+                                    <MenuFlyoutItem x:Uid="AppearanceList_MenuDelete" Click="OnDeleteClick"
                                                     Style="{StaticResource DangerMenuItemStyle}" />
                                 </MenuFlyout>
                             </Button.Flyout>

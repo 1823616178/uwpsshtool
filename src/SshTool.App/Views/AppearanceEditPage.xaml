@@ -8,17 +8,17 @@
 
     <Page.BottomAppBar>
         <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton Label="保存" Click="OnSaveClick">
+            <AppBarButton x:Uid="AppearanceEdit_SaveButton" Click="OnSaveClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconEdit}" />
                 </AppBarButton.Icon>
             </AppBarButton>
-            <AppBarButton Label="还原" Click="OnResetClick">
+            <AppBarButton x:Uid="AppearanceEdit_ResetButton" Click="OnResetClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconSync}" />
                 </AppBarButton.Icon>
             </AppBarButton>
-            <AppBarButton Label="复制为新主题" Click="OnDuplicateClick">
+            <AppBarButton x:Uid="AppearanceEdit_DuplicateButton" Click="OnDuplicateClick">
                 <AppBarButton.Icon>
                     <FontIcon Glyph="{StaticResource IconCopy}" />
                 </AppBarButton.Icon>
@@ -37,10 +37,10 @@
                    Margin="{StaticResource PagePadding}" />
         <term:TerminalView x:Name="Preview" Grid.Row="1" Margin="{StaticResource PagePadding}" />
         <Pivot x:Name="EditPivot" Grid.Row="2">
-            <PivotItem Header="字体">
+            <PivotItem x:Uid="AppearanceEdit_PivotFont">
                 <ScrollViewer>
                     <StackPanel Padding="{StaticResource PagePadding}">
-                        <TextBox x:Name="NameBox" Header="名称" TextChanged="OnNameChanged" />
+                        <TextBox x:Name="NameBox" x:Uid="AppearanceEdit_NameBox" TextChanged="OnNameChanged" />
                         <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
                                    Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
                         <TextBlock x:Name="FontSizeLabel" Style="{StaticResource BodyTextStyle}"
@@ -49,9 +49,9 @@
                         <TextBlock x:Name="LineHeightLabel" Style="{StaticResource BodyTextStyle}"
                                    Margin="{StaticResource GapSmTop}" />
                         <Slider x:Name="LineHeightSlider" ValueChanged="OnLineHeightChanged" />
-                        <ToggleSwitch x:Name="BoldWeightSwitch" Header="粗体用粗字重"
+                        <ToggleSwitch x:Name="BoldWeightSwitch" x:Uid="AppearanceEdit_BoldWeight"
                                       Margin="{StaticResource GapSmTop}" Toggled="OnBoldWeightToggled" />
-                        <ToggleSwitch x:Name="BoldBrightSwitch" Header="粗体用亮色"
+                        <ToggleSwitch x:Name="BoldBrightSwitch" x:Uid="AppearanceEdit_BoldBright"
                                       Toggled="OnBoldBrightToggled" />
                         <TextBlock x:Name="PaddingLabel" Style="{StaticResource BodyTextStyle}"
                                    Margin="{StaticResource GapSmTop}" />
@@ -61,7 +61,7 @@
                     </StackPanel>
                 </ScrollViewer>
             </PivotItem>
-            <PivotItem Header="颜色">
+            <PivotItem x:Uid="AppearanceEdit_PivotColor">
                 <ScrollViewer>
                     <StackPanel Padding="{StaticResource PagePadding}">
                         <Grid>
@@ -75,7 +75,7 @@
                                 <RowDefinition Height="Auto" />
                                 <RowDefinition Height="Auto" />
                             </Grid.RowDefinitions>
-                            <TextBlock Text="前景" Style="{StaticResource BodyTextStyle}"
+                            <TextBlock x:Uid="AppearanceEdit_FgLabel" Style="{StaticResource BodyTextStyle}"
                                        VerticalAlignment="Center" />
                             <Button x:Name="FgButton" Grid.Column="1" Margin="{StaticResource GapSmLeft}"
                                     Tag="foreground"
@@ -86,7 +86,7 @@
                                     </Flyout>
                                 </Button.Flyout>
                             </Button>
-                            <TextBlock Grid.Row="1" Text="背景" Style="{StaticResource BodyTextStyle}"
+                            <TextBlock x:Uid="AppearanceEdit_BgLabel" Grid.Row="1" Style="{StaticResource BodyTextStyle}"
                                        VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
                             <Button x:Name="BgButton" Grid.Row="1" Grid.Column="1"
                                     Margin="{StaticResource GapSmLeft}" Tag="background"
@@ -97,7 +97,7 @@
                                     </Flyout>
                                 </Button.Flyout>
                             </Button>
-                            <TextBlock Grid.Row="2" Text="光标" Style="{StaticResource BodyTextStyle}"
+                            <TextBlock x:Uid="AppearanceEdit_CursorLabel" Grid.Row="2" Style="{StaticResource BodyTextStyle}"
                                        VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
                             <Button x:Name="CursorButton" Grid.Row="2" Grid.Column="1"
                                     Margin="{StaticResource GapSmLeft}" Tag="cursor"
@@ -108,7 +108,7 @@
                                     </Flyout>
                                 </Button.Flyout>
                             </Button>
-                            <TextBlock Grid.Row="3" Text="选区" Style="{StaticResource BodyTextStyle}"
+                            <TextBlock x:Uid="AppearanceEdit_SelectionLabel" Grid.Row="3" Style="{StaticResource BodyTextStyle}"
                                        VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
                             <Button x:Name="SelectionButton" Grid.Row="3" Grid.Column="1"
                                     Margin="{StaticResource GapSmLeft}" Tag="selection"
@@ -122,7 +122,7 @@
                         </Grid>
                         <TextBlock x:Name="ColorError" Style="{StaticResource CaptionTextStyle}"
                                    Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                        <TextBlock Text="ANSI 0–15" Style="{StaticResource BodyTextStyle}"
+                        <TextBlock x:Uid="AppearanceEdit_AnsiLabel" Style="{StaticResource BodyTextStyle}"
                                    Margin="{StaticResource GapSmTop}" />
                         <VariableSizedWrapGrid x:Name="PaletteGrid" Orientation="Horizontal"
                                                MaximumRowsOrColumns="8"
@@ -133,16 +133,16 @@
                     </StackPanel>
                 </ScrollViewer>
             </PivotItem>
-            <PivotItem Header="光标">
+            <PivotItem x:Uid="AppearanceEdit_PivotCursor">
                 <ScrollViewer>
                     <StackPanel Padding="{StaticResource PagePadding}">
-                        <ComboBox x:Name="CursorBox" Header="光标样式" HorizontalAlignment="Stretch"
+                        <ComboBox x:Name="CursorBox" x:Uid="AppearanceEdit_CursorStyle" HorizontalAlignment="Stretch"
                                   SelectionChanged="OnCursorStyleChanged">
-                            <ComboBoxItem Content="方块" Tag="block" />
-                            <ComboBoxItem Content="竖线" Tag="bar" />
-                            <ComboBoxItem Content="下划线" Tag="underline" />
+                            <ComboBoxItem x:Uid="AppearanceEdit_CursorBlock" Tag="block" />
+                            <ComboBoxItem x:Uid="AppearanceEdit_CursorBar" Tag="bar" />
+                            <ComboBoxItem x:Uid="AppearanceEdit_CursorUnderline" Tag="underline" />
                         </ComboBox>
-                        <ToggleSwitch x:Name="CursorBlinkSwitch" Header="光标闪烁"
+                        <ToggleSwitch x:Name="CursorBlinkSwitch" x:Uid="AppearanceEdit_CursorBlink"
                                       Margin="{StaticResource GapSmTop}" Toggled="OnCursorBlinkToggled" />
                     </StackPanel>
                 </ScrollViewer>

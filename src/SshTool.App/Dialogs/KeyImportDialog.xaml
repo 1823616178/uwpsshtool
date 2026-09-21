@@ -14,8 +14,7 @@
         <StackPanel>
             <Button x:Name="PickFileButton" Content="从文件导入…" Click="OnPickFileClick"
                     HorizontalAlignment="Stretch" />
-            <TextBox x:Name="PasteBox" Header="粘贴私钥" AcceptsReturn="True" TextWrapping="Wrap"
-                     PlaceholderText="-----BEGIN … PRIVATE KEY-----"
+            <TextBox x:Name="PasteBox" x:Uid="KeyImport_PasteBox" AcceptsReturn="True" TextWrapping="Wrap"
                      Margin="{StaticResource GapSmTop}" TextChanged="OnInputChanged" />
             <StackPanel x:Name="PassphrasePanel" Visibility="Collapsed" Margin="{StaticResource GapSmTop}">
                 <PasswordBox x:Name="PassphraseBox" Header="短语" />
