@@ -417,32 +417,64 @@ void VtermBridge::refreshSoftWrapFlags()
     }
 }
 
+// O09：DECCKM(1) / SGR 鼠标(1006) / bracketed paste(2004) 的跟踪。
+//
+// 为什么要自己扫：libvterm 不暴露这三个模式的读取接口——vterm.h 的 VTermProp
+// 只到 CURSORVISIBLE / ALTSCREEN / MOUSE / FOCUSREPORT 等，MOUSE 也只区分
+// 1000/1002/1003，不含 1006 的编码开关。所以这一遍扫描省不掉。
+//
+// O09 修掉的缺陷：旧实现在扫描**前**把缓冲截成「最后 256 字节」
+// （csiPending_.erase(0, size - 256)），于是一次 32 KB 读块里靠前的 DECSET 被
+// 静默丢弃——vim 之类先发模式切换再刷满屏，正好踩中，表现为方向键/粘贴行为
+// 时灵时不灵。现在扫全量，只把**未完成的尾巴**留到下次。
+//
+// 分配：carry 为空时直接扫入参，不拷贝（绝大多数 feed 都走这条）；只有序列
+// 跨块时才动用 carry 缓冲。
 void VtermBridge::noteDecModesFromInput(const char *data, size_t len)
 {
     if (data == nullptr || len == 0)
         return;
-    csiPending_.append(data, len);
-    if (csiPending_.size() > 256)
-        csiPending_.erase(0, csiPending_.size() - 256);
 
-    const std::string &buf = csiPending_;
+    if (csiPending_.empty()) {
+        const size_t keepFrom = scanDecModes(data, len);
+        if (keepFrom < len)
+            csiPending_.assign(data + keepFrom, len - keepFrom);
+    } else {
+        csiPending_.append(data, len);
+        const size_t keepFrom = scanDecModes(csiPending_.data(), csiPending_.size());
+        if (keepFrom > 0)
+            csiPending_.erase(0, keepFrom);
+    }
+
+    // 未完成的尾巴长到这个地步只能是畸形输入（合法 CSI 远短于此）：丢掉，
+    // 否则构造一段永不结束的参数串就能把内存吃光。
+    if (csiPending_.size() > kMaxPendingCsi)
+        csiPending_.clear();
+}
+
+// 扫描 [buf, buf+size)，就地更新三个模式位；返回「已消费到的偏移」，
+// 即调用方应丢弃的前缀长度——剩下的是未完成序列，留到下次拼接。
+size_t VtermBridge::scanDecModes(const char *buf, size_t size)
+{
     size_t i = 0;
     size_t keepFrom = 0;
-    while (i < buf.size()) {
-        const size_t esc = buf.find('\x1b', i);
-        if (esc == std::string::npos) {
-            keepFrom = buf.size();
+    while (i < size) {
+        const void *hit = std::memchr(buf + i, '', size - i);
+        if (hit == nullptr) {
+            keepFrom = size; // 没有 ESC：整段都不必留
             break;
         }
-        if (esc + 1 >= buf.size()) {
-            keepFrom = esc;
+        const size_t esc = static_cast<size_t>(static_cast<const char *>(hit) - buf);
+        if (esc + 1 >= size) {
+            keepFrom = esc; // ESC 落在块尾，留着等下一块
             break;
         }
         if (buf[esc + 1] != '[') {
             i = esc + 1;
+            keepFrom = i;
             continue;
         }
-        if (esc + 2 >= buf.size()) {
+        if (esc + 2 >= size) {
             keepFrom = esc;
             break;
         }
@@ -452,7 +484,7 @@ void VtermBridge::noteDecModesFromInput(const char *data, size_t len)
         int nums[8];
         int ncount = 0;
         bool incomplete = true;
-        for (; j < buf.size(); ++j) {
+        for (; j < size; ++j) {
             const unsigned char ch = static_cast<unsigned char>(buf[j]);
             if (ch >= '0' && ch <= '9') {
                 if (cur < 0)
@@ -488,21 +520,20 @@ void VtermBridge::noteDecModesFromInput(const char *data, size_t len)
                 keepFrom = i;
                 break;
             } else if (ch >= 0x20 && ch <= 0x3F) {
-                continue;
+                continue; // CSI 的中间字节
             } else {
-                i = esc + 1;
+                i = esc + 1; // 不是合法 CSI，跳过这个 ESC 继续找
                 incomplete = false;
                 keepFrom = i;
                 break;
             }
         }
         if (incomplete) {
-            keepFrom = esc;
+            keepFrom = esc; // 序列被块尾截断，留到下次
             break;
         }
     }
-    if (keepFrom > 0)
-        csiPending_.erase(0, keepFrom);
+    return keepFrom;
 }
 
 } // namespace term

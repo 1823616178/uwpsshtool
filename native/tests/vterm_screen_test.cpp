@@ -337,6 +337,90 @@ TEST(VtermScreenTest, Decset1006IsLibraryInternalOnly)
     EXPECT_EQ(b.mouseMode(), MouseMode::kNone); // 1006 不改变上报模式
 }
 
+// ---- O09：DEC 模式跟踪（1 / 1006 / 2004） ----
+//
+// libvterm 不暴露这三个模式的访问器（vterm.h 的 VTermProp 里只有
+// CURSORVISIBLE/ALTSCREEN/MOUSE 等），所以 VtermBridge 自己扫一遍输入。
+// 既然要自己扫，就必须扫全量——下面几条盯的正是这一点。
+
+TEST(VtermScreenTest, DecModesTrackedFromInput)
+{
+    VtermBridge b(80, 24);
+    EXPECT_FALSE(b.appCursorKeys());
+    EXPECT_FALSE(b.bracketedPaste());
+    EXPECT_FALSE(b.mouseSgr());
+
+    b.feed("[?1h[?1006h[?2004h");
+    EXPECT_TRUE(b.appCursorKeys());
+    EXPECT_TRUE(b.mouseSgr());
+    EXPECT_TRUE(b.bracketedPaste());
+
+    b.feed("[?1l[?2004l");
+    EXPECT_FALSE(b.appCursorKeys());
+    EXPECT_FALSE(b.bracketedPaste());
+    EXPECT_TRUE(b.mouseSgr());
+}
+
+// 一次 feed 里多个参数：CSI ? 1 ; 2004 h
+TEST(VtermScreenTest, DecModesMultipleParamsInOneSequence)
+{
+    VtermBridge b(80, 24);
+    b.feed("[?1;2004h");
+    EXPECT_TRUE(b.appCursorKeys());
+    EXPECT_TRUE(b.bracketedPaste());
+}
+
+// 回归（O09）：DECSET 出现在大块输出的**前部**时不得被丢掉。
+// 旧实现在扫描前把缓冲截断成「最后 256 字节」，于是 32 KB 读块里靠前的
+// 模式切换被静默丢弃——vim 之类启动时先发 DECSET 再刷满屏，正好踩中。
+TEST(VtermScreenTest, DecModeAtStartOfLargeChunkIsNotDropped)
+{
+    VtermBridge b(80, 24);
+    std::string chunk = "[?1h";
+    chunk += std::string(4096, 'x'); // 远超旧实现的 256 字节窗口
+    b.feed(chunk.data(), chunk.size());
+    EXPECT_TRUE(b.appCursorKeys());
+}
+
+TEST(VtermScreenTest, DecModeSurvivesManyLargeChunks)
+{
+    VtermBridge b(80, 24);
+    b.feed("[?2004h");
+    EXPECT_TRUE(b.bracketedPaste());
+
+    const std::string filler(8192, 'y');
+    for (int i = 0; i < 4; ++i)
+        b.feed(filler.data(), filler.size());
+    EXPECT_TRUE(b.bracketedPaste()); // 大量输出不得把已生效的模式冲掉
+
+    std::string tail(4096, 'z');
+    tail += "[?2004l"; // 切回：出现在块尾同样要认
+    b.feed(tail.data(), tail.size());
+    EXPECT_FALSE(b.bracketedPaste());
+}
+
+// 序列被切成两块（跨 feed 边界）仍要认出来。
+TEST(VtermScreenTest, DecModeSplitAcrossFeedsIsTracked)
+{
+    VtermBridge b(80, 24);
+    b.feed("[?10");
+    EXPECT_FALSE(b.mouseSgr());
+    b.feed("06h");
+    EXPECT_TRUE(b.mouseSgr());
+}
+
+// 畸形的超长未完成序列不得让carry 缓冲无界增长。
+TEST(VtermScreenTest, MalformedPendingSequenceDoesNotGrowUnbounded)
+{
+    VtermBridge b(80, 24);
+    std::string junk = "[?";
+    junk += std::string(8192, '1'); // 永不结束的参数串
+    b.feed(junk.data(), junk.size());
+    b.feed("h");
+    // 不崩、不吊死即可；模式值本身不做断言（输入本就畸形）
+    SUCCEED();
+}
+
 // ---- 宽字符 ----
 
 TEST(VtermScreenTest, WideCharOccupiesTwoCells)

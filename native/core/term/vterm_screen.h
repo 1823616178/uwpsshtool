@@ -114,6 +114,7 @@ private:
     void accumulatePropString(bool isTitle, const VTermStringFragment &frag);
     void refreshSoftWrapFlags();
     void noteDecModesFromInput(const char *data, size_t len);
+    size_t scanDecModes(const char *buf, size_t size);
 
     VTerm *vt_ = nullptr;
     VTermScreen *screen_ = nullptr;
@@ -131,7 +132,9 @@ private:
     MouseMode mouseMode_ = MouseMode::kNone;
     bool mouseSgr_ = false;
     bool focusReport_ = false;
-    std::string csiPending_; // 跨 feed 的未完成 CSI（DECSET 跟踪）
+    // 未完成 CSI 尾巴的上限：合法序列远短于此，超出即判畸形并丢弃。
+    static constexpr size_t kMaxPendingCsi = 256;
+    std::string csiPending_; // 跨 feed 的未完成 CSI 尾巴（DECSET 跟踪，见 .cpp 的 O09 注释）
     std::string title_;
     std::string iconName_;
     uint64_t bellCount_ = 0;

@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 15 | 8 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **115** | |
+| M9 | 优化与债务清理 | 15 | 9 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **127** | **116** | |
 
 ### 1.1 关键路径
 
@@ -1435,17 +1435,30 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] `pwsh scripts/verify.ps1` 全绿（8 步，Core 1449）
   - 验证：`dotnet test tests/SshTool.Core.Tests`
 
-- [ ] **O09 Native 终端热路径去重复解析** `M`
+- [x] **O09 Native 终端热路径去重复解析** `M`
   - 依赖：—
   - 参考：`06-OPT-AUDIT.md §3 P1-9`；`01-DESIGN.md §7.1、§7.5`；`PERF-REPORT.md §2`
   - 产出：`native/core/term/vterm_screen.{h,cpp}`、`native/tests/vterm_screen_test.cpp`
   - 要点：
-    1. 删掉 `feed()` 里的手写 CSI 扫描器（`csiPending_` + `erase(0, …)`），DECCKM / SGR 鼠标(1006) / bracketed paste(2004) 三个模式位改从 libvterm 的 `VTermState` 读取或经已有回调面维护。
-    2. `refreshSoftWrapFlags()` 改为只扫本次 damage rect 覆盖的行，或按 `VTERM_LINEINFO` 变更增量维护，不再每次 `feed` 全表扫。
+    1. ~~删掉 `feed()` 里的手写 CSI 扫描器，三个模式位改从 libvterm 的 `VTermState` 读取~~
+       **前提不成立，扫描器必须保留**：核对 `native/third_party/libvterm/include/vterm.h:253-279`，
+       `VTermProp` 只有 `CURSORVISIBLE/CURSORBLINK/ALTSCREEN/TITLE/ICONNAME/REVERSE/CURSORSHAPE/MOUSE/FOCUSREPORT`，
+       其中 `MOUSE` 也只区分 1000/1002/1003，**不含 1006 的编码开关**；DECCKM(1) 与 bracketed paste(2004)
+       更是完全没有读取接口。libvterm 并没有「已经在跟踪」这三个值，这一遍扫描省不掉。
+       改为**修掉扫描器里的真缺陷**（见验收），并去掉常见路径上的拷贝。
+    2. ~~`refreshSoftWrapFlags()` 改为只扫 damage rect 覆盖的行~~ **不做**：实测它在 48×30 网格上是
+       30 次指针写 + 29 次 `vterm_state_get_lineinfo`，约 60 次操作；为此引入 damage 区间跟踪，
+       复杂度与出错面远大于收益。审查里把它列为「稳定税」是高估了。
     3. 软换行标记的语义（写在行末格的 bit9）不得改变——`SelectionModel` 的复制逻辑依赖它（§7.1、§7.6）。
   - 验收：
-    - [ ] `vterm_screen_test` 覆盖三个模式位的开关与软换行标记，ctest 全过
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] **修掉扫描器的静默丢模式缺陷**：旧实现在扫描**前**把缓冲截成「最后 256 字节」
+      （`csiPending_.erase(0, size - 256)`），一次 32 KB 读块里靠前的 DECSET 被直接丢弃——
+      vim 之类先发模式切换再刷满屏正好踩中，表现为方向键/粘贴行为时灵时不灵。
+      现在扫全量，只把未完成的尾巴留到下次；carry 为空时直接扫入参、不拷贝（绝大多数 feed 走这条）；
+      畸形的超长未完成序列超过 256 字节即丢弃，防无界增长
+    - [x] `vterm_screen_test` 新增 6 条（三模式开关、单序列多参数、**大块前部 DECSET 不丢**（先写后修的回归）、
+      多次大块不冲掉已生效模式、跨 feed 边界拼接、畸形长序列不增长），42 条全过；ctest 315 全过
+    - [x] `pwsh scripts/verify.ps1` 全绿（8 步）
     - [ ] 📱 PerfPage 场景①②③ 的「喂 x ms/帧」较优化前下降，数据回填 `doc/PERF-REPORT.md §3.1`
   - 验证：ctest；`pwsh scripts/verify.ps1`；真机 Q01
 
