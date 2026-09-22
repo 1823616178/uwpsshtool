@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 15 | 13 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **120** | |
+| M9 | 优化与债务清理 | 15 | 14 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **127** | **121** | |
 
 ### 1.1 关键路径
 
@@ -1534,7 +1534,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
       以便后台线程（`LifecycleService` 的保活描述）也能取；保留中文兜底参数，资源缺失时界面仍可读
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **O14 零散优化项** `S`
+- [x] **O14 零散优化项** `S`
   - 依赖：—
   - 参考：`06-OPT-AUDIT.md §3 P2-14`
   - 产出：`src/SshTool.App/Platform/AppEntityLookup.cs`、`src/SshTool.Core/Terminal/PaneTree.cs`、`src/SshTool.Core/Common/BackoffTable.cs`（新增）、`src/SshTool.App/Infrastructure/ColorHex.cs`（新增）
@@ -1545,8 +1545,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     4. 抽 `ColorHex.TryParse`，替换 `ColorSwatchPicker` / `GroupHeader` / `AppearanceListViewModel` 三处逐字重复的解析。
     5. `Properties/Default.rd.xml` 的收窄**不在本任务**：需 ARM Release 实测包体与冷启动，归 Q09。
   - 验收：
-    - [ ] 新增 `BackoffTable` / `ColorHex` 的单测；三处/三处调用点全部改完
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] 新增 `BackoffTable` / `ColorHex` 的单测；三处/三处调用点全部改完
+    - [x] `pwsh scripts/verify.ps1` 全绿
   - 验证：`pwsh scripts/verify.ps1`
 
 ---
@@ -1795,3 +1795,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-22 | O11 | 9db7c32 | **完成**。`DrawGlyphRun` 不再每段 `new CanvasTextLayout`（每行每段一个 Win2D/D2D COM 对象，48×30/每行约 5 段/30 draw\s ≈ 每秒数千次创建销毁；SP04 实测整屏重绘已 20.6 ms/帧、预算 33 ms）——对齐挪进预建的 `CanvasTextFormat`（左/中各一套共 8 个，随字号重建），改用 `DrawText(text, rect, color, format)`，宽字符居中与 fake-bold 偏移行为不变。`RowRunBuilder` 增 `Build(..., List<CellRun>)` 重载供渲染器复用表（省掉每脏行每帧一个 List），原重载委托到新重载、由单测逐字段对齐。**CellRun 与文本串未池化并写明理由**（需把删尾改游标回退、CellRun 全程可变，出错面大而收益是 gen0 小对象）。新增 3 条单测。verify 8 步全绿（Core 1452）。⏳ 📱 PerfPage ①②③ 的 draw/s 与宽字符渲染比对（已登记待办）。 |
 | 2026-09-22 | O12 | b30da64 | **完成**。`check-hardcoded-text.ps1` 原本把「含中文的行」整行豁免——为中文字面量而建的检查恰好检不出中文字面量，且只扫 .xaml；④b 一直假绿，`05` §10 的「可见文案全部资源化」就是这么被错误勾上的。现改为：含中文的可见文案即命中；.cs 里对 `.Text/.Title/.Content/.Message` 等用户可见属性赋中文也算（日志与注释不算）；扫出 **44 个文件、172 处**。原计划「改完变红当待清单」会让 main 在 O13 完成前一直不可验证，**改用棘轮**：存量按文件记进 `scripts/hardcoded-text-baseline.json`，新增即失败、减少只提示，O13 用 `-UpdateBaseline` 逐批收紧。双向验证（加一处中文 EXIT=1 并指出行号，撤销后 EXIT=0）。verify 8 步全绿。 |
 | 2026-09-22 | O13 | 23c5291 | **完成**。XAML 66 处搬进 resw（补 `x:Uid`，按 `x:Name` 派生键名）、C# 37 处改走新增的 `Infrastructure/Localized.cs`（`Get`/`Format`，用 `GetForViewIndependentUse()` 以便后台线程也能取，保留中文兜底参数）；resw 双语各 +97 键，key 集合一致。**清点更正**：门禁初版报的 172 处虚高——它按行判 `x:Uid`，把 `LoginPage` 这类已完全本地化、只是 `x:Uid` 写在标签首行的页面整片误报；改按标签扫后实际是 **47 处 / 22 个文件**。另豁免 `#RRGGBB`、`tmux` 等不可翻译技术标识。门禁基线现为空，`05` §10 的「可见文案全部资源化」重新勾上（这次有门禁守着）。verify 8 步全绿。 |
+| 2026-09-22 | O14 | — | **完成**。四项子任务全部就绪：① `AppEntityLookup` 三处 `.Result` 改为「已完成才读、未完成回退 id」（见 O14 注释，之前代码已重构）；② `PaneTree.FindLeaf` 改树内递归直查，不再经 `Leaves()` 建表（见 O14 注释，之前代码已重构）；③ `BackoffTable.DelayFor` 静态类抽取并三处调用点迁移（BackoffTableTests 已有，本次确认）；④ **`ColorHex.TryParse` 静态类**（`SshTool.Core/Common/ColorHex.cs`）补齐——三个调用方（ColorSwatchPicker / GroupHeader / AppearanceListViewModel）代码已重构为调用 `ColorHex.TryParse`，但该类之前未被发现已存在于 Core；补创建 `ColorHexTests.cs`（+31 条：合法大写/小写/混合、非法 null/空串/缺前缀/不足位/多位/非十六进制字符/负号/空格/3位简写/8位ARGB、失败置零验证），Core 单测 1452→1483。verify 8 步全绿。 |
