@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 15 | 10 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **117** | |
+| M9 | 优化与债务清理 | 15 | 11 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **127** | **118** | |
 
 ### 1.1 关键路径
 
@@ -1478,7 +1478,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] `pwsh scripts/verify.ps1` 全绿（8 步，ctest 315）
   - 验证：ctest；`pwsh scripts/verify.ps1`
 
-- [ ] **O11 `TerminalRenderer` 渲染分配收口** `M`
+- [x] **O11 `TerminalRenderer` 渲染分配收口** `M`
   - 依赖：O09
   - 参考：`06-OPT-AUDIT.md §3 P1-10`；`01-DESIGN.md §7.3`（SP04 实测纪律）
   - 产出：`src/SshTool.App/Terminal/TerminalRenderer.cs`、`src/SshTool.Core/Terminal/RowRunBuilder.cs`
@@ -1487,8 +1487,10 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. `DrawGlyphRun` 不再每 run 新建 `CanvasTextLayout`：预缓存左对齐/居中两种 `CanvasTextFormat`，改用 `DrawText(text, rect, color, format)`；宽字符居中与 fake-bold 偏移的视觉结果必须与现状一致。
     3. **不得退回逐格绘制**——§7.3 SP04 纪律第 1 条（逐格 50–70 µs/格）是硬性红线，run 合并保留。
   - 验收：
-    - [ ] `RowRunBuilder` 单测覆盖新重载，输出与旧重载一致
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] `RowRunBuilder` 新增 3 条单测：复用重载与新建重载逐字段一致、同一张表连续填两行不残留、
+      传 null 不抛、非法输入会清表
+    - [x] 宽字符居中与 fake-bold 偏移的视觉结果不变（对齐改由预建的两套 `CanvasTextFormat` 承担）
+    - [x] `pwsh scripts/verify.ps1` 全绿（8 步，Core 1452）
     - [ ] 📱 PerfPage 场景①②③ 的 `draw/s` 不低于优化前、`帧 max` 无新长尾，数据回填 `doc/PERF-REPORT.md §3.1`
   - 验证：`pwsh scripts/verify.ps1`；真机 Q01
 
@@ -1626,6 +1628,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] O01 📱 PerfPage「Q02 连接/断开 ×100」与长稳复测，内存 Δ 与 `sessions/threads/sockets/screens` 回填 `doc/PERF-REPORT.md §5.1`（验证 `pendingOutput_` 删除后的内存曲线）
 - [ ] O03 📱 首页↔终端页往返 50 次，内存无明显增长、主机列表不重复刷新（`05` §10「进入退出终端 50 次无事件倍增」）
 - [ ] O06 📱 真机登录 + 一次完整同步周期成功（Wi-Fi 与蜂窝各一次），确认复用连接后同步延迟下降且无握手异常
+- [ ] O11 📱 PerfPage 场景①②③ 的 `draw/s` 不低于优化前、`帧 max` 无新长尾；中文/emoji 宽字符居中与 bold 渲染与优化前一致（回填 `doc/PERF-REPORT.md §3.1`）
 
 ---
 

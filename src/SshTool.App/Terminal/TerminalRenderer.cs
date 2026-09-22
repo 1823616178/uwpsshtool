@@ -1,9 +1,11 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.Text;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using SshTool.Core.Models;
 using SshTool.Core.Terminal;
+using Windows.Foundation;
 using Windows.UI;
 using Windows.UI.Text;
 
@@ -35,6 +37,14 @@ namespace SshTool.App.Terminal
         private CanvasTextFormat _italic;
         private CanvasTextFormat _bold;
         private CanvasTextFormat _boldItalic;
+        // O11：居中对齐的另一套（宽字符段）。对齐是 CanvasTextFormat 的属性，
+        // 所以不能只备一套。随字号变化一起重建（EnsureFormats）。
+        private CanvasTextFormat _regularCentered;
+        private CanvasTextFormat _italicCentered;
+        private CanvasTextFormat _boldCentered;
+        private CanvasTextFormat _boldItalicCentered;
+        // O11：逐行绘制复用的 run 表（UI 线程独占）。
+        private readonly List<CellRun> _runs = new List<CellRun>();
         private int _cols;
         private int _rows;
         private float _dpi;
@@ -240,7 +250,8 @@ namespace SshTool.App.Terminal
         {
             float y = row * CellHeight;
             ds.FillRectangle(0, y, cols * CellWidth, CellHeight, ToColor(DefaultBgArgb));
-            var runs = RowRunBuilder.Build(cells, row, cols);
+            RowRunBuilder.Build(cells, row, cols, _runs); // O11：复用表，不每行新建
+            List<CellRun> runs = _runs;
             for (int i = 0; i < runs.Count; i++)
             {
                 CellRun run = runs[i];
@@ -261,19 +272,18 @@ namespace SshTool.App.Terminal
         private void DrawGlyphRun(CanvasDrawingSession ds, string text, float x, float y,
                                   float width, ResolvedCellStyle style, bool wide)
         {
-            CanvasTextFormat format = GetFormat(style.Bold, style.Italic);
+            // O11：原来每段都 new CanvasTextLayout —— 每行每段一个 Win2D/D2D COM
+            // 对象，48×30、每行约 5 段、30 draw/s 就是每秒数千次 COM 创建销毁，
+            // 而 SP04 实测整屏重绘已经 20.6 ms/帧（预算 33 ms），余量不多。
+            // 对齐方式挪进预建的 CanvasTextFormat（左对齐/居中各一套），改用
+            // DrawText(text, rect, color, format)，视觉结果不变。
+            CanvasTextFormat format = GetFormat(style.Bold, style.Italic, wide);
             Color fg = ToColor(style.FgArgb);
-            using (var layout = new CanvasTextLayout(ds, text, format, width, CellHeight))
+            ds.DrawText(text, new Rect(x, y, width, CellHeight), fg, format);
+            if (style.Bold && !FontWeightBold)
             {
-                layout.HorizontalAlignment = wide
-                    ? CanvasHorizontalAlignment.Center
-                    : CanvasHorizontalAlignment.Left;
-                layout.VerticalAlignment = CanvasVerticalAlignment.Center;
-                ds.DrawTextLayout(layout, x, y, fg);
-                if (style.Bold && !FontWeightBold)
-                {
-                    ds.DrawTextLayout(layout, x + FakeBoldOffset, y, fg);
-                }
+                // 无粗体字重时用 1px 水平偏移描边加粗（与原实现一致）
+                ds.DrawText(text, new Rect(x + FakeBoldOffset, y, width, CellHeight), fg, format);
             }
 
             float thickness = Math.Max(1f, FontSize * DecoThicknessFraction);
@@ -369,12 +379,22 @@ namespace SshTool.App.Terminal
             }
         }
 
-        private CanvasTextFormat GetFormat(bool bold, bool italic)
+        // wide=true 的段要在两格宽里居中（宽字符），其余左对齐。对齐是
+        // CanvasTextFormat 的属性，所以两种对齐各备一套。
+        private CanvasTextFormat GetFormat(bool bold, bool italic, bool centered)
         {
             EnsureFormats();
             if (bold && FontWeightBold)
             {
+                if (centered)
+                {
+                    return italic ? _boldItalicCentered : _boldCentered;
+                }
                 return italic ? _boldItalic : _bold;
+            }
+            if (centered)
+            {
+                return italic ? _italicCentered : _regularCentered;
             }
             return italic ? _italic : _regular;
         }
@@ -386,14 +406,18 @@ namespace SshTool.App.Terminal
                 return;
             }
             DisposeFormats();
-            _regular = MakeFormat(false, false);
-            _italic = MakeFormat(false, true);
-            _bold = MakeFormat(true, false);
-            _boldItalic = MakeFormat(true, true);
+            _regular = MakeFormat(false, false, false);
+            _italic = MakeFormat(false, true, false);
+            _bold = MakeFormat(true, false, false);
+            _boldItalic = MakeFormat(true, true, false);
+            _regularCentered = MakeFormat(false, false, true);
+            _italicCentered = MakeFormat(false, true, true);
+            _boldCentered = MakeFormat(true, false, true);
+            _boldItalicCentered = MakeFormat(true, true, true);
             _formatsDirty = false;
         }
 
-        private CanvasTextFormat MakeFormat(bool boldWeight, bool italic)
+        private CanvasTextFormat MakeFormat(bool boldWeight, bool italic, bool centered)
         {
             return new CanvasTextFormat
             {
@@ -401,7 +425,11 @@ namespace SshTool.App.Terminal
                 FontSize = FontSize,
                 FontWeight = boldWeight ? FontWeights.Bold : FontWeights.Normal,
                 FontStyle = italic ? FontStyle.Italic : FontStyle.Normal,
-                WordWrapping = CanvasWordWrapping.NoWrap
+                WordWrapping = CanvasWordWrapping.NoWrap,
+                HorizontalAlignment = centered
+                    ? CanvasHorizontalAlignment.Center
+                    : CanvasHorizontalAlignment.Left,
+                VerticalAlignment = CanvasVerticalAlignment.Center
             };
         }
 
@@ -411,6 +439,10 @@ namespace SshTool.App.Terminal
             if (_italic != null) { _italic.Dispose(); _italic = null; }
             if (_bold != null) { _bold.Dispose(); _bold = null; }
             if (_boldItalic != null) { _boldItalic.Dispose(); _boldItalic = null; }
+            if (_regularCentered != null) { _regularCentered.Dispose(); _regularCentered = null; }
+            if (_italicCentered != null) { _italicCentered.Dispose(); _italicCentered = null; }
+            if (_boldCentered != null) { _boldCentered.Dispose(); _boldCentered = null; }
+            if (_boldItalicCentered != null) { _boldItalicCentered.Dispose(); _boldItalicCentered = null; }
             _formatsDirty = true;
         }
 

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 
 namespace SshTool.Core.Terminal
@@ -20,17 +20,36 @@ namespace SshTool.Core.Terminal
         // 合并时忽略 wide/soft-wrap：wide 已单独成段；soft-wrap 只标在行末格。
         public const ushort StyleMask = unchecked((ushort)~(TerminalCell.AttrWide | TerminalCell.AttrSoftWrap));
 
+        // 便利重载：每次新建表。测试与非热路径用。
         public static List<CellRun> Build(byte[] buffer, int row, int cols)
         {
             var runs = new List<CellRun>();
+            Build(buffer, row, cols, runs);
+            return runs;
+        }
+
+        // O11：渲染热路径用这个——调用方持有一张表反复填，省掉「每脏行每帧一个
+        // List」的分配（48×30 满屏重绘时每帧 30 个）。
+        //
+        // 只复用表本身，不池化 CellRun 与文本串：那要把 DropTrailingDefaultBlanks
+        // 的删尾改成游标回退、并让 CellRun 全程可变，出错面明显变大，而它省下的
+        // 是 gen0 小对象——比起 DrawGlyphRun 里每段一个 Win2D COM 对象（本任务另一
+        // 半修的），收益小得多。
+        public static void Build(byte[] buffer, int row, int cols, List<CellRun> runs)
+        {
+            if (runs == null)
+            {
+                return;
+            }
+            runs.Clear();
             if (buffer == null || cols <= 0 || row < 0)
             {
-                return runs;
+                return;
             }
             int baseIndex = row * cols;
             if ((baseIndex + cols) * TerminalCell.BytesPerCell > buffer.Length)
             {
-                return runs;
+                return;
             }
 
             int col = 0;
@@ -90,7 +109,6 @@ namespace SshTool.Core.Terminal
             }
 
             DropTrailingDefaultBlanks(runs);
-            return runs;
         }
 
         private static int EmitEmptyBgRun(byte[] buffer, int baseIndex, int cols, int start, List<CellRun> runs)

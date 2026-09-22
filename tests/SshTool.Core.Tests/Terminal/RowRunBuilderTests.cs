@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SshTool.Core.Terminal;
 using Xunit;
 
@@ -112,6 +112,18 @@ namespace SshTool.Core.Tests.Terminal
             Assert.Equal(2, runs[1].StartCol);
         }
 
+        // O11：两行缓冲（复用表的跨行测试用）。
+        private static byte[] TwoRows(int cols)
+        {
+            var buffer = new byte[cols * 2 * TerminalCell.BytesPerCell];
+            for (int c = 0; c < cols * 2; c++)
+            {
+                CellBufferReaderTests.WriteCell(buffer, c, 0,
+                    TerminalCell.DefaultFgMarker, TerminalCell.DefaultBgMarker, 0);
+            }
+            return buffer;
+        }
+
         private static byte[] Row(int cols)
         {
             var buffer = new byte[cols * TerminalCell.BytesPerCell];
@@ -131,6 +143,62 @@ namespace SshTool.Core.Tests.Terminal
         private static void Put(byte[] row, int col, char ch, uint fg, uint bg, ushort attrs)
         {
             Put(row, col, (uint)ch, fg, bg, attrs);
+        }
+
+        // ---------- O11：复用表的重载 ----------
+
+        // 复用重载与新建重载必须逐字段一致，且连续复用不得残留上一行的段。
+        [Fact]
+        public void Build_IntoReusedList_MatchesAllocatingOverload()
+        {
+            byte[] cells = TwoRows(4);
+            Put(cells, 0, 'a', 0xFFFFFFFFu, TerminalCell.DefaultBgMarker, 0);
+            Put(cells, 1, 'b', 0xFFFFFFFFu, TerminalCell.DefaultBgMarker, 0);
+            Put(cells, 4, 'x', 0xFFFFFFFFu, TerminalCell.DefaultBgMarker, 0); // 第 1 行第 0 列
+
+            var pool = new List<CellRun>();
+            RowRunBuilder.Build(cells, 0, 4, pool);
+            List<CellRun> fresh0 = RowRunBuilder.Build(cells, 0, 4);
+            AssertSameRuns(fresh0, pool);
+
+            // 同一张表接着填第 1 行：不得残留第 0 行的段
+            RowRunBuilder.Build(cells, 1, 4, pool);
+            List<CellRun> fresh1 = RowRunBuilder.Build(cells, 1, 4);
+            AssertSameRuns(fresh1, pool);
+        }
+
+        [Fact]
+        public void Build_IntoNullList_DoesNotThrow()
+        {
+            byte[] cells = Row(4);
+            RowRunBuilder.Build(cells, 0, 4, null);
+        }
+
+        [Fact]
+        public void Build_IntoList_ClearsOnInvalidInput()
+        {
+            byte[] cells = Row(4);
+            Put(cells, 0, 'a', 0xFFFFFFFFu, TerminalCell.DefaultBgMarker, 0);
+            var pool = new List<CellRun>();
+            RowRunBuilder.Build(cells, 0, 4, pool);
+            Assert.NotEmpty(pool);
+
+            RowRunBuilder.Build(cells, 99, 4, pool); // 越界行
+            Assert.Empty(pool);
+        }
+
+        private static void AssertSameRuns(List<CellRun> expected, List<CellRun> actual)
+        {
+            Assert.Equal(expected.Count, actual.Count);
+            for (int i = 0; i < expected.Count; i++)
+            {
+                Assert.Equal(expected[i].StartCol, actual[i].StartCol);
+                Assert.Equal(expected[i].Length, actual[i].Length);
+                Assert.Equal(expected[i].FgArgb, actual[i].FgArgb);
+                Assert.Equal(expected[i].BgArgb, actual[i].BgArgb);
+                Assert.Equal(expected[i].Attrs, actual[i].Attrs);
+                Assert.Equal(expected[i].Text, actual[i].Text);
+            }
         }
     }
 }
