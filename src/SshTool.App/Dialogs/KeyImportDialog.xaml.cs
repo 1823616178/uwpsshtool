@@ -69,7 +69,7 @@ namespace SshTool.App.Dialogs
                             dialog.ShowPreview(outcome.Inspected);
                             dialog.SetError(null);
                             dialog._awaitingSaveConfirm = true;
-                            dialog.PrimaryButtonText = "保存导入";
+                            dialog.PrimaryButtonText = Localized.Get("KeyImport_SaveImport", "保存导入");
                             continue;
                         }
                         string nameError = dialog._vm.ValidateName();
@@ -97,7 +97,7 @@ namespace SshTool.App.Dialogs
                                 {
                                     dialog.SetError(retryNameError);
                                     dialog._awaitingSaveConfirm = false;
-                                    dialog.PrimaryButtonText = "继续";
+                                    dialog.PrimaryButtonText = Localized.Get("KeyImport_Continue", "继续");
                                     continue;
                                 }
                                 KeyEntry dup = await dialog._vm.SaveAsync(
@@ -113,22 +113,22 @@ namespace SshTool.App.Dialogs
                         dialog.PassphrasePanel.Visibility = Visibility.Visible;
                         dialog.SetError("该私钥已加密，请输入短语后继续");
                         dialog._awaitingSaveConfirm = false;
-                        dialog.PrimaryButtonText = "继续";
+                        dialog.PrimaryButtonText = Localized.Get("KeyImport_Continue", "继续");
                         continue;
                     case KeyInspectStatus.Invalid:
                         dialog.SetError("无法解析该私钥（文件损坏或短语错误），请检查后重试");
                         dialog._awaitingSaveConfirm = false;
-                        dialog.PrimaryButtonText = "继续";
+                        dialog.PrimaryButtonText = Localized.Get("KeyImport_Continue", "继续");
                         continue;
                     case KeyInspectStatus.TooLarge:
                         dialog.SetError("文件超过 256 KiB，拒绝导入");
                         dialog._awaitingSaveConfirm = false;
-                        dialog.PrimaryButtonText = "继续";
+                        dialog.PrimaryButtonText = Localized.Get("KeyImport_Continue", "继续");
                         continue;
                     default:
                         dialog.SetError("请粘贴私钥内容或从文件导入");
                         dialog._awaitingSaveConfirm = false;
-                        dialog.PrimaryButtonText = "继续";
+                        dialog.PrimaryButtonText = Localized.Get("KeyImport_Continue", "继续");
                         continue;
                 }
             }

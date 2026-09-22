@@ -30,6 +30,10 @@ $xamlAttrs = @(
     'Text', 'Content', 'Header', 'PlaceholderText', 'Description', 'Title',
     'PrimaryButtonText', 'SecondaryButtonText', 'CloseButtonText'
 )
+# 不可翻译的技术标识：产品名、格式示例。它们在中英界面下写法相同，
+# 进资源表只会平添一份必须同步的重复。
+$notTranslatable = @('#RRGGBB', 'tmux')
+
 # 绑定/资源引用不算硬编码
 $markup = '\{(Binding|x:Bind|StaticResource|ThemeResource|TemplateBinding)'
 
@@ -73,6 +77,7 @@ Get-ChildItem $appDir -Recurse -Include *.xaml, *.cs |
                     foreach ($m in [regex]::Matches($t, ("(?<![\w:.]){0}=`"([^`"]*)`"" -f $a))) {
                         $value = $m.Groups[1].Value
                         if ($value -match $markup) { continue }
+                        if ($notTranslatable -contains $value) { continue }
                         if ($value -match $chinese) {
                             Add-Hit $rel $lineNo ("{0}=`"{1}`"" -f $a, $value) "XAML $a 中文字面量"
                         }

@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 15 | 12 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **119** | |
+| M9 | 优化与债务清理 | 15 | 13 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **127** | **120** | |
 
 ### 1.1 关键路径
 
@@ -1514,7 +1514,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] `pwsh scripts/verify.ps1` 全绿（8 步，④b 现在真的在检查了）
   - 验证：`pwsh scripts/check-hardcoded-text.ps1`
 
-- [ ] **O13 硬编码文案清零** `M`
+- [x] **O13 硬编码文案清零** `M`
   - 依赖：O12
   - 参考：`06-OPT-AUDIT.md §3 P2-13 ②`；`05-CODE-AUDIT-UI-REDESIGN.md §7.3`
   - 产出：非 Debug 的 XAML / `.xaml.cs`、`src/SshTool.App/Strings/{zh-cn,en-us}/Resources.resw`
@@ -1523,9 +1523,15 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. `x:Uid` 用稳定语义名；两份 resw 的 key 集合必须完全一致（`ResourceParityTests` 已有该断言）。
     3. 英文标签更长，改完顺手看一眼按钮宽度与 ContentDialog 的换行。
   - 验收：
-    - [ ] `pwsh scripts/check-hardcoded-text.ps1` 零命中
-    - [ ] `ResourceParityTests` 全过；`pwsh scripts/verify.ps1` 全绿
-    - [ ] 回头把 `05-CODE-AUDIT-UI-REDESIGN.md §10` 的「可见文案全部资源化」重新勾上
+    - [x] `pwsh scripts/check-hardcoded-text.ps1` 零命中（基线文件已空）
+    - [x] `ResourceParityTests` 全过；`pwsh scripts/verify.ps1` 全绿（8 步）
+    - [x] 回头把 `05-CODE-AUDIT-UI-REDESIGN.md §10` 的「可见文案全部资源化」重新勾上
+    - [x] **清点更正**：门禁初版虚高（按行判 `x:Uid`，把 `LoginPage` 这类已完全本地化的页面整片误报）。
+      修成按标签扫后，实际待清理量是 **47 处 / 22 个文件**，不是 172。最终实际改动：
+      XAML 66 处搬进 resw（元素补 `x:Uid`），C# 37 处改走新增的 `Infrastructure/Localized.cs`；
+      resw 双语各 +97 键（854+ 对齐）
+    - [x] 新增 `Localized.Get/Format`：代码取文案的唯一入口，用 `GetForViewIndependentUse()`
+      以便后台线程（`LifecycleService` 的保活描述）也能取；保留中文兜底参数，资源缺失时界面仍可读
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **O14 零散优化项** `S`

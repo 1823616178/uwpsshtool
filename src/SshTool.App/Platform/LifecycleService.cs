@@ -386,7 +386,7 @@ namespace SshTool.App.Platform
                 }
                 session = new ExtendedExecutionSession();
                 session.Reason = ExtendedExecutionReason.Unspecified;
-                session.Description = "SSH 会话后台保活";
+                session.Description = Localized.Get("Lifecycle_ExtendedExecution", "SSH 会话后台保活");
                 session.Revoked += OnExecutionRevoked;
             }
             BackgroundAction[] follow;

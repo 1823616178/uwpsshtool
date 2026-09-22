@@ -103,7 +103,7 @@ namespace SshTool.App.Views
                 return;
             }
             ShortcutConflict first = map.Conflicts[0];
-            ConflictWarning.Text = "冲突：" + first.Chord.ToDisplay() + " 被两个动作使用"
+            ConflictWarning.Text = Localized.Format("ShortcutEditor_Conflict", "冲突：{0} 被两个动作使用", first.Chord.ToDisplay())
                 + (map.Conflicts.Count > 1 ? "（等 " + map.Conflicts.Count + " 处）" : "")
                 + "，后匹配到的优先生效，请重新录制";
             ConflictWarning.Visibility = Visibility.Visible;

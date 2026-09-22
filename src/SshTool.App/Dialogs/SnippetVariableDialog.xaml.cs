@@ -34,8 +34,8 @@ namespace SshTool.App.Dialogs
         {
             var dialog = new SnippetVariableDialog();
             dialog.Title = string.IsNullOrEmpty(snippetName) ? "发送片段" : snippetName;
-            dialog.PrimaryButtonText = "发送";
-            dialog.SecondaryButtonText = "取消";
+            dialog.PrimaryButtonText = Localized.Get("SnippetVariable_Send", "发送");
+            dialog.SecondaryButtonText = Localized.Get("Dialog_Cancel", "取消");
             dialog._template = template ?? string.Empty;
             dialog._builtin = builtin ?? new SnippetBuiltin();
             dialog.BuildPrompts(variables);

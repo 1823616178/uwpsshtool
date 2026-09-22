@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.HostEditPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -141,8 +141,8 @@
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBox PlaceholderText="KEY" Text="{Binding Key, Mode=TwoWay}" />
-                                            <TextBox Grid.Column="1" PlaceholderText="VALUE" Text="{Binding Value, Mode=TwoWay}"
+                                            <TextBox x:Uid="HostEdit_EnvKeyBox" Text="{Binding Key, Mode=TwoWay}" />
+                                            <TextBox Grid.Column="1" x:Uid="HostEdit_EnvValueBox" Text="{Binding Value, Mode=TwoWay}"
                                                      Margin="{StaticResource GapSmLeft}" />
                                             <HyperlinkButton x:Uid="HostEdit_RemoveEnv" Grid.Column="2" Click="OnRemoveEnv"
                                                              Margin="{StaticResource GapSmLeft}" />

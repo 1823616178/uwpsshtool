@@ -66,7 +66,7 @@ namespace SshTool.App.Views.Main
                 return;
             }
             RestoreCard.Visibility = ViewModel.HasRestore ? Visibility.Visible : Visibility.Collapsed;
-            RestoreText.Text = "上次未关闭 " + ViewModel.RestoreCount.ToString() + " 个会话";
+            RestoreText.Text = Localized.Format("SessionsPivot_Restore", "上次未关闭 {0} 个会话", ViewModel.RestoreCount);
             bool empty = ViewModel.Items.Count == 0 && !ViewModel.HasRestore;
             Empty.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
             SessionList.Visibility = ViewModel.Items.Count > 0 ? Visibility.Visible : Visibility.Collapsed;

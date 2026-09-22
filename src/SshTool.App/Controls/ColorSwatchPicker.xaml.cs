@@ -8,6 +8,7 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using SshTool.App.Infrastructure;
 
 namespace SshTool.App.Controls
 {
@@ -217,7 +218,7 @@ namespace SshTool.App.Controls
             }
             else
             {
-                HexError.Text = "颜色须为 #RRGGBB 形式";
+                HexError.Text = Localized.Get("ColorSwatch_HexError", "颜色须为 #RRGGBB 形式");
                 HexError.Visibility = Visibility.Visible;
             }
         }

@@ -26,7 +26,7 @@ namespace SshTool.App.Views.Sync
             ViewModel.SubmitCommand.CanExecuteChanged += OnCanExecuteChanged;
             ViewModel.PropertyChanged += OnViewModelChanged;
             ViewModel.PasswordChanged += OnPasswordChanged;
-            ExplanationText.Text = "修改密码后需要重新登录。";
+            ExplanationText.Text = Localized.Get("ChangeLoginPassword_Explanation", "修改密码后需要重新登录。");
             RefreshError();
             RefreshBusy();
         }

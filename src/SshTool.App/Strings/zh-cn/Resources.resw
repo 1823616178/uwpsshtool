@@ -1,966 +1,1013 @@
-<?xml version="1.0" encoding="utf-8"?>
-<root>
-  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
-  <resheader name="version"><value>2.0</value></resheader>
-  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <data name="Error_0" xml:space="preserve"><value>无错误</value></data>
-  <data name="Error_101" xml:space="preserve"><value>DNS 解析失败，请检查主机名是否正确</value></data>
-  <data name="Error_102" xml:space="preserve"><value>连接超时</value></data>
-  <data name="Error_103" xml:space="preserve"><value>连接被拒绝，请确认端口与 SSH 服务</value></data>
-  <data name="Error_104" xml:space="preserve"><value>网络不可达</value></data>
-  <data name="Error_201" xml:space="preserve"><value>密码认证失败</value></data>
-  <data name="Error_202" xml:space="preserve"><value>公钥认证失败</value></data>
-  <data name="Error_203" xml:space="preserve"><value>键盘交互认证失败</value></data>
-  <data name="Error_204" xml:space="preserve"><value>私钥加载失败（短语错误或格式不支持）</value></data>
-  <data name="Error_205" xml:space="preserve"><value>认证超时</value></data>
-  <data name="Error_206" xml:space="preserve"><value>本机没有可用凭据，请先在保险库中解锁</value></data>
-  <data name="Error_301" xml:space="preserve"><value>加密算法协商失败</value></data>
-  <data name="Error_302" xml:space="preserve"><value>未知主机密钥，请确认指纹后信任</value></data>
-  <data name="Error_303" xml:space="preserve"><value>主机密钥与记录不匹配，可能存在中间人攻击</value></data>
-  <data name="Error_304" xml:space="preserve"><value>SSH 握手失败</value></data>
-  <data name="Error_305" xml:space="preserve"><value>SSH 握手超时</value></data>
-  <data name="Error_401" xml:space="preserve"><value>远端主机关闭了连接</value></data>
-  <data name="Error_402" xml:space="preserve"><value>会话超时</value></data>
-  <data name="Error_403" xml:space="preserve"><value>网络连接错误</value></data>
-  <data name="Error_404" xml:space="preserve"><value>Keepalive 超时，连接已断开</value></data>
-  <data name="Error_405" xml:space="preserve"><value>策略性断开（达到服务器限制）</value></data>
-  <data name="Error_500" xml:space="preserve"><value>内部错误</value></data>
-  <data name="Error_601" xml:space="preserve"><value>SFTP 子系统打开失败</value></data>
-  <data name="Error_602" xml:space="preserve"><value>文件或目录不存在</value></data>
-  <data name="Error_603" xml:space="preserve"><value>SFTP 操作权限不足</value></data>
-  <data name="Error_604" xml:space="preserve"><value>目标已存在或目录非空</value></data>
-  <data name="Error_605" xml:space="preserve"><value>文件传输失败</value></data>
-  <data name="Error_606" xml:space="preserve"><value>传输已取消</value></data>
-  <data name="Error_999" xml:space="preserve"><value>未知错误</value></data>
-  <data name="Validation_Required" xml:space="preserve"><value>必填</value></data>
-  <data name="Validation_NameTooLong" xml:space="preserve"><value>名称过长（不超过 255 字）</value></data>
-  <data name="Validation_HostTooLong" xml:space="preserve"><value>地址过长（不超过 1024 字）</value></data>
-  <data name="Validation_PortRange" xml:space="preserve"><value>端口须在 1–65535 之间</value></data>
-  <data name="Validation_KeepaliveRange" xml:space="preserve"><value>Keepalive 须在 0–3600 秒之间</value></data>
-  <data name="Validation_ColorFormat" xml:space="preserve"><value>颜色须为 #RRGGBB 形式</value></data>
-  <data name="Validation_ServerRequired" xml:space="preserve"><value>需要选择所属服务器</value></data>
-  <data name="Validation_DestHostRequired" xml:space="preserve"><value>该转发类型需要目标地址</value></data>
-  <data name="Validation_DestServerRequired" xml:space="preserve"><value>relay 转发需要选择存在的目标主机</value></data>
-  <data name="Validation_SnippetContentRequired" xml:space="preserve"><value>片段内容不能为空</value></data>
-  <data name="Validation_EnvVarsFormat" xml:space="preserve"><value>环境变量须为合法标识符，且键不重复</value></data>
-  <data name="Validation_JumpSelfLoop" xml:space="preserve"><value>不能把自身设为跳板</value></data>
-  <data name="Validation_JumpCycle" xml:space="preserve"><value>跳板链不能成环</value></data>
-  <data name="Validation_JumpTooDeep" xml:space="preserve"><value>跳板链不能超过 5 级</value></data>
-  <data name="TestConnect_Ok" xml:space="preserve"><value>连接成功</value></data>
-  <data name="TestConnect_Timeout" xml:space="preserve"><value>测试连接超时</value></data>
-  <data name="TestConnect_Cancelled" xml:space="preserve"><value>已取消测试连接</value></data>
-  <data name="Overlay_Connecting" xml:space="preserve"><value>正在连接…</value></data>
-  <data name="Overlay_Reconnecting" xml:space="preserve"><value>连接已断开，正在重连</value></data>
-  <data name="Overlay_Closed" xml:space="preserve"><value>会话已结束</value></data>
-  <data name="Overlay_PolicyDisconnected" xml:space="preserve"><value>应用在后台时连接被系统断开</value></data>
-  <!-- V03a（C-06）：重连倒计时文案（代码拼装，格式化键）。 -->
-  <data name="Overlay_ReconnectingCountdown" xml:space="preserve"><value>连接已断开，{0} 秒后第 {1} 次重连</value></data>
-  <data name="EnergySaverBanner_Title" xml:space="preserve"><value>省电模式已开启</value></data>
-  <data name="EnergySaverBanner_Message" xml:space="preserve"><value>省电模式下切换到后台时连接会被系统断开，回到应用后会自动重连</value></data>
-  <data name="Api_VALIDATION_ERROR" xml:space="preserve"><value>请求参数无效，请检查输入后重试</value></data>
-  <data name="Api_REGISTRATION_DISABLED" xml:space="preserve"><value>暂未开放注册</value></data>
-  <data name="Api_AUTH_INVITATION_REQUIRED" xml:space="preserve"><value>注册需要邀请码</value></data>
-  <data name="Api_AUTH_INVITATION_INVALID" xml:space="preserve"><value>邀请码无效</value></data>
-  <data name="Api_AUTH_EMAIL_EXISTS" xml:space="preserve"><value>该邮箱已注册，请直接登录</value></data>
-  <data name="Api_AUTH_INVALID_CREDENTIALS" xml:space="preserve"><value>邮箱或密码错误</value></data>
-  <data name="Api_DEVICE_QUOTA_EXCEEDED" xml:space="preserve"><value>设备数已达上限，请在其他设备上撤销旧设备</value></data>
-  <data name="Api_AUTH_TOKEN_EXPIRED" xml:space="preserve"><value>登录已过期，请重新登录</value></data>
-  <data name="Api_AUTH_TOKEN_REUSED" xml:space="preserve"><value>登录状态异常，请重新登录</value></data>
-  <data name="Api_AUTH_DEVICE_REVOKED" xml:space="preserve"><value>本设备已被撤销，请重新登录</value></data>
-  <data name="Api_AUTH_CURRENT_PASSWORD_INVALID" xml:space="preserve"><value>当前密码不正确</value></data>
-  <data name="Api_AUTH_PASSWORD_UNCHANGED" xml:space="preserve"><value>新密码与当前密码相同</value></data>
-  <data name="Api_ACCOUNT_DELETE_CONFLICT" xml:space="preserve"><value>账号删除冲突，请重试</value></data>
-  <data name="Api_DEVICE_NOT_FOUND" xml:space="preserve"><value>设备不存在</value></data>
-  <data name="Api_DEVICE_CURRENT" xml:space="preserve"><value>不能撤销当前设备，请使用退出登录</value></data>
-  <data name="Api_VAULT_EXISTS" xml:space="preserve"><value>云端保险库已存在</value></data>
-  <data name="Api_VAULT_NOT_FOUND" xml:space="preserve"><value>云端保险库不存在</value></data>
-  <data name="Api_VAULT_KEY_VERSION_MISMATCH" xml:space="preserve"><value>密钥版本不一致</value></data>
-  <data name="Api_SYNC_DOCUMENT_NOT_FOUND" xml:space="preserve"><value>云端同步文档不存在</value></data>
-  <data name="Api_SYNC_DOCUMENT_INVALID" xml:space="preserve"><value>云端同步文档无效</value></data>
-  <data name="Api_SYNC_DOCUMENT_TOO_LARGE" xml:space="preserve"><value>同步文档过大</value></data>
-  <data name="Api_SYNC_REVISION_CONFLICT" xml:space="preserve"><value>云端已有新版本，请重试</value></data>
-  <data name="Api_SYNC_REVISION_LIMIT_REACHED" xml:space="preserve"><value>历史版本数已达上限</value></data>
-  <data name="Api_SYNC_REVISION_REQUIRED" xml:space="preserve"><value>缺少版本信息，请重试</value></data>
-  <data name="Api_SYNC_REVISION_NOT_FOUND" xml:space="preserve"><value>历史版本不存在</value></data>
-  <data name="Api_IDEMPOTENCY_KEY_REQUIRED" xml:space="preserve"><value>请求缺少幂等键</value></data>
-  <data name="Api_IDEMPOTENCY_KEY_REUSED" xml:space="preserve"><value>请求重复提交</value></data>
-  <data name="Api_RATE_LIMITED" xml:space="preserve"><value>尝试过于频繁，请 {0} 秒后再试</value></data>
-  <data name="Api_MAINTENANCE_MODE" xml:space="preserve"><value>服务器维护中，请稍后再试</value></data>
-  <data name="Api_AUTH_REQUIRED" xml:space="preserve"><value>尚未登录</value></data>
-  <data name="Api_AUTH_REFRESH_UNAVAILABLE" xml:space="preserve"><value>登录已失效，请重新登录</value></data>
-  <data name="Api_NETWORK_ERROR" xml:space="preserve"><value>无法连接同步服务器，请检查网络</value></data>
-  <data name="Api_REQUEST_TIMEOUT" xml:space="preserve"><value>服务器请求超时，请重试</value></data>
-  <data name="Api_RESPONSE_INVALID" xml:space="preserve"><value>服务器返回了无效数据</value></data>
-  <data name="Api_SYNC_REVISION_INVALID" xml:space="preserve"><value>服务器返回了无效的同步版本</value></data>
-  <data name="Api_SYNC_METADATA_INVALID" xml:space="preserve"><value>服务器返回了无效的同步元数据</value></data>
-  <data name="Login_Title.Text" xml:space="preserve"><value>账号与同步</value></data>
-  <data name="Login_LoginTab.Content" xml:space="preserve"><value>登录</value></data>
-  <data name="Login_RegisterTab.Content" xml:space="preserve"><value>注册</value></data>
-  <data name="Login_EmailBox.Header" xml:space="preserve"><value>邮箱</value></data>
-  <data name="Login_EmailBox.PlaceholderText" xml:space="preserve"><value>you@example.com</value></data>
-  <data name="Login_PasswordBox.Header" xml:space="preserve"><value>密码</value></data>
-  <data name="Login_PasswordBox.PlaceholderText" xml:space="preserve"><value>请输入密码</value></data>
-  <data name="Login_ConfirmBox.Header" xml:space="preserve"><value>确认密码</value></data>
-  <data name="Login_InviteBox.Header" xml:space="preserve"><value>邀请码（可选）</value></data>
-  <data name="Login_InviteBox.PlaceholderText" xml:space="preserve"><value>如需邀请码请填写</value></data>
-  <data name="Login_DeviceBox.Header" xml:space="preserve"><value>设备名称</value></data>
-  <data name="Login_SubmitButton.Content" xml:space="preserve"><value>登录</value></data>
-  <data name="Login_SharedNote.Text" xml:space="preserve"><value>与桌面端 SSH Tool、鸿蒙端使用同一账号，主机与隧道将自动在设备间同步。</value></data>
-  <data name="Login_PasswordHint.Text" xml:space="preserve"><value>注册密码至少 10 位</value></data>
-  <data name="Login_HttpBanner.Title" xml:space="preserve"><value>当前为未加密连接</value></data>
-  <data name="Login_HttpBanner.Message" xml:space="preserve"><value>登录密码可能被同一网络窃听，请仅在可信网络下使用</value></data>
-  <data name="Login_SubmitLogin" xml:space="preserve"><value>登录</value></data>
-  <data name="Login_SubmitRegister" xml:space="preserve"><value>注册</value></data>
-  <data name="Login_WorkingLogin" xml:space="preserve"><value>正在登录…</value></data>
-  <data name="Login_WorkingRegister" xml:space="preserve"><value>正在注册…</value></data>
-  <data name="Login_EmailRequired" xml:space="preserve"><value>请输入邮箱</value></data>
-  <data name="Login_PasswordRequired" xml:space="preserve"><value>请输入密码</value></data>
-  <data name="Login_PasswordTooShort" xml:space="preserve"><value>注册密码至少 10 位</value></data>
-  <data name="Login_PasswordMismatch" xml:space="preserve"><value>两次输入的密码不一致</value></data>
-  <data name="Login_BusyRetry" xml:space="preserve"><value>尝试过于频繁，请稍后再试</value></data>
-  <data name="Login_RequestId" xml:space="preserve"><value>请求 ID：{0}</value></data>
-  <data name="Login_SyncUnavailable" xml:space="preserve"><value>同步组件不可用，请重启应用后重试</value></data>
-  <data name="Login_AlreadySignedIn" xml:space="preserve"><value>已登录，请先退出登录后再继续</value></data>
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Error_0" xml:space="preserve"><value>无错误</value></data>
+  <data name="Error_101" xml:space="preserve"><value>DNS 解析失败，请检查主机名是否正确</value></data>
+  <data name="Error_102" xml:space="preserve"><value>连接超时</value></data>
+  <data name="Error_103" xml:space="preserve"><value>连接被拒绝，请确认端口与 SSH 服务</value></data>
+  <data name="Error_104" xml:space="preserve"><value>网络不可达</value></data>
+  <data name="Error_201" xml:space="preserve"><value>密码认证失败</value></data>
+  <data name="Error_202" xml:space="preserve"><value>公钥认证失败</value></data>
+  <data name="Error_203" xml:space="preserve"><value>键盘交互认证失败</value></data>
+  <data name="Error_204" xml:space="preserve"><value>私钥加载失败（短语错误或格式不支持）</value></data>
+  <data name="Error_205" xml:space="preserve"><value>认证超时</value></data>
+  <data name="Error_206" xml:space="preserve"><value>本机没有可用凭据，请先在保险库中解锁</value></data>
+  <data name="Error_301" xml:space="preserve"><value>加密算法协商失败</value></data>
+  <data name="Error_302" xml:space="preserve"><value>未知主机密钥，请确认指纹后信任</value></data>
+  <data name="Error_303" xml:space="preserve"><value>主机密钥与记录不匹配，可能存在中间人攻击</value></data>
+  <data name="Error_304" xml:space="preserve"><value>SSH 握手失败</value></data>
+  <data name="Error_305" xml:space="preserve"><value>SSH 握手超时</value></data>
+  <data name="Error_401" xml:space="preserve"><value>远端主机关闭了连接</value></data>
+  <data name="Error_402" xml:space="preserve"><value>会话超时</value></data>
+  <data name="Error_403" xml:space="preserve"><value>网络连接错误</value></data>
+  <data name="Error_404" xml:space="preserve"><value>Keepalive 超时，连接已断开</value></data>
+  <data name="Error_405" xml:space="preserve"><value>策略性断开（达到服务器限制）</value></data>
+  <data name="Error_500" xml:space="preserve"><value>内部错误</value></data>
+  <data name="Error_601" xml:space="preserve"><value>SFTP 子系统打开失败</value></data>
+  <data name="Error_602" xml:space="preserve"><value>文件或目录不存在</value></data>
+  <data name="Error_603" xml:space="preserve"><value>SFTP 操作权限不足</value></data>
+  <data name="Error_604" xml:space="preserve"><value>目标已存在或目录非空</value></data>
+  <data name="Error_605" xml:space="preserve"><value>文件传输失败</value></data>
+  <data name="Error_606" xml:space="preserve"><value>传输已取消</value></data>
+  <data name="Error_999" xml:space="preserve"><value>未知错误</value></data>
+  <data name="Validation_Required" xml:space="preserve"><value>必填</value></data>
+  <data name="Validation_NameTooLong" xml:space="preserve"><value>名称过长（不超过 255 字）</value></data>
+  <data name="Validation_HostTooLong" xml:space="preserve"><value>地址过长（不超过 1024 字）</value></data>
+  <data name="Validation_PortRange" xml:space="preserve"><value>端口须在 1–65535 之间</value></data>
+  <data name="Validation_KeepaliveRange" xml:space="preserve"><value>Keepalive 须在 0–3600 秒之间</value></data>
+  <data name="Validation_ColorFormat" xml:space="preserve"><value>颜色须为 #RRGGBB 形式</value></data>
+  <data name="Validation_ServerRequired" xml:space="preserve"><value>需要选择所属服务器</value></data>
+  <data name="Validation_DestHostRequired" xml:space="preserve"><value>该转发类型需要目标地址</value></data>
+  <data name="Validation_DestServerRequired" xml:space="preserve"><value>relay 转发需要选择存在的目标主机</value></data>
+  <data name="Validation_SnippetContentRequired" xml:space="preserve"><value>片段内容不能为空</value></data>
+  <data name="Validation_EnvVarsFormat" xml:space="preserve"><value>环境变量须为合法标识符，且键不重复</value></data>
+  <data name="Validation_JumpSelfLoop" xml:space="preserve"><value>不能把自身设为跳板</value></data>
+  <data name="Validation_JumpCycle" xml:space="preserve"><value>跳板链不能成环</value></data>
+  <data name="Validation_JumpTooDeep" xml:space="preserve"><value>跳板链不能超过 5 级</value></data>
+  <data name="TestConnect_Ok" xml:space="preserve"><value>连接成功</value></data>
+  <data name="TestConnect_Timeout" xml:space="preserve"><value>测试连接超时</value></data>
+  <data name="TestConnect_Cancelled" xml:space="preserve"><value>已取消测试连接</value></data>
+  <data name="Overlay_Connecting" xml:space="preserve"><value>正在连接…</value></data>
+  <data name="Overlay_Reconnecting" xml:space="preserve"><value>连接已断开，正在重连</value></data>
+  <data name="Overlay_Closed" xml:space="preserve"><value>会话已结束</value></data>
+  <data name="Overlay_PolicyDisconnected" xml:space="preserve"><value>应用在后台时连接被系统断开</value></data>
+  <!-- V03a（C-06）：重连倒计时文案（代码拼装，格式化键）。 -->
+  <data name="Overlay_ReconnectingCountdown" xml:space="preserve"><value>连接已断开，{0} 秒后第 {1} 次重连</value></data>
+  <data name="EnergySaverBanner_Title" xml:space="preserve"><value>省电模式已开启</value></data>
+  <data name="EnergySaverBanner_Message" xml:space="preserve"><value>省电模式下切换到后台时连接会被系统断开，回到应用后会自动重连</value></data>
+  <data name="Api_VALIDATION_ERROR" xml:space="preserve"><value>请求参数无效，请检查输入后重试</value></data>
+  <data name="Api_REGISTRATION_DISABLED" xml:space="preserve"><value>暂未开放注册</value></data>
+  <data name="Api_AUTH_INVITATION_REQUIRED" xml:space="preserve"><value>注册需要邀请码</value></data>
+  <data name="Api_AUTH_INVITATION_INVALID" xml:space="preserve"><value>邀请码无效</value></data>
+  <data name="Api_AUTH_EMAIL_EXISTS" xml:space="preserve"><value>该邮箱已注册，请直接登录</value></data>
+  <data name="Api_AUTH_INVALID_CREDENTIALS" xml:space="preserve"><value>邮箱或密码错误</value></data>
+  <data name="Api_DEVICE_QUOTA_EXCEEDED" xml:space="preserve"><value>设备数已达上限，请在其他设备上撤销旧设备</value></data>
+  <data name="Api_AUTH_TOKEN_EXPIRED" xml:space="preserve"><value>登录已过期，请重新登录</value></data>
+  <data name="Api_AUTH_TOKEN_REUSED" xml:space="preserve"><value>登录状态异常，请重新登录</value></data>
+  <data name="Api_AUTH_DEVICE_REVOKED" xml:space="preserve"><value>本设备已被撤销，请重新登录</value></data>
+  <data name="Api_AUTH_CURRENT_PASSWORD_INVALID" xml:space="preserve"><value>当前密码不正确</value></data>
+  <data name="Api_AUTH_PASSWORD_UNCHANGED" xml:space="preserve"><value>新密码与当前密码相同</value></data>
+  <data name="Api_ACCOUNT_DELETE_CONFLICT" xml:space="preserve"><value>账号删除冲突，请重试</value></data>
+  <data name="Api_DEVICE_NOT_FOUND" xml:space="preserve"><value>设备不存在</value></data>
+  <data name="Api_DEVICE_CURRENT" xml:space="preserve"><value>不能撤销当前设备，请使用退出登录</value></data>
+  <data name="Api_VAULT_EXISTS" xml:space="preserve"><value>云端保险库已存在</value></data>
+  <data name="Api_VAULT_NOT_FOUND" xml:space="preserve"><value>云端保险库不存在</value></data>
+  <data name="Api_VAULT_KEY_VERSION_MISMATCH" xml:space="preserve"><value>密钥版本不一致</value></data>
+  <data name="Api_SYNC_DOCUMENT_NOT_FOUND" xml:space="preserve"><value>云端同步文档不存在</value></data>
+  <data name="Api_SYNC_DOCUMENT_INVALID" xml:space="preserve"><value>云端同步文档无效</value></data>
+  <data name="Api_SYNC_DOCUMENT_TOO_LARGE" xml:space="preserve"><value>同步文档过大</value></data>
+  <data name="Api_SYNC_REVISION_CONFLICT" xml:space="preserve"><value>云端已有新版本，请重试</value></data>
+  <data name="Api_SYNC_REVISION_LIMIT_REACHED" xml:space="preserve"><value>历史版本数已达上限</value></data>
+  <data name="Api_SYNC_REVISION_REQUIRED" xml:space="preserve"><value>缺少版本信息，请重试</value></data>
+  <data name="Api_SYNC_REVISION_NOT_FOUND" xml:space="preserve"><value>历史版本不存在</value></data>
+  <data name="Api_IDEMPOTENCY_KEY_REQUIRED" xml:space="preserve"><value>请求缺少幂等键</value></data>
+  <data name="Api_IDEMPOTENCY_KEY_REUSED" xml:space="preserve"><value>请求重复提交</value></data>
+  <data name="Api_RATE_LIMITED" xml:space="preserve"><value>尝试过于频繁，请 {0} 秒后再试</value></data>
+  <data name="Api_MAINTENANCE_MODE" xml:space="preserve"><value>服务器维护中，请稍后再试</value></data>
+  <data name="Api_AUTH_REQUIRED" xml:space="preserve"><value>尚未登录</value></data>
+  <data name="Api_AUTH_REFRESH_UNAVAILABLE" xml:space="preserve"><value>登录已失效，请重新登录</value></data>
+  <data name="Api_NETWORK_ERROR" xml:space="preserve"><value>无法连接同步服务器，请检查网络</value></data>
+  <data name="Api_REQUEST_TIMEOUT" xml:space="preserve"><value>服务器请求超时，请重试</value></data>
+  <data name="Api_RESPONSE_INVALID" xml:space="preserve"><value>服务器返回了无效数据</value></data>
+  <data name="Api_SYNC_REVISION_INVALID" xml:space="preserve"><value>服务器返回了无效的同步版本</value></data>
+  <data name="Api_SYNC_METADATA_INVALID" xml:space="preserve"><value>服务器返回了无效的同步元数据</value></data>
+  <data name="Login_Title.Text" xml:space="preserve"><value>账号与同步</value></data>
+  <data name="Login_LoginTab.Content" xml:space="preserve"><value>登录</value></data>
+  <data name="Login_RegisterTab.Content" xml:space="preserve"><value>注册</value></data>
+  <data name="Login_EmailBox.Header" xml:space="preserve"><value>邮箱</value></data>
+  <data name="Login_EmailBox.PlaceholderText" xml:space="preserve"><value>you@example.com</value></data>
+  <data name="Login_PasswordBox.Header" xml:space="preserve"><value>密码</value></data>
+  <data name="Login_PasswordBox.PlaceholderText" xml:space="preserve"><value>请输入密码</value></data>
+  <data name="Login_ConfirmBox.Header" xml:space="preserve"><value>确认密码</value></data>
+  <data name="Login_InviteBox.Header" xml:space="preserve"><value>邀请码（可选）</value></data>
+  <data name="Login_InviteBox.PlaceholderText" xml:space="preserve"><value>如需邀请码请填写</value></data>
+  <data name="Login_DeviceBox.Header" xml:space="preserve"><value>设备名称</value></data>
+  <data name="Login_SubmitButton.Content" xml:space="preserve"><value>登录</value></data>
+  <data name="Login_SharedNote.Text" xml:space="preserve"><value>与桌面端 SSH Tool、鸿蒙端使用同一账号，主机与隧道将自动在设备间同步。</value></data>
+  <data name="Login_PasswordHint.Text" xml:space="preserve"><value>注册密码至少 10 位</value></data>
+  <data name="Login_HttpBanner.Title" xml:space="preserve"><value>当前为未加密连接</value></data>
+  <data name="Login_HttpBanner.Message" xml:space="preserve"><value>登录密码可能被同一网络窃听，请仅在可信网络下使用</value></data>
+  <data name="Login_SubmitLogin" xml:space="preserve"><value>登录</value></data>
+  <data name="Login_SubmitRegister" xml:space="preserve"><value>注册</value></data>
+  <data name="Login_WorkingLogin" xml:space="preserve"><value>正在登录…</value></data>
+  <data name="Login_WorkingRegister" xml:space="preserve"><value>正在注册…</value></data>
+  <data name="Login_EmailRequired" xml:space="preserve"><value>请输入邮箱</value></data>
+  <data name="Login_PasswordRequired" xml:space="preserve"><value>请输入密码</value></data>
+  <data name="Login_PasswordTooShort" xml:space="preserve"><value>注册密码至少 10 位</value></data>
+  <data name="Login_PasswordMismatch" xml:space="preserve"><value>两次输入的密码不一致</value></data>
+  <data name="Login_BusyRetry" xml:space="preserve"><value>尝试过于频繁，请稍后再试</value></data>
+  <data name="Login_RequestId" xml:space="preserve"><value>请求 ID：{0}</value></data>
+  <data name="Login_SyncUnavailable" xml:space="preserve"><value>同步组件不可用，请重启应用后重试</value></data>
+  <data name="Login_AlreadySignedIn" xml:space="preserve"><value>已登录，请先退出登录后再继续</value></data>
+
+  <data name="Sftp_Title.Text" xml:space="preserve"><value>SFTP</value></data>
+  <data name="Sftp_Connecting" xml:space="preserve"><value>正在连接 SFTP…</value></data>
+  <data name="Sftp_UpButton.AutomationProperties.Name" xml:space="preserve"><value>返回上级目录</value></data>
+  <data name="Sftp_EmptyTitle.Text" xml:space="preserve"><value>空目录</value></data>
+  <data name="Sftp_EmptyDescription.Text" xml:space="preserve"><value>此目录没有内容</value></data>
+  <data name="Sftp_LoadFailed.Text" xml:space="preserve"><value>加载失败</value></data>
+  <data name="Sftp_Retry.Text" xml:space="preserve"><value>重试</value></data>
+  <data name="Sftp_UploadButton.Label" xml:space="preserve"><value>上传</value></data>
+  <data name="Sftp_NewFolderButton.Label" xml:space="preserve"><value>新建文件夹</value></data>
+  <data name="Sftp_RefreshButton.Label" xml:space="preserve"><value>刷新</value></data>
+  <data name="Sftp_MoreButton.Label" xml:space="preserve"><value>更多</value></data>
+  <data name="Sftp_SortHeader" xml:space="preserve"><value>排序方式</value></data>
+  <data name="Sftp_SortName" xml:space="preserve"><value>按名称</value></data>
+  <data name="Sftp_SortSize" xml:space="preserve"><value>按大小</value></data>
+  <data name="Sftp_SortMtime" xml:space="preserve"><value>按时间</value></data>
+  <data name="Sftp_ShowHidden" xml:space="preserve"><value>显示隐藏文件</value></data>
+  <data name="Sftp_RowDownload" xml:space="preserve"><value>下载</value></data>
+  <data name="Sftp_RowRename" xml:space="preserve"><value>重命名</value></data>
+  <data name="Sftp_RowPermissions" xml:space="preserve"><value>权限</value></data>
+  <data name="Sftp_RowDelete" xml:space="preserve"><value>删除</value></data>
+  <data name="Sftp_RowCopyPath" xml:space="preserve"><value>复制路径</value></data>
+  <data name="Sftp_PathCopied" xml:space="preserve"><value>已复制路径</value></data>
+  <data name="Sftp_FolderCreated" xml:space="preserve"><value>文件夹已创建</value></data>
+  <data name="Sftp_Renamed" xml:space="preserve"><value>已重命名</value></data>
+  <data name="Sftp_PermissionsChanged" xml:space="preserve"><value>权限已更新</value></data>
+  <data name="Sftp_Deleted" xml:space="preserve"><value>已删除</value></data>
+  <data name="Sftp_UploadStarted" xml:space="preserve"><value>已加入上传队列：{0} 个文件</value></data>
+  <data name="Sftp_DeleteTitle" xml:space="preserve"><value>删除</value></data>
+  <data name="Sftp_DeleteFileConfirm" xml:space="preserve"><value>删除「{0}」？</value></data>
+  <data name="Sftp_DeleteDirConfirm" xml:space="preserve"><value>「{0}」是文件夹，将删除其中的全部内容（含子目录）。此操作不可撤销。</value></data>
+  <data name="Sftp_DeletePartialNote" xml:space="preserve"><value>部分内容可能已删除。</value></data>
+  <data name="Sftp_DeleteButtonText" xml:space="preserve"><value>删除</value></data>
+  <data name="Sftp_TransferPanelTitle" xml:space="preserve"><value>传输（{0}）</value></data>
+  <data name="Sftp_TransfersEmpty" xml:space="preserve"><value>没有进行中的传输</value></data>
+  <data name="Sftp_ClearFinished" xml:space="preserve"><value>清除已完成</value></data>
+  <data name="Sftp_TransferUpload" xml:space="preserve"><value>上传</value></data>
+  <data name="Sftp_TransferDownload" xml:space="preserve"><value>下载</value></data>
+  <data name="Sftp_StateQueued" xml:space="preserve"><value>等待中</value></data>
+  <data name="Sftp_StateRunning" xml:space="preserve"><value>传输中</value></data>
+  <data name="Sftp_StateCompleted" xml:space="preserve"><value>已完成</value></data>
+  <data name="Sftp_StateFailed" xml:space="preserve"><value>失败</value></data>
+  <data name="Sftp_StateCancelled" xml:space="preserve"><value>已取消</value></data>
+  <data name="Sftp_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Sftp_RetryTransfer" xml:space="preserve"><value>重试</value></data>
+  <data name="Sftp_PermissionsTitle" xml:space="preserve"><value>权限</value></data>
+  <data name="Sftp_PermissionsOwner" xml:space="preserve"><value>所有者</value></data>
+  <data name="Sftp_PermissionsGroup" xml:space="preserve"><value>属组</value></data>
+  <data name="Sftp_PermissionsOther" xml:space="preserve"><value>其他</value></data>
+  <data name="Sftp_PermissionsRead" xml:space="preserve"><value>读取</value></data>
+  <data name="Sftp_PermissionsWrite" xml:space="preserve"><value>写入</value></data>
+  <data name="Sftp_PermissionsExecute" xml:space="preserve"><value>执行</value></data>
+  <data name="Sftp_PermissionsOctal.Header" xml:space="preserve"><value>八进制（如 644）</value></data>
+  <data name="Sftp_PermissionsInvalid" xml:space="preserve"><value>八进制须为 3 位 0–7</value></data>
+  <data name="Sftp_RenameTitle" xml:space="preserve"><value>重命名</value></data>
+  <data name="Sftp_RenameName.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="Sftp_MkdirTitle" xml:space="preserve"><value>新建文件夹</value></data>
+  <data name="Sftp_NameRequired" xml:space="preserve"><value>请输入名称</value></data>
+  <data name="Sftp_NameInvalid" xml:space="preserve"><value>名称不能含 “/”，且不能是 “.” 或 “..”</value></data>
+  <data name="Sftp_MinutesAgo" xml:space="preserve"><value>{0} 分钟前</value></data>
+  <data name="Sftp_JustNow" xml:space="preserve"><value>刚刚</value></data>
+  <data name="Sftp_SymlinkTo" xml:space="preserve"><value>→ {0}</value></data>
+  <data name="Sftp_LinkMenuOpenTarget" xml:space="preserve"><value>进入目标</value></data>
+  <data name="Sftp_LinkFileMenuOpenTarget" xml:space="preserve"><value>下载目标</value></data>
+  <data name="Sftp_ErrSessionGone" xml:space="preserve"><value>会话已结束，请从主机列表重新打开 SFTP</value></data>
+  <data name="Sftp_ErrNotConnected" xml:space="preserve"><value>会话未连接，SFTP 需要在线会话</value></data>
+  <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>传输失败（错误码 {0}）</value></data>
+  <!-- §6.5：文件行尾槽「更多」按钮无障碍名（x:Uid 不适用于 DataTemplate 实例，由 SftpRowVm.MoreButtonName 提供）。 -->
+  <data name="Sftp_RowMoreButton_A11yName" xml:space="preserve"><value>更多操作</value></data>
+  <data name="Terminal_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多</value></data>
+  <!-- V03a（C-06）：终端菜单项文案（代码构造，走 resw 双语）。 -->
+  <data name="Terminal_MenuSessions" xml:space="preserve"><value>会话</value></data>
+  <data name="Terminal_MenuKeyBar" xml:space="preserve"><value>键条</value></data>
+  <data name="Terminal_MenuSnippets" xml:space="preserve"><value>片段</value></data>
+  <data name="Terminal_MenuSftp" xml:space="preserve"><value>SFTP</value></data>
+  <data name="Terminal_MenuAppearance" xml:space="preserve"><value>外观</value></data>
+  <data name="Terminal_MenuDisconnect" xml:space="preserve"><value>断开</value></data>
+  <data name="Terminal_MenuCloseSession" xml:space="preserve"><value>关闭会话</value></data>
+  <!-- V03b（C-06）：终端右键菜单项 + 复制提示（代码构造，走 resw 双语）。 -->
+  <data name="Terminal_MenuCopy" xml:space="preserve"><value>复制</value></data>
+  <data name="Terminal_MenuPaste" xml:space="preserve"><value>粘贴</value></data>
+  <data name="Terminal_MenuSelectAll" xml:space="preserve"><value>全选</value></data>
+  <data name="Terminal_MenuClearScreen" xml:space="preserve"><value>清屏</value></data>
+  <data name="Terminal_MenuSendSnippet" xml:space="preserve"><value>发送片段</value></data>
+  <data name="Terminal_CopiedToast" xml:space="preserve"><value>已复制</value></data>
+  <data name="TabStrip_AddButton.AutomationProperties.Name" xml:space="preserve"><value>新建标签</value></data>
+  <data name="TabStrip_CloseButton_A11yName" xml:space="preserve"><value>关闭标签</value></data>
+  <!-- V03b（C-06）：TabStrip 右键菜单项文案（代码构造，走 resw 双语）。 -->
+  <data name="TabStrip_MenuRename" xml:space="preserve"><value>重命名</value></data>
+  <data name="TabStrip_MenuDuplicateSession" xml:space="preserve"><value>复制会话</value></data>
+  <data name="TabStrip_MenuCloseOthers" xml:space="preserve"><value>关闭其他</value></data>
+  <data name="TabStrip_MenuClose" xml:space="preserve"><value>关闭</value></data>
+  <data name="TabStrip_RenameDialogTitle" xml:space="preserve"><value>重命名标签</value></data>
+  <data name="Workspace_SplitButton_A11yName" xml:space="preserve"><value>分屏</value></data>
+  <data name="Workspace_CloseButton_A11yName" xml:space="preserve"><value>关闭会话</value></data>
+  <!-- V03b（C-06）：分屏菜单项 + 空状态 + 主机选择器空态（代码构造，走 resw 双语）。 -->
+  <data name="Workspace_SplitRight" xml:space="preserve"><value>向右分屏</value></data>
+  <data name="Workspace_SplitDown" xml:space="preserve"><value>向下分屏</value></data>
+  <data name="Workspace_EmptyTitle" xml:space="preserve"><value>没有打开的标签</value></data>
+  <data name="Workspace_EmptyDescription" xml:space="preserve"><value>在左侧选择主机，或新建一个标签开始。</value></data>
+  <data name="Workspace_EmptyPrimaryText" xml:space="preserve"><value>新建标签</value></data>
+  <data name="Workspace_HostPickerEmpty" xml:space="preserve"><value>还没有主机，请先添加</value></data>
+  <data name="Dialog_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Dialog_Ok" xml:space="preserve"><value>确定</value></data>
+  <data name="Placeholder_BackButton.Content" xml:space="preserve"><value>返回</value></data>
+  <data name="Placeholder_Title" xml:space="preserve"><value>即将推出</value></data>
+  <data name="Placeholder_ComingSoon.Title" xml:space="preserve"><value>即将推出</value></data>
+  <data name="Placeholder_ComingSoon.Description" xml:space="preserve"><value>功能还在打磨中，敬请期待后续版本。</value></data>
+
+  <data name="ExitDialog.Title" xml:space="preserve"><value>退出应用</value></data>
+  <data name="ExitDialog.PrimaryButtonText" xml:space="preserve"><value>退出</value></data>
+  <data name="ExitDialog.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="ExitDialog_Message" xml:space="preserve"><value>有 {0} 个会话正在连接，退出将全部断开。</value></data>
+
+  <data name="VaultSetup_Title.Text" xml:space="preserve"><value>创建同步保险库</value></data>
+  <data name="VaultSetup_Explanation.Text" xml:space="preserve"><value>同步密码用于加密你的配置，服务器无法解密；与登录密码可以不同。</value></data>
+  <data name="VaultSetup_PasswordBox.Header" xml:space="preserve"><value>同步密码</value></data>
+  <data name="VaultSetup_PasswordBox.PlaceholderText" xml:space="preserve"><value>设置同步密码（至少 8 位）</value></data>
+  <data name="VaultSetup_ConfirmBox.Header" xml:space="preserve"><value>确认同步密码</value></data>
+  <data name="VaultSetup_PasswordHint.Text" xml:space="preserve"><value>同步密码至少 8 位</value></data>
+  <data name="VaultSetup_LocalNote.Text" xml:space="preserve"><value>解锁后的保险库密钥加密保存在本机，重启无需再次输入。</value></data>
+  <data name="VaultSetup_SubmitButton.Content" xml:space="preserve"><value>创建</value></data>
+  <data name="VaultUnlock_Title.Text" xml:space="preserve"><value>解锁保险库</value></data>
+  <data name="VaultUnlock_PasswordTab.Content" xml:space="preserve"><value>同步密码</value></data>
+  <data name="VaultUnlock_RecoveryTab.Content" xml:space="preserve"><value>恢复密钥</value></data>
+  <data name="VaultUnlock_PasswordBox.Header" xml:space="preserve"><value>同步密码</value></data>
+  <data name="VaultUnlock_PasswordBox.PlaceholderText" xml:space="preserve"><value>输入同步密码</value></data>
+  <data name="VaultUnlock_RecoveryBox.Header" xml:space="preserve"><value>恢复密钥</value></data>
+  <data name="VaultUnlock_RecoveryBox.PlaceholderText" xml:space="preserve"><value>SPM1-…-XXXXXXXXXXXX</value></data>
+  <data name="VaultUnlock_RecoveryHint.Text" xml:space="preserve"><value>可直接粘贴；前缀与校验段大小写随意，将自动规范化</value></data>
+  <data name="VaultUnlock_SubmitButton.Content" xml:space="preserve"><value>解锁</value></data>
+  <data name="VaultDialog.Title" xml:space="preserve"><value>立即保存恢复密钥</value></data>
+  <data name="VaultDialog.PrimaryButtonText" xml:space="preserve"><value>完成</value></data>
+  <data name="VaultDialog_Note.Text" xml:space="preserve"><value>这是唯一一次显示。同步密码遗忘时，只能使用恢复密钥解锁保险库。</value></data>
+  <data name="VaultDialog_CopyButton.Content" xml:space="preserve"><value>复制</value></data>
+  <data name="VaultDialog_Copied.Text" xml:space="preserve"><value>已复制到剪贴板</value></data>
+  <data name="VaultDialog_SavedBox.Content" xml:space="preserve"><value>我已抄写/保存</value></data>
+  <data name="VaultDialog_Warning.Text" xml:space="preserve"><value>必须先勾选「我已抄写/保存」才能继续</value></data>
+  <data name="Vault_SyncUnavailable" xml:space="preserve"><value>同步组件不可用，请重启应用后重试</value></data>
+  <data name="Vault_SyncPasswordRequired" xml:space="preserve"><value>请输入同步密码</value></data>
+  <data name="Vault_SyncPasswordTooShort" xml:space="preserve"><value>同步密码至少 8 位</value></data>
+  <data name="Vault_SyncPasswordMismatch" xml:space="preserve"><value>两次输入的同步密码不一致</value></data>
+  <data name="Vault_RecoveryRequired" xml:space="preserve"><value>请输入恢复密钥</value></data>
+  <data name="Vault_RecoveryFormatInvalid" xml:space="preserve"><value>恢复密钥格式无效</value></data>
+  <data name="Vault_RecoveryChecksumFailed" xml:space="preserve"><value>恢复密钥校验失败</value></data>
+  <data name="Vault_WorkingSetup" xml:space="preserve"><value>正在生成密钥（约数秒）…</value></data>
+  <data name="Vault_WorkingUnlock" xml:space="preserve"><value>正在解锁…</value></data>
+  <data name="Vault_WorkingSync" xml:space="preserve"><value>正在同步…</value></data>
+
+  <!-- V01a：新组件无障碍名（doc/05 §5.3、§7.2）。评审回补：「隐藏键盘」术语三处统一
+       （此处、KeyBar_HideKeyboardLabel、编辑器键名表）。 -->
+  <data name="AppPageHeader_BackButton.AutomationProperties.Name" xml:space="preserve"><value>返回</value></data>
+  <data name="Main_PaneToggleButton.AutomationProperties.Name" xml:space="preserve"><value>显示或隐藏主机列表</value></data>
+  <data name="KeyBar_HideKeyboardButton.AutomationProperties.Name" xml:space="preserve"><value>隐藏键盘</value></data>
+  <data name="Selection_DismissButton.AutomationProperties.Name" xml:space="preserve"><value>退出选择</value></data>
+  <!-- 质量评审：SegmentTabs 选中段无障碍名后缀（「标签，已选」），未选段不拼。 -->
+  <data name="SegmentTabs_SelectedSuffix" xml:space="preserve"><value>，已选</value></data>
+
+  <!-- V01a：Token 画廊 V2 组件演示区（Debug 页） -->
+  <data name="Gallery_V2Components.Text" xml:space="preserve"><value>V2 组件（doc/05 §5.3）</value></data>
+  <data name="Gallery_PageHeaderDemo.Text" xml:space="preserve"><value>AppPageHeader：320 紧凑 / 760 常规 / 1040 宽屏（含返回+状态+主操作）</value></data>
+  <data name="Gallery_HeaderCompact.Title" xml:space="preserve"><value>主机</value></data>
+  <data name="Gallery_HeaderNormal.Title" xml:space="preserve"><value>编辑主机</value></data>
+  <data name="Gallery_HeaderWide.Title" xml:space="preserve"><value>主机</value></data>
+  <data name="Gallery_HeaderPill.Text" xml:space="preserve"><value>已连接</value></data>
+  <data name="Gallery_HeaderSave.Content" xml:space="preserve"><value>保存</value></data>
+  <data name="Gallery_SegmentDemo.Text" xml:space="preserve"><value>SegmentTabs：二选 / 三选 / 禁用</value></data>
+  <data name="Gallery_SegmentLogin" xml:space="preserve"><value>登录</value></data>
+  <data name="Gallery_SegmentRegister" xml:space="preserve"><value>注册</value></data>
+  <data name="Gallery_SegmentHosts" xml:space="preserve"><value>主机</value></data>
+  <data name="Gallery_SegmentSessions" xml:space="preserve"><value>会话</value></data>
+  <data name="Gallery_SegmentTunnels" xml:space="preserve"><value>隧道</value></data>
+  <data name="Gallery_SegmentSelected" xml:space="preserve"><value>选中：{0}</value></data>
+  <data name="Gallery_CardDemo.Text" xml:space="preserve"><value>SurfaceCard：normal / pressed / selected / error</value></data>
+  <data name="Gallery_CardNormal.Header" xml:space="preserve"><value>分组卡片</value></data>
+  <data name="Gallery_CardPressed.Header" xml:space="preserve"><value>按压卡片</value></data>
+  <data name="Gallery_CardSelected.Header" xml:space="preserve"><value>选中卡片</value></data>
+  <data name="Gallery_CardError.Header" xml:space="preserve"><value>错误卡片</value></data>
+  <data name="Gallery_CardBody.Text" xml:space="preserve"><value>卡片内容槽：放表单、列表行或说明文字。</value></data>
+  <data name="Gallery_PillDemo.Text" xml:space="preserve"><value>StatusPill：neutral / success / warning / danger</value></data>
+  <data name="Gallery_PillNeutral.Text" xml:space="preserve"><value>离线</value></data>
+  <data name="Gallery_PillSuccess.Text" xml:space="preserve"><value>已连接</value></data>
+  <data name="Gallery_PillWarning.Text" xml:space="preserve"><value>重连中</value></data>
+  <data name="Gallery_PillDanger.Text" xml:space="preserve"><value>错误</value></data>
+  <data name="Gallery_IconButtonDemo.Text" xml:space="preserve"><value>IconButtonStyle：normal / disabled（使用点须配无障碍名）</value></data>
+  <data name="Gallery_DemoIconSettings.AutomationProperties.Name" xml:space="preserve"><value>设置</value></data>
+  <data name="Gallery_DemoIconSync.AutomationProperties.Name" xml:space="preserve"><value>同步（禁用演示）</value></data>
+
+  <!-- V01a 评审回补：hidekb 编辑器行首语义文本（Core 键面无文案）+ 画廊图标键区标题 -->
+  <data name="KeyBar_HideKeyboardLabel" xml:space="preserve"><value>隐藏键盘</value></data>
+  <data name="Gallery_V2IconKeys.Text" xml:space="preserve"><value>V01a 新增图标键</value></data>
+
+  <!-- V01b：BottomActionBar 溢出按钮无障碍名（05 §7.2） -->
+  <data name="BottomActionBar_OverflowButton.AutomationProperties.Name" xml:space="preserve"><value>更多操作</value></data>
+
+  <!-- V01b：画廊补全——AppListRow 四态（标题/副标题四行共用，同 Gallery_CardBody 先例；
+       状态 Pill 文案复用 Gallery_PillSuccess.Text） -->
+  <data name="Gallery_ListRowDemo.Text" xml:space="preserve"><value>AppListRow：normal / pressed / selected / disabled（状态槽与尾操作槽示例）</value></data>
+  <data name="Gallery_ListRowTitle" xml:space="preserve"><value>生产机（web-01）</value></data>
+  <data name="Gallery_ListRowSubtitle" xml:space="preserve"><value>deploy@prod.example.com:22</value></data>
+  <data name="Gallery_ListRowMore.AutomationProperties.Name" xml:space="preserve"><value>更多操作</value></data>
+
+  <!-- V01b：FormSection 三态（Header/Description/输入框占位共用；错误文案复用 Validation_PortRange） -->
+  <data name="Gallery_FormSectionDemo.Text" xml:space="preserve"><value>FormSection：normal / error / readonly（标题→说明→内容→错误固定顺序）</value></data>
+  <data name="Gallery_FormSectionHeader" xml:space="preserve"><value>连接</value></data>
+  <data name="Gallery_FormSectionDescription" xml:space="preserve"><value>主机地址、端口与登录名。</value></data>
+  <data name="Gallery_FormSectionInput" xml:space="preserve"><value>例如 192.168.1.8</value></data>
+
+  <!-- V01b：BottomActionBar 两态（keyboard-visible 条收起，露出底层占位文字） -->
+  <data name="Gallery_ActionBarDemo.Text" xml:space="preserve"><value>BottomActionBar：normal / keyboard-visible（SIP 弹出时整条收起让位）</value></data>
+  <data name="Gallery_ActionBarPrimary" xml:space="preserve"><value>保存</value></data>
+  <data name="Gallery_ActionBarOverflowItem" xml:space="preserve"><value>辅助操作</value></data>
+  <data name="Gallery_ActionBarCollapsedHint.Text" xml:space="preserve"><value>（下方操作条已设 IsKeyboardVisible=True，整条收起后露出这段占位文字）</value></data>
+
+  <!-- V01b：Banner 重试动作（ActionClick 事件）与 EmptyState 三变体（Kind 驱动默认图标） -->
+  <data name="Gallery_BannerRetryDemo.Text" xml:space="preserve"><value>Banner（InlineBanner）：错误 + 重试（ActionClick 事件，结果见下方）</value></data>
+  <data name="Gallery_BannerRetry.Title" xml:space="preserve"><value>同步失败</value></data>
+  <data name="Gallery_BannerRetry.Message" xml:space="preserve"><value>网络不可用，已保留本地更改。</value></data>
+  <data name="Gallery_BannerRetry.ActionText" xml:space="preserve"><value>重试</value></data>
+  <data name="Gallery_BannerRetryResult" xml:space="preserve"><value>已触发重试（ActionClick 事件）。</value></data>
+  <data name="Gallery_EmptyStateDemo.Text" xml:space="preserve"><value>EmptyState 变体：normal（显式 Glyph）/ offline / filtered（Kind 驱动默认图标）</value></data>
+  <data name="Gallery_EmptyNormal.Title" xml:space="preserve"><value>还没有主机</value></data>
+  <data name="Gallery_EmptyNormal.Description" xml:space="preserve"><value>新建一台主机开始第一次 SSH 连接。</value></data>
+  <data name="Gallery_EmptyOffline.Title" xml:space="preserve"><value>当前离线</value></data>
+  <data name="Gallery_EmptyOffline.Description" xml:space="preserve"><value>网络不可用，显示本机缓存内容。</value></data>
+  <data name="Gallery_EmptyFiltered.Title" xml:space="preserve"><value>没有匹配的主机</value></data>
+  <data name="Gallery_EmptyFiltered.Description" xml:space="preserve"><value>换个关键词试试。</value></data>
+
+  <!-- Q06：关于页 / 许可页 -->
+  <data name="About_Header.Title" xml:space="preserve"><value>关于</value></data>
+  <data name="About_AppName" xml:space="preserve"><value>Lumia SSH</value></data>
+  <data name="About_DepsHeader.Title" xml:space="preserve"><value>依赖</value></data>
+  <data name="About_LicenseHeader.Title" xml:space="preserve"><value>许可</value></data>
+  <data name="About_LicensesButton.Content" xml:space="preserve"><value>查看开源许可</value></data>
+  <data name="About_PrivacyLink" xml:space="preserve"><value>本应用仅在本地存储主机、密钥与凭据；同步内容经 Argon2id + AES 加密后上传。服务器地址与明文 HTTP 风险详见隐私说明。</value></data>
+  <data name="Licenses_Header.Title" xml:space="preserve"><value>开源许可</value></data>
+  <data name="Licenses_OssHeader.Title" xml:space="preserve"><value>开源组件</value></data>
+  <data name="Licenses_FontsHeader.Title" xml:space="preserve"><value>字体许可</value></data>
+
+  <!-- V06（C-06）：KeyImportDialog 粘贴框占位符（英文文案） -->
+  <data name="KeyImport_PasteBox.Header" xml:space="preserve"><value>粘贴私钥</value></data>
+  <data name="KeyImport_PasteBox.PlaceholderText" xml:space="preserve"><value>-----BEGIN … PRIVATE KEY-----</value></data>
+
+  <!-- V06（C-06）：KeyGenerateDialog RSA 类型（英文文案） -->
+  <data name="KeyGen_TypeEd25519.Content" xml:space="preserve"><value>ED25519（推荐）</value></data>
+  <data name="KeyGen_TypeRsa3072.Content" xml:space="preserve"><value>RSA 3072</value></data>
+  <data name="KeyGen_TypeRsa4096.Content" xml:space="preserve"><value>RSA 4096</value></data>
+
+  <!-- V06（C-06）：KeyDetailPage 硬编码中文清理 -->
+  <data name="KeyDetail_Title.Text" xml:space="preserve"><value>密钥详情</value></data>
+  <data name="KeyDetail_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="KeyDetail_Rename.Content" xml:space="preserve"><value>保存名称</value></data>
+  <data name="KeyDetail_TypeLabel.Text" xml:space="preserve"><value>类型</value></data>
+  <data name="KeyDetail_BitsLabel.Text" xml:space="preserve"><value>位数</value></data>
+  <data name="KeyDetail_FormatLabel.Text" xml:space="preserve"><value>格式</value></data>
+  <data name="KeyDetail_EncryptedLabel.Text" xml:space="preserve"><value>已加密</value></data>
+  <data name="KeyDetail_CreatedLabel.Text" xml:space="preserve"><value>创建时间</value></data>
+  <data name="KeyDetail_FingerprintLabel.Text" xml:space="preserve"><value>指纹</value></data>
+  <data name="KeyDetail_PublicKeyLabel.Text" xml:space="preserve"><value>公钥</value></data>
+  <data name="KeyDetail_Copy.Content" xml:space="preserve"><value>复制</value></data>
+  <data name="KeyDetail_Share.Content" xml:space="preserve"><value>分享</value></data>
+  <data name="KeyDetail_UsedByLabel.Text" xml:space="preserve"><value>使用它的主机</value></data>
+  <data name="KeyDetail_NoHosts.Text" xml:space="preserve"><value>没有主机使用该密钥</value></data>
+  <data name="KeyDetail_Export.Content" xml:space="preserve"><value>导出私钥</value></data>
+  <data name="KeyDetail_Delete.Content" xml:space="preserve"><value>删除密钥</value></data>
+
+  <!-- V06（C-06）：SnippetEditPage 硬编码中文清理 -->
+  <data name="SnippetEdit_SaveButton.Label" xml:space="preserve"><value>保存</value></data>
+  <data name="SnippetEdit_DeleteButton.Label" xml:space="preserve"><value>删除</value></data>
+  <data name="SnippetEdit_CancelButton.Label" xml:space="preserve"><value>取消</value></data>
+  <data name="SnippetEdit_NameBox.Header" xml:space="preserve"><value>名称 *</value></data>
+  <data name="SnippetEdit_GroupBox.Header" xml:space="preserve"><value>分组</value></data>
+  <data name="SnippetEdit_GroupBox.PlaceholderText" xml:space="preserve"><value>可输入新分组</value></data>
+  <data name="SnippetEdit_ContentBox.Header" xml:space="preserve"><value>内容 *</value></data>
+  <data name="SnippetEdit_SendEnter.Content" xml:space="preserve"><value>发送后回车</value></data>
+
+  <!-- V06（C-06）：AppearanceEditPage 硬编码中文清理 -->
+  <data name="AppearanceEdit_SaveButton.Label" xml:space="preserve"><value>保存</value></data>
+  <data name="AppearanceEdit_ResetButton.Label" xml:space="preserve"><value>还原</value></data>
+  <data name="AppearanceEdit_DuplicateButton.Label" xml:space="preserve"><value>复制为新主题</value></data>
+  <data name="AppearanceEdit_PivotFont.Header" xml:space="preserve"><value>字体</value></data>
+  <data name="AppearanceEdit_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="AppearanceEdit_BoldWeight.Header" xml:space="preserve"><value>粗体用粗字重</value></data>
+  <data name="AppearanceEdit_BoldBright.Header" xml:space="preserve"><value>粗体用亮色</value></data>
+  <data name="AppearanceEdit_PivotColor.Header" xml:space="preserve"><value>颜色</value></data>
+  <data name="AppearanceEdit_FgLabel.Text" xml:space="preserve"><value>前景</value></data>
+  <data name="AppearanceEdit_BgLabel.Text" xml:space="preserve"><value>背景</value></data>
+  <data name="AppearanceEdit_CursorLabel.Text" xml:space="preserve"><value>光标</value></data>
+  <data name="AppearanceEdit_SelectionLabel.Text" xml:space="preserve"><value>选区</value></data>
+  <data name="AppearanceEdit_AnsiLabel.Text" xml:space="preserve"><value>ANSI 0–15</value></data>
+  <data name="AppearanceEdit_PivotCursor.Header" xml:space="preserve"><value>光标</value></data>
+  <data name="AppearanceEdit_CursorStyle.Header" xml:space="preserve"><value>光标样式</value></data>
+  <data name="AppearanceEdit_CursorBlock.Content" xml:space="preserve"><value>方块</value></data>
+  <data name="AppearanceEdit_CursorBar.Content" xml:space="preserve"><value>竖线</value></data>
+  <data name="AppearanceEdit_CursorUnderline.Content" xml:space="preserve"><value>下划线</value></data>
+  <data name="AppearanceEdit_CursorBlink.Header" xml:space="preserve"><value>光标闪烁</value></data>
+
+  <!-- V06（C-06）：AppearanceListPage 硬编码中文清理 -->
+  <data name="AppearanceList_NewButton.Label" xml:space="preserve"><value>新建</value></data>
+  <data name="AppearanceList_ImportButton.Label" xml:space="preserve"><value>导入</value></data>
+  <data name="AppearanceList_Title.Text" xml:space="preserve"><value>外观</value></data>
+  <data name="AppearanceList_SetDefault.Content" xml:space="preserve"><value>设为默认</value></data>
+  <data name="AppearanceList_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多</value></data>
+  <data name="AppearanceList_MenuEdit.Text" xml:space="preserve"><value>编辑</value></data>
+  <data name="AppearanceList_MenuDuplicate.Text" xml:space="preserve"><value>复制为新主题</value></data>
+  <data name="AppearanceList_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
+
+  <!-- V06（C-06）：ShortcutEditorPage 硬编码中文清理 -->
+  <data name="Shortcut_Title.Text" xml:space="preserve"><value>快捷键</value></data>
+  <data name="Shortcut_Subtitle.Text" xml:space="preserve"><value>点击录制后按下新组合；默认组合都带 Shift，避免抢占终端按键</value></data>
+  <data name="Shortcut_Record.Content" xml:space="preserve"><value>录制</value></data>
+  <data name="Shortcut_Reset.Content" xml:space="preserve"><value>恢复默认</value></data>
+
+  <!-- V06（C-06）：KeyBarLayoutEditorPage 硬编码中文清理 -->
+  <data name="KeyBarEditor_Title.Text" xml:space="preserve"><value>键条布局</value></data>
+  <data name="KeyBarEditor_Subtitle.Text" xml:space="preserve"><value>更改立即生效，下次打开终端时使用新布局</value></data>
+  <data name="KeyBarEditor_AvailableHeader.Text" xml:space="preserve"><value>可用键</value></data>
+  <data name="KeyBarEditor_SelectedHeader.Text" xml:space="preserve"><value>已选键</value></data>
+  <data name="KeyBarEditor_Add.Content" xml:space="preserve"><value>添加 →</value></data>
+  <data name="KeyBarEditor_Remove.Content" xml:space="preserve"><value>← 移除</value></data>
+  <data name="KeyBarEditor_MoveUp.Content" xml:space="preserve"><value>上移</value></data>
+  <data name="KeyBarEditor_MoveDown.Content" xml:space="preserve"><value>下移</value></data>
+  <data name="KeyBarEditor_Reset.Content" xml:space="preserve"><value>恢复默认</value></data>
+
+  <!-- V06（C-06）：GroupManagePage 硬编码中文清理 -->
+  <data name="GroupManage_AddButton.Label" xml:space="preserve"><value>新建</value></data>
+  <data name="GroupManage_Title.Text" xml:space="preserve"><value>分组管理</value></data>
+  <data name="GroupManage_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="GroupManage_MoveUp.Content" xml:space="preserve"><value>上移</value></data>
+  <data name="GroupManage_MoveDown.Content" xml:space="preserve"><value>下移</value></data>
+  <data name="GroupManage_Delete.Content" xml:space="preserve"><value>删除</value></data>
+
+  <!-- V02（05 §6.1）：MainPage 信息架构——页头/Pivot 页签/底栏/隧道占位/加载告警（代码置 Banner.Title） -->
+  <data name="Main_PageHeader.Title" xml:space="preserve"><value>Lumia SSH</value></data>
+  <data name="Main_SyncButton.AutomationProperties.Name" xml:space="preserve"><value>同步</value></data>
+  <data name="Main_PivotHosts.Header" xml:space="preserve"><value>主机</value></data>
+  <data name="Main_PivotSessions.Header" xml:space="preserve"><value>会话</value></data>
+  <data name="Main_PivotTunnels.Header" xml:space="preserve"><value>隧道</value></data>
+  <data name="Main_TunnelsEmpty.Title" xml:space="preserve"><value>暂无隧道</value></data>
+  <data name="Main_TunnelsEmpty.Description" xml:space="preserve"><value>转发在会话后台运行。</value></data>
+  <data name="Main_QuickConnectButton.Label" xml:space="preserve"><value>快速连接</value></data>
+  <data name="Main_NewButton.Label" xml:space="preserve"><value>新建</value></data>
+  <data name="Main_SettingsItem.Label" xml:space="preserve"><value>设置</value></data>
+  <data name="Main_KeysItem.Label" xml:space="preserve"><value>密钥</value></data>
+  <data name="Main_SnippetsItem.Label" xml:space="preserve"><value>片段</value></data>
+  <data name="Main_AppearanceItem.Label" xml:space="preserve"><value>外观</value></data>
+  <data name="Main_KnownHostsItem.Label" xml:space="preserve"><value>已知主机</value></data>
+  <data name="Main_AboutItem.Label" xml:space="preserve"><value>关于</value></data>
+  <data name="Main_SignInItem.Label" xml:space="preserve"><value>登录</value></data>
+  <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>开发工具</value></data>
+  <data name="Main_LoadWarningTitle" xml:space="preserve"><value>数据文件有告警</value></data>
+
+  <!-- V02（05 §6.1）：HostsPivot——常驻搜索行、可折叠快速连接、空状态双 Kind；
+       NoMatches 标题/主按钮由代码拼装（含搜索词），走格式化键。 -->
+  <data name="Hosts_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索主机、地址、用户</value></data>
+  <data name="Hosts_NewHostButton.AutomationProperties.Name" xml:space="preserve"><value>新建主机</value></data>
+  <data name="Hosts_QuickConnectRow.AutomationProperties.Name" xml:space="preserve"><value>展开或收起快速连接</value></data>
+  <data name="Hosts_QuickConnectRowText.Text" xml:space="preserve"><value>快速连接</value></data>
+  <data name="Hosts_QuickConnectBox.PlaceholderText" xml:space="preserve"><value>user@host[:port]</value></data>
+  <data name="Hosts_QuickConnectGo.Content" xml:space="preserve"><value>连接</value></data>
+  <data name="Hosts_Empty.Title" xml:space="preserve"><value>还没有主机</value></data>
+  <data name="Hosts_Empty.Description" xml:space="preserve"><value>添加一台主机，或登录同步已有配置。</value></data>
+  <data name="Hosts_Empty.PrimaryText" xml:space="preserve"><value>添加主机</value></data>
+  <data name="Hosts_Empty.SecondaryText" xml:space="preserve"><value>登录同步</value></data>
+  <data name="Hosts_NoMatchesTitle" xml:space="preserve"><value>没有匹配“{0}”的主机</value></data>
+  <data name="Hosts_NoMatchesPrimary" xml:space="preserve"><value>用它快速连接</value></data>
+
+  <!-- V02（05 §6.1）：HostRow 上下文菜单与尾操作（Chevron 进编辑） -->
+  <data name="HostRow_MenuConnect.Text" xml:space="preserve"><value>连接</value></data>
+  <data name="HostRow_MenuNewSession.Text" xml:space="preserve"><value>新会话</value></data>
+  <data name="HostRow_MenuEdit.Text" xml:space="preserve"><value>编辑</value></data>
+  <data name="HostRow_MenuDuplicate.Text" xml:space="preserve"><value>复制为新主机</value></data>
+  <data name="HostRow_MenuSftp.Text" xml:space="preserve"><value>SFTP</value></data>
+  <data name="HostRow_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
+  <data name="HostRow_EditButton.AutomationProperties.Name" xml:space="preserve"><value>编辑主机</value></data>
+
+  <!-- V02（05 §6.1）：DevToolsPage——Debug 构建的开发工具入口（主页溢出迁入） -->
+  <data name="DevTools_PageHeader.Title" xml:space="preserve"><value>开发工具</value></data>
+  <data name="DevTools_RowDebugConnect.Title" xml:space="preserve"><value>N10 调试连接</value></data>
+  <data name="DevTools_RowVault.Title" xml:space="preserve"><value>S05 保险库自检</value></data>
+  <data name="DevTools_RowSpike.Title" xml:space="preserve"><value>SP01 JSON Spike</value></data>
+  <data name="DevTools_RowToken.Title" xml:space="preserve"><value>X03 Token 画廊</value></data>
+  <data name="DevTools_RowRender.Title" xml:space="preserve"><value>SP04 渲染压测</value></data>
+  <data name="DevTools_RowPerf.Title" xml:space="preserve"><value>Q01 性能基准</value></data>
+  <data name="DevTools_RowInput.Title" xml:space="preserve"><value>SP05 输入采集</value></data>
+  <data name="DevTools_RowPlatform.Title" xml:space="preserve"><value>SP06 平台 Spike</value></data>
+  <data name="DevTools_RowGenHosts.Title" xml:space="preserve"><value>生成 100 台测试主机</value></data>
+
+  <!-- V04a（C-06 + C-07 + §6.4）：SettingsPage 全量文案走 resw 双语 -->
+  <data name="Settings_PageTitle" xml:space="preserve"><value>设置</value></data>
+  <data name="Settings_Pivot_General.Header" xml:space="preserve"><value>通用</value></data>
+  <data name="Settings_Pivot_Terminal.Header" xml:space="preserve"><value>终端</value></data>
+  <data name="Settings_Pivot_Keyboard.Header" xml:space="preserve"><value>键盘</value></data>
+  <data name="Settings_Pivot_Connection.Header" xml:space="preserve"><value>连接</value></data>
+  <data name="Settings_Pivot_About.Header" xml:space="preserve"><value>关于</value></data>
+  <data name="Settings_ResetDefault" xml:space="preserve"><value>恢复默认</value></data>
+  <data name="Settings_Unit_Pt" xml:space="preserve"><value>{0} pt</value></data>
+  <data name="Settings_Unit_Lines" xml:space="preserve"><value>{0} 行</value></data>
+  <data name="Settings_Unit_Times" xml:space="preserve"><value>{0} 次</value></data>
+  <data name="Settings_Unit_Seconds" xml:space="preserve"><value>{0} 秒</value></data>
+  <data name="Settings_Unit_Minutes" xml:space="preserve"><value>{0} 分钟</value></data>
+  <data name="Settings_Unit_Never" xml:space="preserve"><value>永不超时</value></data>
+  <data name="Settings_Unit_Keys" xml:space="preserve"><value>个键</value></data>
+  <data name="Settings_Unit_Conflicts" xml:space="preserve"><value>处冲突</value></data>
+  <data name="Settings_Unit_Actions" xml:space="preserve"><value>个动作</value></data>
+  <data name="Settings_Confirm_ClearLogs" xml:space="preserve"><value>删除本机全部日志文件？</value></data>
+  <data name="Settings_AppearanceFallback" xml:space="preserve"><value>系统默认</value></data>
+  <data name="Settings_Diagnostics_OsVersion" xml:space="preserve"><value>系统版本：{0}</value></data>
+  <data name="Settings_Diagnostics_DeviceFamily" xml:space="preserve"><value>设备系列：{0}</value></data>
+  <data name="Settings_Diagnostics_Memory" xml:space="preserve"><value>内存：{0}</value></data>
+
+  <!-- V04a：FormSection 说明（动态拼装：当前值 + 范围） -->
+  <data name="Settings_FontSize_Description" xml:space="preserve"><value>{0}（8–28）</value></data>
+  <data name="Settings_Scrollback_Description" xml:space="preserve"><value>{0}（1000–50000）</value></data>
+  <data name="Settings_Reconnect_Description" xml:space="preserve"><value>{0}（0–10）</value></data>
+  <data name="Settings_Timeout_Description" xml:space="preserve"><value>{0}（5–60）</value></data>
+  <data name="Settings_AgentTimeout_Description" xml:space="preserve"><value>{0}（0–120）</value></data>
+
+  <!-- V04a：Toast 文案 -->
+  <data name="Settings_Toast_ThemeChanged" xml:space="preserve"><value>已切换主题</value></data>
+  <data name="Settings_Toast_AccentChanged" xml:space="preserve"><value>已切换强调色</value></data>
+  <data name="Settings_Toast_LanguageChanged" xml:space="preserve"><value>重启应用后生效</value></data>
+  <data name="Settings_Toast_KeepScreenChanged" xml:space="preserve"><value>常亮设置已生效</value></data>
+  <data name="Settings_Toast_LogLevelChanged" xml:space="preserve"><value>日志级别已生效</value></data>
+  <data name="Settings_Toast_DiagnosticsRefreshed" xml:space="preserve"><value>诊断信息已刷新</value></data>
+  <data name="Settings_Toast_DiagnosticsCopied" xml:space="preserve"><value>诊断信息已复制</value></data>
+  <data name="Settings_Toast_CopyFailed" xml:space="preserve"><value>复制失败</value></data>
+
+  <!-- V04a：通用 Pivot -->
+  <data name="Settings_General_Theme_Header" xml:space="preserve"><value>主题</value></data>
+  <data name="Settings_General_Theme_System" xml:space="preserve"><value>跟随系统</value></data>
+  <data name="Settings_General_Theme_Dark" xml:space="preserve"><value>深色</value></data>
+  <data name="Settings_General_Theme_Light" xml:space="preserve"><value>浅色</value></data>
+  <data name="Settings_General_Theme_Note" xml:space="preserve"><value>切换后立即生效，无需重启</value></data>
+  <data name="Settings_General_Accent_Header" xml:space="preserve"><value>使用系统强调色</value></data>
+  <data name="Settings_General_Sort_Header" xml:space="preserve"><value>主机排序</value></data>
+  <data name="Settings_General_Sort_Name" xml:space="preserve"><value>按名称</value></data>
+  <data name="Settings_General_Sort_Recent" xml:space="preserve"><value>按最近连接</value></data>
+  <data name="Settings_General_QuickConnect_Header" xml:space="preserve"><value>显示快速连接卡</value></data>
+  <data name="Settings_General_Haptics_Header" xml:space="preserve"><value>触感反馈</value></data>
+  <data name="Settings_General_Language_Header" xml:space="preserve"><value>语言</value></data>
+  <data name="Settings_General_Language_System" xml:space="preserve"><value>跟随系统</value></data>
+  <data name="Settings_General_Language_Zh" xml:space="preserve"><value>简体中文</value></data>
+  <data name="Settings_General_Language_En" xml:space="preserve"><value>English</value></data>
+  <data name="Settings_General_Language_Note" xml:space="preserve"><value>切换语言后重启应用生效</value></data>
+
+  <!-- V04a：终端 Pivot -->
+  <data name="Settings_Terminal_Appearance_Header" xml:space="preserve"><value>默认外观</value></data>
+  <data name="Settings_Terminal_Appearance_Select" xml:space="preserve"><value>选择外观</value></data>
+  <data name="Settings_Terminal_FontSize_Header" xml:space="preserve"><value>默认字号</value></data>
+  <data name="Settings_Terminal_Scrollback_Header" xml:space="preserve"><value>回滚行数</value></data>
+  <data name="Settings_Terminal_Scrollback_Note" xml:space="preserve"><value>1000–50000，越大越占内存</value></data>
+  <data name="Settings_Terminal_AltScroll_Header" xml:space="preserve"><value>Alt-screen 滚动</value></data>
+  <data name="Settings_Terminal_AltScroll_Arrows" xml:space="preserve"><value>方向键</value></data>
+  <data name="Settings_Terminal_AltScroll_Wheel" xml:space="preserve"><value>滚轮</value></data>
+  <data name="Settings_Terminal_PasteConfirm_Header" xml:space="preserve"><value>多行粘贴前确认</value></data>
+  <data name="Settings_Terminal_CursorBlink_Header" xml:space="preserve"><value>光标闪烁跟随外观</value></data>
+  <data name="Settings_Terminal_CursorBlink_Note" xml:space="preserve"><value>在外观页中修改</value></data>
+  <data name="Settings_Terminal_CursorBlink_Link" xml:space="preserve"><value>去外观</value></data>
+
+  <!-- V04a：键盘 Pivot -->
+  <data name="Settings_Keyboard_KeyBar_Header" xml:space="preserve"><value>显示键条</value></data>
+  <data name="Settings_Keyboard_KeyBarLayout_Header" xml:space="preserve"><value>键条布局</value></data>
+  <data name="Settings_Keyboard_KeyBarLayout_Edit" xml:space="preserve"><value>编辑键条布局</value></data>
+  <data name="Settings_Keyboard_Backspace_Header" xml:space="preserve"><value>退格默认发送</value></data>
+  <data name="Settings_Keyboard_Backspace_Note" xml:space="preserve"><value>退格发送为每台主机单独设置（主机编辑页 → 终端 → 退格发送 Ctrl+H）</value></data>
+  <data name="Settings_Keyboard_Shortcuts_Header" xml:space="preserve"><value>快捷键表</value></data>
+  <data name="Settings_Keyboard_Shortcuts_Edit" xml:space="preserve"><value>编辑快捷键</value></data>
+
+  <!-- V04a：连接 Pivot -->
+  <data name="Settings_Connection_KeepScreen_Header" xml:space="preserve"><value>屏幕常亮</value></data>
+  <data name="Settings_Connection_KeepScreen_Never" xml:space="preserve"><value>从不</value></data>
+  <data name="Settings_Connection_KeepScreen_Session" xml:space="preserve"><value>会话中有连接时</value></data>
+  <data name="Settings_Connection_KeepScreen_Always" xml:space="preserve"><value>总是</value></data>
+  <data name="Settings_Connection_KeepAlive_Header" xml:space="preserve"><value>后台保持连接</value></data>
+  <data name="Settings_Connection_KeepAlive_Note" xml:space="preserve"><value>关闭后进入后台立即断开，回到应用后自动重连</value></data>
+  <data name="Settings_Connection_BgDisc_Header" xml:space="preserve"><value>后台 N 分钟后断开</value></data>
+  <data name="Settings_Connection_BgDisc_Off" xml:space="preserve"><value>关</value></data>
+  <data name="Settings_Connection_BgDisc_5" xml:space="preserve"><value>5 分钟</value></data>
+  <data name="Settings_Connection_BgDisc_15" xml:space="preserve"><value>15 分钟</value></data>
+  <data name="Settings_Connection_BgDisc_30" xml:space="preserve"><value>30 分钟</value></data>
+  <data name="Settings_Connection_BgDisc_60" xml:space="preserve"><value>60 分钟</value></data>
+  <data name="Settings_Connection_Reconnect_Header" xml:space="preserve"><value>自动重连次数</value></data>
+  <data name="Settings_Connection_Reconnect_Note" xml:space="preserve"><value>0 = 不自动重连</value></data>
+  <data name="Settings_Connection_Timeout_Header" xml:space="preserve"><value>连接超时</value></data>
+  <data name="Settings_Connection_AgentTimeout_Header" xml:space="preserve"><value>Agent 密钥保留</value></data>
+  <data name="Settings_Connection_AgentTimeout_Note" xml:space="preserve"><value>解锁后私钥在内存中保留的时长；挂起时立即清除</value></data>
+  <data name="Settings_Connection_Poll_Header" xml:space="preserve"><value>同步轮询间隔</value></data>
+  <data name="Settings_Connection_Poll_Off" xml:space="preserve"><value>关</value></data>
+  <data name="Settings_Connection_Poll_1" xml:space="preserve"><value>1 分钟</value></data>
+  <data name="Settings_Connection_Poll_5" xml:space="preserve"><value>5 分钟</value></data>
+  <data name="Settings_Connection_Poll_15" xml:space="preserve"><value>15 分钟</value></data>
+  <data name="Settings_Connection_Poll_Note" xml:space="preserve"><value>前台轮询，后台不轮询</value></data>
+
+  <!-- V04a：关于 Pivot -->
+  <data name="Settings_About_Version_Header" xml:space="preserve"><value>版本</value></data>
+  <data name="Settings_About_Licenses" xml:space="preserve"><value>开源许可</value></data>
+  <data name="Settings_About_LogLevel_Header" xml:space="preserve"><value>日志级别</value></data>
+  <data name="Settings_About_LogLevel_Debug" xml:space="preserve"><value>调试</value></data>
+  <data name="Settings_About_LogLevel_Info" xml:space="preserve"><value>信息</value></data>
+  <data name="Settings_About_LogLevel_Warn" xml:space="preserve"><value>警告</value></data>
+  <data name="Settings_About_LogLevel_Error" xml:space="preserve"><value>错误</value></data>
+  <data name="Settings_About_ExportLogs" xml:space="preserve"><value>导出日志</value></data>
+  <data name="Settings_About_ClearLogs" xml:space="preserve"><value>清空日志</value></data>
+  <data name="Settings_About_Diagnostics_Header" xml:space="preserve"><value>诊断信息</value></data>
+  <data name="Settings_About_Refresh" xml:space="preserve"><value>刷新</value></data>
+  <data name="Settings_About_Copy" xml:space="preserve"><value>复制</value></data>
+
+  <!-- V04b（C-06 + §6.4）：HostEditPage 五 Section 结构 + BottomActionBar + 折叠高级 + 全量文案走 resw -->
+  <data name="HostEdit_Section_Basic.Header" xml:space="preserve"><value>基础连接</value></data>
+  <data name="HostEdit_Section_Auth.Header" xml:space="preserve"><value>认证</value></data>
+  <data name="HostEdit_Section_Terminal.Header" xml:space="preserve"><value>终端</value></data>
+  <data name="HostEdit_Section_Proxy.Header" xml:space="preserve"><value>代理/跳板</value></data>
+  <data name="HostEdit_Section_Advanced.Text" xml:space="preserve"><value>高级</value></data>
+  <data name="HostEdit_NameBox.Header" xml:space="preserve"><value>名称 *</value></data>
+  <data name="HostEdit_HostBox.Header" xml:space="preserve"><value>地址 *</value></data>
+  <data name="HostEdit_PortBox.Header" xml:space="preserve"><value>端口</value></data>
+  <data name="HostEdit_UserBox.Header" xml:space="preserve"><value>用户名 *</value></data>
+  <data name="HostEdit_GroupBox.Header" xml:space="preserve"><value>分组</value></data>
+  <data name="HostEdit_KeepaliveBox.Header" xml:space="preserve"><value>保活间隔(秒)</value></data>
+  <data name="HostEdit_PasswordBox.Header" xml:space="preserve"><value>密码</value></data>
+  <data name="HostEdit_KeyBox.Header" xml:space="preserve"><value>私钥</value></data>
+  <data name="HostEdit_PassphraseBox.Header" xml:space="preserve"><value>密码短语</value></data>
+  <data name="HostEdit_AppearanceBox.Header" xml:space="preserve"><value>外观</value></data>
+  <data name="HostEdit_TermTypeBox.Header" xml:space="preserve"><value>终端类型</value></data>
+  <data name="HostEdit_JumpBox.Header" xml:space="preserve"><value>跳板主机</value></data>
+  <data name="HostEdit_TmuxNameBox.Header" xml:space="preserve"><value>tmux 会话名</value></data>
+  <data name="HostEdit_InitBox.Header" xml:space="preserve"><value>连接后执行命令（每行一条）</value></data>
+  <data name="HostEdit_RememberPasswordSwitch.Header" xml:space="preserve"><value>保存在本机</value></data>
+  <data name="HostEdit_RememberPassphraseSwitch.Header" xml:space="preserve"><value>保存短语</value></data>
+  <data name="HostEdit_BackspaceSwitch.Header" xml:space="preserve"><value>退格发送 Ctrl+H</value></data>
+  <data name="HostEdit_TmuxSwitch.Header" xml:space="preserve"><value>tmux 自动附着</value></data>
+  <data name="HostEdit_AuthPasswordRadio.Content" xml:space="preserve"><value>密码</value></data>
+  <data name="HostEdit_AuthKeyRadio.Content" xml:space="preserve"><value>私钥</value></data>
+  <data name="HostEdit_AuthAgentRadio.Content" xml:space="preserve"><value>应用内 Agent</value></data>
+  <data name="HostEdit_ManageGroups.Content" xml:space="preserve"><value>管理分组</value></data>
+  <data name="HostEdit_ManageAppearances.Content" xml:space="preserve"><value>管理外观</value></data>
+  <data name="HostEdit_ImportKey.Content" xml:space="preserve"><value>导入</value></data>
+  <data name="HostEdit_GenerateKey.Content" xml:space="preserve"><value>生成</value></data>
+  <data name="HostEdit_AddEnv.Content" xml:space="preserve"><value>添加变量</value></data>
+  <data name="HostEdit_AddTunnel.Content" xml:space="preserve"><value>添加隧道</value></data>
+  <data name="HostEdit_ClearFingerprint.Content" xml:space="preserve"><value>清除</value></data>
+  <data name="HostEdit_LocalOnly.Text" xml:space="preserve"><value>仅本机</value></data>
+  <data name="HostEdit_HostFingerprint.Text" xml:space="preserve"><value>主机指纹</value></data>
+  <data name="HostEdit_EnvVars.Text" xml:space="preserve"><value>环境变量</value></data>
+  <data name="HostEdit_Tunnels.Text" xml:space="preserve"><value>隧道</value></data>
+  <data name="HostEdit_TmuxNote.Text" xml:space="preserve"><value>断线/被系统挂起后重连回到原现场，推荐开启</value></data>
+  <data name="HostEdit_SyncPasswordNote.Text" xml:space="preserve"><value>开启同步密码后会加密上传</value></data>
+  <data name="HostEdit_EnvKey_Placeholder" xml:space="preserve"><value>KEY</value></data>
+  <data name="HostEdit_EnvValue_Placeholder" xml:space="preserve"><value>VALUE</value></data>
+  <data name="HostEdit_RemoveEnv.Content" xml:space="preserve"><value>删除</value></data>
+  <data name="HostEdit_AdvancedToggle.Header" xml:space="preserve"><value>高级</value></data>
+  <data name="HostEdit_AdvancedToggle_Chevron" xml:space="preserve"><value>展开或收起高级设置</value></data>
+  <!-- V04b：HostEditPage 代码拼装文案（ResourceLoader） -->
+  <data name="HostEdit_Save" xml:space="preserve"><value>保存</value></data>
+  <data name="HostEdit_TestConnect" xml:space="preserve"><value>测试连接</value></data>
+  <data name="HostEdit_AbandonTitle" xml:space="preserve"><value>放弃修改？</value></data>
+  <data name="HostEdit_AbandonMessage" xml:space="preserve"><value>未保存的更改将丢失。</value></data>
+  <data name="HostEdit_AbandonConfirm" xml:space="preserve"><value>放弃</value></data>
+  <data name="HostEdit_AbandonCancel" xml:space="preserve"><value>继续编辑</value></data>
+  <data name="HostEdit_SwitchAuthTitle" xml:space="preserve"><value>切换认证方式？</value></data>
+  <data name="HostEdit_SwitchAuthConfirm" xml:space="preserve"><value>切换</value></data>
+  <data name="HostEdit_SwitchAuthCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="HostEdit_TestMessage" xml:space="preserve"><value>测试连接…</value></data>
+  <data name="HostEdit_TestTitle" xml:space="preserve"><value>测试连接</value></data>
+  <data name="HostEdit_TestFailedTitle" xml:space="preserve"><value>测试失败</value></data>
+  <data name="HostEdit_DialogOk" xml:space="preserve"><value>确定</value></data>
+  <data name="HostEdit_DialogClose" xml:space="preserve"><value>关闭</value></data>
+  <data name="HostEdit_FingerprintNone" xml:space="preserve"><value>（无）</value></data>
+
+  <!-- V04b（C-06 + §6.4）：KeysPage 行模板 + 底部动作 + 全量文案走 resw -->
+  <data name="Keys_Title.Text" xml:space="preserve"><value>密钥</value></data>
+  <data name="Keys_Empty_Title" xml:space="preserve"><value>还没有密钥</value></data>
+  <data name="Keys_Empty_Description" xml:space="preserve"><value>生成一个新密钥，或导入已有的私钥。</value></data>
+  <data name="Keys_Empty_Primary" xml:space="preserve"><value>生成密钥</value></data>
+  <data name="Keys_Empty_Secondary" xml:space="preserve"><value>导入密钥</value></data>
+  <data name="Keys_Generate.Label" xml:space="preserve"><value>生成</value></data>
+  <data name="Keys_Import.Label" xml:space="preserve"><value>导入</value></data>
+  <data name="Keys_MenuDetail.Text" xml:space="preserve"><value>查看详情</value></data>
+  <data name="Keys_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
+  <data name="Keys_MoreButton_A11yName" xml:space="preserve"><value>更多操作</value></data>
+  <data name="Keys_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多操作</value></data>
+
+  <!-- V04b（C-06 + §6.4）：SnippetsPage 发送按钮 + 分组行 + 全量文案走 resw -->
+  <data name="Snippets_Title.Text" xml:space="preserve"><value>片段</value></data>
+  <data name="Snippets_Empty_Title" xml:space="preserve"><value>还没有片段</value></data>
+  <data name="Snippets_Empty_Description" xml:space="preserve"><value>把常用命令存成片段，一键发送到终端。</value></data>
+  <data name="Snippets_Empty_Primary" xml:space="preserve"><value>新建片段</value></data>
+  <data name="Snippets_NoMatches_Title" xml:space="preserve"><value>没有匹配的片段</value></data>
+  <data name="Snippets_Search_Placeholder" xml:space="preserve"><value>搜索片段</value></data>
+  <data name="Snippets_New.Label" xml:space="preserve"><value>新建</value></data>
+  <data name="Snippets_SendButton.AutomationProperties.Name" xml:space="preserve"><value>发送</value></data>
+
+  <!-- V05b（U17~U20 同步页）：状态 Pivot / 设备 / 历史 / 冲突 / 安全清理 / 注销 -->
+  <!-- SyncStatePresenter 相位文案键 -->
+  <data name="Sync_SignedOut" xml:space="preserve"><value>未登录</value></data>
+  <data name="Sync_Disabled" xml:space="preserve"><value>同步未开启</value></data>
+  <data name="Sync_Locked" xml:space="preserve"><value>保险库已锁定</value></data>
+  <data name="Sync_Idle" xml:space="preserve"><value>等待同步</value></data>
+  <data name="Sync_Syncing" xml:space="preserve"><value>正在同步…</value></data>
+  <data name="Sync_Synced" xml:space="preserve"><value>已同步</value></data>
+  <data name="Sync_Offline" xml:space="preserve"><value>离线，稍后重试</value></data>
+  <data name="Sync_Conflict" xml:space="preserve"><value>需要处理冲突</value></data>
+  <data name="Sync_Error" xml:space="preserve"><value>同步失败</value></data>
+  <data name="Sync_AuthError" xml:space="preserve"><value>登录已失效</value></data>
+
+  <!-- AccountSyncPage -->
+  <data name="AccountSync_Header.Title" xml:space="preserve"><value>账号与同步</value></data>
+  <data name="AccountSync_TabStatus.Header" xml:space="preserve"><value>状态</value></data>
+  <data name="AccountSync_TabDevices.Header" xml:space="preserve"><value>设备</value></data>
+  <data name="AccountSync_TabHistory.Header" xml:space="preserve"><value>历史</value></data>
+  <data name="AccountSync_LastSynced" xml:space="preserve"><value>上次同步 {0}</value></data>
+  <data name="AccountSync_LastSyncedNone" xml:space="preserve"><value>尚未同步</value></data>
+  <data name="AccountSync_NextRetry" xml:space="preserve"><value>下次重试 {0}</value></data>
+  <data name="AccountSync_Meta" xml:space="preserve"><value>版本 r{0} · 密钥 v{1}</value></data>
+  <data name="AccountSync_SyncNow" xml:space="preserve"><value>立即同步</value></data>
+  <data name="AccountSync_ResolveConflict" xml:space="preserve"><value>处理冲突</value></data>
+  <data name="AccountSync_SyncSettingsHeader" xml:space="preserve"><value>同步设置</value></data>
+  <data name="AccountSync_EnableSync" xml:space="preserve"><value>启用同步</value></data>
+  <data name="AccountSync_AutoSync" xml:space="preserve"><value>自动同步</value></data>
+  <data name="AccountSync_SyncPasswords" xml:space="preserve"><value>同步密码与短语</value></data>
+  <data name="AccountSync_SyncPrivateKeys" xml:space="preserve"><value>同步私钥</value></data>
+  <data name="AccountSync_VaultHeader" xml:space="preserve"><value>保险库</value></data>
+  <data name="AccountSync_ChangeSyncPassword" xml:space="preserve"><value>修改同步密码</value></data>
+  <data name="AccountSync_AccountHeader" xml:space="preserve"><value>账号</value></data>
+  <data name="AccountSync_ChangeLoginPassword" xml:space="preserve"><value>修改登录密码</value></data>
+  <data name="AccountSync_Logout" xml:space="preserve"><value>退出登录</value></data>
+  <data name="AccountSync_LogoutAll" xml:space="preserve"><value>退出所有设备</value></data>
+  <data name="AccountSync_DangerHeader" xml:space="preserve"><value>危险操作</value></data>
+  <data name="AccountSync_DeleteVault" xml:space="preserve"><value>删除云端保险库…</value></data>
+  <data name="AccountSync_DeleteAccount" xml:space="preserve"><value>注销账号…</value></data>
+  <data name="AccountSync_DevicesEmpty" xml:space="preserve"><value>暂无设备</value></data>
+  <data name="AccountSync_HistoryEmpty" xml:space="preserve"><value>暂无历史版本</value></data>
+  <data name="AccountSync_RenameDeviceTitle" xml:space="preserve"><value>重命名设备</value></data>
+  <data name="AccountSync_Rename" xml:space="preserve"><value>重命名</value></data>
+  <data name="AccountSync_Revoke" xml:space="preserve"><value>撤销设备…</value></data>
+  <data name="AccountSync_RevokeDeviceTitle" xml:space="preserve"><value>撤销设备</value></data>
+  <data name="AccountSync_RevokeDeviceMessage" xml:space="preserve"><value>撤销后该设备将需要重新登录才能同步。此操作不可撤销。</value></data>
+  <data name="AccountSync_RestoreTitle" xml:space="preserve"><value>恢复到此版本</value></data>
+  <data name="AccountSync_RestoreMessage" xml:space="preserve"><value>将以此版本创建新的云端版本并覆盖本机配置。</value></data>
+  <data name="AccountSync_Restore" xml:space="preserve"><value>恢复</value></data>
+  <data name="AccountSync_ClearHistoryTitle" xml:space="preserve"><value>清空历史</value></data>
+  <data name="AccountSync_ClearHistoryMessage" xml:space="preserve"><value>云端历史版本将全部删除，且不可恢复。</value></data>
+  <data name="AccountSync_Clear" xml:space="preserve"><value>清空</value></data>
+  <data name="AccountSync_DeleteVaultTitle" xml:space="preserve"><value>删除云端保险库</value></data>
+  <data name="AccountSync_DeleteVaultMessage" xml:space="preserve"><value>云端保险库和历史版本将被删除，本机配置仍保留。</value></data>
+  <data name="AccountSync_Delete" xml:space="preserve"><value>删除</value></data>
+  <data name="AccountSync_LogoutTitle" xml:space="preserve"><value>退出登录</value></data>
+  <data name="AccountSync_LogoutMessage" xml:space="preserve"><value>将退出当前设备。</value></data>
+  <data name="AccountSync_LogoutAllTitle" xml:space="preserve"><value>退出所有设备</value></data>
+  <data name="AccountSync_LogoutAllMessage" xml:space="preserve"><value>所有设备都将退出登录，需要重新登录才能同步。</value></data>
+  <data name="AccountSync_DeviceCurrentNote" xml:space="preserve"><value>这是当前设备。重命名可用；撤销请用「退出登录」。</value></data>
+  <data name="AccountSync_DeviceListFailed" xml:space="preserve"><value>无法加载设备列表</value></data>
+  <data name="AccountSync_HistoryListFailed" xml:space="preserve"><value>无法加载历史版本</value></data>
+  <data name="AccountSync_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Sync_Conflict_SensitiveChanged" xml:space="preserve"><value>有变更</value></data>
+  <data name="Sync_CommandFailed" xml:space="preserve"><value>操作失败，请稍后重试</value></data>
+
+  <!-- SyncConflictPage (U19) -->
+  <data name="Conflict_Header.Title" xml:space="preserve"><value>同步冲突</value></data>
+  <data name="Conflict_FieldsHeader" xml:space="preserve"><value>涉及项目</value></data>
+  <data name="Conflict_Title_InitialImport" xml:space="preserve"><value>首次同步，云端已有配置</value></data>
+  <data name="Conflict_Title_RemoteDeletion" xml:space="preserve"><value>云端删除了以下项目</value></data>
+  <data name="Conflict_Title_MergeConflict" xml:space="preserve"><value>以下字段两边都改了</value></data>
+  <data name="Conflict_Description_InitialImport" xml:space="preserve"><value>这是你首次在本机启用同步，但云端已有一份配置。请选择保留哪一份。</value></data>
+  <data name="Conflict_Description_RemoteDeletion" xml:space="preserve"><value>云端版本中删除了部分在本机仍存在的项目，请确认后应用。</value></data>
+  <data name="Conflict_Description_MergeConflict" xml:space="preserve"><value>本机与云端修改了同一实段的字段，请决定保留哪一侧。</value></data>
+  <data name="Conflict_Button_UseRemote" xml:space="preserve"><value>使用云端配置</value></data>
+  <data name="Conflict_Button_KeepLocal" xml:space="preserve"><value>保留本机配置</value></data>
+  <data name="Conflict_Button_ApplyDeletion" xml:space="preserve"><value>应用删除</value></data>
+  <data name="Conflict_RemoteSummary" xml:space="preserve"><value>云端：{0} 台主机 · {1} 条隧道 · {2} 分组</value></data>
+  <data name="Conflict_IncludesPasswords" xml:space="preserve"><value>含已同步密码</value></data>
+  <data name="Conflict_IncludesPrivateKeys" xml:space="preserve"><value>含已同步私钥</value></data>
+  <data name="Conflict_ResolveFailed" xml:space="preserve"><value>解决冲突失败，请稍后重试</value></data>
+
+  <!-- SecurityRotatePage (U20) -->
+  <data name="SecurityRotate_Header.Title" xml:space="preserve"><value>安全清理</value></data>
+  <data name="SecurityRotate_LoginPasswordLabel" xml:space="preserve"><value>账号登录密码</value></data>
+  <data name="SecurityRotate_NewPasswordLabel" xml:space="preserve"><value>新同步密码</value></data>
+  <data name="SecurityRotate_ConfirmLabel" xml:space="preserve"><value>确认新同步密码</value></data>
+  <data name="SecurityRotate_PasswordHint" xml:space="preserve"><value>同步密码至少 8 位</value></data>
+  <data name="SecurityRotate_Submit" xml:space="preserve"><value>执行</value></data>
+  <data name="SecurityRotate_Working" xml:space="preserve"><value>正在生成新密钥（约数秒）…</value></data>
+  <data name="SecurityRotate_Failed" xml:space="preserve"><value>操作失败，请稍后重试</value></data>
+
+  <!-- ChangeLoginPasswordPage (U20) -->
+  <data name="ChangeLogin_Header.Title" xml:space="preserve"><value>修改登录密码</value></data>
+  <data name="ChangeLogin_CurrentLabel" xml:space="preserve"><value>当前密码</value></data>
+  <data name="ChangeLogin_NewLabel" xml:space="preserve"><value>新密码</value></data>
+  <data name="ChangeLogin_NewHint" xml:space="preserve"><value>新密码至少 10 位</value></data>
+  <data name="ChangeLogin_ConfirmLabel" xml:space="preserve"><value>确认新密码</value></data>
+  <data name="ChangeLogin_Submit" xml:space="preserve"><value>修改密码</value></data>
+  <data name="ChangeLogin_TooShort" xml:space="preserve"><value>新密码至少 10 位</value></data>
+  <data name="ChangeLogin_Failed" xml:space="preserve"><value>修改密码失败，请稍后重试</value></data>
+
+  <!-- DeleteAccountPage (U20) -->
+  <data name="DeleteAccount_Header.Title" xml:space="preserve"><value>注销账号</value></data>
+  <data name="DeleteAccount_Warning" xml:space="preserve"><value>此操作将永久删除你的账号与云端保险库，且不可恢复。</value></data>
+  <data name="DeleteAccount_PasswordLabel" xml:space="preserve"><value>登录密码</value></data>
+  <data name="DeleteAccount_ConfirmLabel" xml:space="preserve"><value>输入 DELETE 以确认</value></data>
+  <data name="DeleteAccount_ConfirmBox.PlaceholderText" xml:space="preserve"><value>DELETE</value></data>
+  <data name="DeleteAccount_Submit" xml:space="preserve"><value>注销账号</value></data>
+  <data name="DeleteAccount_Failed" xml:space="preserve"><value>注销账号失败，请稍后重试</value></data>
+
+  <!-- DeleteVaultPage (U20) -->
+  <data name="DeleteVault_Header.Title" xml:space="preserve"><value>删除云端保险库</value></data>
+  <data name="DeleteVault_Explanation" xml:space="preserve"><value>云端保险库和历史版本将被删除，本机配置仍保留。</value></data>
+  <data name="DeleteVault_PasswordLabel" xml:space="preserve"><value>登录密码</value></data>
+  <data name="DeleteVault_Submit" xml:space="preserve"><value>删除云端保险库</value></data>
+  <data name="DeleteVault_Failed" xml:space="preserve"><value>删除保险库失败，请稍后重试</value></data>
+
+  <!-- F06：隧道与端口转发 (Tunnels) -->
+  <data name="Tunnels_Title.Text" xml:space="preserve"><value>端口转发</value></data>
+  <data name="Tunnels_StopAllButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>全部停止</value></data>
+  <data name="Tunnels_AddTunnelButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>添加隧道</value></data>
+  <data name="Tunnels_EmptyState.Title" xml:space="preserve"><value>暂无隧道</value></data>
+  <data name="Tunnels_EmptyState.Description" xml:space="preserve"><value>在手机后台建立本地、远程或 SOCKS5 转发规则</value></data>
+  <data name="Tunnels_EmptyState.PrimaryText" xml:space="preserve"><value>添加隧道</value></data>
+  <data name="Tunnels_MenuStart" xml:space="preserve"><value>启动</value></data>
+  <data name="Tunnels_MenuStop" xml:space="preserve"><value>停止</value></data>
+  <data name="Tunnels_DeleteConfirmTitle" xml:space="preserve"><value>删除隧道</value></data>
+  <data name="Tunnels_DeleteConfirmMessage" xml:space="preserve"><value>确定要删除隧道“{0}”吗？此操作无法撤销。</value></data>
+  <data name="Tunnels_Delete" xml:space="preserve"><value>删除</value></data>
+  <data name="Tunnels_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Tunnels_Continue" xml:space="preserve"><value>继续开启</value></data>
+  <data name="Tunnels_LoopbackNoticeTitle" xml:space="preserve"><value>回环隔离限制</value></data>
+  <data name="Tunnels_LoopbackNoticeMessage" xml:space="preserve"><value>UWP 应用具有网络隔离机制：本机其他应用可能无法直接访问 127.0.0.1 上的转发端口。</value></data>
+  <data name="Tunnels_DoNotRemind.Content" xml:space="preserve"><value>不再提示</value></data>
+
+  <!-- F06：隧道行 (TunnelRow) -->
+  <data name="TunnelRow_Switch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>启停隧道</value></data>
+  <data name="TunnelRow_MenuToggle.Text" xml:space="preserve"><value>启停</value></data>
+  <data name="TunnelRow_MenuEdit.Text" xml:space="preserve"><value>编辑</value></data>
+  <data name="TunnelRow_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
+
+  <!-- F06：隧道状态与标题 (TunnelItem) -->
+  <data name="TunnelState_Running" xml:space="preserve"><value>运行中</value></data>
+  <data name="TunnelState_Connecting" xml:space="preserve"><value>连接中</value></data>
+  <data name="TunnelState_Reconnecting" xml:space="preserve"><value>重连中</value></data>
+  <data name="TunnelState_Error" xml:space="preserve"><value>错误</value></data>
+  <data name="TunnelState_Idle" xml:space="preserve"><value>已停止</value></data>
+  <data name="TunnelState_DesktopOnly" xml:space="preserve"><value>仅桌面端运行</value></data>
+  <data name="TunnelState_Connections" xml:space="preserve"><value>{0} 连接</value></data>
+  <data name="Tunnel_Default_Local" xml:space="preserve"><value>本地</value></data>
+  <data name="Tunnel_Default_Remote" xml:space="preserve"><value>远程</value></data>
+  <data name="Tunnel_Default_Dynamic" xml:space="preserve"><value>SOCKS5</value></data>
+  <data name="Tunnel_Default_Relay" xml:space="preserve"><value>中转</value></data>
+  <data name="Tunnel_Default_Forward" xml:space="preserve"><value>转发</value></data>
+
+  <!-- F06：隧道编辑页 (TunnelEditPage) -->
+  <data name="TunnelEdit_Title_New" xml:space="preserve"><value>新建隧道</value></data>
+  <data name="TunnelEdit_Title_Edit" xml:space="preserve"><value>编辑隧道</value></data>
+  <data name="TunnelEdit_Section_Basic.Header" xml:space="preserve"><value>基础配置</value></data>
+  <data name="TunnelEdit_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="TunnelEdit_TypeBox.Header" xml:space="preserve"><value>转发类型</value></data>
+  <data name="TunnelEdit_ServerBox.Header" xml:space="preserve"><value>SSH 主机 *</value></data>
+  <data name="TunnelEdit_GroupBox.Header" xml:space="preserve"><value>分组</value></data>
+  <data name="TunnelEdit_NoGroup" xml:space="preserve"><value>未分组</value></data>
+  <data name="TunnelType_Local" xml:space="preserve"><value>本地转发 (Local)</value></data>
+  <data name="TunnelType_Remote" xml:space="preserve"><value>远程转发 (Remote)</value></data>
+  <data name="TunnelType_Dynamic" xml:space="preserve"><value>动态 SOCKS5 (Dynamic)</value></data>
+  <data name="TunnelType_Relay" xml:space="preserve"><value>中转转发 (Relay)</value></data>
+  <data name="TunnelEdit_Section_Route.Header" xml:space="preserve"><value>路由与端口</value></data>
+  <data name="TunnelEdit_ListenHostBox.Header" xml:space="preserve"><value>监听地址</value></data>
+  <data name="TunnelEdit_ListenPortBox.Header" xml:space="preserve"><value>监听端口 *</value></data>
+  <data name="TunnelEdit_DestHostBox.Header" xml:space="preserve"><value>目标主机 *</value></data>
+  <data name="TunnelEdit_DestPortBox.Header" xml:space="preserve"><value>目标端口 *</value></data>
+  <data name="TunnelEdit_DestServerBox.Header" xml:space="preserve"><value>目标服务器 *</value></data>
+  <data name="TunnelEdit_RoutePreviewTitle.Text" xml:space="preserve"><value>路径预览</value></data>
+  <data name="TunnelEdit_Section_Options.Header" xml:space="preserve"><value>运行选项</value></data>
+  <data name="TunnelEdit_AutoReconnectSwitch.Header" xml:space="preserve"><value>自动重连</value></data>
+  <data name="TunnelEdit_AutoStartSwitch.Header" xml:space="preserve"><value>随应用启动</value></data>
+  <data name="TunnelEdit_EnabledSwitch.Header" xml:space="preserve"><value>已启用</value></data>
+  <data name="TunnelEdit_LocalOnly.Text" xml:space="preserve"><value>（仅本机）</value></data>
+  <data name="TunnelEdit_Save" xml:space="preserve"><value>保存</value></data>
+  <data name="TunnelEdit_Delete" xml:space="preserve"><value>删除隧道</value></data>
+  <data name="TunnelEdit_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="TunnelEdit_UnsavedChanges_Title" xml:space="preserve"><value>放弃修改？</value></data>
+  <data name="TunnelEdit_UnsavedChanges_Message" xml:space="preserve"><value>未保存的修改将丢失。</value></data>
+  <data name="TunnelEdit_Discard" xml:space="preserve"><value>放弃</value></data>
+  <data name="TunnelEdit_DeleteConfirmMessage" xml:space="preserve"><value>确定要删除该隧道吗？此操作无法撤销。</value></data>
+
+  <!-- O13 批次 1：Controls / Dialogs / Terminal -->
+  <data name="ColorSwatchPicker_TextBlock2.Text" xml:space="preserve"><value>旧</value></data>
+  <data name="ColorSwatchPicker_TextBlock1.Text" xml:space="preserve"><value>新</value></data>
+  <data name="SessionOverlay_CancelButton.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="SessionOverlay_ReconnectNowButton.Content" xml:space="preserve"><value>立即重连</value></data>
+  <data name="SessionOverlay_StopButton.Content" xml:space="preserve"><value>停止</value></data>
+  <data name="SessionOverlay_RetryButton.Content" xml:space="preserve"><value>重试</value></data>
+  <data name="SessionOverlay_EditButton.Content" xml:space="preserve"><value>编辑主机</value></data>
+  <data name="SessionOverlay_CloseButton.Content" xml:space="preserve"><value>关闭</value></data>
+  <data name="SessionsPane_Button1.Content" xml:space="preserve"><value>新会话</value></data>
+  <data name="SnippetPickerFlyout_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索片段</value></data>
+  <data name="SnippetPickerFlyout_Empty.Title" xml:space="preserve"><value>没有片段</value></data>
+  <data name="SnippetPickerFlyout_Empty.Description" xml:space="preserve"><value>先去「片段」页添加常用命令。</value></data>
+  <data name="AgentUnlockDialog_ContentDialog1.Title" xml:space="preserve"><value>选择解锁密钥</value></data>
+  <data name="AgentUnlockDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>解锁</value></data>
+  <data name="AgentUnlockDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="CredentialDialog_ContentDialog1.Title" xml:space="preserve"><value>身份验证</value></data>
+  <data name="CredentialDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>连接</value></data>
+  <data name="CredentialDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="CredentialDialog_RememberBox.Content" xml:space="preserve"><value>保存在本机</value></data>
+  <data name="HostKeyDialog_ContentDialog1.Title" xml:space="preserve"><value>主机密钥确认</value></data>
+  <data name="HostKeyDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>信任并连接</value></data>
+  <data name="HostKeyDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="HostKeyMismatchDialog_ContentDialog4.Title" xml:space="preserve"><value>主机密钥已改变</value></data>
+  <data name="HostKeyMismatchDialog_ContentDialog4.PrimaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="HostKeyMismatchDialog_ContentDialog4.SecondaryButtonText" xml:space="preserve"><value>移除旧记录并重试…</value></data>
+  <data name="HostKeyMismatchDialog_TextBlock3.Text" xml:space="preserve"><value>主机密钥已改变，可能存在中间人攻击。</value></data>
+  <data name="HostKeyMismatchDialog_TextBlock2.Text" xml:space="preserve"><value>已记录指纹</value></data>
+  <data name="HostKeyMismatchDialog_TextBlock1.Text" xml:space="preserve"><value>当前指纹</value></data>
+  <data name="KbdInteractiveDialog_ContentDialog1.Title" xml:space="preserve"><value>键盘交互认证</value></data>
+  <data name="KbdInteractiveDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>提交</value></data>
+  <data name="KbdInteractiveDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="KeyGenerateDialog_ContentDialog1.Title" xml:space="preserve"><value>生成密钥</value></data>
+  <data name="KeyGenerateDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>生成</value></data>
+  <data name="KeyGenerateDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="KeyGenerateDialog_TypeBox.Header" xml:space="preserve"><value>类型</value></data>
+  <data name="KeyGenerateDialog_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="KeyGenerateDialog_CommentBox.Header" xml:space="preserve"><value>注释</value></data>
+  <data name="KeyImportDialog_ContentDialog1.Title" xml:space="preserve"><value>导入密钥</value></data>
+  <data name="KeyImportDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>继续</value></data>
+  <data name="KeyImportDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="KeyImportDialog_PickFileButton.Content" xml:space="preserve"><value>从文件导入…</value></data>
+  <data name="KeyImportDialog_PassphraseBox.Header" xml:space="preserve"><value>短语</value></data>
+  <data name="KeyImportDialog_RememberBox.Content" xml:space="preserve"><value>保存短语</value></data>
+  <data name="KeyImportDialog_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="PassphraseDialog_ContentDialog1.Title" xml:space="preserve"><value>私钥短语</value></data>
+  <data name="PassphraseDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>解锁</value></data>
+  <data name="PassphraseDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="PassphraseDialog_RememberSwitch.Header" xml:space="preserve"><value>保存在本机</value></data>
+  <data name="PasteConfirmDialog_DontAskBox.Content" xml:space="preserve"><value>不再提示</value></data>
+  <data name="PermissionsDialog_OctalBox.Header" xml:space="preserve"><value>八进制</value></data>
+  <data name="RenameDialog_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="ThemeSchemePickerDialog_ContentDialog1.Title" xml:space="preserve"><value>选择要导入的配色</value></data>
+  <data name="ThemeSchemePickerDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>导入所选</value></data>
+  <data name="ThemeSchemePickerDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="SelectionLayer_CopyButton.Content" xml:space="preserve"><value>复制</value></data>
+  <data name="SelectionLayer_PasteButton.Content" xml:space="preserve"><value>粘贴</value></data>
+  <data name="SelectionLayer_SelectAllButton.Content" xml:space="preserve"><value>全选</value></data>
+  <data name="SelectionLayer_ShareButton.Content" xml:space="preserve"><value>分享</value></data>
+
+  <!-- O13 批次 2：KnownHosts / SessionsPivot -->
+  <data name="KnownHostsPage_TextBlock2.Text" xml:space="preserve"><value>已知主机</value></data>
+  <data name="KnownHostsPage_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索主机、类型、指纹</value></data>
+  <data name="KnownHostsPage_Button1.Content" xml:space="preserve"><value>删除</value></data>
+  <data name="SessionsPivot_Button1.Content" xml:space="preserve"><value>全部恢复</value></data>
+  <data name="SessionsPivot_Empty.Title" xml:space="preserve"><value>没有打开的会话</value></data>
+  <data name="SessionsPivot_Empty.Description" xml:space="preserve"><value>点主机开始连接。</value></data>
+
+  <!-- O13：主机编辑环境变量占位符 -->
+  <data name="HostEdit_EnvKeyBox.PlaceholderText" xml:space="preserve"><value>键</value></data>
+  <data name="HostEdit_EnvValueBox.PlaceholderText" xml:space="preserve"><value>值</value></data>
+
+  <!-- O13 批次 3：代码里的可见文案（Localized.Get/Format） -->
+  <data name="ColorSwatch_HexError" xml:space="preserve"><value>颜色须为 #RRGGBB 形式</value></data>
+  <data name="AgentUnlock_Prompt" xml:space="preserve"><value>主机 {0}</value></data>
+  <data name="HostKey_FirstConnect" xml:space="preserve"><value>首次连接 {0}</value></data>
+  <data name="HostKey_KeyType" xml:space="preserve"><value>密钥类型：{0}</value></data>
+  <data name="HostKeyMismatch_ConfirmHint" xml:space="preserve"><value>移除需确认：请输入主机名 {0}</value></data>
+  <data name="HostKeyMismatch_NameMismatch" xml:space="preserve"><value>主机名不匹配，未移除。</value></data>
+  <data name="KeyImport_SaveImport" xml:space="preserve"><value>保存导入</value></data>
+  <data name="Passphrase_Prompt" xml:space="preserve"><value>私钥 {0} 的短语</value></data>
+  <data name="PasteConfirm_Title" xml:space="preserve"><value>多行粘贴</value></data>
+  <data name="PasteConfirm_Paste" xml:space="preserve"><value>粘贴</value></data>
+  <data name="PasteConfirm_Summary" xml:space="preserve"><value>将粘贴 {0} 行</value></data>
+  <data name="SnippetVariable_Send" xml:space="preserve"><value>发送</value></data>
+  <data name="ThemeSchemePicker_Summary" xml:space="preserve"><value>文件中找到 {0} 个配色，选择要导入的：</value></data>
+  <data name="Lifecycle_ExtendedExecution" xml:space="preserve"><value>SSH 会话后台保活</value></data>
+  <data name="AppearanceEdit_FontSize" xml:space="preserve"><value>字号 {0}</value></data>
+  <data name="AppearanceEdit_LineHeight" xml:space="preserve"><value>行高 {0}</value></data>
+  <data name="AppearanceEdit_Padding" xml:space="preserve"><value>内边距 {0}</value></data>
+  <data name="KeyDetail_NoPublicKeyToCopy" xml:space="preserve"><value>没有可复制的公钥</value></data>
+  <data name="KeyDetail_PublicKeyCopied" xml:space="preserve"><value>已复制公钥</value></data>
+  <data name="KeyDetail_NoPublicKeyToShare" xml:space="preserve"><value>没有可分享的公钥</value></data>
+  <data name="KeyDetail_ShareUnavailable" xml:space="preserve"><value>分享不可用，已复制公钥</value></data>
+  <data name="KeyDetail_ShareFailed" xml:space="preserve"><value>分享失败，已复制公钥</value></data>
+  <data name="SessionsPivot_Restore" xml:space="preserve"><value>上次未关闭 {0} 个会话</value></data>
+  <data name="ShortcutEditor_Conflict" xml:space="preserve"><value>冲突：{0} 被两个动作使用</value></data>
+  <data name="AccountSync_Title" xml:space="preserve"><value>账号与同步</value></data>
+  <data name="ChangeLoginPassword_Explanation" xml:space="preserve"><value>修改密码后需要重新登录。</value></data>
+  <data name="SyncConflict_Title" xml:space="preserve"><value>同步冲突</value></data>
+  <data name="SyncConflict_Empty" xml:space="preserve"><value>暂无待处理的冲突</value></data>
+  <data name="SyncConflict_UpdatedBoth" xml:space="preserve"><value>云端更新于 {0} · 本机更新于 {1}</value></data>
+  <data name="SyncConflict_UpdatedRemote" xml:space="preserve"><value>云端更新于 {0}</value></data>
 
-  <data name="Sftp_Title.Text" xml:space="preserve"><value>SFTP</value></data>
-  <data name="Sftp_Connecting" xml:space="preserve"><value>正在连接 SFTP…</value></data>
-  <data name="Sftp_UpButton.AutomationProperties.Name" xml:space="preserve"><value>返回上级目录</value></data>
-  <data name="Sftp_EmptyTitle.Text" xml:space="preserve"><value>空目录</value></data>
-  <data name="Sftp_EmptyDescription.Text" xml:space="preserve"><value>此目录没有内容</value></data>
-  <data name="Sftp_LoadFailed.Text" xml:space="preserve"><value>加载失败</value></data>
-  <data name="Sftp_Retry.Text" xml:space="preserve"><value>重试</value></data>
-  <data name="Sftp_UploadButton.Label" xml:space="preserve"><value>上传</value></data>
-  <data name="Sftp_NewFolderButton.Label" xml:space="preserve"><value>新建文件夹</value></data>
-  <data name="Sftp_RefreshButton.Label" xml:space="preserve"><value>刷新</value></data>
-  <data name="Sftp_MoreButton.Label" xml:space="preserve"><value>更多</value></data>
-  <data name="Sftp_SortHeader" xml:space="preserve"><value>排序方式</value></data>
-  <data name="Sftp_SortName" xml:space="preserve"><value>按名称</value></data>
-  <data name="Sftp_SortSize" xml:space="preserve"><value>按大小</value></data>
-  <data name="Sftp_SortMtime" xml:space="preserve"><value>按时间</value></data>
-  <data name="Sftp_ShowHidden" xml:space="preserve"><value>显示隐藏文件</value></data>
-  <data name="Sftp_RowDownload" xml:space="preserve"><value>下载</value></data>
-  <data name="Sftp_RowRename" xml:space="preserve"><value>重命名</value></data>
-  <data name="Sftp_RowPermissions" xml:space="preserve"><value>权限</value></data>
-  <data name="Sftp_RowDelete" xml:space="preserve"><value>删除</value></data>
-  <data name="Sftp_RowCopyPath" xml:space="preserve"><value>复制路径</value></data>
-  <data name="Sftp_PathCopied" xml:space="preserve"><value>已复制路径</value></data>
-  <data name="Sftp_FolderCreated" xml:space="preserve"><value>文件夹已创建</value></data>
-  <data name="Sftp_Renamed" xml:space="preserve"><value>已重命名</value></data>
-  <data name="Sftp_PermissionsChanged" xml:space="preserve"><value>权限已更新</value></data>
-  <data name="Sftp_Deleted" xml:space="preserve"><value>已删除</value></data>
-  <data name="Sftp_UploadStarted" xml:space="preserve"><value>已加入上传队列：{0} 个文件</value></data>
-  <data name="Sftp_DeleteTitle" xml:space="preserve"><value>删除</value></data>
-  <data name="Sftp_DeleteFileConfirm" xml:space="preserve"><value>删除「{0}」？</value></data>
-  <data name="Sftp_DeleteDirConfirm" xml:space="preserve"><value>「{0}」是文件夹，将删除其中的全部内容（含子目录）。此操作不可撤销。</value></data>
-  <data name="Sftp_DeletePartialNote" xml:space="preserve"><value>部分内容可能已删除。</value></data>
-  <data name="Sftp_DeleteButtonText" xml:space="preserve"><value>删除</value></data>
-  <data name="Sftp_TransferPanelTitle" xml:space="preserve"><value>传输（{0}）</value></data>
-  <data name="Sftp_TransfersEmpty" xml:space="preserve"><value>没有进行中的传输</value></data>
-  <data name="Sftp_ClearFinished" xml:space="preserve"><value>清除已完成</value></data>
-  <data name="Sftp_TransferUpload" xml:space="preserve"><value>上传</value></data>
-  <data name="Sftp_TransferDownload" xml:space="preserve"><value>下载</value></data>
-  <data name="Sftp_StateQueued" xml:space="preserve"><value>等待中</value></data>
-  <data name="Sftp_StateRunning" xml:space="preserve"><value>传输中</value></data>
-  <data name="Sftp_StateCompleted" xml:space="preserve"><value>已完成</value></data>
-  <data name="Sftp_StateFailed" xml:space="preserve"><value>失败</value></data>
-  <data name="Sftp_StateCancelled" xml:space="preserve"><value>已取消</value></data>
-  <data name="Sftp_Cancel" xml:space="preserve"><value>取消</value></data>
-  <data name="Sftp_RetryTransfer" xml:space="preserve"><value>重试</value></data>
-  <data name="Sftp_PermissionsTitle" xml:space="preserve"><value>权限</value></data>
-  <data name="Sftp_PermissionsOwner" xml:space="preserve"><value>所有者</value></data>
-  <data name="Sftp_PermissionsGroup" xml:space="preserve"><value>属组</value></data>
-  <data name="Sftp_PermissionsOther" xml:space="preserve"><value>其他</value></data>
-  <data name="Sftp_PermissionsRead" xml:space="preserve"><value>读取</value></data>
-  <data name="Sftp_PermissionsWrite" xml:space="preserve"><value>写入</value></data>
-  <data name="Sftp_PermissionsExecute" xml:space="preserve"><value>执行</value></data>
-  <data name="Sftp_PermissionsOctal.Header" xml:space="preserve"><value>八进制（如 644）</value></data>
-  <data name="Sftp_PermissionsInvalid" xml:space="preserve"><value>八进制须为 3 位 0–7</value></data>
-  <data name="Sftp_RenameTitle" xml:space="preserve"><value>重命名</value></data>
-  <data name="Sftp_RenameName.Header" xml:space="preserve"><value>名称</value></data>
-  <data name="Sftp_MkdirTitle" xml:space="preserve"><value>新建文件夹</value></data>
-  <data name="Sftp_NameRequired" xml:space="preserve"><value>请输入名称</value></data>
-  <data name="Sftp_NameInvalid" xml:space="preserve"><value>名称不能含 “/”，且不能是 “.” 或 “..”</value></data>
-  <data name="Sftp_MinutesAgo" xml:space="preserve"><value>{0} 分钟前</value></data>
-  <data name="Sftp_JustNow" xml:space="preserve"><value>刚刚</value></data>
-  <data name="Sftp_SymlinkTo" xml:space="preserve"><value>→ {0}</value></data>
-  <data name="Sftp_LinkMenuOpenTarget" xml:space="preserve"><value>进入目标</value></data>
-  <data name="Sftp_LinkFileMenuOpenTarget" xml:space="preserve"><value>下载目标</value></data>
-  <data name="Sftp_ErrSessionGone" xml:space="preserve"><value>会话已结束，请从主机列表重新打开 SFTP</value></data>
-  <data name="Sftp_ErrNotConnected" xml:space="preserve"><value>会话未连接，SFTP 需要在线会话</value></data>
-  <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>传输失败（错误码 {0}）</value></data>
-  <!-- §6.5：文件行尾槽「更多」按钮无障碍名（x:Uid 不适用于 DataTemplate 实例，由 SftpRowVm.MoreButtonName 提供）。 -->
-  <data name="Sftp_RowMoreButton_A11yName" xml:space="preserve"><value>更多操作</value></data>
-  <data name="Terminal_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多</value></data>
-  <!-- V03a（C-06）：终端菜单项文案（代码构造，走 resw 双语）。 -->
-  <data name="Terminal_MenuSessions" xml:space="preserve"><value>会话</value></data>
-  <data name="Terminal_MenuKeyBar" xml:space="preserve"><value>键条</value></data>
-  <data name="Terminal_MenuSnippets" xml:space="preserve"><value>片段</value></data>
-  <data name="Terminal_MenuSftp" xml:space="preserve"><value>SFTP</value></data>
-  <data name="Terminal_MenuAppearance" xml:space="preserve"><value>外观</value></data>
-  <data name="Terminal_MenuDisconnect" xml:space="preserve"><value>断开</value></data>
-  <data name="Terminal_MenuCloseSession" xml:space="preserve"><value>关闭会话</value></data>
-  <!-- V03b（C-06）：终端右键菜单项 + 复制提示（代码构造，走 resw 双语）。 -->
-  <data name="Terminal_MenuCopy" xml:space="preserve"><value>复制</value></data>
-  <data name="Terminal_MenuPaste" xml:space="preserve"><value>粘贴</value></data>
-  <data name="Terminal_MenuSelectAll" xml:space="preserve"><value>全选</value></data>
-  <data name="Terminal_MenuClearScreen" xml:space="preserve"><value>清屏</value></data>
-  <data name="Terminal_MenuSendSnippet" xml:space="preserve"><value>发送片段</value></data>
-  <data name="Terminal_CopiedToast" xml:space="preserve"><value>已复制</value></data>
-  <data name="TabStrip_AddButton.AutomationProperties.Name" xml:space="preserve"><value>新建标签</value></data>
-  <data name="TabStrip_CloseButton_A11yName" xml:space="preserve"><value>关闭标签</value></data>
-  <!-- V03b（C-06）：TabStrip 右键菜单项文案（代码构造，走 resw 双语）。 -->
-  <data name="TabStrip_MenuRename" xml:space="preserve"><value>重命名</value></data>
-  <data name="TabStrip_MenuDuplicateSession" xml:space="preserve"><value>复制会话</value></data>
-  <data name="TabStrip_MenuCloseOthers" xml:space="preserve"><value>关闭其他</value></data>
-  <data name="TabStrip_MenuClose" xml:space="preserve"><value>关闭</value></data>
-  <data name="TabStrip_RenameDialogTitle" xml:space="preserve"><value>重命名标签</value></data>
-  <data name="Workspace_SplitButton_A11yName" xml:space="preserve"><value>分屏</value></data>
-  <data name="Workspace_CloseButton_A11yName" xml:space="preserve"><value>关闭会话</value></data>
-  <!-- V03b（C-06）：分屏菜单项 + 空状态 + 主机选择器空态（代码构造，走 resw 双语）。 -->
-  <data name="Workspace_SplitRight" xml:space="preserve"><value>向右分屏</value></data>
-  <data name="Workspace_SplitDown" xml:space="preserve"><value>向下分屏</value></data>
-  <data name="Workspace_EmptyTitle" xml:space="preserve"><value>没有打开的标签</value></data>
-  <data name="Workspace_EmptyDescription" xml:space="preserve"><value>在左侧选择主机，或新建一个标签开始。</value></data>
-  <data name="Workspace_EmptyPrimaryText" xml:space="preserve"><value>新建标签</value></data>
-  <data name="Workspace_HostPickerEmpty" xml:space="preserve"><value>还没有主机，请先添加</value></data>
-  <data name="Dialog_Cancel" xml:space="preserve"><value>取消</value></data>
-  <data name="Dialog_Ok" xml:space="preserve"><value>确定</value></data>
-  <data name="Placeholder_BackButton.Content" xml:space="preserve"><value>返回</value></data>
-  <data name="Placeholder_Title" xml:space="preserve"><value>即将推出</value></data>
-  <data name="Placeholder_ComingSoon.Title" xml:space="preserve"><value>即将推出</value></data>
-  <data name="Placeholder_ComingSoon.Description" xml:space="preserve"><value>功能还在打磨中，敬请期待后续版本。</value></data>
-
-  <data name="ExitDialog.Title" xml:space="preserve"><value>退出应用</value></data>
-  <data name="ExitDialog.PrimaryButtonText" xml:space="preserve"><value>退出</value></data>
-  <data name="ExitDialog.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
-  <data name="ExitDialog_Message" xml:space="preserve"><value>有 {0} 个会话正在连接，退出将全部断开。</value></data>
-
-  <data name="VaultSetup_Title.Text" xml:space="preserve"><value>创建同步保险库</value></data>
-  <data name="VaultSetup_Explanation.Text" xml:space="preserve"><value>同步密码用于加密你的配置，服务器无法解密；与登录密码可以不同。</value></data>
-  <data name="VaultSetup_PasswordBox.Header" xml:space="preserve"><value>同步密码</value></data>
-  <data name="VaultSetup_PasswordBox.PlaceholderText" xml:space="preserve"><value>设置同步密码（至少 8 位）</value></data>
-  <data name="VaultSetup_ConfirmBox.Header" xml:space="preserve"><value>确认同步密码</value></data>
-  <data name="VaultSetup_PasswordHint.Text" xml:space="preserve"><value>同步密码至少 8 位</value></data>
-  <data name="VaultSetup_LocalNote.Text" xml:space="preserve"><value>解锁后的保险库密钥加密保存在本机，重启无需再次输入。</value></data>
-  <data name="VaultSetup_SubmitButton.Content" xml:space="preserve"><value>创建</value></data>
-  <data name="VaultUnlock_Title.Text" xml:space="preserve"><value>解锁保险库</value></data>
-  <data name="VaultUnlock_PasswordTab.Content" xml:space="preserve"><value>同步密码</value></data>
-  <data name="VaultUnlock_RecoveryTab.Content" xml:space="preserve"><value>恢复密钥</value></data>
-  <data name="VaultUnlock_PasswordBox.Header" xml:space="preserve"><value>同步密码</value></data>
-  <data name="VaultUnlock_PasswordBox.PlaceholderText" xml:space="preserve"><value>输入同步密码</value></data>
-  <data name="VaultUnlock_RecoveryBox.Header" xml:space="preserve"><value>恢复密钥</value></data>
-  <data name="VaultUnlock_RecoveryBox.PlaceholderText" xml:space="preserve"><value>SPM1-…-XXXXXXXXXXXX</value></data>
-  <data name="VaultUnlock_RecoveryHint.Text" xml:space="preserve"><value>可直接粘贴；前缀与校验段大小写随意，将自动规范化</value></data>
-  <data name="VaultUnlock_SubmitButton.Content" xml:space="preserve"><value>解锁</value></data>
-  <data name="VaultDialog.Title" xml:space="preserve"><value>立即保存恢复密钥</value></data>
-  <data name="VaultDialog.PrimaryButtonText" xml:space="preserve"><value>完成</value></data>
-  <data name="VaultDialog_Note.Text" xml:space="preserve"><value>这是唯一一次显示。同步密码遗忘时，只能使用恢复密钥解锁保险库。</value></data>
-  <data name="VaultDialog_CopyButton.Content" xml:space="preserve"><value>复制</value></data>
-  <data name="VaultDialog_Copied.Text" xml:space="preserve"><value>已复制到剪贴板</value></data>
-  <data name="VaultDialog_SavedBox.Content" xml:space="preserve"><value>我已抄写/保存</value></data>
-  <data name="VaultDialog_Warning.Text" xml:space="preserve"><value>必须先勾选「我已抄写/保存」才能继续</value></data>
-  <data name="Vault_SyncUnavailable" xml:space="preserve"><value>同步组件不可用，请重启应用后重试</value></data>
-  <data name="Vault_SyncPasswordRequired" xml:space="preserve"><value>请输入同步密码</value></data>
-  <data name="Vault_SyncPasswordTooShort" xml:space="preserve"><value>同步密码至少 8 位</value></data>
-  <data name="Vault_SyncPasswordMismatch" xml:space="preserve"><value>两次输入的同步密码不一致</value></data>
-  <data name="Vault_RecoveryRequired" xml:space="preserve"><value>请输入恢复密钥</value></data>
-  <data name="Vault_RecoveryFormatInvalid" xml:space="preserve"><value>恢复密钥格式无效</value></data>
-  <data name="Vault_RecoveryChecksumFailed" xml:space="preserve"><value>恢复密钥校验失败</value></data>
-  <data name="Vault_WorkingSetup" xml:space="preserve"><value>正在生成密钥（约数秒）…</value></data>
-  <data name="Vault_WorkingUnlock" xml:space="preserve"><value>正在解锁…</value></data>
-  <data name="Vault_WorkingSync" xml:space="preserve"><value>正在同步…</value></data>
-
-  <!-- V01a：新组件无障碍名（doc/05 §5.3、§7.2）。评审回补：「隐藏键盘」术语三处统一
-       （此处、KeyBar_HideKeyboardLabel、编辑器键名表）。 -->
-  <data name="AppPageHeader_BackButton.AutomationProperties.Name" xml:space="preserve"><value>返回</value></data>
-  <data name="Main_PaneToggleButton.AutomationProperties.Name" xml:space="preserve"><value>显示或隐藏主机列表</value></data>
-  <data name="KeyBar_HideKeyboardButton.AutomationProperties.Name" xml:space="preserve"><value>隐藏键盘</value></data>
-  <data name="Selection_DismissButton.AutomationProperties.Name" xml:space="preserve"><value>退出选择</value></data>
-  <!-- 质量评审：SegmentTabs 选中段无障碍名后缀（「标签，已选」），未选段不拼。 -->
-  <data name="SegmentTabs_SelectedSuffix" xml:space="preserve"><value>，已选</value></data>
-
-  <!-- V01a：Token 画廊 V2 组件演示区（Debug 页） -->
-  <data name="Gallery_V2Components.Text" xml:space="preserve"><value>V2 组件（doc/05 §5.3）</value></data>
-  <data name="Gallery_PageHeaderDemo.Text" xml:space="preserve"><value>AppPageHeader：320 紧凑 / 760 常规 / 1040 宽屏（含返回+状态+主操作）</value></data>
-  <data name="Gallery_HeaderCompact.Title" xml:space="preserve"><value>主机</value></data>
-  <data name="Gallery_HeaderNormal.Title" xml:space="preserve"><value>编辑主机</value></data>
-  <data name="Gallery_HeaderWide.Title" xml:space="preserve"><value>主机</value></data>
-  <data name="Gallery_HeaderPill.Text" xml:space="preserve"><value>已连接</value></data>
-  <data name="Gallery_HeaderSave.Content" xml:space="preserve"><value>保存</value></data>
-  <data name="Gallery_SegmentDemo.Text" xml:space="preserve"><value>SegmentTabs：二选 / 三选 / 禁用</value></data>
-  <data name="Gallery_SegmentLogin" xml:space="preserve"><value>登录</value></data>
-  <data name="Gallery_SegmentRegister" xml:space="preserve"><value>注册</value></data>
-  <data name="Gallery_SegmentHosts" xml:space="preserve"><value>主机</value></data>
-  <data name="Gallery_SegmentSessions" xml:space="preserve"><value>会话</value></data>
-  <data name="Gallery_SegmentTunnels" xml:space="preserve"><value>隧道</value></data>
-  <data name="Gallery_SegmentSelected" xml:space="preserve"><value>选中：{0}</value></data>
-  <data name="Gallery_CardDemo.Text" xml:space="preserve"><value>SurfaceCard：normal / pressed / selected / error</value></data>
-  <data name="Gallery_CardNormal.Header" xml:space="preserve"><value>分组卡片</value></data>
-  <data name="Gallery_CardPressed.Header" xml:space="preserve"><value>按压卡片</value></data>
-  <data name="Gallery_CardSelected.Header" xml:space="preserve"><value>选中卡片</value></data>
-  <data name="Gallery_CardError.Header" xml:space="preserve"><value>错误卡片</value></data>
-  <data name="Gallery_CardBody.Text" xml:space="preserve"><value>卡片内容槽：放表单、列表行或说明文字。</value></data>
-  <data name="Gallery_PillDemo.Text" xml:space="preserve"><value>StatusPill：neutral / success / warning / danger</value></data>
-  <data name="Gallery_PillNeutral.Text" xml:space="preserve"><value>离线</value></data>
-  <data name="Gallery_PillSuccess.Text" xml:space="preserve"><value>已连接</value></data>
-  <data name="Gallery_PillWarning.Text" xml:space="preserve"><value>重连中</value></data>
-  <data name="Gallery_PillDanger.Text" xml:space="preserve"><value>错误</value></data>
-  <data name="Gallery_IconButtonDemo.Text" xml:space="preserve"><value>IconButtonStyle：normal / disabled（使用点须配无障碍名）</value></data>
-  <data name="Gallery_DemoIconSettings.AutomationProperties.Name" xml:space="preserve"><value>设置</value></data>
-  <data name="Gallery_DemoIconSync.AutomationProperties.Name" xml:space="preserve"><value>同步（禁用演示）</value></data>
-
-  <!-- V01a 评审回补：hidekb 编辑器行首语义文本（Core 键面无文案）+ 画廊图标键区标题 -->
-  <data name="KeyBar_HideKeyboardLabel" xml:space="preserve"><value>隐藏键盘</value></data>
-  <data name="Gallery_V2IconKeys.Text" xml:space="preserve"><value>V01a 新增图标键</value></data>
-
-  <!-- V01b：BottomActionBar 溢出按钮无障碍名（05 §7.2） -->
-  <data name="BottomActionBar_OverflowButton.AutomationProperties.Name" xml:space="preserve"><value>更多操作</value></data>
-
-  <!-- V01b：画廊补全——AppListRow 四态（标题/副标题四行共用，同 Gallery_CardBody 先例；
-       状态 Pill 文案复用 Gallery_PillSuccess.Text） -->
-  <data name="Gallery_ListRowDemo.Text" xml:space="preserve"><value>AppListRow：normal / pressed / selected / disabled（状态槽与尾操作槽示例）</value></data>
-  <data name="Gallery_ListRowTitle" xml:space="preserve"><value>生产机（web-01）</value></data>
-  <data name="Gallery_ListRowSubtitle" xml:space="preserve"><value>deploy@prod.example.com:22</value></data>
-  <data name="Gallery_ListRowMore.AutomationProperties.Name" xml:space="preserve"><value>更多操作</value></data>
-
-  <!-- V01b：FormSection 三态（Header/Description/输入框占位共用；错误文案复用 Validation_PortRange） -->
-  <data name="Gallery_FormSectionDemo.Text" xml:space="preserve"><value>FormSection：normal / error / readonly（标题→说明→内容→错误固定顺序）</value></data>
-  <data name="Gallery_FormSectionHeader" xml:space="preserve"><value>连接</value></data>
-  <data name="Gallery_FormSectionDescription" xml:space="preserve"><value>主机地址、端口与登录名。</value></data>
-  <data name="Gallery_FormSectionInput" xml:space="preserve"><value>例如 192.168.1.8</value></data>
-
-  <!-- V01b：BottomActionBar 两态（keyboard-visible 条收起，露出底层占位文字） -->
-  <data name="Gallery_ActionBarDemo.Text" xml:space="preserve"><value>BottomActionBar：normal / keyboard-visible（SIP 弹出时整条收起让位）</value></data>
-  <data name="Gallery_ActionBarPrimary" xml:space="preserve"><value>保存</value></data>
-  <data name="Gallery_ActionBarOverflowItem" xml:space="preserve"><value>辅助操作</value></data>
-  <data name="Gallery_ActionBarCollapsedHint.Text" xml:space="preserve"><value>（下方操作条已设 IsKeyboardVisible=True，整条收起后露出这段占位文字）</value></data>
-
-  <!-- V01b：Banner 重试动作（ActionClick 事件）与 EmptyState 三变体（Kind 驱动默认图标） -->
-  <data name="Gallery_BannerRetryDemo.Text" xml:space="preserve"><value>Banner（InlineBanner）：错误 + 重试（ActionClick 事件，结果见下方）</value></data>
-  <data name="Gallery_BannerRetry.Title" xml:space="preserve"><value>同步失败</value></data>
-  <data name="Gallery_BannerRetry.Message" xml:space="preserve"><value>网络不可用，已保留本地更改。</value></data>
-  <data name="Gallery_BannerRetry.ActionText" xml:space="preserve"><value>重试</value></data>
-  <data name="Gallery_BannerRetryResult" xml:space="preserve"><value>已触发重试（ActionClick 事件）。</value></data>
-  <data name="Gallery_EmptyStateDemo.Text" xml:space="preserve"><value>EmptyState 变体：normal（显式 Glyph）/ offline / filtered（Kind 驱动默认图标）</value></data>
-  <data name="Gallery_EmptyNormal.Title" xml:space="preserve"><value>还没有主机</value></data>
-  <data name="Gallery_EmptyNormal.Description" xml:space="preserve"><value>新建一台主机开始第一次 SSH 连接。</value></data>
-  <data name="Gallery_EmptyOffline.Title" xml:space="preserve"><value>当前离线</value></data>
-  <data name="Gallery_EmptyOffline.Description" xml:space="preserve"><value>网络不可用，显示本机缓存内容。</value></data>
-  <data name="Gallery_EmptyFiltered.Title" xml:space="preserve"><value>没有匹配的主机</value></data>
-  <data name="Gallery_EmptyFiltered.Description" xml:space="preserve"><value>换个关键词试试。</value></data>
-
-  <!-- Q06：关于页 / 许可页 -->
-  <data name="About_Header.Title" xml:space="preserve"><value>关于</value></data>
-  <data name="About_AppName" xml:space="preserve"><value>Lumia SSH</value></data>
-  <data name="About_DepsHeader.Title" xml:space="preserve"><value>依赖</value></data>
-  <data name="About_LicenseHeader.Title" xml:space="preserve"><value>许可</value></data>
-  <data name="About_LicensesButton.Content" xml:space="preserve"><value>查看开源许可</value></data>
-  <data name="About_PrivacyLink" xml:space="preserve"><value>本应用仅在本地存储主机、密钥与凭据；同步内容经 Argon2id + AES 加密后上传。服务器地址与明文 HTTP 风险详见隐私说明。</value></data>
-  <data name="Licenses_Header.Title" xml:space="preserve"><value>开源许可</value></data>
-  <data name="Licenses_OssHeader.Title" xml:space="preserve"><value>开源组件</value></data>
-  <data name="Licenses_FontsHeader.Title" xml:space="preserve"><value>字体许可</value></data>
-
-  <!-- V06（C-06）：KeyImportDialog 粘贴框占位符（英文文案） -->
-  <data name="KeyImport_PasteBox.Header" xml:space="preserve"><value>粘贴私钥</value></data>
-  <data name="KeyImport_PasteBox.PlaceholderText" xml:space="preserve"><value>-----BEGIN … PRIVATE KEY-----</value></data>
-
-  <!-- V06（C-06）：KeyGenerateDialog RSA 类型（英文文案） -->
-  <data name="KeyGen_TypeEd25519.Content" xml:space="preserve"><value>ED25519（推荐）</value></data>
-  <data name="KeyGen_TypeRsa3072.Content" xml:space="preserve"><value>RSA 3072</value></data>
-  <data name="KeyGen_TypeRsa4096.Content" xml:space="preserve"><value>RSA 4096</value></data>
-
-  <!-- V06（C-06）：KeyDetailPage 硬编码中文清理 -->
-  <data name="KeyDetail_Title.Text" xml:space="preserve"><value>密钥详情</value></data>
-  <data name="KeyDetail_NameBox.Header" xml:space="preserve"><value>名称</value></data>
-  <data name="KeyDetail_Rename.Content" xml:space="preserve"><value>保存名称</value></data>
-  <data name="KeyDetail_TypeLabel.Text" xml:space="preserve"><value>类型</value></data>
-  <data name="KeyDetail_BitsLabel.Text" xml:space="preserve"><value>位数</value></data>
-  <data name="KeyDetail_FormatLabel.Text" xml:space="preserve"><value>格式</value></data>
-  <data name="KeyDetail_EncryptedLabel.Text" xml:space="preserve"><value>已加密</value></data>
-  <data name="KeyDetail_CreatedLabel.Text" xml:space="preserve"><value>创建时间</value></data>
-  <data name="KeyDetail_FingerprintLabel.Text" xml:space="preserve"><value>指纹</value></data>
-  <data name="KeyDetail_PublicKeyLabel.Text" xml:space="preserve"><value>公钥</value></data>
-  <data name="KeyDetail_Copy.Content" xml:space="preserve"><value>复制</value></data>
-  <data name="KeyDetail_Share.Content" xml:space="preserve"><value>分享</value></data>
-  <data name="KeyDetail_UsedByLabel.Text" xml:space="preserve"><value>使用它的主机</value></data>
-  <data name="KeyDetail_NoHosts.Text" xml:space="preserve"><value>没有主机使用该密钥</value></data>
-  <data name="KeyDetail_Export.Content" xml:space="preserve"><value>导出私钥</value></data>
-  <data name="KeyDetail_Delete.Content" xml:space="preserve"><value>删除密钥</value></data>
-
-  <!-- V06（C-06）：SnippetEditPage 硬编码中文清理 -->
-  <data name="SnippetEdit_SaveButton.Label" xml:space="preserve"><value>保存</value></data>
-  <data name="SnippetEdit_DeleteButton.Label" xml:space="preserve"><value>删除</value></data>
-  <data name="SnippetEdit_CancelButton.Label" xml:space="preserve"><value>取消</value></data>
-  <data name="SnippetEdit_NameBox.Header" xml:space="preserve"><value>名称 *</value></data>
-  <data name="SnippetEdit_GroupBox.Header" xml:space="preserve"><value>分组</value></data>
-  <data name="SnippetEdit_GroupBox.PlaceholderText" xml:space="preserve"><value>可输入新分组</value></data>
-  <data name="SnippetEdit_ContentBox.Header" xml:space="preserve"><value>内容 *</value></data>
-  <data name="SnippetEdit_SendEnter.Content" xml:space="preserve"><value>发送后回车</value></data>
-
-  <!-- V06（C-06）：AppearanceEditPage 硬编码中文清理 -->
-  <data name="AppearanceEdit_SaveButton.Label" xml:space="preserve"><value>保存</value></data>
-  <data name="AppearanceEdit_ResetButton.Label" xml:space="preserve"><value>还原</value></data>
-  <data name="AppearanceEdit_DuplicateButton.Label" xml:space="preserve"><value>复制为新主题</value></data>
-  <data name="AppearanceEdit_PivotFont.Header" xml:space="preserve"><value>字体</value></data>
-  <data name="AppearanceEdit_NameBox.Header" xml:space="preserve"><value>名称</value></data>
-  <data name="AppearanceEdit_BoldWeight.Header" xml:space="preserve"><value>粗体用粗字重</value></data>
-  <data name="AppearanceEdit_BoldBright.Header" xml:space="preserve"><value>粗体用亮色</value></data>
-  <data name="AppearanceEdit_PivotColor.Header" xml:space="preserve"><value>颜色</value></data>
-  <data name="AppearanceEdit_FgLabel.Text" xml:space="preserve"><value>前景</value></data>
-  <data name="AppearanceEdit_BgLabel.Text" xml:space="preserve"><value>背景</value></data>
-  <data name="AppearanceEdit_CursorLabel.Text" xml:space="preserve"><value>光标</value></data>
-  <data name="AppearanceEdit_SelectionLabel.Text" xml:space="preserve"><value>选区</value></data>
-  <data name="AppearanceEdit_AnsiLabel.Text" xml:space="preserve"><value>ANSI 0–15</value></data>
-  <data name="AppearanceEdit_PivotCursor.Header" xml:space="preserve"><value>光标</value></data>
-  <data name="AppearanceEdit_CursorStyle.Header" xml:space="preserve"><value>光标样式</value></data>
-  <data name="AppearanceEdit_CursorBlock.Content" xml:space="preserve"><value>方块</value></data>
-  <data name="AppearanceEdit_CursorBar.Content" xml:space="preserve"><value>竖线</value></data>
-  <data name="AppearanceEdit_CursorUnderline.Content" xml:space="preserve"><value>下划线</value></data>
-  <data name="AppearanceEdit_CursorBlink.Header" xml:space="preserve"><value>光标闪烁</value></data>
-
-  <!-- V06（C-06）：AppearanceListPage 硬编码中文清理 -->
-  <data name="AppearanceList_NewButton.Label" xml:space="preserve"><value>新建</value></data>
-  <data name="AppearanceList_ImportButton.Label" xml:space="preserve"><value>导入</value></data>
-  <data name="AppearanceList_Title.Text" xml:space="preserve"><value>外观</value></data>
-  <data name="AppearanceList_SetDefault.Content" xml:space="preserve"><value>设为默认</value></data>
-  <data name="AppearanceList_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多</value></data>
-  <data name="AppearanceList_MenuEdit.Text" xml:space="preserve"><value>编辑</value></data>
-  <data name="AppearanceList_MenuDuplicate.Text" xml:space="preserve"><value>复制为新主题</value></data>
-  <data name="AppearanceList_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
-
-  <!-- V06（C-06）：ShortcutEditorPage 硬编码中文清理 -->
-  <data name="Shortcut_Title.Text" xml:space="preserve"><value>快捷键</value></data>
-  <data name="Shortcut_Subtitle.Text" xml:space="preserve"><value>点击录制后按下新组合；默认组合都带 Shift，避免抢占终端按键</value></data>
-  <data name="Shortcut_Record.Content" xml:space="preserve"><value>录制</value></data>
-  <data name="Shortcut_Reset.Content" xml:space="preserve"><value>恢复默认</value></data>
-
-  <!-- V06（C-06）：KeyBarLayoutEditorPage 硬编码中文清理 -->
-  <data name="KeyBarEditor_Title.Text" xml:space="preserve"><value>键条布局</value></data>
-  <data name="KeyBarEditor_Subtitle.Text" xml:space="preserve"><value>更改立即生效，下次打开终端时使用新布局</value></data>
-  <data name="KeyBarEditor_AvailableHeader.Text" xml:space="preserve"><value>可用键</value></data>
-  <data name="KeyBarEditor_SelectedHeader.Text" xml:space="preserve"><value>已选键</value></data>
-  <data name="KeyBarEditor_Add.Content" xml:space="preserve"><value>添加 →</value></data>
-  <data name="KeyBarEditor_Remove.Content" xml:space="preserve"><value>← 移除</value></data>
-  <data name="KeyBarEditor_MoveUp.Content" xml:space="preserve"><value>上移</value></data>
-  <data name="KeyBarEditor_MoveDown.Content" xml:space="preserve"><value>下移</value></data>
-  <data name="KeyBarEditor_Reset.Content" xml:space="preserve"><value>恢复默认</value></data>
-
-  <!-- V06（C-06）：GroupManagePage 硬编码中文清理 -->
-  <data name="GroupManage_AddButton.Label" xml:space="preserve"><value>新建</value></data>
-  <data name="GroupManage_Title.Text" xml:space="preserve"><value>分组管理</value></data>
-  <data name="GroupManage_NameBox.Header" xml:space="preserve"><value>名称</value></data>
-  <data name="GroupManage_MoveUp.Content" xml:space="preserve"><value>上移</value></data>
-  <data name="GroupManage_MoveDown.Content" xml:space="preserve"><value>下移</value></data>
-  <data name="GroupManage_Delete.Content" xml:space="preserve"><value>删除</value></data>
-
-  <!-- V02（05 §6.1）：MainPage 信息架构——页头/Pivot 页签/底栏/隧道占位/加载告警（代码置 Banner.Title） -->
-  <data name="Main_PageHeader.Title" xml:space="preserve"><value>Lumia SSH</value></data>
-  <data name="Main_SyncButton.AutomationProperties.Name" xml:space="preserve"><value>同步</value></data>
-  <data name="Main_PivotHosts.Header" xml:space="preserve"><value>主机</value></data>
-  <data name="Main_PivotSessions.Header" xml:space="preserve"><value>会话</value></data>
-  <data name="Main_PivotTunnels.Header" xml:space="preserve"><value>隧道</value></data>
-  <data name="Main_TunnelsEmpty.Title" xml:space="preserve"><value>暂无隧道</value></data>
-  <data name="Main_TunnelsEmpty.Description" xml:space="preserve"><value>转发在会话后台运行。</value></data>
-  <data name="Main_QuickConnectButton.Label" xml:space="preserve"><value>快速连接</value></data>
-  <data name="Main_NewButton.Label" xml:space="preserve"><value>新建</value></data>
-  <data name="Main_SettingsItem.Label" xml:space="preserve"><value>设置</value></data>
-  <data name="Main_KeysItem.Label" xml:space="preserve"><value>密钥</value></data>
-  <data name="Main_SnippetsItem.Label" xml:space="preserve"><value>片段</value></data>
-  <data name="Main_AppearanceItem.Label" xml:space="preserve"><value>外观</value></data>
-  <data name="Main_KnownHostsItem.Label" xml:space="preserve"><value>已知主机</value></data>
-  <data name="Main_AboutItem.Label" xml:space="preserve"><value>关于</value></data>
-  <data name="Main_SignInItem.Label" xml:space="preserve"><value>登录</value></data>
-  <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>开发工具</value></data>
-  <data name="Main_LoadWarningTitle" xml:space="preserve"><value>数据文件有告警</value></data>
-
-  <!-- V02（05 §6.1）：HostsPivot——常驻搜索行、可折叠快速连接、空状态双 Kind；
-       NoMatches 标题/主按钮由代码拼装（含搜索词），走格式化键。 -->
-  <data name="Hosts_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索主机、地址、用户</value></data>
-  <data name="Hosts_NewHostButton.AutomationProperties.Name" xml:space="preserve"><value>新建主机</value></data>
-  <data name="Hosts_QuickConnectRow.AutomationProperties.Name" xml:space="preserve"><value>展开或收起快速连接</value></data>
-  <data name="Hosts_QuickConnectRowText.Text" xml:space="preserve"><value>快速连接</value></data>
-  <data name="Hosts_QuickConnectBox.PlaceholderText" xml:space="preserve"><value>user@host[:port]</value></data>
-  <data name="Hosts_QuickConnectGo.Content" xml:space="preserve"><value>连接</value></data>
-  <data name="Hosts_Empty.Title" xml:space="preserve"><value>还没有主机</value></data>
-  <data name="Hosts_Empty.Description" xml:space="preserve"><value>添加一台主机，或登录同步已有配置。</value></data>
-  <data name="Hosts_Empty.PrimaryText" xml:space="preserve"><value>添加主机</value></data>
-  <data name="Hosts_Empty.SecondaryText" xml:space="preserve"><value>登录同步</value></data>
-  <data name="Hosts_NoMatchesTitle" xml:space="preserve"><value>没有匹配“{0}”的主机</value></data>
-  <data name="Hosts_NoMatchesPrimary" xml:space="preserve"><value>用它快速连接</value></data>
-
-  <!-- V02（05 §6.1）：HostRow 上下文菜单与尾操作（Chevron 进编辑） -->
-  <data name="HostRow_MenuConnect.Text" xml:space="preserve"><value>连接</value></data>
-  <data name="HostRow_MenuNewSession.Text" xml:space="preserve"><value>新会话</value></data>
-  <data name="HostRow_MenuEdit.Text" xml:space="preserve"><value>编辑</value></data>
-  <data name="HostRow_MenuDuplicate.Text" xml:space="preserve"><value>复制为新主机</value></data>
-  <data name="HostRow_MenuSftp.Text" xml:space="preserve"><value>SFTP</value></data>
-  <data name="HostRow_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
-  <data name="HostRow_EditButton.AutomationProperties.Name" xml:space="preserve"><value>编辑主机</value></data>
-
-  <!-- V02（05 §6.1）：DevToolsPage——Debug 构建的开发工具入口（主页溢出迁入） -->
-  <data name="DevTools_PageHeader.Title" xml:space="preserve"><value>开发工具</value></data>
-  <data name="DevTools_RowDebugConnect.Title" xml:space="preserve"><value>N10 调试连接</value></data>
-  <data name="DevTools_RowVault.Title" xml:space="preserve"><value>S05 保险库自检</value></data>
-  <data name="DevTools_RowSpike.Title" xml:space="preserve"><value>SP01 JSON Spike</value></data>
-  <data name="DevTools_RowToken.Title" xml:space="preserve"><value>X03 Token 画廊</value></data>
-  <data name="DevTools_RowRender.Title" xml:space="preserve"><value>SP04 渲染压测</value></data>
-  <data name="DevTools_RowPerf.Title" xml:space="preserve"><value>Q01 性能基准</value></data>
-  <data name="DevTools_RowInput.Title" xml:space="preserve"><value>SP05 输入采集</value></data>
-  <data name="DevTools_RowPlatform.Title" xml:space="preserve"><value>SP06 平台 Spike</value></data>
-  <data name="DevTools_RowGenHosts.Title" xml:space="preserve"><value>生成 100 台测试主机</value></data>
-
-  <!-- V04a（C-06 + C-07 + §6.4）：SettingsPage 全量文案走 resw 双语 -->
-  <data name="Settings_PageTitle" xml:space="preserve"><value>设置</value></data>
-  <data name="Settings_Pivot_General.Header" xml:space="preserve"><value>通用</value></data>
-  <data name="Settings_Pivot_Terminal.Header" xml:space="preserve"><value>终端</value></data>
-  <data name="Settings_Pivot_Keyboard.Header" xml:space="preserve"><value>键盘</value></data>
-  <data name="Settings_Pivot_Connection.Header" xml:space="preserve"><value>连接</value></data>
-  <data name="Settings_Pivot_About.Header" xml:space="preserve"><value>关于</value></data>
-  <data name="Settings_ResetDefault" xml:space="preserve"><value>恢复默认</value></data>
-  <data name="Settings_Unit_Pt" xml:space="preserve"><value>{0} pt</value></data>
-  <data name="Settings_Unit_Lines" xml:space="preserve"><value>{0} 行</value></data>
-  <data name="Settings_Unit_Times" xml:space="preserve"><value>{0} 次</value></data>
-  <data name="Settings_Unit_Seconds" xml:space="preserve"><value>{0} 秒</value></data>
-  <data name="Settings_Unit_Minutes" xml:space="preserve"><value>{0} 分钟</value></data>
-  <data name="Settings_Unit_Never" xml:space="preserve"><value>永不超时</value></data>
-  <data name="Settings_Unit_Keys" xml:space="preserve"><value>个键</value></data>
-  <data name="Settings_Unit_Conflicts" xml:space="preserve"><value>处冲突</value></data>
-  <data name="Settings_Unit_Actions" xml:space="preserve"><value>个动作</value></data>
-  <data name="Settings_Confirm_ClearLogs" xml:space="preserve"><value>删除本机全部日志文件？</value></data>
-  <data name="Settings_AppearanceFallback" xml:space="preserve"><value>系统默认</value></data>
-  <data name="Settings_Diagnostics_OsVersion" xml:space="preserve"><value>系统版本：{0}</value></data>
-  <data name="Settings_Diagnostics_DeviceFamily" xml:space="preserve"><value>设备系列：{0}</value></data>
-  <data name="Settings_Diagnostics_Memory" xml:space="preserve"><value>内存：{0}</value></data>
-
-  <!-- V04a：FormSection 说明（动态拼装：当前值 + 范围） -->
-  <data name="Settings_FontSize_Description" xml:space="preserve"><value>{0}（8–28）</value></data>
-  <data name="Settings_Scrollback_Description" xml:space="preserve"><value>{0}（1000–50000）</value></data>
-  <data name="Settings_Reconnect_Description" xml:space="preserve"><value>{0}（0–10）</value></data>
-  <data name="Settings_Timeout_Description" xml:space="preserve"><value>{0}（5–60）</value></data>
-  <data name="Settings_AgentTimeout_Description" xml:space="preserve"><value>{0}（0–120）</value></data>
-
-  <!-- V04a：Toast 文案 -->
-  <data name="Settings_Toast_ThemeChanged" xml:space="preserve"><value>已切换主题</value></data>
-  <data name="Settings_Toast_AccentChanged" xml:space="preserve"><value>已切换强调色</value></data>
-  <data name="Settings_Toast_LanguageChanged" xml:space="preserve"><value>重启应用后生效</value></data>
-  <data name="Settings_Toast_KeepScreenChanged" xml:space="preserve"><value>常亮设置已生效</value></data>
-  <data name="Settings_Toast_LogLevelChanged" xml:space="preserve"><value>日志级别已生效</value></data>
-  <data name="Settings_Toast_DiagnosticsRefreshed" xml:space="preserve"><value>诊断信息已刷新</value></data>
-  <data name="Settings_Toast_DiagnosticsCopied" xml:space="preserve"><value>诊断信息已复制</value></data>
-  <data name="Settings_Toast_CopyFailed" xml:space="preserve"><value>复制失败</value></data>
-
-  <!-- V04a：通用 Pivot -->
-  <data name="Settings_General_Theme_Header" xml:space="preserve"><value>主题</value></data>
-  <data name="Settings_General_Theme_System" xml:space="preserve"><value>跟随系统</value></data>
-  <data name="Settings_General_Theme_Dark" xml:space="preserve"><value>深色</value></data>
-  <data name="Settings_General_Theme_Light" xml:space="preserve"><value>浅色</value></data>
-  <data name="Settings_General_Theme_Note" xml:space="preserve"><value>切换后立即生效，无需重启</value></data>
-  <data name="Settings_General_Accent_Header" xml:space="preserve"><value>使用系统强调色</value></data>
-  <data name="Settings_General_Sort_Header" xml:space="preserve"><value>主机排序</value></data>
-  <data name="Settings_General_Sort_Name" xml:space="preserve"><value>按名称</value></data>
-  <data name="Settings_General_Sort_Recent" xml:space="preserve"><value>按最近连接</value></data>
-  <data name="Settings_General_QuickConnect_Header" xml:space="preserve"><value>显示快速连接卡</value></data>
-  <data name="Settings_General_Haptics_Header" xml:space="preserve"><value>触感反馈</value></data>
-  <data name="Settings_General_Language_Header" xml:space="preserve"><value>语言</value></data>
-  <data name="Settings_General_Language_System" xml:space="preserve"><value>跟随系统</value></data>
-  <data name="Settings_General_Language_Zh" xml:space="preserve"><value>简体中文</value></data>
-  <data name="Settings_General_Language_En" xml:space="preserve"><value>English</value></data>
-  <data name="Settings_General_Language_Note" xml:space="preserve"><value>切换语言后重启应用生效</value></data>
-
-  <!-- V04a：终端 Pivot -->
-  <data name="Settings_Terminal_Appearance_Header" xml:space="preserve"><value>默认外观</value></data>
-  <data name="Settings_Terminal_Appearance_Select" xml:space="preserve"><value>选择外观</value></data>
-  <data name="Settings_Terminal_FontSize_Header" xml:space="preserve"><value>默认字号</value></data>
-  <data name="Settings_Terminal_Scrollback_Header" xml:space="preserve"><value>回滚行数</value></data>
-  <data name="Settings_Terminal_Scrollback_Note" xml:space="preserve"><value>1000–50000，越大越占内存</value></data>
-  <data name="Settings_Terminal_AltScroll_Header" xml:space="preserve"><value>Alt-screen 滚动</value></data>
-  <data name="Settings_Terminal_AltScroll_Arrows" xml:space="preserve"><value>方向键</value></data>
-  <data name="Settings_Terminal_AltScroll_Wheel" xml:space="preserve"><value>滚轮</value></data>
-  <data name="Settings_Terminal_PasteConfirm_Header" xml:space="preserve"><value>多行粘贴前确认</value></data>
-  <data name="Settings_Terminal_CursorBlink_Header" xml:space="preserve"><value>光标闪烁跟随外观</value></data>
-  <data name="Settings_Terminal_CursorBlink_Note" xml:space="preserve"><value>在外观页中修改</value></data>
-  <data name="Settings_Terminal_CursorBlink_Link" xml:space="preserve"><value>去外观</value></data>
-
-  <!-- V04a：键盘 Pivot -->
-  <data name="Settings_Keyboard_KeyBar_Header" xml:space="preserve"><value>显示键条</value></data>
-  <data name="Settings_Keyboard_KeyBarLayout_Header" xml:space="preserve"><value>键条布局</value></data>
-  <data name="Settings_Keyboard_KeyBarLayout_Edit" xml:space="preserve"><value>编辑键条布局</value></data>
-  <data name="Settings_Keyboard_Backspace_Header" xml:space="preserve"><value>退格默认发送</value></data>
-  <data name="Settings_Keyboard_Backspace_Note" xml:space="preserve"><value>退格发送为每台主机单独设置（主机编辑页 → 终端 → 退格发送 Ctrl+H）</value></data>
-  <data name="Settings_Keyboard_Shortcuts_Header" xml:space="preserve"><value>快捷键表</value></data>
-  <data name="Settings_Keyboard_Shortcuts_Edit" xml:space="preserve"><value>编辑快捷键</value></data>
-
-  <!-- V04a：连接 Pivot -->
-  <data name="Settings_Connection_KeepScreen_Header" xml:space="preserve"><value>屏幕常亮</value></data>
-  <data name="Settings_Connection_KeepScreen_Never" xml:space="preserve"><value>从不</value></data>
-  <data name="Settings_Connection_KeepScreen_Session" xml:space="preserve"><value>会话中有连接时</value></data>
-  <data name="Settings_Connection_KeepScreen_Always" xml:space="preserve"><value>总是</value></data>
-  <data name="Settings_Connection_KeepAlive_Header" xml:space="preserve"><value>后台保持连接</value></data>
-  <data name="Settings_Connection_KeepAlive_Note" xml:space="preserve"><value>关闭后进入后台立即断开，回到应用后自动重连</value></data>
-  <data name="Settings_Connection_BgDisc_Header" xml:space="preserve"><value>后台 N 分钟后断开</value></data>
-  <data name="Settings_Connection_BgDisc_Off" xml:space="preserve"><value>关</value></data>
-  <data name="Settings_Connection_BgDisc_5" xml:space="preserve"><value>5 分钟</value></data>
-  <data name="Settings_Connection_BgDisc_15" xml:space="preserve"><value>15 分钟</value></data>
-  <data name="Settings_Connection_BgDisc_30" xml:space="preserve"><value>30 分钟</value></data>
-  <data name="Settings_Connection_BgDisc_60" xml:space="preserve"><value>60 分钟</value></data>
-  <data name="Settings_Connection_Reconnect_Header" xml:space="preserve"><value>自动重连次数</value></data>
-  <data name="Settings_Connection_Reconnect_Note" xml:space="preserve"><value>0 = 不自动重连</value></data>
-  <data name="Settings_Connection_Timeout_Header" xml:space="preserve"><value>连接超时</value></data>
-  <data name="Settings_Connection_AgentTimeout_Header" xml:space="preserve"><value>Agent 密钥保留</value></data>
-  <data name="Settings_Connection_AgentTimeout_Note" xml:space="preserve"><value>解锁后私钥在内存中保留的时长；挂起时立即清除</value></data>
-  <data name="Settings_Connection_Poll_Header" xml:space="preserve"><value>同步轮询间隔</value></data>
-  <data name="Settings_Connection_Poll_Off" xml:space="preserve"><value>关</value></data>
-  <data name="Settings_Connection_Poll_1" xml:space="preserve"><value>1 分钟</value></data>
-  <data name="Settings_Connection_Poll_5" xml:space="preserve"><value>5 分钟</value></data>
-  <data name="Settings_Connection_Poll_15" xml:space="preserve"><value>15 分钟</value></data>
-  <data name="Settings_Connection_Poll_Note" xml:space="preserve"><value>前台轮询，后台不轮询</value></data>
-
-  <!-- V04a：关于 Pivot -->
-  <data name="Settings_About_Version_Header" xml:space="preserve"><value>版本</value></data>
-  <data name="Settings_About_Licenses" xml:space="preserve"><value>开源许可</value></data>
-  <data name="Settings_About_LogLevel_Header" xml:space="preserve"><value>日志级别</value></data>
-  <data name="Settings_About_LogLevel_Debug" xml:space="preserve"><value>调试</value></data>
-  <data name="Settings_About_LogLevel_Info" xml:space="preserve"><value>信息</value></data>
-  <data name="Settings_About_LogLevel_Warn" xml:space="preserve"><value>警告</value></data>
-  <data name="Settings_About_LogLevel_Error" xml:space="preserve"><value>错误</value></data>
-  <data name="Settings_About_ExportLogs" xml:space="preserve"><value>导出日志</value></data>
-  <data name="Settings_About_ClearLogs" xml:space="preserve"><value>清空日志</value></data>
-  <data name="Settings_About_Diagnostics_Header" xml:space="preserve"><value>诊断信息</value></data>
-  <data name="Settings_About_Refresh" xml:space="preserve"><value>刷新</value></data>
-  <data name="Settings_About_Copy" xml:space="preserve"><value>复制</value></data>
-
-  <!-- V04b（C-06 + §6.4）：HostEditPage 五 Section 结构 + BottomActionBar + 折叠高级 + 全量文案走 resw -->
-  <data name="HostEdit_Section_Basic.Header" xml:space="preserve"><value>基础连接</value></data>
-  <data name="HostEdit_Section_Auth.Header" xml:space="preserve"><value>认证</value></data>
-  <data name="HostEdit_Section_Terminal.Header" xml:space="preserve"><value>终端</value></data>
-  <data name="HostEdit_Section_Proxy.Header" xml:space="preserve"><value>代理/跳板</value></data>
-  <data name="HostEdit_Section_Advanced.Text" xml:space="preserve"><value>高级</value></data>
-  <data name="HostEdit_NameBox.Header" xml:space="preserve"><value>名称 *</value></data>
-  <data name="HostEdit_HostBox.Header" xml:space="preserve"><value>地址 *</value></data>
-  <data name="HostEdit_PortBox.Header" xml:space="preserve"><value>端口</value></data>
-  <data name="HostEdit_UserBox.Header" xml:space="preserve"><value>用户名 *</value></data>
-  <data name="HostEdit_GroupBox.Header" xml:space="preserve"><value>分组</value></data>
-  <data name="HostEdit_KeepaliveBox.Header" xml:space="preserve"><value>保活间隔(秒)</value></data>
-  <data name="HostEdit_PasswordBox.Header" xml:space="preserve"><value>密码</value></data>
-  <data name="HostEdit_KeyBox.Header" xml:space="preserve"><value>私钥</value></data>
-  <data name="HostEdit_PassphraseBox.Header" xml:space="preserve"><value>密码短语</value></data>
-  <data name="HostEdit_AppearanceBox.Header" xml:space="preserve"><value>外观</value></data>
-  <data name="HostEdit_TermTypeBox.Header" xml:space="preserve"><value>终端类型</value></data>
-  <data name="HostEdit_JumpBox.Header" xml:space="preserve"><value>跳板主机</value></data>
-  <data name="HostEdit_TmuxNameBox.Header" xml:space="preserve"><value>tmux 会话名</value></data>
-  <data name="HostEdit_InitBox.Header" xml:space="preserve"><value>连接后执行命令（每行一条）</value></data>
-  <data name="HostEdit_RememberPasswordSwitch.Header" xml:space="preserve"><value>保存在本机</value></data>
-  <data name="HostEdit_RememberPassphraseSwitch.Header" xml:space="preserve"><value>保存短语</value></data>
-  <data name="HostEdit_BackspaceSwitch.Header" xml:space="preserve"><value>退格发送 Ctrl+H</value></data>
-  <data name="HostEdit_TmuxSwitch.Header" xml:space="preserve"><value>tmux 自动附着</value></data>
-  <data name="HostEdit_AuthPasswordRadio.Content" xml:space="preserve"><value>密码</value></data>
-  <data name="HostEdit_AuthKeyRadio.Content" xml:space="preserve"><value>私钥</value></data>
-  <data name="HostEdit_AuthAgentRadio.Content" xml:space="preserve"><value>应用内 Agent</value></data>
-  <data name="HostEdit_ManageGroups.Content" xml:space="preserve"><value>管理分组</value></data>
-  <data name="HostEdit_ManageAppearances.Content" xml:space="preserve"><value>管理外观</value></data>
-  <data name="HostEdit_ImportKey.Content" xml:space="preserve"><value>导入</value></data>
-  <data name="HostEdit_GenerateKey.Content" xml:space="preserve"><value>生成</value></data>
-  <data name="HostEdit_AddEnv.Content" xml:space="preserve"><value>添加变量</value></data>
-  <data name="HostEdit_AddTunnel.Content" xml:space="preserve"><value>添加隧道</value></data>
-  <data name="HostEdit_ClearFingerprint.Content" xml:space="preserve"><value>清除</value></data>
-  <data name="HostEdit_LocalOnly.Text" xml:space="preserve"><value>仅本机</value></data>
-  <data name="HostEdit_HostFingerprint.Text" xml:space="preserve"><value>主机指纹</value></data>
-  <data name="HostEdit_EnvVars.Text" xml:space="preserve"><value>环境变量</value></data>
-  <data name="HostEdit_Tunnels.Text" xml:space="preserve"><value>隧道</value></data>
-  <data name="HostEdit_TmuxNote.Text" xml:space="preserve"><value>断线/被系统挂起后重连回到原现场，推荐开启</value></data>
-  <data name="HostEdit_SyncPasswordNote.Text" xml:space="preserve"><value>开启同步密码后会加密上传</value></data>
-  <data name="HostEdit_EnvKey_Placeholder" xml:space="preserve"><value>KEY</value></data>
-  <data name="HostEdit_EnvValue_Placeholder" xml:space="preserve"><value>VALUE</value></data>
-  <data name="HostEdit_RemoveEnv.Content" xml:space="preserve"><value>删除</value></data>
-  <data name="HostEdit_AdvancedToggle.Header" xml:space="preserve"><value>高级</value></data>
-  <data name="HostEdit_AdvancedToggle_Chevron" xml:space="preserve"><value>展开或收起高级设置</value></data>
-  <!-- V04b：HostEditPage 代码拼装文案（ResourceLoader） -->
-  <data name="HostEdit_Save" xml:space="preserve"><value>保存</value></data>
-  <data name="HostEdit_TestConnect" xml:space="preserve"><value>测试连接</value></data>
-  <data name="HostEdit_AbandonTitle" xml:space="preserve"><value>放弃修改？</value></data>
-  <data name="HostEdit_AbandonMessage" xml:space="preserve"><value>未保存的更改将丢失。</value></data>
-  <data name="HostEdit_AbandonConfirm" xml:space="preserve"><value>放弃</value></data>
-  <data name="HostEdit_AbandonCancel" xml:space="preserve"><value>继续编辑</value></data>
-  <data name="HostEdit_SwitchAuthTitle" xml:space="preserve"><value>切换认证方式？</value></data>
-  <data name="HostEdit_SwitchAuthConfirm" xml:space="preserve"><value>切换</value></data>
-  <data name="HostEdit_SwitchAuthCancel" xml:space="preserve"><value>取消</value></data>
-  <data name="HostEdit_TestMessage" xml:space="preserve"><value>测试连接…</value></data>
-  <data name="HostEdit_TestTitle" xml:space="preserve"><value>测试连接</value></data>
-  <data name="HostEdit_TestFailedTitle" xml:space="preserve"><value>测试失败</value></data>
-  <data name="HostEdit_DialogOk" xml:space="preserve"><value>确定</value></data>
-  <data name="HostEdit_DialogClose" xml:space="preserve"><value>关闭</value></data>
-  <data name="HostEdit_FingerprintNone" xml:space="preserve"><value>（无）</value></data>
-
-  <!-- V04b（C-06 + §6.4）：KeysPage 行模板 + 底部动作 + 全量文案走 resw -->
-  <data name="Keys_Title.Text" xml:space="preserve"><value>密钥</value></data>
-  <data name="Keys_Empty_Title" xml:space="preserve"><value>还没有密钥</value></data>
-  <data name="Keys_Empty_Description" xml:space="preserve"><value>生成一个新密钥，或导入已有的私钥。</value></data>
-  <data name="Keys_Empty_Primary" xml:space="preserve"><value>生成密钥</value></data>
-  <data name="Keys_Empty_Secondary" xml:space="preserve"><value>导入密钥</value></data>
-  <data name="Keys_Generate.Label" xml:space="preserve"><value>生成</value></data>
-  <data name="Keys_Import.Label" xml:space="preserve"><value>导入</value></data>
-  <data name="Keys_MenuDetail.Text" xml:space="preserve"><value>查看详情</value></data>
-  <data name="Keys_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
-  <data name="Keys_MoreButton_A11yName" xml:space="preserve"><value>更多操作</value></data>
-  <data name="Keys_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多操作</value></data>
-
-  <!-- V04b（C-06 + §6.4）：SnippetsPage 发送按钮 + 分组行 + 全量文案走 resw -->
-  <data name="Snippets_Title.Text" xml:space="preserve"><value>片段</value></data>
-  <data name="Snippets_Empty_Title" xml:space="preserve"><value>还没有片段</value></data>
-  <data name="Snippets_Empty_Description" xml:space="preserve"><value>把常用命令存成片段，一键发送到终端。</value></data>
-  <data name="Snippets_Empty_Primary" xml:space="preserve"><value>新建片段</value></data>
-  <data name="Snippets_NoMatches_Title" xml:space="preserve"><value>没有匹配的片段</value></data>
-  <data name="Snippets_Search_Placeholder" xml:space="preserve"><value>搜索片段</value></data>
-  <data name="Snippets_New.Label" xml:space="preserve"><value>新建</value></data>
-  <data name="Snippets_SendButton.AutomationProperties.Name" xml:space="preserve"><value>发送</value></data>
-
-  <!-- V05b（U17~U20 同步页）：状态 Pivot / 设备 / 历史 / 冲突 / 安全清理 / 注销 -->
-  <!-- SyncStatePresenter 相位文案键 -->
-  <data name="Sync_SignedOut" xml:space="preserve"><value>未登录</value></data>
-  <data name="Sync_Disabled" xml:space="preserve"><value>同步未开启</value></data>
-  <data name="Sync_Locked" xml:space="preserve"><value>保险库已锁定</value></data>
-  <data name="Sync_Idle" xml:space="preserve"><value>等待同步</value></data>
-  <data name="Sync_Syncing" xml:space="preserve"><value>正在同步…</value></data>
-  <data name="Sync_Synced" xml:space="preserve"><value>已同步</value></data>
-  <data name="Sync_Offline" xml:space="preserve"><value>离线，稍后重试</value></data>
-  <data name="Sync_Conflict" xml:space="preserve"><value>需要处理冲突</value></data>
-  <data name="Sync_Error" xml:space="preserve"><value>同步失败</value></data>
-  <data name="Sync_AuthError" xml:space="preserve"><value>登录已失效</value></data>
-
-  <!-- AccountSyncPage -->
-  <data name="AccountSync_Header.Title" xml:space="preserve"><value>账号与同步</value></data>
-  <data name="AccountSync_TabStatus.Header" xml:space="preserve"><value>状态</value></data>
-  <data name="AccountSync_TabDevices.Header" xml:space="preserve"><value>设备</value></data>
-  <data name="AccountSync_TabHistory.Header" xml:space="preserve"><value>历史</value></data>
-  <data name="AccountSync_LastSynced" xml:space="preserve"><value>上次同步 {0}</value></data>
-  <data name="AccountSync_LastSyncedNone" xml:space="preserve"><value>尚未同步</value></data>
-  <data name="AccountSync_NextRetry" xml:space="preserve"><value>下次重试 {0}</value></data>
-  <data name="AccountSync_Meta" xml:space="preserve"><value>版本 r{0} · 密钥 v{1}</value></data>
-  <data name="AccountSync_SyncNow" xml:space="preserve"><value>立即同步</value></data>
-  <data name="AccountSync_ResolveConflict" xml:space="preserve"><value>处理冲突</value></data>
-  <data name="AccountSync_SyncSettingsHeader" xml:space="preserve"><value>同步设置</value></data>
-  <data name="AccountSync_EnableSync" xml:space="preserve"><value>启用同步</value></data>
-  <data name="AccountSync_AutoSync" xml:space="preserve"><value>自动同步</value></data>
-  <data name="AccountSync_SyncPasswords" xml:space="preserve"><value>同步密码与短语</value></data>
-  <data name="AccountSync_SyncPrivateKeys" xml:space="preserve"><value>同步私钥</value></data>
-  <data name="AccountSync_VaultHeader" xml:space="preserve"><value>保险库</value></data>
-  <data name="AccountSync_ChangeSyncPassword" xml:space="preserve"><value>修改同步密码</value></data>
-  <data name="AccountSync_AccountHeader" xml:space="preserve"><value>账号</value></data>
-  <data name="AccountSync_ChangeLoginPassword" xml:space="preserve"><value>修改登录密码</value></data>
-  <data name="AccountSync_Logout" xml:space="preserve"><value>退出登录</value></data>
-  <data name="AccountSync_LogoutAll" xml:space="preserve"><value>退出所有设备</value></data>
-  <data name="AccountSync_DangerHeader" xml:space="preserve"><value>危险操作</value></data>
-  <data name="AccountSync_DeleteVault" xml:space="preserve"><value>删除云端保险库…</value></data>
-  <data name="AccountSync_DeleteAccount" xml:space="preserve"><value>注销账号…</value></data>
-  <data name="AccountSync_DevicesEmpty" xml:space="preserve"><value>暂无设备</value></data>
-  <data name="AccountSync_HistoryEmpty" xml:space="preserve"><value>暂无历史版本</value></data>
-  <data name="AccountSync_RenameDeviceTitle" xml:space="preserve"><value>重命名设备</value></data>
-  <data name="AccountSync_Rename" xml:space="preserve"><value>重命名</value></data>
-  <data name="AccountSync_Revoke" xml:space="preserve"><value>撤销设备…</value></data>
-  <data name="AccountSync_RevokeDeviceTitle" xml:space="preserve"><value>撤销设备</value></data>
-  <data name="AccountSync_RevokeDeviceMessage" xml:space="preserve"><value>撤销后该设备将需要重新登录才能同步。此操作不可撤销。</value></data>
-  <data name="AccountSync_RestoreTitle" xml:space="preserve"><value>恢复到此版本</value></data>
-  <data name="AccountSync_RestoreMessage" xml:space="preserve"><value>将以此版本创建新的云端版本并覆盖本机配置。</value></data>
-  <data name="AccountSync_Restore" xml:space="preserve"><value>恢复</value></data>
-  <data name="AccountSync_ClearHistoryTitle" xml:space="preserve"><value>清空历史</value></data>
-  <data name="AccountSync_ClearHistoryMessage" xml:space="preserve"><value>云端历史版本将全部删除，且不可恢复。</value></data>
-  <data name="AccountSync_Clear" xml:space="preserve"><value>清空</value></data>
-  <data name="AccountSync_DeleteVaultTitle" xml:space="preserve"><value>删除云端保险库</value></data>
-  <data name="AccountSync_DeleteVaultMessage" xml:space="preserve"><value>云端保险库和历史版本将被删除，本机配置仍保留。</value></data>
-  <data name="AccountSync_Delete" xml:space="preserve"><value>删除</value></data>
-  <data name="AccountSync_LogoutTitle" xml:space="preserve"><value>退出登录</value></data>
-  <data name="AccountSync_LogoutMessage" xml:space="preserve"><value>将退出当前设备。</value></data>
-  <data name="AccountSync_LogoutAllTitle" xml:space="preserve"><value>退出所有设备</value></data>
-  <data name="AccountSync_LogoutAllMessage" xml:space="preserve"><value>所有设备都将退出登录，需要重新登录才能同步。</value></data>
-  <data name="AccountSync_DeviceCurrentNote" xml:space="preserve"><value>这是当前设备。重命名可用；撤销请用「退出登录」。</value></data>
-  <data name="AccountSync_DeviceListFailed" xml:space="preserve"><value>无法加载设备列表</value></data>
-  <data name="AccountSync_HistoryListFailed" xml:space="preserve"><value>无法加载历史版本</value></data>
-  <data name="AccountSync_Cancel" xml:space="preserve"><value>取消</value></data>
-  <data name="Sync_Conflict_SensitiveChanged" xml:space="preserve"><value>有变更</value></data>
-  <data name="Sync_CommandFailed" xml:space="preserve"><value>操作失败，请稍后重试</value></data>
-
-  <!-- SyncConflictPage (U19) -->
-  <data name="Conflict_Header.Title" xml:space="preserve"><value>同步冲突</value></data>
-  <data name="Conflict_FieldsHeader" xml:space="preserve"><value>涉及项目</value></data>
-  <data name="Conflict_Title_InitialImport" xml:space="preserve"><value>首次同步，云端已有配置</value></data>
-  <data name="Conflict_Title_RemoteDeletion" xml:space="preserve"><value>云端删除了以下项目</value></data>
-  <data name="Conflict_Title_MergeConflict" xml:space="preserve"><value>以下字段两边都改了</value></data>
-  <data name="Conflict_Description_InitialImport" xml:space="preserve"><value>这是你首次在本机启用同步，但云端已有一份配置。请选择保留哪一份。</value></data>
-  <data name="Conflict_Description_RemoteDeletion" xml:space="preserve"><value>云端版本中删除了部分在本机仍存在的项目，请确认后应用。</value></data>
-  <data name="Conflict_Description_MergeConflict" xml:space="preserve"><value>本机与云端修改了同一实段的字段，请决定保留哪一侧。</value></data>
-  <data name="Conflict_Button_UseRemote" xml:space="preserve"><value>使用云端配置</value></data>
-  <data name="Conflict_Button_KeepLocal" xml:space="preserve"><value>保留本机配置</value></data>
-  <data name="Conflict_Button_ApplyDeletion" xml:space="preserve"><value>应用删除</value></data>
-  <data name="Conflict_RemoteSummary" xml:space="preserve"><value>云端：{0} 台主机 · {1} 条隧道 · {2} 分组</value></data>
-  <data name="Conflict_IncludesPasswords" xml:space="preserve"><value>含已同步密码</value></data>
-  <data name="Conflict_IncludesPrivateKeys" xml:space="preserve"><value>含已同步私钥</value></data>
-  <data name="Conflict_ResolveFailed" xml:space="preserve"><value>解决冲突失败，请稍后重试</value></data>
-
-  <!-- SecurityRotatePage (U20) -->
-  <data name="SecurityRotate_Header.Title" xml:space="preserve"><value>安全清理</value></data>
-  <data name="SecurityRotate_LoginPasswordLabel" xml:space="preserve"><value>账号登录密码</value></data>
-  <data name="SecurityRotate_NewPasswordLabel" xml:space="preserve"><value>新同步密码</value></data>
-  <data name="SecurityRotate_ConfirmLabel" xml:space="preserve"><value>确认新同步密码</value></data>
-  <data name="SecurityRotate_PasswordHint" xml:space="preserve"><value>同步密码至少 8 位</value></data>
-  <data name="SecurityRotate_Submit" xml:space="preserve"><value>执行</value></data>
-  <data name="SecurityRotate_Working" xml:space="preserve"><value>正在生成新密钥（约数秒）…</value></data>
-  <data name="SecurityRotate_Failed" xml:space="preserve"><value>操作失败，请稍后重试</value></data>
-
-  <!-- ChangeLoginPasswordPage (U20) -->
-  <data name="ChangeLogin_Header.Title" xml:space="preserve"><value>修改登录密码</value></data>
-  <data name="ChangeLogin_CurrentLabel" xml:space="preserve"><value>当前密码</value></data>
-  <data name="ChangeLogin_NewLabel" xml:space="preserve"><value>新密码</value></data>
-  <data name="ChangeLogin_NewHint" xml:space="preserve"><value>新密码至少 10 位</value></data>
-  <data name="ChangeLogin_ConfirmLabel" xml:space="preserve"><value>确认新密码</value></data>
-  <data name="ChangeLogin_Submit" xml:space="preserve"><value>修改密码</value></data>
-  <data name="ChangeLogin_TooShort" xml:space="preserve"><value>新密码至少 10 位</value></data>
-  <data name="ChangeLogin_Failed" xml:space="preserve"><value>修改密码失败，请稍后重试</value></data>
-
-  <!-- DeleteAccountPage (U20) -->
-  <data name="DeleteAccount_Header.Title" xml:space="preserve"><value>注销账号</value></data>
-  <data name="DeleteAccount_Warning" xml:space="preserve"><value>此操作将永久删除你的账号与云端保险库，且不可恢复。</value></data>
-  <data name="DeleteAccount_PasswordLabel" xml:space="preserve"><value>登录密码</value></data>
-  <data name="DeleteAccount_ConfirmLabel" xml:space="preserve"><value>输入 DELETE 以确认</value></data>
-  <data name="DeleteAccount_ConfirmBox.PlaceholderText" xml:space="preserve"><value>DELETE</value></data>
-  <data name="DeleteAccount_Submit" xml:space="preserve"><value>注销账号</value></data>
-  <data name="DeleteAccount_Failed" xml:space="preserve"><value>注销账号失败，请稍后重试</value></data>
-
-  <!-- DeleteVaultPage (U20) -->
-  <data name="DeleteVault_Header.Title" xml:space="preserve"><value>删除云端保险库</value></data>
-  <data name="DeleteVault_Explanation" xml:space="preserve"><value>云端保险库和历史版本将被删除，本机配置仍保留。</value></data>
-  <data name="DeleteVault_PasswordLabel" xml:space="preserve"><value>登录密码</value></data>
-  <data name="DeleteVault_Submit" xml:space="preserve"><value>删除云端保险库</value></data>
-  <data name="DeleteVault_Failed" xml:space="preserve"><value>删除保险库失败，请稍后重试</value></data>
-
-  <!-- F06：隧道与端口转发 (Tunnels) -->
-  <data name="Tunnels_Title.Text" xml:space="preserve"><value>端口转发</value></data>
-  <data name="Tunnels_StopAllButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>全部停止</value></data>
-  <data name="Tunnels_AddTunnelButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>添加隧道</value></data>
-  <data name="Tunnels_EmptyState.Title" xml:space="preserve"><value>暂无隧道</value></data>
-  <data name="Tunnels_EmptyState.Description" xml:space="preserve"><value>在手机后台建立本地、远程或 SOCKS5 转发规则</value></data>
-  <data name="Tunnels_EmptyState.PrimaryText" xml:space="preserve"><value>添加隧道</value></data>
-  <data name="Tunnels_MenuStart" xml:space="preserve"><value>启动</value></data>
-  <data name="Tunnels_MenuStop" xml:space="preserve"><value>停止</value></data>
-  <data name="Tunnels_DeleteConfirmTitle" xml:space="preserve"><value>删除隧道</value></data>
-  <data name="Tunnels_DeleteConfirmMessage" xml:space="preserve"><value>确定要删除隧道“{0}”吗？此操作无法撤销。</value></data>
-  <data name="Tunnels_Delete" xml:space="preserve"><value>删除</value></data>
-  <data name="Tunnels_Cancel" xml:space="preserve"><value>取消</value></data>
-  <data name="Tunnels_Continue" xml:space="preserve"><value>继续开启</value></data>
-  <data name="Tunnels_LoopbackNoticeTitle" xml:space="preserve"><value>回环隔离限制</value></data>
-  <data name="Tunnels_LoopbackNoticeMessage" xml:space="preserve"><value>UWP 应用具有网络隔离机制：本机其他应用可能无法直接访问 127.0.0.1 上的转发端口。</value></data>
-  <data name="Tunnels_DoNotRemind.Content" xml:space="preserve"><value>不再提示</value></data>
-
-  <!-- F06：隧道行 (TunnelRow) -->
-  <data name="TunnelRow_Switch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>启停隧道</value></data>
-  <data name="TunnelRow_MenuToggle.Text" xml:space="preserve"><value>启停</value></data>
-  <data name="TunnelRow_MenuEdit.Text" xml:space="preserve"><value>编辑</value></data>
-  <data name="TunnelRow_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
-
-  <!-- F06：隧道状态与标题 (TunnelItem) -->
-  <data name="TunnelState_Running" xml:space="preserve"><value>运行中</value></data>
-  <data name="TunnelState_Connecting" xml:space="preserve"><value>连接中</value></data>
-  <data name="TunnelState_Reconnecting" xml:space="preserve"><value>重连中</value></data>
-  <data name="TunnelState_Error" xml:space="preserve"><value>错误</value></data>
-  <data name="TunnelState_Idle" xml:space="preserve"><value>已停止</value></data>
-  <data name="TunnelState_DesktopOnly" xml:space="preserve"><value>仅桌面端运行</value></data>
-  <data name="TunnelState_Connections" xml:space="preserve"><value>{0} 连接</value></data>
-  <data name="Tunnel_Default_Local" xml:space="preserve"><value>本地</value></data>
-  <data name="Tunnel_Default_Remote" xml:space="preserve"><value>远程</value></data>
-  <data name="Tunnel_Default_Dynamic" xml:space="preserve"><value>SOCKS5</value></data>
-  <data name="Tunnel_Default_Relay" xml:space="preserve"><value>中转</value></data>
-  <data name="Tunnel_Default_Forward" xml:space="preserve"><value>转发</value></data>
-
-  <!-- F06：隧道编辑页 (TunnelEditPage) -->
-  <data name="TunnelEdit_Title_New" xml:space="preserve"><value>新建隧道</value></data>
-  <data name="TunnelEdit_Title_Edit" xml:space="preserve"><value>编辑隧道</value></data>
-  <data name="TunnelEdit_Section_Basic.Header" xml:space="preserve"><value>基础配置</value></data>
-  <data name="TunnelEdit_NameBox.Header" xml:space="preserve"><value>名称</value></data>
-  <data name="TunnelEdit_TypeBox.Header" xml:space="preserve"><value>转发类型</value></data>
-  <data name="TunnelEdit_ServerBox.Header" xml:space="preserve"><value>SSH 主机 *</value></data>
-  <data name="TunnelEdit_GroupBox.Header" xml:space="preserve"><value>分组</value></data>
-  <data name="TunnelEdit_NoGroup" xml:space="preserve"><value>未分组</value></data>
-  <data name="TunnelType_Local" xml:space="preserve"><value>本地转发 (Local)</value></data>
-  <data name="TunnelType_Remote" xml:space="preserve"><value>远程转发 (Remote)</value></data>
-  <data name="TunnelType_Dynamic" xml:space="preserve"><value>动态 SOCKS5 (Dynamic)</value></data>
-  <data name="TunnelType_Relay" xml:space="preserve"><value>中转转发 (Relay)</value></data>
-  <data name="TunnelEdit_Section_Route.Header" xml:space="preserve"><value>路由与端口</value></data>
-  <data name="TunnelEdit_ListenHostBox.Header" xml:space="preserve"><value>监听地址</value></data>
-  <data name="TunnelEdit_ListenPortBox.Header" xml:space="preserve"><value>监听端口 *</value></data>
-  <data name="TunnelEdit_DestHostBox.Header" xml:space="preserve"><value>目标主机 *</value></data>
-  <data name="TunnelEdit_DestPortBox.Header" xml:space="preserve"><value>目标端口 *</value></data>
-  <data name="TunnelEdit_DestServerBox.Header" xml:space="preserve"><value>目标服务器 *</value></data>
-  <data name="TunnelEdit_RoutePreviewTitle.Text" xml:space="preserve"><value>路径预览</value></data>
-  <data name="TunnelEdit_Section_Options.Header" xml:space="preserve"><value>运行选项</value></data>
-  <data name="TunnelEdit_AutoReconnectSwitch.Header" xml:space="preserve"><value>自动重连</value></data>
-  <data name="TunnelEdit_AutoStartSwitch.Header" xml:space="preserve"><value>随应用启动</value></data>
-  <data name="TunnelEdit_EnabledSwitch.Header" xml:space="preserve"><value>已启用</value></data>
-  <data name="TunnelEdit_LocalOnly.Text" xml:space="preserve"><value>（仅本机）</value></data>
-  <data name="TunnelEdit_Save" xml:space="preserve"><value>保存</value></data>
-  <data name="TunnelEdit_Delete" xml:space="preserve"><value>删除隧道</value></data>
-  <data name="TunnelEdit_Cancel" xml:space="preserve"><value>取消</value></data>
-  <data name="TunnelEdit_UnsavedChanges_Title" xml:space="preserve"><value>放弃修改？</value></data>
-  <data name="TunnelEdit_UnsavedChanges_Message" xml:space="preserve"><value>未保存的修改将丢失。</value></data>
-  <data name="TunnelEdit_Discard" xml:space="preserve"><value>放弃</value></data>
-  <data name="TunnelEdit_DeleteConfirmMessage" xml:space="preserve"><value>确定要删除该隧道吗？此操作无法撤销。</value></data>
-
-  <!-- O13 批次 1：Controls / Dialogs / Terminal -->
-  <data name="ColorSwatchPicker_TextBlock2.Text" xml:space="preserve"><value>旧</value></data>
-  <data name="ColorSwatchPicker_TextBlock1.Text" xml:space="preserve"><value>新</value></data>
-  <data name="SessionOverlay_CancelButton.Content" xml:space="preserve"><value>取消</value></data>
-  <data name="SessionOverlay_ReconnectNowButton.Content" xml:space="preserve"><value>立即重连</value></data>
-  <data name="SessionOverlay_StopButton.Content" xml:space="preserve"><value>停止</value></data>
-  <data name="SessionOverlay_RetryButton.Content" xml:space="preserve"><value>重试</value></data>
-  <data name="SessionOverlay_EditButton.Content" xml:space="preserve"><value>编辑主机</value></data>
-  <data name="SessionOverlay_CloseButton.Content" xml:space="preserve"><value>关闭</value></data>
-  <data name="SessionsPane_Button1.Content" xml:space="preserve"><value>新会话</value></data>
-  <data name="SnippetPickerFlyout_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索片段</value></data>
-  <data name="SnippetPickerFlyout_Empty.Title" xml:space="preserve"><value>没有片段</value></data>
-  <data name="SnippetPickerFlyout_Empty.Description" xml:space="preserve"><value>先去「片段」页添加常用命令。</value></data>
-  <data name="AgentUnlockDialog_ContentDialog1.Title" xml:space="preserve"><value>选择解锁密钥</value></data>
-  <data name="AgentUnlockDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>解锁</value></data>
-  <data name="AgentUnlockDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
-  <data name="CredentialDialog_ContentDialog1.Title" xml:space="preserve"><value>身份验证</value></data>
-  <data name="CredentialDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>连接</value></data>
-  <data name="CredentialDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
-  <data name="CredentialDialog_RememberBox.Content" xml:space="preserve"><value>保存在本机</value></data>
-  <data name="HostKeyDialog_ContentDialog1.Title" xml:space="preserve"><value>主机密钥确认</value></data>
-  <data name="HostKeyDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>信任并连接</value></data>
-  <data name="HostKeyDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
-  <data name="HostKeyMismatchDialog_ContentDialog4.Title" xml:space="preserve"><value>主机密钥已改变</value></data>
-  <data name="HostKeyMismatchDialog_ContentDialog4.PrimaryButtonText" xml:space="preserve"><value>取消</value></data>
-  <data name="HostKeyMismatchDialog_ContentDialog4.SecondaryButtonText" xml:space="preserve"><value>移除旧记录并重试…</value></data>
-  <data name="HostKeyMismatchDialog_TextBlock3.Text" xml:space="preserve"><value>主机密钥已改变，可能存在中间人攻击。</value></data>
-  <data name="HostKeyMismatchDialog_TextBlock2.Text" xml:space="preserve"><value>已记录指纹</value></data>
-  <data name="HostKeyMismatchDialog_TextBlock1.Text" xml:space="preserve"><value>当前指纹</value></data>
-  <data name="KbdInteractiveDialog_ContentDialog1.Title" xml:space="preserve"><value>键盘交互认证</value></data>
-  <data name="KbdInteractiveDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>提交</value></data>
-  <data name="KbdInteractiveDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
-  <data name="KeyGenerateDialog_ContentDialog1.Title" xml:space="preserve"><value>生成密钥</value></data>
-  <data name="KeyGenerateDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>生成</value></data>
-  <data name="KeyGenerateDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
-  <data name="KeyGenerateDialog_TypeBox.Header" xml:space="preserve"><value>类型</value></data>
-  <data name="KeyGenerateDialog_NameBox.Header" xml:space="preserve"><value>名称</value></data>
-  <data name="KeyGenerateDialog_CommentBox.Header" xml:space="preserve"><value>注释</value></data>
-  <data name="KeyImportDialog_ContentDialog1.Title" xml:space="preserve"><value>导入密钥</value></data>
-  <data name="KeyImportDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>继续</value></data>
-  <data name="KeyImportDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
-  <data name="KeyImportDialog_PickFileButton.Content" xml:space="preserve"><value>从文件导入…</value></data>
-  <data name="KeyImportDialog_PassphraseBox.Header" xml:space="preserve"><value>短语</value></data>
-  <data name="KeyImportDialog_RememberBox.Content" xml:space="preserve"><value>保存短语</value></data>
-  <data name="KeyImportDialog_NameBox.Header" xml:space="preserve"><value>名称</value></data>
-  <data name="PassphraseDialog_ContentDialog1.Title" xml:space="preserve"><value>私钥短语</value></data>
-  <data name="PassphraseDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>解锁</value></data>
-  <data name="PassphraseDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
-  <data name="PassphraseDialog_RememberSwitch.Header" xml:space="preserve"><value>保存在本机</value></data>
-  <data name="PasteConfirmDialog_DontAskBox.Content" xml:space="preserve"><value>不再提示</value></data>
-  <data name="PermissionsDialog_OctalBox.Header" xml:space="preserve"><value>八进制</value></data>
-  <data name="RenameDialog_NameBox.Header" xml:space="preserve"><value>名称</value></data>
-  <data name="ThemeSchemePickerDialog_ContentDialog1.Title" xml:space="preserve"><value>选择要导入的配色</value></data>
-  <data name="ThemeSchemePickerDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>导入所选</value></data>
-  <data name="ThemeSchemePickerDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
-  <data name="SelectionLayer_CopyButton.Content" xml:space="preserve"><value>复制</value></data>
-  <data name="SelectionLayer_PasteButton.Content" xml:space="preserve"><value>粘贴</value></data>
-  <data name="SelectionLayer_SelectAllButton.Content" xml:space="preserve"><value>全选</value></data>
-  <data name="SelectionLayer_ShareButton.Content" xml:space="preserve"><value>分享</value></data>
-</root>
+  <!-- O13：密钥导入继续按钮 -->
+  <data name="KeyImport_Continue" xml:space="preserve"><value>继续</value></data>
+</root>

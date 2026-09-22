@@ -22,7 +22,7 @@ namespace SshTool.App.Dialogs
         public static async Task<PassphraseDialogResult> ShowAsync(string keyName)
         {
             var dialog = new PassphraseDialog();
-            dialog.PromptText.Text = "私钥 " + keyName + " 的短语";
+            dialog.PromptText.Text = Localized.Format("Passphrase_Prompt", "私钥 {0} 的短语", keyName);
             var result = await ServiceRegistry.Get<DialogService>().ShowAsync(dialog);
             if (result != ContentDialogResult.Primary)
             {

@@ -27,7 +27,7 @@ namespace SshTool.App.Dialogs
             IReadOnlyList<AgentKeyChoice> choices, string hostDisplay)
         {
             var dialog = new AgentUnlockDialog();
-            dialog.PromptText.Text = "主机 " + (hostDisplay ?? string.Empty)
+            dialog.PromptText.Text = Localized.Format("AgentUnlock_Prompt", "主机 {0}", hostDisplay ?? string.Empty)
                 + " 需要密钥认证，解锁一把密钥后继续";
             var rows = new List<AgentUnlockRow>();
             if (choices != null)

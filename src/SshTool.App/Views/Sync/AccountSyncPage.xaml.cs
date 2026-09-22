@@ -85,7 +85,7 @@ namespace SshTool.App.Views.Sync
 
         private void RefreshHeader()
         {
-            Header.Title = "账号与同步";
+            Header.Title = Localized.Get("AccountSync_Title", "账号与同步");
             Header.ShowBackButton = Frame.CanGoBack;
         }
 

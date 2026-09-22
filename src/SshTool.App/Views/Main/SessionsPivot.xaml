@@ -22,7 +22,7 @@
             <StackPanel>
                 <TextBlock x:Name="RestoreText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
                 <!-- UI 走查：恢复为次级动作（主入口在主机列表），补触控。 -->
-                <Button Content="全部恢复" Click="OnRestore"
+                <Button x:Uid="SessionsPivot_Button1" Click="OnRestore"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Margin="{StaticResource GapSmTop}" />
             </StackPanel>
@@ -52,8 +52,8 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <controls:EmptyState x:Name="Empty" Grid.Row="1" Title="没有打开的会话"
-                             Description="点主机开始连接。"
+        <controls:EmptyState x:Uid="SessionsPivot_Empty" x:Name="Empty" Grid.Row="1"
+
                              Glyph="{StaticResource IconConnect}" />
     </Grid>
 </UserControl>

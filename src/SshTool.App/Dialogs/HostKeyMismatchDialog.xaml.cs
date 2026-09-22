@@ -26,7 +26,7 @@ namespace SshTool.App.Dialogs
             var dialog = new HostKeyMismatchDialog();
             dialog.OldFingerprintText.Text = recordedFingerprint;
             dialog.NewFingerprintText.Text = currentFingerprint;
-            dialog.ConfirmHintText.Text = "移除需确认：请输入主机名 " + hostName;
+            dialog.ConfirmHintText.Text = Localized.Format("HostKeyMismatch_ConfirmHint", "移除需确认：请输入主机名 {0}", hostName);
             dialog.SecondaryButtonClick += (s, args) =>
             {
                 var deferral = args.GetDeferral();
@@ -35,7 +35,7 @@ namespace SshTool.App.Dialogs
                     if (!string.Equals(dialog.ConfirmBox.Text.Trim(), hostName, StringComparison.Ordinal))
                     {
                         args.Cancel = true;
-                        dialog.ConfirmErrorText.Text = "主机名不匹配，未移除。";
+                        dialog.ConfirmErrorText.Text = Localized.Get("HostKeyMismatch_NameMismatch", "主机名不匹配，未移除。");
                         dialog.ConfirmErrorText.Visibility = Visibility.Visible;
                     }
                 }

@@ -22,8 +22,8 @@ namespace SshTool.App.Dialogs
             string hostDisplay, string keyType, string fingerprint, string randomArt)
         {
             var dialog = new HostKeyDialog();
-            dialog.HostText.Text = "首次连接 " + hostDisplay;
-            dialog.KeyTypeText.Text = "密钥类型：" + keyType;
+            dialog.HostText.Text = Localized.Format("HostKey_FirstConnect", "首次连接 {0}", hostDisplay);
+            dialog.KeyTypeText.Text = Localized.Format("HostKey_KeyType", "密钥类型：{0}", keyType);
             dialog.FingerprintText.Text = fingerprint;
             dialog.ArtView.Art = randomArt;
             var result = await ServiceRegistry.Get<DialogService>().ShowAsync(dialog);

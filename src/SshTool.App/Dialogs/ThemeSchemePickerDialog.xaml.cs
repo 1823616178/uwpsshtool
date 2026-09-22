@@ -23,7 +23,7 @@ namespace SshTool.App.Dialogs
                 return empty;
             }
             var dialog = new ThemeSchemePickerDialog();
-            dialog.SummaryText.Text = "文件中找到 " + schemes.Count + " 个配色，选择要导入的：";
+            dialog.SummaryText.Text = Localized.Format("ThemeSchemePicker_Summary", "文件中找到 {0} 个配色，选择要导入的：", schemes.Count);
             dialog.SchemeList.ItemsSource = schemes;
             dialog.SchemeList.SelectedItems.Add(schemes[0]);
             var result = await ServiceRegistry.Get<DialogService>().ShowAsync(dialog);

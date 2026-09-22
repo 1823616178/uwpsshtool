@@ -12,9 +12,9 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Text="已知主机" Style="{StaticResource PageTitleTextStyle}"
+        <TextBlock x:Uid="KnownHostsPage_TextBlock2" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
-        <AutoSuggestBox x:Name="SearchBox" Grid.Row="1" PlaceholderText="搜索主机、类型、指纹"
+        <AutoSuggestBox x:Uid="KnownHostsPage_SearchBox" x:Name="SearchBox" Grid.Row="1"
                         QueryIcon="Find" TextChanged="OnSearchChanged"
                         Margin="{StaticResource PagePadding}" />
         <ListView x:Name="HostList" Grid.Row="2" SelectionMode="Single"
@@ -33,7 +33,7 @@
                     Background="{ThemeResource AppSurfaceBrush}" Visibility="Collapsed">
             <controls:MonoText x:Name="FingerprintText" Compact="True" />
             <controls:RandomArtView x:Name="ArtView" Margin="{StaticResource GapSmTop}" />
-            <Button Content="删除" Click="OnDeleteClick" Margin="{StaticResource GapSmTop}"
+            <Button x:Uid="KnownHostsPage_Button1" Click="OnDeleteClick" Margin="{StaticResource GapSmTop}"
                     Style="{StaticResource DangerButtonStyle}"
                     MinHeight="{StaticResource TouchTargetMin}" />
         </StackPanel>
