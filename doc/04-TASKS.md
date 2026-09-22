@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 15 | 11 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **118** | |
+| M9 | 优化与债务清理 | 15 | 12 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **127** | **119** | |
 
 ### 1.1 关键路径
 
@@ -1494,7 +1494,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 PerfPage 场景①②③ 的 `draw/s` 不低于优化前、`帧 max` 无新长尾，数据回填 `doc/PERF-REPORT.md §3.1`
   - 验证：`pwsh scripts/verify.ps1`；真机 Q01
 
-- [ ] **O12 修复硬编码文案门禁** `S`
+- [x] **O12 修复硬编码文案门禁** `S`
   - 依赖：—
   - 参考：`06-OPT-AUDIT.md §3 P2-13 ①`
   - 产出：`scripts/check-hardcoded-text.ps1`
@@ -1502,10 +1502,16 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     1. 把「含中文的行」从**豁免**改为**命中即报错**（现在的 `$chinesePattern` → `continue` 恰好让这把尺子量不到它要量的东西）。
     2. 扫描范围加上 `.cs` 中对 `.Text/.Title/.Content/.Header/PrimaryButtonText/SecondaryButtonText/PlaceholderText` 的中文字面量赋值；**日志字符串不在范围内**，避免误伤。
     3. 保留 `Views/Debug/`、`obj`、`bin` 豁免；输出按文件分组并给出总数，便于 O13 分批清零。
-    4. 改完 `verify.ps1` ④b 会立刻变红——这是预期结果，把当次输出作为 O13 的待清单基线记进进度日志。
+    4. ~~改完 ④b 会立刻变红，把当次输出作为 O13 的待清单~~ **改为棘轮（ratchet）**：变红会让 main 在
+       O13 做完之前一直不可验证。现存违例按文件记进 `scripts/hardcoded-text-baseline.json`，
+       **新增即失败、减少只提示**；O13 逐批清理时用 `-UpdateBaseline` 收紧，清零后基线自然空掉。
+       这样既立刻堵住了回归，又不用把 main 挂红。
   - 验收：
-    - [ ] 脚本能报出 `Controls/SessionOverlay.xaml` 与 `Views/Sync/AccountSyncPage.xaml.cs:86` 这类真实命中
-    - [ ] 脚本对日志字符串与 `Views/Debug/` 不报警
+    - [x] 脚本能报出真实命中：当前扫出 **44 个文件、共 172 处**（XAML 可见属性中文字面量 + C# 对
+      `.Text/.Title/.Content/…` 赋中文），含 `Controls/SessionOverlay.xaml` 与 `Views/Sync/AccountSyncPage.xaml.cs:86`
+    - [x] 脚本对日志字符串、注释行、`x:Uid`/绑定标记与 `Views/Debug/` 不报警
+    - [x] 棘轮双向验证：临时加一处中文文案 EXIT=1 并精确指出行号，撤销后 EXIT=0
+    - [x] `pwsh scripts/verify.ps1` 全绿（8 步，④b 现在真的在检查了）
   - 验证：`pwsh scripts/check-hardcoded-text.ps1`
 
 - [ ] **O13 硬编码文案清零** `M`
