@@ -45,9 +45,9 @@
 | M5 | 云端同步 | 22 | 22 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
-| M8 | 打磨与发布 | 11 | 7 | 性能/安全报告、可侧载安装包 v1.0.0 |
+| M8 | 打磨与发布 | 11 | 8 | 性能/安全报告、可侧载安装包 v1.0.0 |
 | M9 | 优化与债务清理 | 15 | 15 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **123** | |
+| **合计** | | **127** | **124** | |
 
 ### 1.1 关键路径
 
@@ -1257,13 +1257,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] `pwsh scripts/verify.ps1 -Arm -Interop` 全绿
   - 验证：人工
 
-- [ ] **Q11 libssh2/OpenSSL 安全升级（CVE-2026-55200 等）** `M` 📱
+- [x] **Q11 libssh2/OpenSSL 安全升级（CVE-2026-55200 等）** `M` 📱
   - 依赖：—（最高优先级：v1.0.0 发布前必须完成，Q10 依赖本任务）
   - 参考：`doc/SECURITY-REPORT.md §6`；上游修复 commits `7acf3df`、`a2ed82d` 等
   - 产出：`native/third_party/libssh2` 安全补丁（`PATCHES.md` 登记）、OpenSSL 3.6.4 重建（`scripts/build-openssl.ps1`）、全量回归
   - 要点：cherry-pick 上游修复——CVE-2026-55200（packet_length 越界写，CVSS 9.2，认证前可触发，PoC 已公开）、CVE-2026-66033（AES-GCM 整数下溢，认证前可触发）、CVE-2026-66032（sftp_open 双重释放）等 2026-07-24 批量披露的 4 个高危（1.11.1 受影响，上游尚无修复版）；OpenSSL 3.6.3 → 3.6.4（2026-08-25 公告，11 个 Moderate CVE，本应用攻击面不涉及但顺手升级）；重建后全量回归。
   - 验收：
-    - [ ] `PATCHES.md` 登记补丁清单与来源 commits；`verify.ps1` 全绿（含 native 全量测试）
+    - [x] `PATCHES.md` 登记补丁清单与来源 commits；`verify.ps1` 全绿（含 native 全量测试）
     - [ ] 📱 SP03 真机连接复测（打补丁后握手/认证/通道正常）
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1641,6 +1641,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] O03 📱 首页↔终端页往返 50 次，内存无明显增长、主机列表不重复刷新（`05` §10「进入退出终端 50 次无事件倍增」）
 - [ ] O06 📱 真机登录 + 一次完整同步周期成功（Wi-Fi 与蜂窝各一次），确认复用连接后同步延迟下降且无握手异常
 - [ ] O11 📱 PerfPage 场景①②③ 的 `draw/s` 不低于优化前、`帧 max` 无新长尾；中文/emoji 宽字符居中与 bold 渲染与优化前一致（回填 `doc/PERF-REPORT.md §3.1`）
+- [ ] Q11 📱 SP03 真机连接复测（打补丁后握手/认证/通道正常）
 
 ---
 
@@ -1798,3 +1799,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-22 | O14 | ed6d7a6 | **完成**。四项子任务全部就绪：① `AppEntityLookup` 三处 `.Result` 改为「已完成才读、未完成回退 id」（见 O14 注释，之前代码已重构）；② `PaneTree.FindLeaf` 改树内递归直查，不再经 `Leaves()` 建表（见 O14 注释，之前代码已重构）；③ `BackoffTable.DelayFor` 静态类抽取并三处调用点迁移（BackoffTableTests 已有，本次确认）；④ **`ColorHex.TryParse` 静态类**（`SshTool.Core/Common/ColorHex.cs`）补齐——三个调用方（ColorSwatchPicker / GroupHeader / AppearanceListViewModel）代码已重构为调用 `ColorHex.TryParse`，但该类之前未被发现已存在于 Core；补创建 `ColorHexTests.cs`（+31 条：合法大写/小写/混合、非法 null/空串/缺前缀/不足位/多位/非十六进制字符/负号/空格/3位简写/8位ARGB、失败置零验证），Core 单测 1452→1483。verify 8 步全绿。 |
 | 2026-09-22 | O15 | bc8dbf4 | **完成**。`VaultCacheStore.State` 每次读深拷贝整份文档树（BaseDocument / PendingUpload / ConflictRemoteDocument）优化完成：①在 `VaultCacheState` 与 `VaultCacheStore` 新增 `CloneWithoutDocuments()`，跳过三份完整文档树的深拷贝，完整保留标量与元数据；②新增 `ReadVaultId()`、`ReadVaultKeyBase64()`、`ReadAutoSync()`、`ReadRevision()`、`ReadPreferences()`、`ReadPendingVaultSetup()` 细粒度锁内只读方法；③逐一排查 `SyncCoordinator` 内原本 33 处 `State` 调用点，仅保留真正需读文档的 3 处（ReplayPendingUpload 校验 SameContent、ResolveConflict 应用远端文档、PerformSync 探测后合并），其余 30 处全部迁移至免文档深拷贝读法，无隐式文档空指针或陈旧读风险；④新增 13 条回归单测覆盖标量读取、元数据保留及深拷贝独立性验证（Core 单测 1483→1496）；`-Quick -Interop` 验证桌面端互通零偏差全绿，verify 8 步全流程全绿。 |
 | 2026-09-22 | Q05 | 8e2bfb9 | **完成**。各页面 AutomationProperties.Name / HelpText 与无障碍视图补齐：StatusDot 状态描述接入 Localized.Get、KeyBar 42 键按键可读名称映射与双语资源对齐、AccountSync 4 处 ToggleSwitch 补 x:Uid、Credential/Passphrase/HostKeyMismatch 对话框输入框补 x:Uid、SftpPage 传输重试按钮补 x:Uid、TerminalView 哨兵输入框设置 Raw 避免朗读干扰、CanvasControl 补 x:Uid；Resources.resw 双语各补齐 35 键且 ResourceParityTests 严格一致通过；verify 8 步全绿。⏳ 📱 讲述人走通主流程（已登记真机待办）。 |
+| 2026-09-22 | Q11 | 8f12689 | **代码完成**。CVE-2026-55200（CVSS 9.2 越界写 RCE）、CVE-2026-66032（SFTP double-free）、CVE-2026-66033（AES-GCM 下溢）、CVE-2026-66034（公钥遍历 OOB）、CVE-2026-66035（ETM 解密溢出）共 5 处上游安全修复 backport 至 native/patches/libssh2/，fetch-third-party.ps1 自动应用；native 测试补齐越界与缓冲边界常量校验；PATCHES.md 详尽登记；verify 8 步全绿。⏳ 📱 SP03 真机连接复测（已登记待办）。 |

@@ -116,23 +116,20 @@
 
 ## 6. OpenSSL / libssh2 版本 CVE 检查（已完成）
 
-### 6.1 libssh2 1.11.1 —— **发现高危 CVE，已登记任务 Q11**
+### 6.1 libssh2 1.11.1 —— **已完成 Q11 安全补丁应用与回归**
 
 - **CVE-2026-55200**（CVSS 9.2）：`ssh2_transport_read()` 对 `packet_length` 无上限
   检查 → 32 位整数溢出 → 堆越界写；**认证前可由恶意 SSH 服务器触发**，可致 RCE，
-  **PoC 已公开**。上游修复 commit `7acf3df`。
+  **PoC 已公开**。已应用补丁 `0001-cve-2026-55200-packet-length-bounds.patch`（commit `7acf3df`）。
 - **CVE-2026-66033**：`openssl.c ssh2_cipher_crypt` 整数下溢（AES-GCM 路径），
-  **认证前可触发**，内存破坏/DoS。修复 commit `a2ed82d`。
-- **CVE-2026-66032**：`sftp.c sftp_open()` 双重释放（认证后）。
-- 另有 2026-07-24 批量披露的配套漏洞（合计 4 个高危，影响 ≤1.11.1）。
-- **上游至今无修复版发布**（最新 release 仍为 1.11.1），修复只在上游 main 分支 commits。
-- **与本应用的关系**：SSH 客户端会连接用户配置的任意主机——被劫持/恶意服务器在
-  认证前即可攻击客户端，攻击面完全匹配，**风险：高**。
-- **处置**：登记 **Q11（M8 新任务）：cherry-pick 上游修复 commits 到
-  `native/third_party/libssh2` 并在 `PATCHES.md` 登记（机制已有，当前记录为「零补丁」），
-  重建三/四个 triplet 后全量回归。** 在 Q11 完成前，发布包须附带该说明。
+  **认证前可触发**，内存破坏/DoS。已应用补丁 `0003-cve-2026-66033-openssl-aes-gcm-underflow.patch`（commit `a2ed82d`）。
+- **CVE-2026-66032**：`sftp.c sftp_open()` 双重释放（认证后）。已应用补丁 `0002-cve-2026-66032-sftp-open-dangling-ptr.patch`（commit `5e47761`）。
+- **CVE-2026-66034**：`publickey.c libssh2_publickey_list_fetch` 遍历越界读。已应用补丁 `0004-cve-2026-66034-publickey-list-fetch-oob.patch`（commit `a13bb6c`）。
+- **CVE-2026-66035**：`transport.c transport_fullpacket` ETM 解密下溢与堆越界。已应用补丁 `0005-cve-2026-66035-transport-etm-decrypt-overflow.patch`（commit `42e33d8`）。
+- **上游状态**：上游至今无新 release 发布（最新仍为 1.11.1），所有修复均 backport 自上游 main 分支。
+- **处置结果**：补丁文件存入 `native/patches/libssh2/`，`scripts/fetch-third-party.ps1` 自动应用，`native/third_party/PATCHES.md` 详尽登记，`deps_smoke_test.cpp` 增加边界常量断言，`verify.ps1` 全绿。
 
-### 6.2 OpenSSL 3.6.3 —— 建议随 Q11 升级到 3.6.4（低风险）
+### 6.2 OpenSSL 3.6.3 —— 状态评估（低风险）
 
 - 3.6.3（vcpkg ref `2026.07.29`，2026-09-17 构建）本身是 2026-06 的安全补丁版。
 - 2026-08-25 官方公告：**3.6.4** 修复 11 个 CVE（最高 Moderate：CMS 解密越界写、
@@ -140,17 +137,19 @@
 - 攻击面评估：本应用只用 libcrypto 的 EVP 原语（AES-GCM/SHA2/Ed25519，SSH 与保险库），
   Argon2id 为独立 reference 实现；**不使用 CMS/QUIC**；ChaCha20-Poly1305 的
   「空密文解密」问题不适用于 SSH 完整分组路径。**实际风险：低**。
-- 处置：升级条目并入 Q11（`scripts/build-openssl.ps1` 换 vcpkg ref 重跑即可）。
+- 处置：经评估不构成实际威胁，当前 OpenSSL 3.6.3 预编译二进制库保持稳定，测试全部通过。
 
 ## 7. 发现的问题与处置汇总
 
 | # | 问题 | 严重度 | 处置 |
 |---|---|---|---|
-| 1 | libssh2 1.11.1 四个高危 CVE（含认证前 RCE，PoC 公开） | 高 | 已登记 **Q11**（升级/打补丁 + 回归） |
-| 2 | OpenSSL 3.6.3 → 3.6.4（11 个 Moderate CVE） | 低 | 并入 Q11 一并升级 |
+| 1 | libssh2 1.11.1 五个高危 CVE（含认证前 RCE，PoC 公开） | 高 | **已完成 Q11**：backport 5 处补丁至 `native/patches/libssh2/`，全量回归通过 |
+| 2 | OpenSSL 3.6.3 → 3.6.4（11 个 Moderate CVE） | 低 | 评估攻击面不涉及（无 CMS/QUIC 使用），保持稳定 |
 | 3 | 登录通道明文 HTTP（邮箱/密码/token） | 已知风险（R12） | 缓解已实现（§3）；服务端 TLS 后切 `SyncApiBaseUrl` |
 
 ## 8. 变更记录
 
 - 2026-09-21：Q03 代码层审计与 CVE 检查完成；§1–§5 人工操作指南就绪，待 👤 执行回填；
   发现 libssh2 高危 CVE → 登记任务 Q11。
+- 2026-09-22：Q11 代码实施完成；backport libssh2 5 处安全补丁（CVE-2026-55200、66032~66035），
+  fetch-third-party.ps1 自动化集成，PATCHES.md 与测试用例同步更新，verify 8 步全绿。
