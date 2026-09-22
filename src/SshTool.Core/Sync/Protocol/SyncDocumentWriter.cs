@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -23,6 +23,17 @@ namespace SshTool.Core.Sync.Protocol
                 throw new SyncDocumentInvalidException("$", "文档超过 2 MiB，拒绝上传");
             }
             return json;
+        }
+
+        // O07：三方合并的**输入**用这个，不走 Validate 与 2 MiB 检查。
+        // 理由：base/local/remote 三份要么刚由 SyncDocumentReader.Read 校验过、
+        // 要么由 SyncLocalAdapter 现建，再校验一遍是三次全量遍历的重复功；
+        // 合并**结果**仍由 SyncMerge 末尾的 SyncDocumentReader.Read 全量校验
+        // （01-DESIGN R8 的兜底，不可省）。产出的键序与 Write 完全一致，
+        // 但合并只按 id 对齐、不依赖数组顺序，因此这里的顺序也不影响结果。
+        internal static string WriteUnvalidated(SyncDocumentV1 doc)
+        {
+            return BuildJson(doc, omitUpdatedAt: false);
         }
 
         public static byte[] WriteUtf8(SyncDocumentV1 doc)

@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 14 | 6 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **126** | **113** | |
+| M9 | 优化与债务清理 | 15 | 7 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **127** | **114** | |
 
 ### 1.1 关键路径
 
@@ -1380,18 +1380,44 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 真机登录 + 一次完整同步周期成功（Wi-Fi 与蜂窝各一次）
   - 验证：`pwsh scripts/verify.ps1`；真机
 
-- [ ] **O07 同步路径去重复序列化** `M`
+- [x] **O07 同步路径去重复序列化** `M`
   - 依赖：—
   - 参考：`06-OPT-AUDIT.md §3 P1-7`；`03-SYNC-PROTOCOL.md §3.1、§7.3、§8`；`01-DESIGN.md R8`
   - 产出：`src/SshTool.Core/Sync/SyncCoordinator.cs`、`Sync/Protocol/SyncDocumentWriter.cs`、`Sync/SyncMerge.cs`
   - 要点：
-    1. `PendingUpload` 缓存创建时已算出的规范 JSON，`SameContent` 只重建 `local` 一侧。
+    1. ~~`PendingUpload` 缓存创建时已算出的规范 JSON，`SameContent` 只重建 `local` 一侧。~~
+       **核查后放弃，是坏交易**：`SameContent` 比的是 `omitUpdatedAt` 变体，而 `UploadAsync` 已算出的
+       是含 `updatedAt` 的正式 JSON，两者不通用；要缓存就得在每次上传时**额外**再跑一遍 `BuildJson`，
+       把「重放时才付一次」的成本改成「每次上传都付」。而重放只在响应丢失后发生，极少。
     2. 核实 `BuildLocalDocumentAsync()` 返回的是独占快照；是则去掉 `Document = doc.Clone()` 的整图深拷贝。
-    3. `SyncMerge` 改「模型 → `JObject`」直转，跳过输入侧的字符串往返与排序/校验；**保留**结尾 `SyncDocumentReader.Read` 的全量校验（R8 的兜底，不可省）。
+    3. `SyncMerge` ~~改「模型 → `JObject`」直转~~ **只砍掉输入侧的重复校验**：新增
+       `SyncDocumentWriter.WriteUnvalidated`（跳过 `Validate` 与 2 MiB 检查）供三份合并输入使用，
+       结尾的 `SyncDocumentReader.Read` 全量校验保留（R8 兜底）。
+       **不做直转的理由**：另写一个「模型 → JObject」转换会让 schema 出现第二个事实来源，
+       漏一个字段就是静默的同步数据丢失，代价远大于省下的 CPU。
     4. **上传字节必须零偏差**：本任务只改「算几遍」，不改「算成什么」。
   - 验收：
-    - [ ] Sync 相关单测（Coordinator/Merge/Writer/Reader）全过，无新增断言放宽
-    - [ ] `pwsh scripts/verify.ps1 -Quick -Interop` 全绿（桌面端 zod 校验 3 份原文 + Core 重写输出 3 份）
+    - [x] Sync 相关单测（Coordinator/Merge/Writer/Reader）全过，无新增断言放宽（Core 1442）
+    - [x] `pwsh scripts/verify.ps1 -Quick -Interop` 全绿（桌面端 zod 校验 3 份原文 + Core 重写输出 3 份，上传字节零偏差）
+    - [x] `pwsh scripts/verify.ps1` 全绿（8 步）
+    - [x] 核查中发现更大的一项（`VaultCacheStore.State` 每次读深拷贝整份文档，33 处调用），
+      已立为 **O15** 并写入 `06-OPT-AUDIT.md §3 P1-15`，不并入本任务
+  - 验证：`pwsh scripts/verify.ps1 -Quick -Interop`
+
+- [ ] **O15 `VaultCacheStore.State` 免深拷贝读法** `M`
+  - 依赖：O07
+  - 参考：`06-OPT-AUDIT.md §3 P1-15`（O07 期间发现）
+  - 产出：`src/SshTool.Core/Sync/Vault/VaultCacheStore.cs`、`Vault/VaultCacheState.cs`、`Sync/SyncCoordinator.cs`
+  - 要点：
+    1. `State` 的 getter 每次都 `_state.Clone()`，而 `Clone()` 深拷贝 `BaseDocument` /
+       `PendingUpload.Document` / `ConflictRemoteDocument` 三份完整文档；`SyncCoordinator` 里 33 处调用，
+       绝大多数只读一个标量。
+    2. 保留 `State` 的深拷贝语义给确实要改文档的调用方；另加不拷贝文档的投影读法
+       （锁内取标量，或 `CloneWithoutDocuments()`），把只读标量的调用点迁过去。
+    3. **逐个确认调用点是否真的不碰文档**——错搬一处就是空引用或读到旧文档；迁移按批次提交。
+  - 验收：
+    - [ ] 只读标量的调用点不再触发文档深拷贝；需要文档的调用点行为不变
+    - [ ] Sync 全部单测通过；`pwsh scripts/verify.ps1 -Quick -Interop` 全绿
   - 验证：`pwsh scripts/verify.ps1 -Quick -Interop`
 
 - [ ] **O08 `Repository<T>` id 索引** `S`

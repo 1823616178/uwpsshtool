@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -1167,7 +1167,11 @@ namespace SshTool.Core.Sync
                 IdempotencyKey = idempotencyKey,
                 BaseRevision = baseRevision,
                 Body = body,
-                Document = doc.Clone(),
+                // O07：不再 doc.Clone()。doc 是 BuildLocalDocumentAsync 现建的独占快照，
+                // 本方法之后不再改它；几行后 next.BaseDocument = doc 本来也没拷贝。
+                // 两者在 store 的活状态里共享同一实例无碍——VaultCacheState.Clone()
+                // 在每次读 State 时各自深拷贝一份，共享不会漏到外面。
+                Document = doc,
                 CreatedAt = NowIso()
             };
             // 踩坑 #12：先持久化再发请求（响应丢失后用完全相同的 body 与幂等键续传）。

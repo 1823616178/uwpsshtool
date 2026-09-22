@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -66,9 +66,16 @@ namespace SshTool.Core.Sync
             }
         }
 
+        // O07：输入侧改走 WriteUnvalidated——base/local/remote 都是已校验或现建的
+        // 文档，Write 里的 Validate 是三次全量重复遍历。合并结果仍在 Merge 末尾
+        // 经 SyncDocumentReader.Read 全量校验（R8 兜底）。
+        //
+        // 这里保留「Write → Parse」而不另写一个「模型 → JObject」直转：直转会让
+        // schema 出现第二个事实来源，字段一旦漏掉就是静默的同步数据丢失，代价
+        // 远大于省下的这点 CPU。
         private static JObject ToCanonicalJson(SyncDocumentV1 doc)
         {
-            return JsonText.ParseObject(SyncDocumentWriter.Write(doc));
+            return JsonText.ParseObject(SyncDocumentWriter.WriteUnvalidated(doc));
         }
 
         // §8 MergeValue：local 没变 → remote；remote 没变或两边相等 → local；否则记冲突暂取 local。

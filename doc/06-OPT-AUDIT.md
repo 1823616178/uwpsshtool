@@ -208,6 +208,21 @@ NoCache / NoCookies / `AllowAutoRedirect=false` 语义保持不变。
   80 个非 Debug XAML 中 45 个含 `x:Uid`；`Strings/{zh-cn,en-us}/Resources.resw` 各 796 键，数量已对齐。
 - 注意：C# 里的**日志字符串不需要本地化**，门禁只针对用户可见属性赋值，不要误伤。
 
+### P1-15 · `VaultCacheStore.State` 每次读都深拷贝整份同步文档（O15，O07 期间发现）
+
+- `src/SshTool.Core/Sync/Vault/VaultCacheStore.cs:50-59` — `State` 的 getter 是
+  `lock (_mutex) { return _state.Clone(); }`；而 `VaultCacheState.Clone()`
+  （`Vault/VaultCacheState.cs:139-145`）会深拷贝 `BaseDocument`、
+  `PendingUpload.Document`、`ConflictRemoteDocument` **三份完整 `SyncDocumentV1`**。
+- `SyncCoordinator` 里有 **33 处** `_vault.State`，其中绝大多数只为读一个标量
+  （`.VaultId`、`.Revision`、`.Preferences`、`.PendingUpload`、`.VaultKeyBase64`），
+  却每次都要为此深拷贝整份文档图。稳态下 `BaseDocument` 恒非空，所以这条路径一直在付费。
+- 影响随文档大小线性放大：几十台主机时尚可接受，接近 §3.1 的 5000 servers /
+  10000 tunnels 上限时会成为同步路径里最贵的一项——**比 P1-7 列的那几项加起来还贵**。
+- 处理：保持 `State` 的深拷贝语义给确实要改文档的调用方，另加一条不拷贝文档的
+  投影读法（在锁内取标量，或 `CloneWithoutDocuments()`），把只读标量的调用点迁过去。
+  迁移时要逐个确认调用点是否真的不碰文档——错搬一处就是空引用或读到旧文档。
+
 ### P2-14 · 零散项（O14）
 
 - `Platform/AppEntityLookup.cs:67,89,111` 用 `.Result` 同步阻塞仓库异步读（冲突页名称查找）。
@@ -267,5 +282,6 @@ NoCache / NoCookies / `AllowAutoRedirect=false` 语义保持不变。
 | O12 | P2-13 ①（门禁） |
 | O13 | P2-13 ②（清零） |
 | O14 | P2-14 |
+| O15 | P1-15（O07 期间发现） |
 
 任务明细（依赖、产出、要点、验收）见 `04-TASKS.md` §11「M9 — 优化与债务清理」。
