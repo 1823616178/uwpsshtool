@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using SshTool.App.ViewModels.Snippets;
 using SshTool.Core.Models;
 using SshTool.Core.Sessions;
@@ -67,7 +68,7 @@ namespace SshTool.App.Controls
         public void Attach(SessionInfo session)
         {
             _session = session;
-            var ignore = ViewModel.RefreshAsync();
+            ViewModel.RefreshAsync().Forget("SnippetPickerFlyout.Refresh", AppLog.Logger);
         }
 
         private void OnSearchChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)

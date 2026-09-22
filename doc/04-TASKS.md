@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 14 | 4 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **126** | **111** | |
+| M9 | 优化与债务清理 | 14 | 5 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **126** | **112** | |
 
 ### 1.1 关键路径
 
@@ -1348,17 +1348,22 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] `pwsh scripts/verify.ps1` 全绿（8 步，Core 1442）
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **O05 fire-and-forget 统一走 `Forget`** `S`
+- [x] **O05 fire-and-forget 统一走 `Forget`** `S`
   - 依赖：O04
   - 参考：`06-OPT-AUDIT.md §3 P1-5`；`src/SshTool.Core/Common/TaskExtensions.cs`
   - 产出：28 个文件中的 48 处 `var ignore = …`；`src/SshTool.App/Infrastructure/DispatcherHelper.cs`
   - 要点：
     1. 机械替换为 `X().Forget("模块.动作", AppLog.Logger)`；context 用「类名.方法」，不得拼入主机名/路径/用户名。
     2. 用户命令类调用优先改 `AsyncCommand`（执行期间管理 `CanExecute`），而不是简单加 `Forget`。
+       **本次未做**：这批调用点几乎全是代码隐藏里的 `Click` 处理器（行菜单、Flyout 项），
+       改 `AsyncCommand` 要连带把 XAML 换成命令绑定，属于 V04/V05 的表单与页面改造范围；
+       本任务只做「异常可观察」这一层，不动交互结构。
     3. `DispatcherHelper.cs:92` 是 UI 封送原语，其自身失败也要可观察；注意别在日志失败路径上递归（`TaskExtensions` 注释已说明 `FileLogger` 的例外）。
   - 验收：
-    - [ ] 非 Debug 代码中 `var ignore = ` 计数为 0
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] 非 Debug 代码中 `var ignore = ` 计数为 0（47 处 → 0，覆盖 22 个文件）
+    - [x] 门禁化：`scripts/check-subscriptions.ps1` 增规则 C（`var ignore =` 即报错），随 verify ④c 执行；
+      三条规则均用临时探针文件验证过会报错，清空后恢复通过
+    - [x] `pwsh scripts/verify.ps1` 全绿（8 步）
   - 验证：`pwsh scripts/verify.ps1`
 
 - [ ] **O06 `UwpHttpTransport` 复用 filter 与 client** `S`
@@ -1721,3 +1726,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-22 | O02 | 580d041 | **完成**。`SettingsRepository.Set` 同值短路：不写 `_store`、不触发 `Changed`。原先无条件写 `LocalSettings` 并扇出，Settings 页五个 Slider 拖动一次即上百次写盘 + 上百次扇出到外观重算/同步脏标记（`05` §C-07，页面侧 150 ms 去抖早已有，仓库侧这一半一直没做）。**与要点 1 有一处偏差**：比较对象取存储里的原始值且要求其合法，而非 `Read()` 的有效值——否则存了非法值时 `Set(key, 默认值)` 会被误判同值跳过，非法值永远留在存储里；现判据保住了「写默认值修复非法值」的旧行为。新增 9 条单测（`CountingSettingsStore` 记账：同值不写不广播、拖动形状只写真实变化、异值照常、写默认值被跳过、非法值/类型不符仍落盘修复、键缺失照常写、字符串按值比较、非法值仍抛）。已核对全部 `Changed` 订阅方（AppServices/LifecycleService/HostListViewModel/SettingsViewModel/SyncTriggers）无依赖同值广播的路径。`05` §3 的 C-07 复核说明已改为「已闭环」。verify 7 步全绿（Core 1438）。 |
 | 2026-09-22 | O03 | 2e98cb8 | **完成**。两条泄漏路径收口：①视图侧 `SessionsPivot.Attach` 的匿名 lambda 订阅单例 `SessionsPaneViewModel.PropertyChanged`（解不掉）+ `ItemsSource` 绑单例集合（经 CollectionChanged 攥住 ListView），改具名处理器 + `Detach()`（含 ItemsSource 置空），`SessionsPane` 同样处理；②VM 侧 HostList/Main/Settings + 4 个 Sync VM在构造函数订阅仓库/SettingsRepository/SyncCoordinator 等应用级单例却无 `-=`，各补幂等 `Detach()`，页面 `OnNavigatedFrom` 调用，`MainViewModel.Detach` 级联 `Hosts.Detach` 但不碰单例 `Sessions`。订正 `VaultSetupViewModel` 里说反因果的注释（「VM 与页面同生命周期…无需退订」→ 正因协调器活得更久才必须退订）。**新增 `scripts/check-subscriptions.ps1`**（verify ④c）：受管事件具名订阅须同文件配对 `-=`，匿名委托订阅一律报错，同寿命 5 处逐条豁免写明理由（其中 `NativeForwarder` 那处经核对是自建自管的专用会话，随 `ActiveTunnel.Dispose` 释放，非泄漏）；已用临时探针文件双向验证（有违例 EXIT=1、删除后 EXIT=0）。原定「Core 侧回归」因 App VM 在 UWP 程序集、Core 测试工程（net8）引用不到而改为该门禁，验收项已如实改写。verify 8 步全绿（Core 1438、native 309）。⏳ 📱 首页↔终端页往返 50 次内存验证（已登记待办）。 |
 | 2026-09-22 | O04 | 1f5bf64 | **完成**。逐页核查 19 个未接入页面，只有 3 页真有 C-02 形态（await 之后回头写本页 XAML 或导航）：`SettingsPage`（外观名、导出/清空日志 Toast）、`Sync/VaultSetupPage`、`Sync/SecurityRotatePage`，这 3 页接入 `NavigationLifetime`；其余按理由豁免而非加空仪式（`AccountSyncPage` 的 await 全是模态对话框，**用户已确认的动作必须执行完**，加守卫反而会静默丢弃撤销/删除；`MainPage` 唯一 await 是退出确认；其余 11 页代码隐藏零 await，异步在页面级 VM 内、O03 已收口）。**顺带修掉一个真缺陷**：`SecurityRotatePage.ShowRecoveryKeyAsync` 原写 `var ignored = RecoveryKeyDialog.ShowAsync(...)`，任务被丢弃、`GoBack()` 在对话框刚弹出时就执行，用户没机会保存轮换后的新恢复密钥（方法自己的注释从未成立；恢复密钥丢失不可找回）——改为与 `VaultSetupPage` 同一套「等勾选确认，未确认带警告重弹」。Core 补 `NavigationLifetime.Current`（事件处理器在 await 前取世代号，世代外返回 0 而首次 Begin 即到 1，故 `IsCurrent(0)` 恒 false）+ 4 条单测。verify 8 步全绿（Core 1442）。 |
+| 2026-09-22 | O05 | （见下条） | **完成**。47 处 `var ignore = …`（22 个文件）全部改为 `X().Forget("模块.动作", AppLog.Logger)`，非 Debug 代码计数归零。两处特殊：`DispatcherHelper.Post` 的 `RunAsync` 返回 `IAsyncAction`，改 `.AsTask().Forget(...)`——UI 封送原语自身的派发失败也要可观察，且日志走文件不经 dispatcher，不会递归；`StatusBarService` 的两处同理。`AsyncCommand` 迁移**未做**并写明理由（调用点几乎全是代码隐藏的 Click 处理器，改命令绑定要动 XAML，属 V04/V05 范围）。门禁增规则 C（`var ignore =` 即报错）。**修 O03 引入的门禁缺陷**：规则 C 初版的 `` 在生成脚本时被写成了字面退格符（0x08），正则恒不匹配——已用探针文件三条规则逐条验证（有违例 EXIT=1、清空后 EXIT=0）；同时把累加器换成 `List` 并修正 `.Add()` 内 `-f` 需再包一层括号的坑。verify 8 步全绿。 |

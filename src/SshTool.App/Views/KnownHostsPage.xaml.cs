@@ -1,4 +1,5 @@
-using SshTool.App.Infrastructure;
+﻿using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using SshTool.App.ViewModels;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -20,7 +21,7 @@ namespace SshTool.App.Views
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            var ignore = ViewModel.RefreshAsync();
+            ViewModel.RefreshAsync().Forget("KnownHostsPage.Refresh", AppLog.Logger);
         }
 
         private void OnSearchChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -47,7 +48,7 @@ namespace SshTool.App.Views
 
         private void OnDeleteClick(object sender, RoutedEventArgs e)
         {
-            var ignore = ViewModel.DeleteSelectedAsync();
+            ViewModel.DeleteSelectedAsync().Forget("KnownHostsPage.DeleteSelected", AppLog.Logger);
         }
     }
 }

@@ -1,4 +1,4 @@
-# O03：事件订阅对称性检查（05-CODE-AUDIT §C-01 的可执行版本）。
+﻿# O03/O05：生命周期卫生检查（05-CODE-AUDIT §C-01 / §C-05 的可执行版本）。
 #
 # 背景：页面与控件随导航反复重建，而仓库 / SyncCoordinator / SessionManager /
 # ServiceRegistry 单例 VM 活得和进程一样久。页面级对象订阅了这些长寿对象却不解除，
@@ -7,6 +7,8 @@
 # 规则（只管长寿事件，故意不覆盖控件自己的子元素事件，避免误报）：
 #   A. `xxx.<Event> += 具名处理器;` 必须在同一文件里有 `-= 具名处理器;`；
 #   B. `xxx.<Event> += (s, e) => ...` / `+= delegate` 一律报错：匿名委托解不掉。
+#   C. `var ignore = <异步调用>;` 一律报错（O05）：未观察的任务，异常会被静默吞掉。
+#      统一改 `X().Forget("模块.动作", AppLog.Logger)`（Core/Common/TaskExtensions）。
 # 受管事件名见 $WatchedEvents。
 #
 # 豁免：Views/Debug/（调试页不进正式包）、obj/bin，以及 $Exempt 里逐条注明理由的行。
@@ -50,7 +52,10 @@ $Exempt = @{
 
 $scanDirs = @('ViewModels', 'Views', 'Controls', 'Terminal', 'Infrastructure', 'Platform')
 $appDir = Join-Path $RepoRoot 'src\SshTool.App'
-$bad = @()
+# 用 List 而不是数组 +=：累加发生在 ForEach-Object 管道块里，List 的语义不受
+# 管道作用域影响，出问题时也好定位。注意 .Add() 里的 -f 必须再包一层括号——
+# 方法调用的括号内逗号是实参分隔符，`Add("fmt" -f $a, $b)` 会被拆成三个实参。
+$bad = New-Object System.Collections.Generic.List[string]
 
 function Test-Exempt([string]$path, [string]$ev, [string]$handler) {
     return $Exempt.ContainsKey(("{0}:{1}:{2}" -f (Split-Path -Leaf $path), $ev, $handler))
@@ -73,7 +78,7 @@ foreach ($dir in $scanDirs) {
                 foreach ($ev in $WatchedEvents) {
                     if ($line -match "\.$ev\s*\+=\s*(\(|delegate|async)") {
                         if (Test-Exempt $rel $ev 'lambda') { continue }
-                        $bad += "{0}:{1}: {2} 用匿名委托订阅，永远解不掉 → 改具名处理器并在 Detach/OnNavigatedFrom 解除`n    {3}" -f $rel, $lineNo, $ev, $line.Trim()
+                        $bad.Add(("{0}:{1}: {2} 用匿名委托订阅，永远解不掉 → 改具名处理器并在 Detach/OnNavigatedFrom 解除`n    {3}" -f $rel, $lineNo, $ev, $line.Trim()))
                     }
                 }
                 # 单例 VM 的 PropertyChanged/CollectionChanged：匿名订阅即泄漏
@@ -82,8 +87,12 @@ foreach ($dir in $scanDirs) {
                     if ($text -match [regex]::Escape($vm) `
                         -and $line -match '\.(PropertyChanged|CollectionChanged)\s*\+=\s*(\(|delegate|async)') {
                         if (Test-Exempt $rel 'PropertyChanged' 'lambda') { continue }
-                        $bad += "{0}:{1}: 对单例 VM（{2}）用匿名委托订阅，永远解不掉`n    {3}" -f $rel, $lineNo, $vm, $line.Trim()
+                        $bad.Add(("{0}:{1}: 对单例 VM（{2}）用匿名委托订阅，永远解不掉`n    {3}" -f $rel, $lineNo, $vm, $line.Trim()))
                     }
+                }
+                # C：未观察的 fire-and-forget
+                if ($line -match '\bvar\s+ignore\s*=') {
+                    $bad.Add(("{0}:{1}: fire-and-forget 未观察 → 改 X().Forget(`"模块.动作`", AppLog.Logger)`n    {2}" -f $rel, $lineNo, $line.Trim()))
                 }
                 # 具名处理器订阅：同文件内必须有配对的 -=
                 foreach ($ev in $WatchedEvents) {
@@ -91,7 +100,7 @@ foreach ($dir in $scanDirs) {
                         $handler = $Matches[1]
                         if (Test-Exempt $rel $ev $handler) { continue }
                         if ($text -notmatch "-=\s*$([regex]::Escape($handler))\s*;") {
-                            $bad += "{0}:{1}: 订阅 {2} 的 {3} 在本文件内没有配对的 -= → 补 Detach()/OnNavigatedFrom 解除`n    {4}" -f $rel, $lineNo, $ev, $handler, $line.Trim()
+                            $bad.Add(("{0}:{1}: 订阅 {2} 的 {3} 在本文件内没有配对的 -= → 补 Detach()/OnNavigatedFrom 解除`n    {4}" -f $rel, $lineNo, $ev, $handler, $line.Trim()))
                         }
                     }
                 }
@@ -99,11 +108,11 @@ foreach ($dir in $scanDirs) {
         }
 }
 
-$bad = $bad | Select-Object -Unique
+$bad = @($bad | Select-Object -Unique)
 if ($bad.Count -gt 0) {
     $bad | ForEach-Object { Write-Host $_ }
-    Write-Host "`n共 $($bad.Count) 处订阅未解除。页面/控件/VM 的生命周期短于仓库与协调器，必须成对解除（见 doc/06-OPT-AUDIT.md §3 P0-2）。"
+    Write-Host "`n共 $($bad.Count) 处生命周期问题。页面/控件/VM 的生命周期短于仓库与协调器，订阅必须成对解除；异步任务必须可观察（见 doc/06-OPT-AUDIT.md §3 P0-2/P1-5）。"
     exit 1
 }
-Write-Host "OK：src/SshTool.App 下（Views/Debug/ 除外）受管事件订阅均有配对解除"
+Write-Host "OK：src/SshTool.App 下（Views/Debug/ 除外）受管事件订阅均有配对解除，且无未观察的 fire-and-forget"
 exit 0

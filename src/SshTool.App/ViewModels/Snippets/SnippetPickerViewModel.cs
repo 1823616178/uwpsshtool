@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using SshTool.Core.Models;
 
 namespace SshTool.App.ViewModels.Snippets
@@ -23,7 +24,7 @@ namespace SshTool.App.ViewModels.Snippets
             }
             _services = services;
             Groups = new ObservableCollection<SnippetGroupVm>();
-            var ignore = RefreshAsync();
+            RefreshAsync().Forget("SnippetPickerViewModel.Refresh", AppLog.Logger);
         }
 
         public ObservableCollection<SnippetGroupVm> Groups { get; private set; }

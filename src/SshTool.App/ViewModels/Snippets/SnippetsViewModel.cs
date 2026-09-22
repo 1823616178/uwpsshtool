@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -33,7 +33,7 @@ namespace SshTool.App.ViewModels.Snippets
             _services = services;
             Groups = new ObservableCollection<SnippetGroupVm>();
             NewCommand = new RelayCommand(OpenNew);
-            var ignore = RefreshAsync();
+            RefreshAsync().Forget("SnippetsViewModel.Refresh", AppLog.Logger);
         }
 
         public ObservableCollection<SnippetGroupVm> Groups { get; private set; }

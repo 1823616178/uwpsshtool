@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Keys;
 using SshTool.Core.Common;
@@ -41,7 +41,7 @@ namespace SshTool.App.Views.Keys
             base.OnNavigatedTo(e);
             int generation = _lifetime.Begin();
             var args = e.Parameter as KeyDetailArgs;
-            var ignore = LoadAsync(generation, args == null ? null : args.KeyId);
+            LoadAsync(generation, args == null ? null : args.KeyId).Forget("KeyDetailPage.Load", AppLog.Logger);
         }
 
         // R01 (C-02)：await 后先查世代，页面已离开则不再 BindLoaded / GoBack。

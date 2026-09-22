@@ -1,4 +1,4 @@
-using SshTool.App.Dialogs;
+﻿using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;
@@ -35,7 +35,7 @@ namespace SshTool.App.Views
         {
             base.OnNavigatedTo(e);
             int generation = _lifetime.Begin();
-            var ignore = RefreshAsync(generation);
+            RefreshAsync(generation).Forget("AppearanceListPage.Refresh", AppLog.Logger);
         }
 
         // R01 (C-02)：世代保护加载链（当前 await 后无直接 UI 触碰，检查为后续维护兜底）。

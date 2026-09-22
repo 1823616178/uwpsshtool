@@ -1,4 +1,6 @@
-using System;
+﻿using System;
+using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
@@ -94,7 +96,7 @@ namespace SshTool.App
 
         private void OnResumingCheckSeed(object sender, object e)
         {
-            var ignore = Views.Debug.SshAutoTest.RunIfSeedPresentAsync();
+            Views.Debug.SshAutoTest.RunIfSeedPresentAsync().Forget("App.RunIfSeedPresent", AppLog.Logger);
         }
 
         private async void OnSuspending(object sender, SuspendingEventArgs e)

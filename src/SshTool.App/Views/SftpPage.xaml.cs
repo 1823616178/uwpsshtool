@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
@@ -43,7 +43,7 @@ namespace SshTool.App.Views
             BreadcrumbBar.ItemsSource = ViewModel.Breadcrumbs;
             TransferList.ItemsSource = ViewModel.TransferRows;
             UpdateChrome();
-            var ignore = LoadAsync(generation);
+            LoadAsync(generation).Forget("SftpPage.Load", AppLog.Logger);
         }
 
         // R01 (C-02)：世代保护加载链（await 后无直接 UI 触碰，检查为后续维护兜底）；

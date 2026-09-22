@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -36,7 +36,7 @@ namespace SshTool.App.ViewModels
             _services = services;
             Groups = new ObservableCollection<GroupRow>();
             AddCommand = new AsyncCommand(AddAsync, onError: OnError);
-            var ignore = RefreshAsync();
+            RefreshAsync().Forget("GroupManageViewModel.Refresh", AppLog.Logger);
         }
 
         public ObservableCollection<GroupRow> Groups { get; private set; }

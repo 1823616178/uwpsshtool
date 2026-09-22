@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
@@ -60,7 +60,7 @@ namespace SshTool.App.Views
             {
                 nav.RegisterBackHandler(this);
             }
-            var ignore = LoadAsync(generation, e);
+            LoadAsync(generation, e).Forget("HostEditPage.Load", AppLog.Logger);
             SetupBottomBar();
         }
 
@@ -70,7 +70,7 @@ namespace SshTool.App.Views
             BottomBar.PrimaryText = _loader.GetString("HostEdit_Save");
             var flyout = new MenuFlyout();
             var testItem = new MenuFlyoutItem { Text = _loader.GetString("HostEdit_TestConnect") };
-            testItem.Click += (s, args) => { var ignore = RunTestAsync(); };
+            testItem.Click += (s, args) => RunTestAsync().Forget("HostEditPage.RunTest", AppLog.Logger);
             flyout.Items.Add(testItem);
             BottomBar.OverflowFlyout = flyout;
             AutomationProperties.SetName(AdvancedToggle, _loader.GetString("HostEdit_AdvancedToggle_Chevron"));
@@ -136,7 +136,7 @@ namespace SshTool.App.Views
             {
                 return false;
             }
-            var ignore = ConfirmAbandonAsync();
+            ConfirmAbandonAsync().Forget("HostEditPage.ConfirmAbandon", AppLog.Logger);
             return true;
         }
 

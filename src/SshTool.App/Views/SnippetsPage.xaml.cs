@@ -1,4 +1,5 @@
-using SshTool.App.Infrastructure;
+﻿using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using SshTool.App.ViewModels.Snippets;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
@@ -49,7 +50,7 @@ namespace SshTool.App.Views
             base.OnNavigatedTo(e);
             var args = e.Parameter as SnippetsArgs;
             ViewModel.AttachSession(args == null ? null : args.SessionId);
-            var ignore = ViewModel.RefreshAsync();
+            ViewModel.RefreshAsync().Forget("SnippetsPage.Refresh", AppLog.Logger);
             UpdateChrome();
             ViewModel.PropertyChanged += OnVmPropertyChanged;
         }
@@ -95,7 +96,7 @@ namespace SshTool.App.Views
         private void OnSendClick(object sender, RoutedEventArgs e)
         {
             var row = (sender as FrameworkElement).DataContext as SnippetRowVm;
-            var ignore = ViewModel.SendAsync(row);
+            ViewModel.SendAsync(row).Forget("SnippetsPage.Send", AppLog.Logger);
         }
     }
 }

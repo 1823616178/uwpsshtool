@@ -2,6 +2,7 @@
 using SshTool.App.Controls;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using SshTool.App.Platform;
 using SshTool.App.ViewModels.Sync;
 using SshTool.Core.Sync;
@@ -211,7 +212,7 @@ namespace SshTool.App.Views.Sync
             {
                 return;
             }
-            var ignore = ViewModel.SetEnableSyncAsync(sw.IsOn);
+            ViewModel.SetEnableSyncAsync(sw.IsOn).Forget("AccountSyncPage.SetEnableSync", AppLog.Logger);
         }
 
         private void OnAutoSyncToggled(object sender, RoutedEventArgs e)
@@ -221,7 +222,7 @@ namespace SshTool.App.Views.Sync
             {
                 return;
             }
-            var ignore = ViewModel.SetAutoSyncAsync(sw.IsOn);
+            ViewModel.SetAutoSyncAsync(sw.IsOn).Forget("AccountSyncPage.SetAutoSync", AppLog.Logger);
         }
 
         private void OnSyncPasswordsToggled(object sender, RoutedEventArgs e)
@@ -246,7 +247,7 @@ namespace SshTool.App.Views.Sync
 
         private void OnDeleteVaultClick(object sender, RoutedEventArgs e)
         {
-            var ignore = ConfirmDeleteVaultAsync();
+            ConfirmDeleteVaultAsync().Forget("AccountSyncPage.ConfirmDeleteVault", AppLog.Logger);
         }
 
         private void OnDeleteAccountClick(object sender, RoutedEventArgs e)
@@ -256,12 +257,12 @@ namespace SshTool.App.Views.Sync
 
         private void OnLogoutClick(object sender, RoutedEventArgs e)
         {
-            var ignore = ConfirmLogoutAsync(all: false);
+            ConfirmLogoutAsync(all: false).Forget("AccountSyncPage.ConfirmLogout", AppLog.Logger);
         }
 
         private void OnLogoutAllClick(object sender, RoutedEventArgs e)
         {
-            var ignore = ConfirmLogoutAsync(all: true);
+            ConfirmLogoutAsync(all: true).Forget("AccountSyncPage.ConfirmLogout", AppLog.Logger);
         }
 
         private void OnBackRequested(object sender, EventArgs e)
@@ -284,7 +285,7 @@ namespace SshTool.App.Views.Sync
             var row = e.ClickedItem as DeviceRow;
             if (row != null)
             {
-                var ignore = ShowDeviceMenuAsync(row);
+                ShowDeviceMenuAsync(row).Forget("AccountSyncPage.ShowDeviceMenu", AppLog.Logger);
             }
         }
 
@@ -293,13 +294,13 @@ namespace SshTool.App.Views.Sync
             var row = e.ClickedItem as HistoryRow;
             if (row != null)
             {
-                var ignore = ConfirmRestoreHistoryAsync(row);
+                ConfirmRestoreHistoryAsync(row).Forget("AccountSyncPage.ConfirmRestoreHistory", AppLog.Logger);
             }
         }
 
         private void OnClearHistoryClick(object sender, RoutedEventArgs e)
         {
-            var ignore = ConfirmClearHistoryAsync();
+            ConfirmClearHistoryAsync().Forget("AccountSyncPage.ConfirmClearHistory", AppLog.Logger);
         }
 
         // ---------------- ViewModel 属性变更 ----------------
@@ -403,12 +404,12 @@ namespace SshTool.App.Views.Sync
                 string newName = input.Text ?? string.Empty;
                 if (!string.IsNullOrEmpty(newName))
                 {
-                    var ignore = ViewModel.RenameDeviceAsync(row.Id, newName);
+                    ViewModel.RenameDeviceAsync(row.Id, newName).Forget("AccountSyncPage.RenameDevice", AppLog.Logger);
                 }
             }
             else if (result == ContentDialogResult.Secondary && canRevoke)
             {
-                var ignore = ConfirmRevokeDeviceAsync(row);
+                ConfirmRevokeDeviceAsync(row).Forget("AccountSyncPage.ConfirmRevokeDevice", AppLog.Logger);
             }
         }
 
@@ -423,7 +424,7 @@ namespace SshTool.App.Views.Sync
                 isDanger: true);
             if (result != null && result.Confirmed)
             {
-                var ignore = ViewModel.RevokeDeviceAsync(row.Id);
+                ViewModel.RevokeDeviceAsync(row.Id).Forget("AccountSyncPage.RevokeDevice", AppLog.Logger);
             }
         }
 
@@ -437,7 +438,7 @@ namespace SshTool.App.Views.Sync
                 cancelText: GetString("AccountSync_Cancel", "取消"));
             if (result != null && result.Confirmed)
             {
-                var ignore = ViewModel.RestoreRevisionAsync(row.Revision);
+                ViewModel.RestoreRevisionAsync(row.Revision).Forget("AccountSyncPage.RestoreRevision", AppLog.Logger);
             }
         }
 
@@ -452,7 +453,7 @@ namespace SshTool.App.Views.Sync
                 isDanger: true);
             if (result != null && result.Confirmed)
             {
-                var ignore = ViewModel.ClearHistoryAsync();
+                ViewModel.ClearHistoryAsync().Forget("AccountSyncPage.ClearHistory", AppLog.Logger);
             }
         }
 

@@ -1,5 +1,6 @@
-using SshTool.App.Controls;
+﻿using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using SshTool.App.ViewModels;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -25,7 +26,7 @@ namespace SshTool.App.Views
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            var ignore = ViewModel.RefreshAsync();
+            ViewModel.RefreshAsync().Forget("GroupManagePage.Refresh", AppLog.Logger);
         }
 
         private void OnAddClick(object sender, RoutedEventArgs e)
@@ -79,7 +80,7 @@ namespace SshTool.App.Views
             {
                 return;
             }
-            var ignore = ViewModel.RenameAsync(row, NameBox.Text);
+            ViewModel.RenameAsync(row, NameBox.Text).Forget("GroupManagePage.Rename", AppLog.Logger);
         }
 
         private void OnColorChanged(object sender, System.EventArgs e)
@@ -93,7 +94,7 @@ namespace SshTool.App.Views
             {
                 return;
             }
-            var ignore = ViewModel.SetColorAsync(row, Picker.Color);
+            ViewModel.SetColorAsync(row, Picker.Color).Forget("GroupManagePage.SetColor", AppLog.Logger);
         }
 
         private void OnMoveUp(object sender, RoutedEventArgs e)
@@ -101,7 +102,7 @@ namespace SshTool.App.Views
             var row = GroupList.SelectedItem as GroupRow;
             if (row != null)
             {
-                var ignore = ViewModel.MoveAsync(row, -1);
+                ViewModel.MoveAsync(row, -1).Forget("GroupManagePage.Move", AppLog.Logger);
             }
         }
 
@@ -110,7 +111,7 @@ namespace SshTool.App.Views
             var row = GroupList.SelectedItem as GroupRow;
             if (row != null)
             {
-                var ignore = ViewModel.MoveAsync(row, 1);
+                ViewModel.MoveAsync(row, 1).Forget("GroupManagePage.Move", AppLog.Logger);
             }
         }
 
@@ -119,7 +120,7 @@ namespace SshTool.App.Views
             var row = GroupList.SelectedItem as GroupRow;
             if (row != null)
             {
-                var ignore = ViewModel.DeleteAsync(row);
+                ViewModel.DeleteAsync(row).Forget("GroupManagePage.Delete", AppLog.Logger);
             }
         }
     }

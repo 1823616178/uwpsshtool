@@ -1,4 +1,6 @@
-using System;
+﻿using System;
+using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Core;
 using Windows.UI.Core;
@@ -89,7 +91,10 @@ namespace SshTool.App.Infrastructure
                 action();
                 return;
             }
-            var ignore = dispatcher.RunAsync(priority, () => action());
+            // O05：UI 封送原语自身的派发失败也要可观察——别处正是靠它做跨线程
+            // 安全的。日志走文件、不经 dispatcher，因此不会递归回到这里。
+            dispatcher.RunAsync(priority, () => action()).AsTask()
+                .Forget("DispatcherHelper.Post", AppLog.Logger);
         }
     }
 }

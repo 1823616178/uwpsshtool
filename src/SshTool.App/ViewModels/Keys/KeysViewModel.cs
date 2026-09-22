@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -39,7 +39,7 @@ namespace SshTool.App.ViewModels.Keys
             Rows = new ObservableCollection<KeyRow>();
             ImportCommand = new AsyncCommand(ImportCoreAsync, onError: OnError);
             GenerateCommand = new AsyncCommand(GenerateCoreAsync, onError: OnError);
-            var ignore = RefreshAsync();
+            RefreshAsync().Forget("KeysViewModel.Refresh", AppLog.Logger);
         }
 
         public ObservableCollection<KeyRow> Rows { get; private set; }

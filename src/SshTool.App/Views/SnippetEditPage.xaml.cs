@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Snippets;
@@ -51,7 +51,7 @@ namespace SshTool.App.Views
                 nav.RegisterBackHandler(this);
             }
             var args = e.Parameter as SnippetEditArgs;
-            var ignore = LoadAsync(generation, args == null ? null : args.SnippetId);
+            LoadAsync(generation, args == null ? null : args.SnippetId).Forget("SnippetEditPage.Load", AppLog.Logger);
         }
 
         // R01 (C-02)：await 后先查世代，页面已离开则不再 BindLoaded 触碰 XAML。
@@ -89,7 +89,7 @@ namespace SshTool.App.Views
             {
                 return false;
             }
-            var ignore = ConfirmAbandonAsync();
+            ConfirmAbandonAsync().Forget("SnippetEditPage.ConfirmAbandon", AppLog.Logger);
             return true;
         }
 

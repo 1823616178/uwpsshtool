@@ -277,7 +277,7 @@ namespace SshTool.App.ViewModels.Sync
                 ? SyncPreferences.Defaults()
                 : _state.Preferences.Clone();
             next.SyncPasswords = true;
-            var ignore = RunSafe("SetPreferences", () => _sync.SetPreferencesAsync(next));
+            RunSafe("SetPreferences", () => _sync.SetPreferencesAsync(next)).Forget("AccountSyncViewModel.SetPreferences", AppLog.Logger);
         }
 
         // ---------------- 路由 ----------------

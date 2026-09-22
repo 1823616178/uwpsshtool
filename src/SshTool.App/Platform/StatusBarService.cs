@@ -1,4 +1,6 @@
-using System;
+﻿using System;
+using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using Windows.Foundation.Metadata;
 using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
@@ -16,7 +18,7 @@ namespace SshTool.App.Platform
             }
             try
             {
-                var ignore = StatusBar.GetForCurrentView().HideAsync();
+                (StatusBar.GetForCurrentView().HideAsync()).AsTask().Forget("StatusBarService.Hide", AppLog.Logger);
             }
             catch (Exception)
             {
@@ -32,7 +34,7 @@ namespace SshTool.App.Platform
             try
             {
                 StatusBar bar = StatusBar.GetForCurrentView();
-                var ignore = bar.ShowAsync();
+                (bar.ShowAsync()).AsTask().Forget("StatusBarService.Show", AppLog.Logger);
             }
             catch (Exception)
             {

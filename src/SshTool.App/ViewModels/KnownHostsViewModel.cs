@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -37,7 +37,7 @@ namespace SshTool.App.ViewModels
             }
             _services = services;
             Rows = new ObservableCollection<KnownHostRow>();
-            var ignore = RefreshAsync();
+            RefreshAsync().Forget("KnownHostsViewModel.Refresh", AppLog.Logger);
         }
 
         public ObservableCollection<KnownHostRow> Rows { get; private set; }

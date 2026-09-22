@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using SshTool.App.Dialogs;
@@ -53,7 +53,7 @@ namespace SshTool.App.Views
                 nav.RegisterBackHandler(this);
             }
             var args = e.Parameter as TunnelEditArgs;
-            var ignore = LoadAsync(generation, args);
+            LoadAsync(generation, args).Forget("TunnelEditPage.Load", AppLog.Logger);
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -73,7 +73,7 @@ namespace SshTool.App.Views
             {
                 return false;
             }
-            var ignore = ConfirmAbandonAsync();
+            ConfirmAbandonAsync().Forget("TunnelEditPage.ConfirmAbandon", AppLog.Logger);
             return true;
         }
 

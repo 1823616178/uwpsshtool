@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using SshTool.App.Controls;
 using SshTool.App.Dialogs;
@@ -78,7 +78,7 @@ namespace SshTool.App.Views
                 nav.RegisterBackHandler(this);
             }
             var args = e.Parameter as AppearanceEditArgs;
-            var ignore = LoadAsync(generation, args == null ? null : args.AppearanceId);
+            LoadAsync(generation, args == null ? null : args.AppearanceId).Forget("AppearanceEditPage.Load", AppLog.Logger);
         }
 
         // R01 (C-02)：await 后先查世代，页面已离开则不再 BindLoaded 触碰 XAML。
@@ -116,7 +116,7 @@ namespace SshTool.App.Views
             {
                 return false;
             }
-            var ignore = ConfirmAbandonAsync();
+            ConfirmAbandonAsync().Forget("AppearanceEditPage.ConfirmAbandon", AppLog.Logger);
             return true;
         }
 
