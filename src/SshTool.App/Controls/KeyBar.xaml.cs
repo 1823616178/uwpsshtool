@@ -173,6 +173,10 @@ namespace SshTool.App.Controls
             }
             chrome.Tag = key;
             chrome.IsHitTestVisible = true;
+            // Q05：键条按键设置可读名称；label 设为 Raw 避免重复朗读
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(chrome, AccessibleNameOfKey(key));
+            Windows.UI.Xaml.Automation.AutomationProperties.SetAccessibilityView(label,
+                Windows.UI.Xaml.Automation.Peers.AccessibilityView.Raw);
             chrome.PointerPressed += OnKeyPointerPressed;
             chrome.PointerReleased += OnKeyPointerReleased;
             chrome.PointerCanceled += OnKeyPointerReleased;
@@ -184,6 +188,72 @@ namespace SshTool.App.Controls
             }
             return chrome;
         }
+
+        private static string AccessibleNameOfKey(KeyBarKey key)
+        {
+            if (key == null)
+            {
+                return string.Empty;
+            }
+            switch (key.Id)
+            {
+                case "esc":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Esc", "Esc 键");
+                case "tab":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Tab", "Tab 键");
+                case "ctrl":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Ctrl", "Ctrl 键");
+                case "alt":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Alt", "Alt 键");
+                case "shift":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Shift", "Shift 键");
+                case "up":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Up", "向上方向键");
+                case "down":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Down", "向下方向键");
+                case "left":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Left", "向左方向键");
+                case "right":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Right", "向右方向键");
+                case "home":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Home", "Home 键");
+                case "end":
+                    return Infrastructure.Localized.Get("KeyBar_Key_End", "End 键");
+                case "pgup":
+                    return Infrastructure.Localized.Get("KeyBar_Key_PgUp", "上一页");
+                case "pgdn":
+                    return Infrastructure.Localized.Get("KeyBar_Key_PgDn", "下一页");
+                case "ins":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Ins", "插入键");
+                case "del":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Del", "删除键");
+                case "enter":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Enter", "回车键");
+                case "backspace":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Backspace", "退格键");
+                case "paste":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Paste", "粘贴");
+                case "copy":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Copy", "复制");
+                case "snippets":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Snippets", "代码片段");
+                case "pipe":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Pipe", "管道符");
+                case "slash":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Slash", "正斜杠");
+                case "backslash":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Backslash", "反斜杠");
+                case "minus":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Minus", "减号");
+                case "underscore":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Underscore", "下划线");
+                case "tilde":
+                    return Infrastructure.Localized.Get("KeyBar_Key_Tilde", "波浪号");
+                default:
+                    return string.IsNullOrEmpty(key.Label) ? key.Id : key.Label;
+            }
+        }
+
 
         private void OnKeyPointerPressed(object sender, PointerRoutedEventArgs e)
         {

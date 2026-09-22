@@ -14,6 +14,7 @@
          画布（尤其光标/输入回显所在的底行）会被下移到软键盘后面。 -->
     <Grid>
         <canvas:CanvasControl x:Name="Canvas"
+                              x:Uid="Terminal_Canvas"
                               HorizontalAlignment="Left"
                               VerticalAlignment="Top"
                               IsTabStop="False"
@@ -36,7 +37,9 @@
             <TextBlock x:Name="FontSizeBubbleText" Style="{StaticResource SectionTitleTextStyle}" />
         </Border>
         <!-- T09：隐藏哨兵，承接 SIP / IME。IsHitTestVisible=False 让点击落到画布。 -->
+        <!-- Q05：AccessibilityView=Raw 避免读屏将输入哨兵念为普通未命名输入框。 -->
         <TextBox x:Name="Sentinel"
+                 AutomationProperties.AccessibilityView="Raw"
                  Width="{StaticResource SentinelInputSize}"
                  Height="{StaticResource SentinelInputSize}"
                  MinWidth="{StaticResource SentinelInputSize}"
@@ -53,4 +56,5 @@
                  TextWrapping="NoWrap"
                  IsTabStop="True" />
     </Grid>
+
 </UserControl>

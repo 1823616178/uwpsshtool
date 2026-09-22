@@ -82,14 +82,14 @@
                                            Grid.Row="0" Grid.Column="0"
                                            Style="{StaticResource BodyTextStyle}"
                                            VerticalAlignment="Center" />
-                                <ToggleSwitch x:Name="EnableSwitch" Grid.Row="0" Grid.Column="1"
+                                <ToggleSwitch x:Name="EnableSwitch" x:Uid="AccountSync_EnableSwitch" Grid.Row="0" Grid.Column="1"
                                               Toggled="OnEnableSyncToggled" />
                                 <TextBlock x:Uid="AccountSync_AutoSync" Text="自动同步"
                                            Grid.Row="1" Grid.Column="0"
                                            Style="{StaticResource BodyTextStyle}"
                                            VerticalAlignment="Center"
                                            Margin="{StaticResource GapSmTop}" />
-                                <ToggleSwitch x:Name="AutoSyncSwitch" Grid.Row="1" Grid.Column="1"
+                                <ToggleSwitch x:Name="AutoSyncSwitch" x:Uid="AccountSync_AutoSyncSwitch" Grid.Row="1" Grid.Column="1"
                                               Margin="{StaticResource GapSmTop}"
                                               Toggled="OnAutoSyncToggled" />
                                 <TextBlock x:Uid="AccountSync_SyncPasswords" Text="同步密码与短语"
@@ -97,7 +97,7 @@
                                            Style="{StaticResource BodyTextStyle}"
                                            VerticalAlignment="Center"
                                            Margin="{StaticResource GapSmTop}" />
-                                <ToggleSwitch x:Name="SyncPasswordsSwitch" Grid.Row="2" Grid.Column="1"
+                                <ToggleSwitch x:Name="SyncPasswordsSwitch" x:Uid="AccountSync_SyncPasswordsSwitch" Grid.Row="2" Grid.Column="1"
                                               Margin="{StaticResource GapSmTop}"
                                               Toggled="OnSyncPasswordsToggled" />
                                 <TextBlock x:Uid="AccountSync_SyncPrivateKeys" Text="同步私钥"
@@ -105,9 +105,10 @@
                                            Style="{StaticResource BodyTextStyle}"
                                            VerticalAlignment="Center"
                                            Margin="{StaticResource GapSmTop}" />
-                                <ToggleSwitch x:Name="SyncPrivateKeysSwitch" Grid.Row="3" Grid.Column="1"
+                                <ToggleSwitch x:Name="SyncPrivateKeysSwitch" x:Uid="AccountSync_SyncPrivateKeysSwitch" Grid.Row="3" Grid.Column="1"
                                               Margin="{StaticResource GapSmTop}"
                                               IsEnabled="False" />
+
                             </Grid>
                             </controls:FormSection.SectionContent>
                         </controls:FormSection>

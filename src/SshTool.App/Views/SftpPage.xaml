@@ -83,12 +83,13 @@
                     <Button Content="{Binding CancelText}" Click="OnCancelTransferClick"
                             Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
                             MinWidth="{StaticResource TouchTargetMin}" />
-                    <Button Click="OnRetryTransferClick"
+                    <Button x:Uid="Sftp_RetryTransferButton" Click="OnRetryTransferClick"
                             Visibility="{Binding CanRetry, Converter={StaticResource BoolToVisibility}}"
                             MinWidth="{StaticResource TouchTargetMin}"
                             Margin="{StaticResource GapSmLeft}">
                         <FontIcon Glyph="{StaticResource IconSync}" />
                     </Button>
+
                 </StackPanel>
             </Grid>
         </DataTemplate>

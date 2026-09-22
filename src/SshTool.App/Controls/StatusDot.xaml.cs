@@ -49,16 +49,17 @@ namespace SshTool.App.Controls
             switch (state)
             {
                 case StatusDotState.Connected:
-                    return "已连接";
+                    return Infrastructure.Localized.Get("StatusDot_Connected", "已连接");
                 case StatusDotState.Connecting:
-                    return "连接中";
+                    return Infrastructure.Localized.Get("StatusDot_Connecting", "连接中");
                 case StatusDotState.Reconnecting:
-                    return "重连中";
+                    return Infrastructure.Localized.Get("StatusDot_Reconnecting", "重连中");
                 case StatusDotState.Error:
-                    return "连接错误";
+                    return Infrastructure.Localized.Get("StatusDot_Error", "连接错误");
                 default:
-                    return "未连接";
+                    return Infrastructure.Localized.Get("StatusDot_Disconnected", "未连接");
             }
         }
+
     }
 }

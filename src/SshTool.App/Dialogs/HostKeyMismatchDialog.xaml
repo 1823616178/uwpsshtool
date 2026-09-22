@@ -3,10 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:SshTool.App.Controls"
-    MaxWidth="{StaticResource DialogMaxWidth}"
-
-
->
+    MaxWidth="{StaticResource DialogMaxWidth}">
 
     <!-- 02-UI-DESIGN.md §5.8 HostKeyMismatchDialog：红色警告 + 指纹对比 + 输入主机名确认移除 -->
     <StackPanel>
@@ -23,7 +20,7 @@
         <controls:MonoText x:Name="NewFingerprintText" Margin="{StaticResource GapXsTop}" />
         <TextBlock x:Name="ConfirmHintText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
                    Margin="{StaticResource GapMdTop}" />
-        <TextBox x:Name="ConfirmBox" Margin="{StaticResource GapXsTop}" />
+        <TextBox x:Name="ConfirmBox" x:Uid="HostKeyMismatch_ConfirmBox" Margin="{StaticResource GapXsTop}" />
         <TextBlock x:Name="ConfirmErrorText" Style="{StaticResource CaptionTextStyle}"
                    Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
                    Visibility="Collapsed" Margin="{StaticResource GapXsTop}" />

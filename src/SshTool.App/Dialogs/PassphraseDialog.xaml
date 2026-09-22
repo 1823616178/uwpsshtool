@@ -2,15 +2,12 @@
     x:Class="SshTool.App.Dialogs.PassphraseDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    MaxWidth="{StaticResource DialogMaxWidth}"
-
-
->
+    MaxWidth="{StaticResource DialogMaxWidth}">
 
     <!-- 02-UI-DESIGN.md §5.8 PassphraseDialog：短语 + 保存开关 -->
     <StackPanel>
         <TextBlock x:Name="PromptText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
-        <PasswordBox x:Name="PassphraseBox" Margin="{StaticResource GapXsTop}" />
+        <PasswordBox x:Name="PassphraseBox" x:Uid="PassphraseDialog_PassphraseBox" Margin="{StaticResource GapXsTop}" />
         <ToggleSwitch x:Uid="PassphraseDialog_RememberSwitch" x:Name="RememberSwitch" Margin="{StaticResource GapSmTop}" />
     </StackPanel>
 </ContentDialog>
