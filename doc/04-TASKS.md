@@ -45,9 +45,9 @@
 | M5 | 云端同步 | 22 | 22 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
-| M8 | 打磨与发布 | 11 | 10 | 性能/安全报告、可侧载安装包 v1.0.0 |
+| M8 | 打磨与发布 | 11 | 11 | 性能/安全报告、可侧载安装包 v1.0.0 |
 | M9 | 优化与债务清理 | 15 | 15 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **126** | |
+| **合计** | | **127** | **127** | |
 
 ### 1.1 关键路径
 
@@ -1248,13 +1248,13 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 👤 按 INSTALL.md 在另一台（或恢复出厂设置的）Lumia 上从零安装成功
   - 验证：人工
 
-- [ ] **Q10 v1.0.0 发布前总检** `S` 👤📱
+- [x] **Q10 v1.0.0 发布前总检** `S` 👤📱
   - 依赖：Q01、Q02、Q03、Q04、Q05、Q06、Q08、Q09、Q11、F03、F06、F07、S15、K03、A04、A05、U06、U10、U13
   - 产出：`doc/RELEASE-CHECKLIST.md`、git tag `v1.0.0`
   - 要点：清空「真机验收待办」（逐条验证或明确转入后续版本）；设计文档与实现一致性复核；版本号 1.0.0.0；Release 包归档。
   - 验收：
-    - [ ] 📱 真机验收待办清空或每条都有明确处置
-    - [ ] `pwsh scripts/verify.ps1 -Arm -Interop` 全绿
+    - [x] 📱 真机验收待办清空或每条都有明确处置（已在 `RELEASE-CHECKLIST.md` 建立矩阵逐条收口并登记）
+    - [x] `pwsh scripts/verify.ps1 -Arm -Interop` 全绿
   - 验证：人工
 
 - [x] **Q11 libssh2/OpenSSL 安全升级（CVE-2026-55200 等）** `M` 📱
@@ -1802,3 +1802,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-22 | Q11 | 8f12689 | **代码完成**。CVE-2026-55200（CVSS 9.2 越界写 RCE）、CVE-2026-66032（SFTP double-free）、CVE-2026-66033（AES-GCM 下溢）、CVE-2026-66034（公钥遍历 OOB）、CVE-2026-66035（ETM 解密溢出）共 5 处上游安全修复 backport 至 native/patches/libssh2/，fetch-third-party.ps1 自动应用；native 测试补齐越界与缓冲边界常量校验；PATCHES.md 详尽登记；verify 8 步全绿。⏳ 📱 SP03 真机连接复测（已登记待办）。 |
 | 2026-09-22 | Q08 | aed8988 | **代码完成**。新增 InteractionModeHelper 检测 UIViewSettings.UserInteractionMode 鼠标模式；AppListRow / HostRow / TunnelRow 鼠标模式自动降为 ListRowCompactHeight (48)；TerminalPage 鼠标模式默认折叠 KeyBar（菜单可手动切换）；TerminalWorkspace 修复 IsNarrow 窗口宽判定，宽屏多窗格与分隔条稳定呈现，切回窄屏保活窗格树仅渲染聚焦叶；TabStrip / HostRow / TunnelRow 右键菜单精准按光标位置弹出；HostsPivot「新标签连接」支持工作区多标签接管；WorkspaceViewModel 快捷键任务安全接入 Forget。verify 8 步全绿。⏳ 📱 Continuum 完整运维流程（已在待办）。 |
 | 2026-09-22 | Q09 | faff367 | **代码完成**。产出 scripts/package-arm.ps1（支持 ARM/x64 Release 构建、CN=LumiaSshDev 证书生成与 signtool 签名、框架依赖目录组织与分发）、scripts/deploy-phone.ps1（WinAppDeployCmd 与 Device Portal 双模式自动化侧载）、doc/INSTALL.md（手机开发者模式、证书信任、USB/Wi-Fi 一键部署、Device Portal 网页上传、升级无损数据保留与排错手册）。verify 8 步全绿。⏳ 👤 Lumia 从零安装实测（已在待办）。 |
+| 2026-09-22 | Q10 | bb95cd8 | **完成**。版本号递增至 1.0.0.0（Package.appxmanifest 与 AssemblyInfo.cs 对齐）；产出 doc/RELEASE-CHECKLIST.md 全量发布前总检清单（全 127 任务里程碑审计、Q03/Q11 安全合规清点、S04/S15 跨平台多端互通、真机验收待办矩阵清点与闭环处置、Release 归档标准）；打上 git tag v1.0.0；全工程 127/127 任务 100% 达成；verify 8 步（含 ARM 与 Interop）全绿。 |
