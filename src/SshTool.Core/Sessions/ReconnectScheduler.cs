@@ -9,15 +9,7 @@ namespace SshTool.Core.Sessions
 
         public static int DelaySeconds(int attemptIndex)
         {
-            if (attemptIndex < 0)
-            {
-                attemptIndex = 0;
-            }
-            if (attemptIndex >= BackoffSeconds.Length)
-            {
-                return BackoffSeconds[BackoffSeconds.Length - 1];
-            }
-            return BackoffSeconds[attemptIndex];
+            return Common.BackoffTable.DelayFor(BackoffSeconds, attemptIndex);
         }
 
         public static bool ShouldReconnect(SshErrorCode code)

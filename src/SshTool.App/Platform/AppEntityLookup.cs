@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Models;
 using SshTool.Core.Sync;
@@ -64,7 +65,7 @@ namespace SshTool.App.Platform
                 {
                     return null;
                 }
-                Host host = hosts.GetByIdAsync(id).Result;
+                Host host = FirstMatch(hosts.GetAllAsync(), id, h => h.Id);
                 return host != null ? host.Name : null;
             }
             catch (Exception)
@@ -86,7 +87,7 @@ namespace SshTool.App.Platform
                 {
                     return null;
                 }
-                HostGroup group = groups.GetByIdAsync(id).Result;
+                HostGroup group = FirstMatch(groups.GetAllAsync(), id, g => g.Id);
                 return group != null ? group.Name : null;
             }
             catch (Exception)
@@ -108,13 +109,40 @@ namespace SshTool.App.Platform
                 {
                     return null;
                 }
-                Tunnel tunnel = tunnels.GetByIdAsync(id).Result;
+                Tunnel tunnel = FirstMatch(tunnels.GetAllAsync(), id, t => t.Id);
                 return tunnel != null ? tunnel.Name : null;
             }
             catch (Exception)
             {
                 return null;
             }
+        }
+
+        // O14：不再 .Result 阻塞。IEntityNameLookup 是同步契约（冲突页在渲染行
+        // 时逐条问名字），没法改异步；但仓库在首次 LoadAsync 之后就是内存表，
+        // 所以只在**已经加载完**时读，没加载完就返回 null，由 Presenter 回退 id。
+        // 这样 UI 线程上不会再有一次文件 I/O 的同步等待。
+        private static T FirstMatch<T>(System.Threading.Tasks.Task<IReadOnlyList<T>> loaded,
+                                       string id, Func<T, string> idOf)
+            where T : class
+        {
+            if (loaded == null || !loaded.IsCompleted || loaded.IsFaulted || loaded.IsCanceled)
+            {
+                return null; // 仓库尚未就绪：宁可回退 id，也不在 UI 线程上等 I/O
+            }
+            IReadOnlyList<T> all = loaded.Result; // 已完成，Result 不阻塞
+            if (all == null)
+            {
+                return null;
+            }
+            for (int i = 0; i < all.Count; i++)
+            {
+                if (string.Equals(idOf(all[i]), id, StringComparison.Ordinal))
+                {
+                    return all[i];
+                }
+            }
+            return null;
         }
 
         private static string FirstNonEmpty(string value)

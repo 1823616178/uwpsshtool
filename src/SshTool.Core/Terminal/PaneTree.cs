@@ -60,16 +60,23 @@ namespace SshTool.Core.Terminal
             return FindLeaf(sessionId) != null;
         }
 
+        // O14：直接在树里找，不再先 Leaves() 建一张表——FindLeaf 被 Contains /
+        // Split / Close / SetFocus / FindNeighbor 全部经由，每次查找都分配一个
+        // List 没必要。遍历顺序与 Leaves() 一致（First 先于 Second）。
         public LeafNode FindLeaf(string sessionId)
         {
-            foreach (var leaf in Leaves())
+            return FindLeafIn(_root, sessionId);
+        }
+
+        private static LeafNode FindLeafIn(PaneNode node, string sessionId)
+        {
+            var leaf = node as LeafNode;
+            if (leaf != null)
             {
-                if (leaf.SessionId == sessionId)
-                {
-                    return leaf;
-                }
+                return leaf.SessionId == sessionId ? leaf : null;
             }
-            return null;
+            var split = (SplitNode)node;
+            return FindLeafIn(split.First, sessionId) ?? FindLeafIn(split.Second, sessionId);
         }
 
         // 在 sessionId 的窗格旁分屏：新窗格在 Second（向右/向下），焦点移到新窗格。

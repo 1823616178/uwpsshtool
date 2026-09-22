@@ -9,6 +9,7 @@ using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 
 namespace SshTool.App.Controls
 {
@@ -309,26 +310,11 @@ namespace SshTool.App.Controls
             return "#" + r.ToString("X2") + g.ToString("X2") + b.ToString("X2");
         }
 
+        // O14：解析收口到 Core 的 ColorHex（此前本文件与 GroupHeader、
+        // AppearanceListViewModel 三处逐字重复同一段 byte.Parse + 回退）。
         private static bool TryParse(string hex, out byte r, out byte g, out byte b)
         {
-            r = 0;
-            g = 0;
-            b = 0;
-            if (string.IsNullOrEmpty(hex) || hex.Length != 7 || hex[0] != '#')
-            {
-                return false;
-            }
-            try
-            {
-                r = byte.Parse(hex.Substring(1, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                g = byte.Parse(hex.Substring(3, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                b = byte.Parse(hex.Substring(5, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+            return ColorHex.TryParse(hex, out r, out g, out b);
         }
 
         private static Brush BrushFrom(string hex)

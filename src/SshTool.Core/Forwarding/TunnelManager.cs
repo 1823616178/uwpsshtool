@@ -525,8 +525,8 @@ namespace SshTool.Core.Forwarding
         private void ScheduleRetryLocked(TunnelInstance instance, string reason)
         {
             CancelRetryTimerLocked(instance);
-            int index = Math.Min(instance.Attempt, BackoffSeconds.Length - 1);
-            int delay = Math.Min(BackoffSeconds[index], Math.Max(1, MaxBackoffSeconds));
+            int delay = Math.Min(BackoffTable.DelayFor(BackoffSeconds, instance.Attempt),
+                                 Math.Max(1, MaxBackoffSeconds));
             instance.Attempt += 1;
             instance.RetryInSeconds = delay;
             instance.State = TunnelStateKind.Reconnecting;

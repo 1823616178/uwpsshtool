@@ -60,29 +60,11 @@ namespace SshTool.App.ViewModels
             return new SolidColorBrush(Windows.UI.Color.FromArgb(255, r, g, b));
         }
 
+        // O14：解析收口到 Core 的 ColorHex（此前本文件与 GroupHeader、
+        // AppearanceListViewModel 三处逐字重复同一段 byte.Parse + 回退）。
         private static bool TryParse(string hex, out byte r, out byte g, out byte b)
         {
-            r = 0;
-            g = 0;
-            b = 0;
-            if (string.IsNullOrEmpty(hex) || hex.Length != 7 || hex[0] != '#')
-            {
-                return false;
-            }
-            try
-            {
-                r = byte.Parse(hex.Substring(1, 2), System.Globalization.NumberStyles.HexNumber,
-                    System.Globalization.CultureInfo.InvariantCulture);
-                g = byte.Parse(hex.Substring(3, 2), System.Globalization.NumberStyles.HexNumber,
-                    System.Globalization.CultureInfo.InvariantCulture);
-                b = byte.Parse(hex.Substring(5, 2), System.Globalization.NumberStyles.HexNumber,
-                    System.Globalization.CultureInfo.InvariantCulture);
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+            return ColorHex.TryParse(hex, out r, out g, out b);
         }
     }
 

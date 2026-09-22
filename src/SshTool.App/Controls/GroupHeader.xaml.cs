@@ -6,6 +6,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
+using SshTool.Core.Common;
 
 namespace SshTool.App.Controls
 {
@@ -58,23 +59,17 @@ namespace SshTool.App.Controls
             }
         }
 
+        // O14：解析收口到 Core 的 ColorHex（此前三处逐字重复）。
         private static Brush TryParseColor(string hex)
         {
-            if (string.IsNullOrEmpty(hex) || hex[0] != '#' || hex.Length != 7)
+            byte r;
+            byte g;
+            byte b;
+            if (!ColorHex.TryParse(hex, out r, out g, out b))
             {
                 return null;
             }
-            try
-            {
-                byte r = byte.Parse(hex.Substring(1, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                byte g = byte.Parse(hex.Substring(3, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                byte b = byte.Parse(hex.Substring(5, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture);
-                return new SolidColorBrush(Color.FromArgb(255, r, g, b));
-            }
-            catch (Exception)
-            {
-                return null;
-            }
+            return new SolidColorBrush(Color.FromArgb(255, r, g, b));
         }
     }
 }
