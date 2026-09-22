@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 14 | 5 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **126** | **112** | |
+| M9 | 优化与债务清理 | 14 | 6 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **126** | **113** | |
 
 ### 1.1 关键路径
 
@@ -1366,7 +1366,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [x] `pwsh scripts/verify.ps1` 全绿（8 步）
   - 验证：`pwsh scripts/verify.ps1`
 
-- [ ] **O06 `UwpHttpTransport` 复用 filter 与 client** `S`
+- [x] **O06 `UwpHttpTransport` 复用 filter 与 client** `S`
   - 依赖：—
   - 参考：`06-OPT-AUDIT.md §3 P1-6`；`03-SYNC-PROTOCOL.md §2.1`
   - 产出：`src/SshTool.App/Platform/UwpHttpTransport.cs`
@@ -1375,8 +1375,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. NoCache / NoCookies / `AllowAutoRedirect=false` 语义一字不改（§2.1：凭证只走 `Authorization` 头）。
     3. 超时与取消语义保持：超时抛 `TimeoutException`，调用方取消原样抛 `OperationCanceledException`。
   - 验收：
-    - [ ] 现有 `ApiClient` 相关测试全过（Core 侧用假传输，不受影响）
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] 现有 `ApiClient` 相关测试全过（Core 侧用假传输，不受影响）
+    - [x] `pwsh scripts/verify.ps1` 全绿（8 步）
     - [ ] 📱 真机登录 + 一次完整同步周期成功（Wi-Fi 与蜂窝各一次）
   - 验证：`pwsh scripts/verify.ps1`；真机
 
@@ -1581,6 +1581,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] F07 📱 两级跳板连接成功；断开中间跳后下级进入重连而非挂死
 - [ ] O01 📱 PerfPage「Q02 连接/断开 ×100」与长稳复测，内存 Δ 与 `sessions/threads/sockets/screens` 回填 `doc/PERF-REPORT.md §5.1`（验证 `pendingOutput_` 删除后的内存曲线）
 - [ ] O03 📱 首页↔终端页往返 50 次，内存无明显增长、主机列表不重复刷新（`05` §10「进入退出终端 50 次无事件倍增」）
+- [ ] O06 📱 真机登录 + 一次完整同步周期成功（Wi-Fi 与蜂窝各一次），确认复用连接后同步延迟下降且无握手异常
 
 ---
 

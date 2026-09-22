@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,50 +13,63 @@ namespace SshTool.App.Platform
     // 其余异常上抛，由 Core 侧 ApiClient 映射为 network 错误。
     public sealed class UwpHttpTransport : IHttpTransport
     {
+        // O06：filter 与 client 复用，不再每请求新建。Windows.Web.Http 的连接池
+        // 挂在 filter 上——每请求新建 filter 就是每请求重做一次 TLS 握手。一个
+        // 同步周期要打 revision/download/upload/devices/history 多个请求，再叠加
+        // 60 s 轮询与 3 s 去抖上传，在蜂窝网下是明显的延迟与耗电放大。
+        // HttpClient 是线程安全的，允许并发 SendRequestAsync。
+        //
+        // 不 Dispose：本对象是应用级单例（AppServices 持有），与进程同寿命；
+        // 提前释放会让在飞行的同步请求失败。
+        private static readonly HttpClient Client = CreateClient();
+
+        private static HttpClient CreateClient()
+        {
+            var filter = new HttpBaseProtocolFilter();
+            // 同步请求不碰缓存与 Cookie（§2.1：凭证只走 Authorization 头）
+            filter.CacheControl.ReadBehavior = HttpCacheReadBehavior.NoCache;
+            filter.CacheControl.WriteBehavior = HttpCacheWriteBehavior.NoCache;
+            filter.CookieUsageBehavior = HttpCookieUsageBehavior.NoCookies;
+            filter.AllowAutoRedirect = false;
+            return new HttpClient(filter);
+        }
+
         public async Task<HttpResponseData> SendAsync(HttpRequestData request, CancellationToken cancellationToken)
         {
-            using (var filter = new HttpBaseProtocolFilter())
+            // 请求/响应对象仍按请求创建与释放：可复用的只有连接池，不是消息。
+            using (var message = new HttpRequestMessage(MethodOf(request.Method), new Uri(request.Url)))
             {
-                // 同步请求不碰缓存与 Cookie（§2.1：凭证只走 Authorization 头）
-                filter.CacheControl.ReadBehavior = HttpCacheReadBehavior.NoCache;
-                filter.CacheControl.WriteBehavior = HttpCacheWriteBehavior.NoCache;
-                filter.CookieUsageBehavior = HttpCookieUsageBehavior.NoCookies;
-                filter.AllowAutoRedirect = false;
-                using (var client = new HttpClient(filter))
-                using (var message = new HttpRequestMessage(MethodOf(request.Method), new Uri(request.Url)))
+                foreach (var header in request.Headers)
                 {
-                    foreach (var header in request.Headers)
-                    {
-                        // TryAppendWithoutValidation：If-Match 的引号值等会被强校验拒绝
-                        message.Headers.TryAppendWithoutValidation(header.Key, header.Value);
-                    }
-                    if (request.Body != null)
-                    {
-                        message.Content = new HttpStringContent(
-                            request.Body, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
-                    }
+                    // TryAppendWithoutValidation：If-Match 的引号值等会被强校验拒绝
+                    message.Headers.TryAppendWithoutValidation(header.Key, header.Value);
+                }
+                if (request.Body != null)
+                {
+                    message.Content = new HttpStringContent(
+                        request.Body, Windows.Storage.Streams.UnicodeEncoding.Utf8, "application/json");
+                }
 
-                    HttpResponseMessage response;
-                    using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                HttpResponseMessage response;
+                using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                {
+                    timeout.CancelAfter(request.TimeoutMs);
+                    try
                     {
-                        timeout.CancelAfter(request.TimeoutMs);
-                        try
-                        {
-                            response = await client.SendRequestAsync(message).AsTask(timeout.Token).ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException)
-                        {
-                            if (!cancellationToken.IsCancellationRequested)
-                            {
-                                throw new TimeoutException("请求超时（" + request.TimeoutMs + "ms）");
-                            }
-                            throw;
-                        }
+                        response = await Client.SendRequestAsync(message).AsTask(timeout.Token).ConfigureAwait(false);
                     }
-                    using (response)
+                    catch (OperationCanceledException)
                     {
-                        return await ReadResponse(response).ConfigureAwait(false);
+                        if (!cancellationToken.IsCancellationRequested)
+                        {
+                            throw new TimeoutException("请求超时（" + request.TimeoutMs + "ms）");
+                        }
+                        throw;
                     }
+                }
+                using (response)
+                {
+                    return await ReadResponse(response).ConfigureAwait(false);
                 }
             }
         }
