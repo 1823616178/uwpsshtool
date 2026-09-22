@@ -82,6 +82,10 @@ private:
 
     // Loop thread only.
     std::unordered_map<Socket, Registration> registrations_;
+    // O10：poll 描述符表复用。原先是 run() 循环体内的局部 vector，每次唤醒
+    // （每个事件、每次定时器到期）都重新构造一次堆分配；N 条会话线程各一份。
+    // 提升为成员后容量收敛到稳态 socket 数，之后 clear() 不再分配。
+    std::vector<WSAPOLLFD> pollDescriptors_;
 
     std::mutex taskMutex_;
     std::vector<Task> pendingTasks_;

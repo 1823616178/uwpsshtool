@@ -158,7 +158,7 @@ public:
     void injectAtoB(std::string bytes)
     {
         if (!bytes.empty()) {
-            bufferAtoB_ += std::move(bytes);
+            bufferAtoB_.append(bytes);
         }
     }
 
@@ -185,11 +185,54 @@ public:
     bool eofSeenB() const { return eofSeenB_; }
 
 private:
-    PumpReadResult pullOne(IPumpEndpoint& endpoint, bool& eofFlag, std::string& buffer,
+    // O10：带读偏移的流缓冲。原先用裸 std::string + erase(0, sent) 排空，
+    // 每次部分写都 memmove 一遍剩余字节；缓冲逼近 256 KiB 上限时接近 O(n^2)。
+    // 同仓 ssh/channel.cpp 的 PendingWriteQueue 早就是「头偏移、不搬移」的写法，
+    // 这里向它看齐：consume 只推进 head_，只有当已消费部分大到值得回收时才压实。
+    class StreamBuffer {
+    public:
+        size_t size() const { return data_.size() - head_; }
+        bool empty() const { return head_ >= data_.size(); }
+        const char* data() const { return data_.data() + head_; }
+
+        void append(const std::string& bytes)
+        {
+            compactIfWasteful();
+            data_.append(bytes);
+        }
+
+        void consume(size_t n)
+        {
+            head_ += n > size() ? size() : n;
+            if (head_ >= data_.size()) {
+                data_.clear(); // 全部送完：直接归零，连压实都省了
+                head_ = 0;
+            }
+        }
+
+    private:
+        // 已消费部分超过一半且绝对量可观时才搬一次，把摊还成本压到 O(1)。
+        void compactIfWasteful()
+        {
+            if (head_ == 0)
+                return;
+            if (head_ * 2 >= data_.size() && head_ >= kCompactThresholdBytes) {
+                data_.erase(0, head_);
+                head_ = 0;
+            }
+        }
+
+        static constexpr size_t kCompactThresholdBytes = 16 * 1024;
+
+        std::string data_;
+        size_t head_ = 0;
+    };
+
+    PumpReadResult pullOne(IPumpEndpoint& endpoint, bool& eofFlag, StreamBuffer& buffer,
                            bool& progress);
-    bool flushOne(IPumpEndpoint& endpoint, std::string& buffer, bool& progress,
+    bool flushOne(IPumpEndpoint& endpoint, StreamBuffer& buffer, bool& progress,
                   bool& stalledFlag);
-    bool propagateEof(bool eofSeen, const std::string& buffer, bool& hookDone,
+    bool propagateEof(bool eofSeen, const StreamBuffer& buffer, bool& hookDone,
                       IPumpEndpoint& peer, bool& progress);
     void finishWithError(std::string message);
 
@@ -198,8 +241,8 @@ private:
     TunnelStats* stats_; // nullable, non-owning
     size_t maxBufferedBytes_ = kDefaultMaxBufferedBytes;
 
-    std::string bufferAtoB_;
-    std::string bufferBtoA_;
+    StreamBuffer bufferAtoB_;
+    StreamBuffer bufferBtoA_;
     bool eofSeenA_ = false;
     bool eofSeenB_ = false;
     bool eofSentToB_ = false; // A EOFed and B was told (or given up)

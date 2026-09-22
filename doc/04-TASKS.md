@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 15 | 9 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **116** | |
+| M9 | 优化与债务清理 | 15 | 10 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **127** | **117** | |
 
 ### 1.1 关键路径
 
@@ -1462,17 +1462,20 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 PerfPage 场景①②③ 的「喂 x ms/帧」较优化前下降，数据回填 `doc/PERF-REPORT.md §3.1`
   - 验证：ctest；`pwsh scripts/verify.ps1`；真机 Q01
 
-- [ ] **O10 Native 转发与事件循环的分配收口** `S`
+- [x] **O10 Native 转发与事件循环的分配收口** `S`
   - 依赖：—
   - 参考：`06-OPT-AUDIT.md §3 P2-11、P2-12`；范式见 `native/core/ssh/channel.cpp` 的 `PendingWriteQueue`
   - 产出：`native/core/fwd/pump.{h,cpp}`、`native/core/io/EventLoop.{h,cpp}`
   - 要点：
     1. `BidirectionalPump` 的 `erase(0, sent)` 改为 head-offset 排空（或 `deque<string>` + 偏移），向 `PendingWriteQueue` 看齐；256 KiB 缓冲上限与背压语义不变。
-    2. `EventLoop::run()` 的 `pollDescriptors` 提升为成员，每轮 `clear()` 复用；构建 pollfd 时并行存回调，派发时不再二次 `registrations_.find()`。
+    2. `EventLoop::run()` 的 `pollDescriptors` 提升为成员，每轮 `clear()` 复用。
+       ~~构建 pollfd 时并行存回调，派发时不再二次 `find()`~~ **不做且已在代码里写明理由**：
+       回调可能在执行中注销自己或别的 socket，一旦注销就销毁 map 节点；把回调指针存进并行数组，
+       派发到一半就可能拿到悬垂指针。现在的「二次查找 + 拷贝 `std::function`」是这条路径上唯一安全的做法。
     3. 唤醒机制（回环 UDP + 50 ms 兜底轮询）不动。
   - 验收：
-    - [ ] `fwd_test`、`event_loop_test` 全过（含部分写与背压用例）
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] `fwd_test`、`event_loop_test` 全过（含部分写与背压用例；2 条依赖真实网络的集成用例照常跳过）
+    - [x] `pwsh scripts/verify.ps1` 全绿（8 步，ctest 315）
   - 验证：ctest；`pwsh scripts/verify.ps1`
 
 - [ ] **O11 `TerminalRenderer` 渲染分配收口** `M`

@@ -141,7 +141,8 @@ void EventLoop::run()
     while (!stopRequested_.load()) {
         runDueTimers();
 
-        std::vector<WSAPOLLFD> pollDescriptors;
+        std::vector<WSAPOLLFD>& pollDescriptors = pollDescriptors_; // O10：复用，见成员声明
+        pollDescriptors.clear();
         pollDescriptors.reserve(registrations_.size() + (usesSocketWakeup() ? 1U : 0U));
         if (usesSocketWakeup()) {
             pollDescriptors.push_back(WSAPOLLFD{wakeReceiver_, Readable, 0});
@@ -183,6 +184,10 @@ void EventLoop::run()
                     continue;
                 }
 
+                // 这里的二次查找与 std::function 拷贝是**故意保留**的：回调可能
+                // 在执行中注销自己或别的 socket，一旦注销就会销毁 map 节点。
+                // 若在建表时把回调指针存进并行数组，派发到一半就可能拿到悬垂
+                // 指针。拷贝一份再调用是这条路径上唯一安全的做法。
                 SocketCallback callback;
                 auto found = registrations_.find(descriptor.fd);
                 if (found != registrations_.end()) {

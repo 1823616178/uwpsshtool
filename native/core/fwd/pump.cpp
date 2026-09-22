@@ -30,7 +30,7 @@ bool BidirectionalPump::wantWriteB() const
 }
 
 PumpReadResult BidirectionalPump::pullOne(IPumpEndpoint& endpoint, bool& eofFlag,
-                                          std::string& buffer, bool& progress)
+                                          StreamBuffer& buffer, bool& progress)
 {
     if (eofFlag || buffer.size() >= maxBufferedBytes_) {
         return PumpReadResult::stalled(); // backpressure: caller checks the hint
@@ -57,7 +57,7 @@ PumpReadResult BidirectionalPump::pullOne(IPumpEndpoint& endpoint, bool& eofFlag
     return result;
 }
 
-bool BidirectionalPump::flushOne(IPumpEndpoint& endpoint, std::string& buffer, bool& progress,
+bool BidirectionalPump::flushOne(IPumpEndpoint& endpoint, StreamBuffer& buffer, bool& progress,
                                  bool& stalledFlag)
 {
     stalledFlag = false;
@@ -73,7 +73,7 @@ bool BidirectionalPump::flushOne(IPumpEndpoint& endpoint, std::string& buffer, b
                 sent = buffer.size(); // defensive, see pullOne
             }
             if (sent > 0) {
-                buffer.erase(0, sent);
+                buffer.consume(sent); // O10：推进读偏移，不 memmove
                 progress = true;
                 continue;
             }
@@ -90,7 +90,7 @@ bool BidirectionalPump::flushOne(IPumpEndpoint& endpoint, std::string& buffer, b
     return true;
 }
 
-bool BidirectionalPump::propagateEof(bool eofSeen, const std::string& buffer, bool& hookDone,
+bool BidirectionalPump::propagateEof(bool eofSeen, const StreamBuffer& buffer, bool& hookDone,
                                      IPumpEndpoint& peer, bool& progress)
 {
     if (!eofSeen || !buffer.empty() || hookDone) {
