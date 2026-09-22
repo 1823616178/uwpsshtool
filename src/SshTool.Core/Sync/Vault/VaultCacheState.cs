@@ -147,6 +147,29 @@ namespace SshTool.Core.Sync.Vault
             };
         }
 
+        // O15：快照读取，但跳过 BaseDocument / PendingUpload / ConflictRemoteDocument
+        // 三份完整文档树的深拷贝。用于绝大多数只关心状态标量与元数据（Preferences/UserId/VaultId/Revision 等）的调用点。
+        public VaultCacheState CloneWithoutDocuments()
+        {
+            return new VaultCacheState
+            {
+                UserId = UserId,
+                VaultId = VaultId,
+                VaultKeyBase64 = VaultKeyBase64,
+                KeyVersion = KeyVersion,
+                Revision = Revision,
+                Preferences = Preferences == null ? SyncPreferences.Defaults() : Preferences.Clone(),
+                BaseDocument = null,
+                Dirty = Dirty,
+                LastSyncedAt = LastSyncedAt,
+                PendingVaultSetup = PendingVaultSetup == null ? null : PendingVaultSetup.Clone(),
+                PendingUpload = null,
+                Conflict = Conflict == null ? null : Conflict.Clone(),
+                ConflictRemoteDocument = null,
+                ConflictRemoteRevision = ConflictRemoteRevision
+            };
+        }
+
         public JObject ToJson()
         {
             return new JObject

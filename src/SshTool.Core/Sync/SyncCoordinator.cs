@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -161,7 +161,8 @@ namespace SshTool.Core.Sync
             _timers = timers ?? new TaskDelayTimerFactory();
             lock (_stateLock)
             {
-                _state = BuildState(_auth.Session, _vault.State);
+                // O15：构建状态只需元数据，不克隆文档。
+                _state = BuildState(_auth.Session, _vault.CloneWithoutDocuments());
             }
         }
 
@@ -190,8 +191,9 @@ namespace SshTool.Core.Sync
             var session = await _auth.LoadAsync().ConfigureAwait(false);
             await _vault.LoadAsync().ConfigureAwait(false);
             await _vault.BindToUserAsync(session.Authenticated ? session.UserId : null).ConfigureAwait(false);
-            ApplySessionState(_auth.Session, _vault.State);
-            if (_auth.Session.Authenticated && _vault.State.VaultId == null)
+            // O15：重建状态只需元数据，不克隆文档。
+            ApplySessionState(_auth.Session, _vault.CloneWithoutDocuments());
+            if (_auth.Session.Authenticated && _vault.ReadVaultId() == null)
             {
                 await ProbeVaultSafelyAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -256,8 +258,9 @@ namespace SshTool.Core.Sync
                 }
                 throw;
             }
-            var current = _vault.State;
-            if (!string.Equals(current.VaultId, response.Id, StringComparison.Ordinal))
+            // O15：只读 VaultId 标量，不克隆文档。
+            string currentVaultId = _vault.ReadVaultId();
+            if (!string.Equals(currentVaultId, response.Id, StringComparison.Ordinal))
             {
                 await _vault.UpdateAsync(next =>
                 {
@@ -276,7 +279,8 @@ namespace SshTool.Core.Sync
                     next.KeyVersion = response.Envelope.KeyVersion;
                 }).ConfigureAwait(false);
             }
-            var after = _vault.State;
+            // O15：构建状态只需元数据，不克隆文档。
+            var after = _vault.CloneWithoutDocuments();
             PatchState(next =>
             {
                 next.Vault = after.VaultKeyBase64 != null ? VaultStatus.Ready : VaultStatus.Locked;
@@ -295,7 +299,8 @@ namespace SshTool.Core.Sync
         {
             EnsureAuthenticated();
             RequireCredential(syncPassword, nameof(syncPassword));
-            PendingVaultSetup pending = _vault.State.PendingVaultSetup;
+            // O15：只读 PendingVaultSetup，不克隆文档。
+            PendingVaultSetup pending = _vault.ReadPendingVaultSetup();
             if (pending == null)
             {
                 var setup = await _crypto.CreateAsync(syncPassword, 1).ConfigureAwait(false);
@@ -318,7 +323,7 @@ namespace SshTool.Core.Sync
                 {
                     next.PendingVaultSetup = fresh;
                 }).ConfigureAwait(false);
-                pending = _vault.State.PendingVaultSetup;
+                pending = _vault.ReadPendingVaultSetup();
             }
 
             string idempotencyKey = pending.IdempotencyKey;
@@ -338,7 +343,8 @@ namespace SshTool.Core.Sync
                 next.Dirty = true;
                 next.PendingVaultSetup = null;
             }).ConfigureAwait(false);
-            var preferences = _vault.State.Preferences.Clone();
+            // O15：UpdateAsync 落盘后只需 Preferences，ReadPreferences() 不克隆文档。
+            var preferences = _vault.ReadPreferences();
             PatchState(next =>
             {
                 next.Phase = SyncPhase.Idle;
@@ -378,7 +384,8 @@ namespace SshTool.Core.Sync
                 next.KeyVersion = response.Envelope.KeyVersion;
                 next.Preferences.Enabled = true;
             }).ConfigureAwait(false);
-            var preferences = _vault.State.Preferences.Clone();
+            // O15：UpdateAsync 落盘后只需 Preferences，ReadPreferences() 不克隆文档。
+            var preferences = _vault.ReadPreferences();
             PatchState(next =>
             {
                 next.Phase = SyncPhase.Idle;
@@ -415,8 +422,8 @@ namespace SshTool.Core.Sync
             {
                 await _vault.BindToUserAsync(session.UserId).ConfigureAwait(false);
             }
-            var cache = _vault.State;
-            var preferences = cache.Preferences.Clone();
+            // O15：ClearAsync/BindToUserAsync 后只需 Preferences，ReadPreferences() 不克隆文档。
+            var preferences = _vault.ReadPreferences();
             PatchState(next =>
             {
                 next.Phase = session.Authenticated ? SyncPhase.Disabled : SyncPhase.SignedOut;
@@ -440,7 +447,8 @@ namespace SshTool.Core.Sync
             {
                 throw new ArgumentNullException(nameof(preferences));
             }
-            var previous = _vault.State.Preferences;
+            // O15：只读 Preferences 标量，不克隆文档。
+            var previous = _vault.ReadPreferences();
             if ((previous.SyncPasswords && !preferences.SyncPasswords)
                 || (previous.SyncPrivateKeys && !preferences.SyncPrivateKeys))
             {
@@ -452,14 +460,15 @@ namespace SshTool.Core.Sync
                 next.Preferences = snapshot;
                 next.Dirty = true;
             }).ConfigureAwait(false);
-            var after = _vault.State;
-            var statePreferences = after.Preferences.Clone();
+            // O15：UpdateAsync 后只需 Preferences 和 VaultKeyBase64，均用标量读法。
+            var statePreferences = _vault.ReadPreferences();
+            string vaultKeyAfter = _vault.ReadVaultKeyBase64();
             PatchState(next =>
             {
                 next.Preferences = statePreferences;
                 next.Dirty = true;
                 next.Phase = statePreferences.Enabled
-                    ? (after.VaultKeyBase64 != null ? SyncPhase.Idle : SyncPhase.Locked)
+                    ? (vaultKeyAfter != null ? SyncPhase.Idle : SyncPhase.Locked)
                     : SyncPhase.Disabled;
             });
         }
@@ -490,11 +499,12 @@ namespace SshTool.Core.Sync
                 // 服务端失败也清本地（patchState 必须在 finally 内：失败时状态同样回到 signed_out）。
                 await _auth.ClearAsync().ConfigureAwait(false);
                 await _vault.LockAsync().ConfigureAwait(false);
-                var cache = _vault.State;
+                // O15：只读 VaultId 标量，不克隆文档。
+                string logoutVaultId = _vault.ReadVaultId();
                 PatchState(next =>
                 {
                     next.Phase = SyncPhase.SignedOut;
-                    next.Vault = cache.VaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
+                    next.Vault = logoutVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
                     next.Message = "";
                 });
             }
@@ -512,11 +522,12 @@ namespace SshTool.Core.Sync
                 .ConfigureAwait(false);
             await _auth.ClearAsync().ConfigureAwait(false);
             await _vault.LockAsync().ConfigureAwait(false);
-            var cache = _vault.State;
+            // O15：只读 VaultId 标量，不克隆文档。
+            string changePassVaultId = _vault.ReadVaultId();
             PatchState(next =>
             {
                 next.Phase = SyncPhase.SignedOut;
-                next.Vault = cache.VaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
+                next.Vault = changePassVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
                 next.Message = "密码已修改，请使用新密码重新登录";
             });
             Info("登录密码已修改，需重新登录");
@@ -554,8 +565,9 @@ namespace SshTool.Core.Sync
             var session = _auth.Session;
             await _vault.BindToUserAsync(session.Authenticated ? session.UserId : null)
                 .ConfigureAwait(false);
-            ApplySessionState(_auth.Session, _vault.State);
-            if (_auth.Session.Authenticated && _vault.State.VaultId == null)
+            // O15：重建状态只需元数据，不克隆文档。
+            ApplySessionState(_auth.Session, _vault.CloneWithoutDocuments());
+            if (_auth.Session.Authenticated && _vault.ReadVaultId() == null)
             {
                 await ProbeVaultSafelyAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -588,11 +600,12 @@ namespace SshTool.Core.Sync
             {
                 await _auth.ClearAsync().ConfigureAwait(false);
                 await _vault.LockAsync().ConfigureAwait(false);
-                var terminalCache = _vault.State;
+                // O15：只读 VaultId 标量，不克隆文档。
+                string termVaultId = _vault.ReadVaultId();
                 PatchState(next =>
                 {
                     next.Phase = SyncPhase.AuthError;
-                    next.Vault = terminalCache.VaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
+                    next.Vault = termVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
                     next.Message = FormatErrorMessage(apiError);
                     next.NextRetryAt = null;
                 });
@@ -601,11 +614,12 @@ namespace SshTool.Core.Sync
             if (!_auth.Session.Authenticated)
             {
                 await _vault.LockAsync().ConfigureAwait(false);
-                var signedOutCache = _vault.State;
+                // O15：只读 VaultId 标量，不克隆文档。
+                string signedOutVaultId = _vault.ReadVaultId();
                 PatchState(next =>
                 {
                     next.Phase = SyncPhase.SignedOut;
-                    next.Vault = signedOutCache.VaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
+                    next.Vault = signedOutVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
                     next.Message = FormatErrorMessage(error);
                     next.NextRetryAt = null;
                 });
@@ -622,10 +636,7 @@ namespace SshTool.Core.Sync
                 long delayMs;
                 lock (_stateLock)
                 {
-                    int index = _retryAttempt < RetryDelayStepsSeconds.Length - 1
-                        ? _retryAttempt
-                        : RetryDelayStepsSeconds.Length - 1;
-                    long stepMs = (long)RetryDelayStepsSeconds[index] * 1000L;
+                    long stepMs = (long)BackoffTable.DelayFor(RetryDelayStepsSeconds, _retryAttempt) * 1000L;
                     _retryAttempt++;
                     delayMs = apiError != null && apiError.RetryAfterMs != null
                         ? apiError.RetryAfterMs.Value
@@ -644,10 +655,10 @@ namespace SshTool.Core.Sync
             });
         }
 
+        // O15：直接用 ReadAutoSync() 读标量，不克隆文档。
         private bool IsAutoSyncEnabled()
         {
-            SyncPreferences preferences = _vault.State.Preferences;
-            return preferences != null && preferences.AutoSync;
+            return _vault.ReadAutoSync();
         }
 
         // §7.4：取消上一次重试定时，安排 delayMs 后 SyncNow（桌面端 retryTimer 同构）。
@@ -905,7 +916,8 @@ namespace SshTool.Core.Sync
 
         private async Task PerformSyncAsync(SyncNowStrategy strategy, CancellationToken cancellationToken)
         {
-            VaultCacheState snapshot = _vault.State;
+            // O15：门禁检查只需 Preferences/VaultKey/VaultId，不克隆文档。
+            VaultCacheState snapshot = _vault.CloneWithoutDocuments();
             if (!_auth.Session.Authenticated)
             {
                 PatchState(next =>
@@ -1147,8 +1159,8 @@ namespace SshTool.Core.Sync
             {
                 generation = _changeGeneration;
             }
-            VaultCacheState cache = _vault.State;
-            string vaultKey = cache.VaultKeyBase64;
+            // O15：只读 VaultKeyBase64 标量，不克隆文档。
+            string vaultKey = _vault.ReadVaultKeyBase64();
             if (string.IsNullOrEmpty(vaultKey))
             {
                 throw new InvalidOperationException("保险库未解锁");
@@ -1226,7 +1238,8 @@ namespace SshTool.Core.Sync
                 next.Message = "";
             });
             Info("上传完成 revision=" + response.Revision);
-            if (changed && _vault.State.Preferences.AutoSync)
+            // O15：只读 AutoSync 标量，不克隆文档。
+            if (changed && _vault.ReadAutoSync())
             {
                 _ = FollowUpSyncAfterDelayAsync();
             }
@@ -1307,8 +1320,8 @@ namespace SshTool.Core.Sync
             {
                 throw new InvalidOperationException("本地同步适配器未配置");
             }
-            VaultCacheState cache = _vault.State;
-            SyncPreferences prefs = cache.Preferences;
+            // O15：只读 Preferences，不克隆文档。
+            SyncPreferences prefs = _vault.ReadPreferences();
             var documentPrefs = new SyncPreferencesV1
             {
                 SyncPasswords = prefs != null && prefs.SyncPasswords,
@@ -1402,11 +1415,12 @@ namespace SshTool.Core.Sync
             List<SyncConflictField> fields,
             SyncConflictReason reason)
         {
-            VaultCacheState cache = _vault.State;
+            // O15：只读 Revision 标量，不克隆文档。
+            string localRevision = _vault.ReadRevision();
             var summary = new SyncConflictSummary
             {
                 Reason = reason,
-                LocalRevision = cache.Revision,
+                LocalRevision = localRevision,
                 RemoteRevision = remoteRevision,
                 LocalUpdatedAt = local.UpdatedAt,
                 RemoteUpdatedAt = remote.UpdatedAt,
@@ -1629,7 +1643,8 @@ namespace SshTool.Core.Sync
             }
             RequireCredential(currentPassword, nameof(currentPassword));
             RequireCredential(syncPassword, nameof(syncPassword));
-            VaultCacheState cache = _vault.State;
+            // O15：校验状态只需元数据，不克隆文档。
+            VaultCacheState cache = _vault.CloneWithoutDocuments();
             if (string.IsNullOrEmpty(cache.VaultId)
                 || string.IsNullOrEmpty(cache.VaultKeyBase64)
                 || cache.KeyVersion < 1)
@@ -1657,7 +1672,8 @@ namespace SshTool.Core.Sync
         {
             RequireCredential(currentPassword, nameof(currentPassword));
             RequireCredential(syncPassword, nameof(syncPassword));
-            VaultCacheState cache = _vault.State;
+            // O15：校验状态只需元数据，不克隆文档。
+            VaultCacheState cache = _vault.CloneWithoutDocuments();
             if (string.IsNullOrEmpty(cache.VaultId)
                 || string.IsNullOrEmpty(cache.VaultKeyBase64)
                 || cache.KeyVersion < 1)
@@ -1685,7 +1701,8 @@ namespace SshTool.Core.Sync
             string successMessage,
             CancellationToken cancellationToken)
         {
-            VaultCacheState cache = _vault.State;
+            // O15：读取 vaultId/revision/keyVersion 等元数据，不克隆文档。
+            VaultCacheState cache = _vault.CloneWithoutDocuments();
             if (string.IsNullOrEmpty(cache.VaultId)
                 || string.IsNullOrEmpty(cache.VaultKeyBase64)
                 || cache.KeyVersion < 1)
@@ -1797,8 +1814,9 @@ namespace SshTool.Core.Sync
             {
                 throw new ArgumentException("revision 不能为空", nameof(revision));
             }
-            VaultCacheState cache = _vault.State;
-            await _api.RestoreRevisionAsync(revision, cache.Revision, _guid(), cancellationToken)
+            // O15：只读 Revision 标量，不克隆文档。
+            string currentRevision = _vault.ReadRevision();
+            await _api.RestoreRevisionAsync(revision, currentRevision, _guid(), cancellationToken)
                 .ConfigureAwait(false);
             Info("历史版本已恢复 revision=" + revision);
             await SyncNowAsync(
@@ -1810,7 +1828,8 @@ namespace SshTool.Core.Sync
         public Task<DeleteRevisionsResponse> ClearRevisionsAsync(
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _api.DeleteRevisionsAsync(_vault.State.Revision, cancellationToken);
+            // O15：只读 Revision 标量，不克隆文档。
+            return _api.DeleteRevisionsAsync(_vault.ReadRevision(), cancellationToken);
         }
 
         // 历史与设备列表透传（U18 直接绑定返回的 DTO；不碰本地状态）。
@@ -1833,8 +1852,8 @@ namespace SshTool.Core.Sync
         // S14 的仓库 Changed 接线调用此方法（Sync 来源与无关实体由调用方过滤）。
         public async Task MarkDirtyAsync()
         {
-            VaultCacheState snapshot = _vault.State;
-            SyncPreferences preferences = snapshot.Preferences;
+            // O15：只读 Preferences，不克隆文档。
+            SyncPreferences preferences = _vault.ReadPreferences();
             if (preferences == null || !preferences.Enabled)
             {
                 return;

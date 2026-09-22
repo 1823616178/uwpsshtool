@@ -450,5 +450,208 @@ namespace SshTool.Core.Tests.Sync.Vault
             Assert.Throws<SshTool.Core.Sync.Api.Dtos.ProtocolParseException>(
                 () => PendingVaultSetup.Parse(json));
         }
+
+        // -------- O15：标量读法（ReadVaultId / ReadVaultKeyBase64 / ReadAutoSync /
+        // ReadRevision / ReadPreferences）—— 不克隆文档，取值应与 State 字段一致。 --------
+
+        [Fact]
+        public void ReadVaultId_InitialState_ReturnsNull()
+        {
+            var store = NewStore(new InMemorySecureFile());
+            Assert.Null(store.ReadVaultId());
+        }
+
+        [Fact]
+        public async Task ReadVaultId_AfterLoad_MatchesState()
+        {
+            var file = new InMemorySecureFile();
+            var store = NewStore(file);
+            await store.LoadAsync();
+            await store.UpdateAsync(s => { s.VaultId = "vault-42"; });
+            Assert.Equal("vault-42", store.ReadVaultId());
+            Assert.Equal(store.State.VaultId, store.ReadVaultId());
+        }
+
+        [Fact]
+        public void ReadVaultKeyBase64_InitialState_ReturnsNull()
+        {
+            var store = NewStore(new InMemorySecureFile());
+            Assert.Null(store.ReadVaultKeyBase64());
+        }
+
+        [Fact]
+        public async Task ReadVaultKeyBase64_AfterSet_MatchesState()
+        {
+            var file = new InMemorySecureFile();
+            var store = NewStore(file);
+            await store.LoadAsync();
+            await store.UpdateAsync(s => { s.VaultKeyBase64 = "c2VjcmV0"; });
+            Assert.Equal("c2VjcmV0", store.ReadVaultKeyBase64());
+            Assert.Equal(store.State.VaultKeyBase64, store.ReadVaultKeyBase64());
+        }
+
+        [Fact]
+        public void ReadAutoSync_InitialState_ReturnsTrue()
+        {
+            // SyncPreferences.Defaults() has AutoSync = true
+            var store = NewStore(new InMemorySecureFile());
+            Assert.True(store.ReadAutoSync());
+        }
+
+        [Fact]
+        public async Task ReadAutoSync_AfterDisable_ReturnsFalse()
+        {
+            var file = new InMemorySecureFile();
+            var store = NewStore(file);
+            await store.LoadAsync();
+            await store.UpdateAsync(s => { s.Preferences.AutoSync = false; });
+            Assert.False(store.ReadAutoSync());
+        }
+
+        [Fact]
+        public void ReadRevision_InitialState_ReturnsZero()
+        {
+            var store = NewStore(new InMemorySecureFile());
+            Assert.Equal("0", store.ReadRevision());
+        }
+
+        [Fact]
+        public async Task ReadRevision_AfterUpdate_MatchesState()
+        {
+            var file = new InMemorySecureFile();
+            var store = NewStore(file);
+            await store.LoadAsync();
+            await store.UpdateAsync(s => { s.Revision = "999"; });
+            Assert.Equal("999", store.ReadRevision());
+            Assert.Equal(store.State.Revision, store.ReadRevision());
+        }
+
+        [Fact]
+        public void ReadPreferences_InitialState_MatchesDefaults()
+        {
+            var store = NewStore(new InMemorySecureFile());
+            var prefs = store.ReadPreferences();
+            Assert.NotNull(prefs);
+            Assert.False(prefs.Enabled);
+            Assert.True(prefs.AutoSync);
+        }
+
+        [Fact]
+        public async Task ReadPreferences_AfterUpdate_ReturnsCloneNotReference()
+        {
+            var file = new InMemorySecureFile();
+            var store = NewStore(file);
+            await store.LoadAsync();
+            await store.UpdateAsync(s => { s.Preferences.Enabled = true; });
+            var prefs = store.ReadPreferences();
+            Assert.True(prefs.Enabled);
+            // 验证是拷贝：修改拿到的副本不影响 store 内部
+            prefs.Enabled = false;
+            Assert.True(store.ReadPreferences().Enabled);
+        }
+
+        [Fact]
+        public void ReadPendingVaultSetup_InitialState_ReturnsNull()
+        {
+            var store = NewStore(new InMemorySecureFile());
+            Assert.Null(store.ReadPendingVaultSetup());
+        }
+
+        [Fact]
+        public async Task ReadPendingVaultSetup_AfterSet_ReturnsCloneNotReference()
+        {
+            var file = new InMemorySecureFile();
+            var store = NewStore(file);
+            await store.LoadAsync();
+            var setup = SamplePendingSetup();
+            await store.UpdateAsync(s => { s.PendingVaultSetup = setup; });
+
+            var read = store.ReadPendingVaultSetup();
+            Assert.NotNull(read);
+            Assert.Equal(setup.IdempotencyKey, read.IdempotencyKey);
+            Assert.Equal(setup.RecoveryKey, read.RecoveryKey);
+
+            // 验证是独立深拷贝：修改读到的对象不影响 store 内部
+            read.RecoveryKey = "MODIFIED";
+            Assert.Equal(setup.RecoveryKey, store.ReadPendingVaultSetup().RecoveryKey);
+        }
+
+        [Fact]
+        public async Task CloneWithoutDocuments_SkipsDocuments_RetainsMetadataAndScalars()
+        {
+            var file = new InMemorySecureFile();
+            var store = NewStore(file);
+            await store.LoadAsync();
+
+            var fullDoc = SampleDocument();
+            var fullConflict = SampleConflict();
+            var fullSetup = SamplePendingSetup();
+
+            await store.UpdateAsync(s =>
+            {
+                s.UserId = "u1";
+                s.VaultId = "v1";
+                s.VaultKeyBase64 = "key1";
+                s.KeyVersion = 2;
+                s.Revision = "42";
+                s.Dirty = true;
+                s.LastSyncedAt = "2026-09-22T00:00:00Z";
+                s.Preferences = new SyncPreferences { Enabled = true, AutoSync = false, SyncPasswords = true, SyncPrivateKeys = true };
+                s.BaseDocument = fullDoc;
+                s.PendingVaultSetup = fullSetup;
+                s.PendingUpload = new PendingUpload
+                {
+                    IdempotencyKey = "idemp",
+                    BaseRevision = "41",
+                    Body = "{}",
+                    Document = fullDoc,
+                    CreatedAt = "2026-09-22T00:00:00Z"
+                };
+                s.Conflict = fullConflict;
+                s.ConflictRemoteDocument = fullDoc;
+                s.ConflictRemoteRevision = "43";
+            });
+
+            // 1. 常规 State：包含所有 3 份文档
+            var fullState = store.State;
+            Assert.NotNull(fullState.BaseDocument);
+            Assert.NotNull(fullState.PendingUpload);
+            Assert.NotNull(fullState.PendingUpload.Document);
+            Assert.NotNull(fullState.ConflictRemoteDocument);
+
+            // 2. CloneWithoutDocuments：所有 3 份文档跳过（为 null），但元数据与标量完整且深拷贝
+            var light = store.CloneWithoutDocuments();
+            Assert.Null(light.BaseDocument);
+            Assert.Null(light.PendingUpload);
+            Assert.Null(light.ConflictRemoteDocument);
+
+            Assert.Equal("u1", light.UserId);
+            Assert.Equal("v1", light.VaultId);
+            Assert.Equal("key1", light.VaultKeyBase64);
+            Assert.Equal(2, light.KeyVersion);
+            Assert.Equal("42", light.Revision);
+            Assert.True(light.Dirty);
+            Assert.Equal("2026-09-22T00:00:00Z", light.LastSyncedAt);
+            Assert.Equal("43", light.ConflictRemoteRevision);
+
+            Assert.NotNull(light.Preferences);
+            Assert.True(light.Preferences.Enabled);
+            Assert.False(light.Preferences.AutoSync);
+            Assert.True(light.Preferences.SyncPasswords);
+
+            Assert.NotNull(light.PendingVaultSetup);
+            Assert.Equal(fullSetup.RecoveryKey, light.PendingVaultSetup.RecoveryKey);
+
+            Assert.NotNull(light.Conflict);
+            Assert.Equal(fullConflict.LocalRevision, light.Conflict.LocalRevision);
+
+            // 验证克隆安全性：修改 light 中的可变引用不影响 store
+            light.Preferences.Enabled = false;
+            light.PendingVaultSetup.RecoveryKey = "CHANGED";
+            var fresh = store.CloneWithoutDocuments();
+            Assert.True(fresh.Preferences.Enabled);
+            Assert.Equal(fullSetup.RecoveryKey, fresh.PendingVaultSetup.RecoveryKey);
+        }
     }
 }
+

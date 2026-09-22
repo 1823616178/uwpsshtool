@@ -47,6 +47,8 @@ namespace SshTool.Core.Sync.Vault
         }
 
         // 当前快照（拷贝）。尚未 LoadAsync 时返回初始状态。
+        // 注意：Clone() 深拷贝三份完整文档（BaseDocument / PendingUpload.Document /
+        // ConflictRemoteDocument），高频调用开销较大。只需要标量时改用下方专用读法。
         public VaultCacheState State
         {
             get
@@ -57,6 +59,86 @@ namespace SshTool.Core.Sync.Vault
                 }
             }
         }
+
+        // O15：只读标量（VaultId / VaultKeyBase64 / AutoSync / Revision），不克隆文档。
+        // 所有方法在 lock 内完成，线程安全，适合只需要一两个字段的场景。
+
+        /// <summary>返回 VaultId 字符串（null 表示无保险库）。</summary>
+        public string ReadVaultId()
+        {
+            lock (_mutex)
+            {
+                return _state.VaultId;
+            }
+        }
+
+        /// <summary>返回 VaultKeyBase64（null 表示未解锁）。</summary>
+        public string ReadVaultKeyBase64()
+        {
+            lock (_mutex)
+            {
+                return _state.VaultKeyBase64;
+            }
+        }
+
+        /// <summary>返回当前 AutoSync 设置（preferences 为 null 时返回 false）。</summary>
+        public bool ReadAutoSync()
+        {
+            lock (_mutex)
+            {
+                return _state.Preferences != null && _state.Preferences.AutoSync;
+            }
+        }
+
+        /// <summary>返回当前 Revision 字符串。</summary>
+        public string ReadRevision()
+        {
+            lock (_mutex)
+            {
+                return _state.Revision;
+            }
+        }
+
+        /// <summary>
+        /// 返回 Preferences 的浅拷贝（不含文档，线程安全）。
+        /// Preferences 本身不含同步文档，Clone() 代价极低。
+        /// </summary>
+        public SyncPreferences ReadPreferences()
+        {
+            lock (_mutex)
+            {
+                return _state.Preferences == null
+                    ? SyncPreferences.Defaults()
+                    : _state.Preferences.Clone();
+            }
+        }
+
+        /// <summary>
+        /// 返回 PendingVaultSetup 的深拷贝（不含同步文档，线程安全）。
+        /// </summary>
+        public PendingVaultSetup ReadPendingVaultSetup()
+        {
+            lock (_mutex)
+            {
+                return _state.PendingVaultSetup == null
+                    ? null
+                    : _state.PendingVaultSetup.Clone();
+            }
+        }
+
+        /// <summary>
+        /// 快照读取（跳过 3 份文档树深拷贝）。
+        /// 保留除 BaseDocument / PendingUpload / ConflictRemoteDocument 之外的所有字段。
+        /// </summary>
+        public VaultCacheState CloneWithoutDocuments()
+        {
+            lock (_mutex)
+            {
+                return _state.CloneWithoutDocuments();
+            }
+        }
+
+
 
         public async Task<VaultCacheState> LoadAsync()
         {
