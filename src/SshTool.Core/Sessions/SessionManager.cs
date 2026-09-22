@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -1278,18 +1278,11 @@ namespace SshTool.Core.Sessions
             return null;
         }
 
-        private async Task<KnownHost> FindKnownAsync(string hostName, int port)
+        // O08：改走仓库的 (host, port) 索引。原先是线性扫，而跳板链每跳扫一次、
+        // 落盘时再扫一次；语义不变（主机名 OrdinalIgnoreCase、重复取第一个）。
+        private Task<KnownHost> FindKnownAsync(string hostName, int port)
         {
-            IReadOnlyList<KnownHost> all = await _knownHosts.GetAllAsync().ConfigureAwait(false);
-            for (int i = 0; i < all.Count; i++)
-            {
-                if (string.Equals(all[i].Host, hostName, StringComparison.OrdinalIgnoreCase)
-                    && all[i].Port == port)
-                {
-                    return all[i];
-                }
-            }
-            return null;
+            return _knownHosts.FindAsync(hostName, port);
         }
 
         private static HostListStatus ToStatus(SessionUiState state)

@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 6 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 15 | 7 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **114** | |
+| M9 | 优化与债务清理 | 15 | 8 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **127** | **115** | |
 
 ### 1.1 关键路径
 
@@ -1420,7 +1420,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] Sync 全部单测通过；`pwsh scripts/verify.ps1 -Quick -Interop` 全绿
   - 验证：`pwsh scripts/verify.ps1 -Quick -Interop`
 
-- [ ] **O08 `Repository<T>` id 索引** `S`
+- [x] **O08 `Repository<T>` id 索引** `S`
   - 依赖：—
   - 参考：`06-OPT-AUDIT.md §3 P1-8`
   - 产出：`src/SshTool.Core/Storage/Repository.cs`、`Storage/Repositories/KnownHostRepository.cs`、`Sessions/SessionManager.cs`
@@ -1429,8 +1429,10 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. `KnownHostRepository` 另加 `(host,port)` 索引，让 `SessionManager.FindKnownAsync` 与跳板链每跳的查找降为 O(1)。
     3. 纯内存结构，不动持久化格式与 `IEntityCodec`。
   - 验收：
-    - [ ] 现有仓库单测全过；新增「增删改后按 id 查仍正确」的回归
-    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [x] 现有仓库单测全过；新增 7 条回归：索引跨 Add/AddMany/Update/Remove/ReplaceAll 全程正确、
+      冷加载后可查、null/空 id 返回默认、重复 id 仍取第一个；`KnownHostRepository.FindAsync` 的
+      大小写不敏感/端口精确匹配、写入后索引失效重建、端口与主机名拼键无歧义
+    - [x] `pwsh scripts/verify.ps1` 全绿（8 步，Core 1449）
   - 验证：`dotnet test tests/SshTool.Core.Tests`
 
 - [ ] **O09 Native 终端热路径去重复解析** `M`

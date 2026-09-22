@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SshTool.Core.Models;
 using SshTool.Core.Storage;
+using SshTool.Core.Storage.Repositories;
 using SshTool.Core.Storage.Codecs;
 using Xunit;
 
@@ -211,6 +212,142 @@ namespace SshTool.Core.Tests.Storage
 
             Assert.Empty(await repo.GetAllAsync());
             Assert.NotEmpty(repo.LoadWarnings);
+        }
+
+        // ---------- O08：id 索引与列表不得脱节 ----------
+
+        // 每种「整体替换 _items」的写操作之后，按 id 查都必须仍然正确。
+        [Fact]
+        public async Task GetById_StaysCorrect_AcrossEveryMutation()
+        {
+            var fs = new InMemoryFileSystem();
+            var repo = new HostRepo(fs);
+
+            await repo.AddAsync(NewHost("a"));
+            await repo.AddManyAsync(new List<Host> { NewHost("b"), NewHost("c") });
+            Assert.Equal("主机 a", (await repo.GetByIdAsync("a")).Name);
+            Assert.Equal("主机 c", (await repo.GetByIdAsync("c")).Name);
+
+            Host updated = NewHost("b");
+            updated.Name = "改名后的 b";
+            await repo.UpdateAsync(updated);
+            Assert.Equal("改名后的 b", (await repo.GetByIdAsync("b")).Name);
+
+            // 删中间一个：后面元素下标整体前移，索引必须跟着重建
+            await repo.RemoveAsync("a");
+            Assert.Null(await repo.GetByIdAsync("a"));
+            Assert.Equal("改名后的 b", (await repo.GetByIdAsync("b")).Name);
+            Assert.Equal("主机 c", (await repo.GetByIdAsync("c")).Name);
+
+            await repo.ReplaceAllAsync(new List<Host> { NewHost("x"), NewHost("y") }, ChangeOrigin.Sync);
+            Assert.Null(await repo.GetByIdAsync("b"));
+            Assert.Null(await repo.GetByIdAsync("c"));
+            Assert.Equal("主机 x", (await repo.GetByIdAsync("x")).Name);
+            Assert.Equal("主机 y", (await repo.GetByIdAsync("y")).Name);
+        }
+
+        // 冷加载（索引在 EnsureLoadedCore 里建）后按 id 查。
+        [Fact]
+        public async Task GetById_WorksAfterColdLoad()
+        {
+            var fs = new InMemoryFileSystem();
+            var seed = new HostRepo(fs);
+            await seed.AddManyAsync(new List<Host> { NewHost("a"), NewHost("b") });
+
+            var reopened = new HostRepo(fs);
+            Assert.Equal("主机 b", (await reopened.GetByIdAsync("b")).Name);
+            Assert.Null(await reopened.GetByIdAsync("zzz"));
+        }
+
+        [Fact]
+        public async Task GetById_NullOrEmpty_ReturnsDefault()
+        {
+            var repo = new HostRepo(new InMemoryFileSystem());
+            await repo.AddAsync(NewHost("a"));
+
+            Assert.Null(await repo.GetByIdAsync(null));
+            Assert.Null(await repo.GetByIdAsync(string.Empty));
+        }
+
+        // 重复 id 仍按「第一个命中」返回（与索引化之前的线性扫一致）。
+        [Fact]
+        public async Task GetById_DuplicateIds_ReturnsFirst()
+        {
+            var fs = new InMemoryFileSystem();
+            Host first = NewHost("dup");
+            first.Name = "第一个";
+            Host second = NewHost("dup");
+            second.Name = "第二个";
+            var repo = new HostRepo(fs);
+            // ReplaceAllAsync 不做重复校验（同步下行整份替换），可构造出重复 id
+            await repo.ReplaceAllAsync(new List<Host> { first, second }, ChangeOrigin.Sync);
+
+            Assert.Equal("第一个", (await repo.GetByIdAsync("dup")).Name);
+        }
+    }
+
+    // O08：known_hosts 的 (host, port) 索引。
+    public class KnownHostRepositoryLookupTests
+    {
+        private static KnownHost NewEntry(string host, int port, string fingerprint)
+        {
+            return new KnownHost
+            {
+                Id = host + ":" + port,
+                Host = host,
+                Port = port,
+                KeyType = "ssh-ed25519",
+                FingerprintSha256 = fingerprint,
+                AddedAt = "2026-01-01T00:00:00.000Z"
+            };
+        }
+
+        [Fact]
+        public async Task FindAsync_MatchesHostCaseInsensitively_AndPortExactly()
+        {
+            var repo = new KnownHostRepository(new InMemoryFileSystem());
+            await repo.AddManyAsync(new List<KnownHost>
+            {
+                NewEntry("example.com", 22, "fp-22"),
+                NewEntry("example.com", 2222, "fp-2222")
+            });
+
+            Assert.Equal("fp-22", (await repo.FindAsync("example.com", 22)).FingerprintSha256);
+            Assert.Equal("fp-22", (await repo.FindAsync("EXAMPLE.COM", 22)).FingerprintSha256);
+            Assert.Equal("fp-2222", (await repo.FindAsync("example.com", 2222)).FingerprintSha256);
+            Assert.Null(await repo.FindAsync("example.com", 22000));
+            Assert.Null(await repo.FindAsync("other.com", 22));
+            Assert.Null(await repo.FindAsync(null, 22));
+        }
+
+        // 索引是懒建 + Changed 失效：写入之后必须看得到新条目、看不到已删的。
+        [Fact]
+        public async Task FindAsync_ReflectsWritesAfterIndexBuilt()
+        {
+            var repo = new KnownHostRepository(new InMemoryFileSystem());
+            await repo.AddAsync(NewEntry("a.com", 22, "fp-a"));
+            Assert.Equal("fp-a", (await repo.FindAsync("a.com", 22)).FingerprintSha256); // 建索引
+
+            await repo.AddAsync(NewEntry("b.com", 22, "fp-b"));
+            Assert.Equal("fp-b", (await repo.FindAsync("b.com", 22)).FingerprintSha256);
+
+            await repo.RemoveAsync("a.com:22");
+            Assert.Null(await repo.FindAsync("a.com", 22));
+        }
+
+        // 端口拼键不能产生歧义："2/2.com" 与 "22/.com" 之类不得互相命中。
+        [Fact]
+        public async Task FindAsync_PortAndHostDoNotBleedIntoEachOther()
+        {
+            var repo = new KnownHostRepository(new InMemoryFileSystem());
+            await repo.AddManyAsync(new List<KnownHost>
+            {
+                NewEntry("2.com", 2, "fp-x"),
+                NewEntry(".com", 22, "fp-y")
+            });
+
+            Assert.Equal("fp-x", (await repo.FindAsync("2.com", 2)).FingerprintSha256);
+            Assert.Equal("fp-y", (await repo.FindAsync(".com", 22)).FingerprintSha256);
         }
     }
 }

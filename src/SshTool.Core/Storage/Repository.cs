@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +13,10 @@ namespace SshTool.Core.Storage
         private readonly JsonStore<T> _store;
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(1, 1);
         private List<T> _items;
+        // O08：id → _items 下标。GetByIdAsync 原本是 O(n) 线性扫，而它就落在
+        // 每次连接（SessionManager.StartOpenAsync）、每次重连、每次密钥认证的路上。
+        // _items 每次整体替换时同步重建（见 SetItems）。
+        private Dictionary<string, int> _index = new Dictionary<string, int>(StringComparer.Ordinal);
         private bool _loaded;
 
         public Repository(JsonStore<T> store)
@@ -76,7 +80,7 @@ namespace SshTool.Core.Storage
                 var next = new List<T>(_items);
                 next.Add(item);
                 await _store.SaveAsync(next).ConfigureAwait(false);
-                _items = next;
+                SetItems(next);
                 changedIds = new List<string> { id };
             }
             finally
@@ -118,7 +122,7 @@ namespace SshTool.Core.Storage
                     return;
                 }
                 await _store.SaveAsync(next).ConfigureAwait(false);
-                _items = next;
+                SetItems(next);
                 changedIds = new List<string>(batchIds);
             }
             finally
@@ -170,7 +174,7 @@ namespace SshTool.Core.Storage
                     return false;
                 }
                 await _store.SaveAsync(next).ConfigureAwait(false);
-                _items = next;
+                SetItems(next);
                 changedIds = replaced;
             }
             finally
@@ -212,7 +216,7 @@ namespace SshTool.Core.Storage
                     return false;
                 }
                 await _store.SaveAsync(next).ConfigureAwait(false);
-                _items = next;
+                SetItems(next);
                 changedIds = removed;
             }
             finally
@@ -233,7 +237,7 @@ namespace SshTool.Core.Storage
                 await EnsureLoadedCoreAsync().ConfigureAwait(false);
                 var next = new List<T>(items);
                 await _store.SaveAsync(next).ConfigureAwait(false);
-                _items = next;
+                SetItems(next);
                 changedIds = new List<string>(next.Count);
                 foreach (var item in next)
                 {
@@ -270,20 +274,36 @@ namespace SshTool.Core.Storage
             {
                 return;
             }
-            _items = new List<T>(await _store.LoadAsync().ConfigureAwait(false));
+            SetItems(new List<T>(await _store.LoadAsync().ConfigureAwait(false)));
             _loaded = true;
+        }
+
+        // O08：替换 _items 的唯一入口，保证索引不与列表脱节。
+        // 重复 id（存储文件被写坏）沿用旧的「第一个命中」语义：字典只记首次出现，
+        // 不用 Add 以免在损坏数据上抛异常。
+        private void SetItems(List<T> next)
+        {
+            var index = new Dictionary<string, int>(next.Count, StringComparer.Ordinal);
+            for (int i = 0; i < next.Count; i++)
+            {
+                string id = IdOf(next[i]);
+                if (!string.IsNullOrEmpty(id) && !index.ContainsKey(id))
+                {
+                    index[id] = i;
+                }
+            }
+            _items = next;
+            _index = index;
         }
 
         private int FindIndex(string id)
         {
-            for (int i = 0; i < _items.Count; i++)
+            if (string.IsNullOrEmpty(id))
             {
-                if (string.Equals(IdOf(_items[i]), id, StringComparison.Ordinal))
-                {
-                    return i;
-                }
+                return -1;
             }
-            return -1;
+            int found;
+            return _index.TryGetValue(id, out found) ? found : -1;
         }
 
         private string IdOf(T item)
