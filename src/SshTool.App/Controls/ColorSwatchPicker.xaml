@@ -31,13 +31,13 @@
                 <Border x:Name="OldSwatch" Height="{StaticResource SpaceXl}"
                         BorderBrush="{ThemeResource AppBorderBrush}"
                         BorderThickness="{StaticResource BorderThin}" />
-                <TextBlock Text="旧" Style="{StaticResource CaptionTextStyle}" />
+                <TextBlock x:Uid="ColorSwatchPicker_TextBlock2" Style="{StaticResource CaptionTextStyle}" />
             </StackPanel>
             <StackPanel Grid.Column="1" Margin="{StaticResource GapSmLeft}">
                 <Border x:Name="NewSwatch" Height="{StaticResource SpaceXl}"
                         BorderBrush="{ThemeResource AppBorderBrush}"
                         BorderThickness="{StaticResource BorderThin}" />
-                <TextBlock Text="新" Style="{StaticResource CaptionTextStyle}" />
+                <TextBlock x:Uid="ColorSwatchPicker_TextBlock1" Style="{StaticResource CaptionTextStyle}" />
             </StackPanel>
         </Grid>
     </StackPanel>

@@ -18,21 +18,21 @@
                      Danger、其余（取消/编辑主机）Secondary；三档样式均含 MinHeight=TouchTargetMin。 -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
                             Margin="{StaticResource GapSmTop}">
-                    <Button x:Name="CancelButton" Content="取消" Click="OnCancel"
+                    <Button x:Uid="SessionOverlay_CancelButton" x:Name="CancelButton" Click="OnCancel"
                             Style="{StaticResource SecondaryButtonStyle}" Visibility="Collapsed" />
-                    <Button x:Name="ReconnectNowButton" Content="立即重连" Click="OnReconnectNow"
+                    <Button x:Uid="SessionOverlay_ReconnectNowButton" x:Name="ReconnectNowButton" Click="OnReconnectNow"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
-                    <Button x:Name="StopButton" Content="停止" Click="OnStop"
+                    <Button x:Uid="SessionOverlay_StopButton" x:Name="StopButton" Click="OnStop"
                             Style="{StaticResource DangerButtonStyle}"
                             Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
-                    <Button x:Name="RetryButton" Content="重试" Click="OnRetry"
+                    <Button x:Uid="SessionOverlay_RetryButton" x:Name="RetryButton" Click="OnRetry"
                             Style="{StaticResource PrimaryButtonStyle}"
                             Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
-                    <Button x:Name="EditButton" Content="编辑主机" Click="OnEdit"
+                    <Button x:Uid="SessionOverlay_EditButton" x:Name="EditButton" Click="OnEdit"
                             Style="{StaticResource SecondaryButtonStyle}"
                             Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
-                    <Button x:Name="CloseButton" Content="关闭" Click="OnClose"
+                    <Button x:Uid="SessionOverlay_CloseButton" x:Name="CloseButton" Click="OnClose"
                             Style="{StaticResource DangerButtonStyle}"
                             Visibility="Collapsed" Margin="{StaticResource GapSmLeft}" />
                 </StackPanel>

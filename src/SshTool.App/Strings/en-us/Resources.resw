@@ -902,4 +902,64 @@
   <data name="TunnelEdit_UnsavedChanges_Message" xml:space="preserve"><value>Unsaved changes will be lost.</value></data>
   <data name="TunnelEdit_Discard" xml:space="preserve"><value>Discard</value></data>
   <data name="TunnelEdit_DeleteConfirmMessage" xml:space="preserve"><value>Are you sure you want to delete this tunnel? This action cannot be undone.</value></data>
+
+  <!-- O13 批次 1：Controls / Dialogs / Terminal -->
+  <data name="ColorSwatchPicker_TextBlock2.Text" xml:space="preserve"><value>Old</value></data>
+  <data name="ColorSwatchPicker_TextBlock1.Text" xml:space="preserve"><value>New</value></data>
+  <data name="SessionOverlay_CancelButton.Content" xml:space="preserve"><value>Cancel</value></data>
+  <data name="SessionOverlay_ReconnectNowButton.Content" xml:space="preserve"><value>Reconnect now</value></data>
+  <data name="SessionOverlay_StopButton.Content" xml:space="preserve"><value>Stop</value></data>
+  <data name="SessionOverlay_RetryButton.Content" xml:space="preserve"><value>Retry</value></data>
+  <data name="SessionOverlay_EditButton.Content" xml:space="preserve"><value>Edit host</value></data>
+  <data name="SessionOverlay_CloseButton.Content" xml:space="preserve"><value>Close</value></data>
+  <data name="SessionsPane_Button1.Content" xml:space="preserve"><value>New session</value></data>
+  <data name="SnippetPickerFlyout_SearchBox.PlaceholderText" xml:space="preserve"><value>Search snippets</value></data>
+  <data name="SnippetPickerFlyout_Empty.Title" xml:space="preserve"><value>No snippets</value></data>
+  <data name="SnippetPickerFlyout_Empty.Description" xml:space="preserve"><value>Add your common commands on the Snippets page first.</value></data>
+  <data name="AgentUnlockDialog_ContentDialog1.Title" xml:space="preserve"><value>Choose a key to unlock</value></data>
+  <data name="AgentUnlockDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>Unlock</value></data>
+  <data name="AgentUnlockDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="CredentialDialog_ContentDialog1.Title" xml:space="preserve"><value>Authentication</value></data>
+  <data name="CredentialDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>Connect</value></data>
+  <data name="CredentialDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="CredentialDialog_RememberBox.Content" xml:space="preserve"><value>Save on this device</value></data>
+  <data name="HostKeyDialog_ContentDialog1.Title" xml:space="preserve"><value>Confirm host key</value></data>
+  <data name="HostKeyDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>Trust and connect</value></data>
+  <data name="HostKeyDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="HostKeyMismatchDialog_ContentDialog4.Title" xml:space="preserve"><value>Host key has changed</value></data>
+  <data name="HostKeyMismatchDialog_ContentDialog4.PrimaryButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="HostKeyMismatchDialog_ContentDialog4.SecondaryButtonText" xml:space="preserve"><value>Remove the old record and retry…</value></data>
+  <data name="HostKeyMismatchDialog_TextBlock3.Text" xml:space="preserve"><value>The host key has changed. This may indicate a man-in-the-middle attack.</value></data>
+  <data name="HostKeyMismatchDialog_TextBlock2.Text" xml:space="preserve"><value>Recorded fingerprint</value></data>
+  <data name="HostKeyMismatchDialog_TextBlock1.Text" xml:space="preserve"><value>Current fingerprint</value></data>
+  <data name="KbdInteractiveDialog_ContentDialog1.Title" xml:space="preserve"><value>Keyboard-interactive authentication</value></data>
+  <data name="KbdInteractiveDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>Submit</value></data>
+  <data name="KbdInteractiveDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="KeyGenerateDialog_ContentDialog1.Title" xml:space="preserve"><value>Generate key</value></data>
+  <data name="KeyGenerateDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>Generate</value></data>
+  <data name="KeyGenerateDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="KeyGenerateDialog_TypeBox.Header" xml:space="preserve"><value>Type</value></data>
+  <data name="KeyGenerateDialog_NameBox.Header" xml:space="preserve"><value>Name</value></data>
+  <data name="KeyGenerateDialog_CommentBox.Header" xml:space="preserve"><value>Comment</value></data>
+  <data name="KeyImportDialog_ContentDialog1.Title" xml:space="preserve"><value>Import key</value></data>
+  <data name="KeyImportDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>Continue</value></data>
+  <data name="KeyImportDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="KeyImportDialog_PickFileButton.Content" xml:space="preserve"><value>Import from file…</value></data>
+  <data name="KeyImportDialog_PassphraseBox.Header" xml:space="preserve"><value>Passphrase</value></data>
+  <data name="KeyImportDialog_RememberBox.Content" xml:space="preserve"><value>Remember passphrase</value></data>
+  <data name="KeyImportDialog_NameBox.Header" xml:space="preserve"><value>Name</value></data>
+  <data name="PassphraseDialog_ContentDialog1.Title" xml:space="preserve"><value>Private key passphrase</value></data>
+  <data name="PassphraseDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>Unlock</value></data>
+  <data name="PassphraseDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="PassphraseDialog_RememberSwitch.Header" xml:space="preserve"><value>Save on this device</value></data>
+  <data name="PasteConfirmDialog_DontAskBox.Content" xml:space="preserve"><value>Do not ask again</value></data>
+  <data name="PermissionsDialog_OctalBox.Header" xml:space="preserve"><value>Octal</value></data>
+  <data name="RenameDialog_NameBox.Header" xml:space="preserve"><value>Name</value></data>
+  <data name="ThemeSchemePickerDialog_ContentDialog1.Title" xml:space="preserve"><value>Choose a colour scheme to import</value></data>
+  <data name="ThemeSchemePickerDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>Import selected</value></data>
+  <data name="ThemeSchemePickerDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="SelectionLayer_CopyButton.Content" xml:space="preserve"><value>Copy</value></data>
+  <data name="SelectionLayer_PasteButton.Content" xml:space="preserve"><value>Paste</value></data>
+  <data name="SelectionLayer_SelectAllButton.Content" xml:space="preserve"><value>Select all</value></data>
+  <data name="SelectionLayer_ShareButton.Content" xml:space="preserve"><value>Share</value></data>
 </root>

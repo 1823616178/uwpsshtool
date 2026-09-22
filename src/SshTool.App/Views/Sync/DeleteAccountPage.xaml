@@ -61,10 +61,10 @@
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                 <ProgressRing Width="{StaticResource SpaceXl}" Height="{StaticResource SpaceXl}"
                               IsActive="True" />
-                <TextBlock Style="{StaticResource BodyTextStyle}"
+                <TextBlock x:Uid="DeleteAccountPage_TextBlock1" Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource GapSmTop}"
                            TextAlignment="Center"
-                           Text="正在注销账号…" />
+ />
             </StackPanel>
         </Grid>
     </Grid>

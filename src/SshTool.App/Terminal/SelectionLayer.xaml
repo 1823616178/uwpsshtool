@@ -19,15 +19,15 @@
                 Padding="{StaticResource PadMd}"
                 Margin="{StaticResource GapSmTop}">
             <StackPanel Orientation="Horizontal">
-                <Button x:Name="CopyButton" Content="复制" Click="OnCopyClick"
+                <Button x:Uid="SelectionLayer_CopyButton" x:Name="CopyButton" Click="OnCopyClick"
                         AllowFocusOnInteraction="False" IsTabStop="False" />
-                <Button x:Name="PasteButton" Content="粘贴" Click="OnPasteClick"
+                <Button x:Uid="SelectionLayer_PasteButton" x:Name="PasteButton" Click="OnPasteClick"
                         AllowFocusOnInteraction="False" IsTabStop="False"
                         Margin="{StaticResource GapSmLeft}" />
-                <Button x:Name="SelectAllButton" Content="全选" Click="OnSelectAllClick"
+                <Button x:Uid="SelectionLayer_SelectAllButton" x:Name="SelectAllButton" Click="OnSelectAllClick"
                         AllowFocusOnInteraction="False" IsTabStop="False"
                         Margin="{StaticResource GapSmLeft}" />
-                <Button x:Name="ShareButton" Content="分享" Click="OnShareClick"
+                <Button x:Uid="SelectionLayer_ShareButton" x:Name="ShareButton" Click="OnShareClick"
                         AllowFocusOnInteraction="False" IsTabStop="False"
                         Margin="{StaticResource GapSmLeft}" />
                 <!-- V01a：✕ 换 MDL2 IconClose 字形（与 TabStrip/SessionsPivot 一致），补无障碍名（resw）。 -->

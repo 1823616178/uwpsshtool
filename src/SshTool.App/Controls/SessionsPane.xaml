@@ -9,7 +9,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <!-- UI 走查：侧栏「新会话」为次级入口（主新建在 CommandBar），补触控与层级样式。 -->
-        <Button Content="新会话" Click="OnNew"
+        <Button x:Uid="SessionsPane_Button1" Click="OnNew"
                 Style="{StaticResource SecondaryButtonStyle}"
                 MinHeight="{StaticResource TouchTargetMin}"
                 Margin="{StaticResource PagePadding}" />

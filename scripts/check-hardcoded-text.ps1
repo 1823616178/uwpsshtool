@@ -1,4 +1,4 @@
-# Q04 / O12：扫描用户可见的硬编码文案。
+﻿# Q04 / O12：扫描用户可见的硬编码文案。
 #
 # O12 之前这把尺子是坏的：它把「含中文的行」整行豁免（$chinesePattern 命中即
 # continue），于是这个为「中文字面量必须资源化」而建的检查，恰好检不出中文字
@@ -50,31 +50,45 @@ function Add-Hit([string]$rel, [int]$lineNo, [string]$line, [string]$why) {
     })
 }
 
+# XAML 按**标签**扫，不按行：x:Uid 常写在标签首行、文案属性在后续行，
+# 按行判断会把已本地化的元素整片误报（O13 批次 1 之后发现）。
+$tagRe = [regex]'(?s)<[A-Za-z_][\w:.]*(?:\s+[\w:.]+\s*=\s*"[^"]*")*\s*/?>'
+
 Get-ChildItem $appDir -Recurse -Include *.xaml, *.cs |
     Where-Object { $_.FullName -notmatch $exemptPath } |
     ForEach-Object {
         $file = $_
         $rel = $file.FullName.Substring($RepoRoot.Length + 1)
-        $isXaml = $file.Extension -eq '.xaml'
-        $lineNo = 0
-        foreach ($line in (Get-Content $file.FullName)) {
-            $lineNo++
-            if ($isXaml) {
-                if ($line -match 'x:Uid' -or $line -match $markup) { continue }
+        $text = Get-Content $file.FullName -Raw
+        if (-not $text) { return }
+
+        if ($file.Extension -eq '.xaml') {
+            foreach ($tag in $tagRe.Matches($text)) {
+                $t = $tag.Value
+                # 已有 x:Uid = 已本地化：resw 在运行时覆盖属性值，XAML 里的中文
+                # 只是设计时兜底，不算硬编码。
+                if ($t -match 'x:Uid\s*=') { continue }
+                $lineNo = ($text.Substring(0, $tag.Index) -split "`n").Count
                 foreach ($a in $xamlAttrs) {
-                    if ($line -match ("{0}=`"([^`"]*)`"" -f $a)) {
-                        $value = $Matches[1]
+                    foreach ($m in [regex]::Matches($t, ("(?<![\w:.]){0}=`"([^`"]*)`"" -f $a))) {
+                        $value = $m.Groups[1].Value
+                        if ($value -match $markup) { continue }
                         if ($value -match $chinese) {
-                            Add-Hit $rel $lineNo $line "XAML $a 中文字面量"
+                            Add-Hit $rel $lineNo ("{0}=`"{1}`"" -f $a, $value) "XAML $a 中文字面量"
                         }
-                        elseif ($value -match '\S' -and $value -notmatch '^\{') {
-                            Add-Hit $rel $lineNo $line "XAML $a 疑似硬编码"
+                        # 非中文字面量只在「像一句文案」时才算：至少两个字符且含
+                        # 字母。像 Text="/"、"…"、":" 这类符号是排版而非文案。
+                        elseif ($value.Length -ge 2 -and $value -match '[A-Za-z]') {
+                            Add-Hit $rel $lineNo ("{0}=`"{1}`"" -f $a, $value) "XAML $a 疑似硬编码"
                         }
                     }
                 }
             }
-            else {
-                # 注释行不算
+        }
+        else {
+            $lineNo = 0
+            foreach ($line in ($text -split "`r?`n")) {
+                $lineNo++
                 if ($line -match '^\s*//') { continue }
                 foreach ($t in $csTargets) {
                     if ($line -match ("\.{0}\s*=\s*`"([^`"]*)`"" -f $t)) {

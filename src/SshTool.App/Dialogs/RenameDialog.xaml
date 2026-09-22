@@ -9,7 +9,7 @@
          取消/确定复用 Dialog_Cancel/Dialog_Ok（.cs 设定），此处不硬编码中文；
          名称校验：非空、不含 “/”、不为 “.” 或 “..”。 -->
     <StackPanel>
-        <TextBox x:Name="NameBox" Header="名称" TextChanged="OnNameChanged" />
+        <TextBox x:Uid="RenameDialog_NameBox" x:Name="NameBox" TextChanged="OnNameChanged" />
         <TextBlock x:Name="ErrorText" Style="{StaticResource CaptionTextStyle}"
                    Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
                    Visibility="Collapsed" Margin="{StaticResource GapXsTop}" />

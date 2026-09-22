@@ -51,7 +51,7 @@
             <CheckBox x:Name="OtherExecute" Grid.Row="3" Grid.Column="3" Margin="{StaticResource GapSmLeft}" />
         </Grid>
 
-        <TextBox x:Name="OctalBox" Header="八进制" Margin="{StaticResource GapMdTop}"
+        <TextBox x:Uid="PermissionsDialog_OctalBox" x:Name="OctalBox" Margin="{StaticResource GapMdTop}"
                  TextChanged="OnOctalChanged" MaxLength="4" />
         <TextBlock x:Name="ErrorText" Style="{StaticResource CaptionTextStyle}"
                    Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"

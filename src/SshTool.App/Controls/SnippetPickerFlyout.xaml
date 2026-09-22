@@ -26,7 +26,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <AutoSuggestBox x:Name="SearchBox" PlaceholderText="搜索片段"
+        <AutoSuggestBox x:Uid="SnippetPickerFlyout_SearchBox" x:Name="SearchBox"
                         QueryIcon="Find" TextChanged="OnSearchChanged"
                         Margin="{StaticResource PagePadding}" />
         <Grid Grid.Row="1">
@@ -39,10 +39,10 @@
                     <GroupStyle HidesIfEmpty="False" HeaderTemplate="{StaticResource SnippetGroupHeaderTemplate}" />
                 </ListView.GroupStyle>
             </ListView>
-            <controls:EmptyState x:Name="Empty"
+            <controls:EmptyState x:Uid="SnippetPickerFlyout_Empty" x:Name="Empty"
                                  Glyph="{StaticResource IconSnippet}"
-                                 Title="没有片段"
-                                 Description="先去「片段」页添加常用命令。"
+
+
                                  Visibility="Collapsed" />
         </Grid>
     </Grid>

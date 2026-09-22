@@ -903,4 +903,64 @@
   <data name="TunnelEdit_UnsavedChanges_Message" xml:space="preserve"><value>未保存的修改将丢失。</value></data>
   <data name="TunnelEdit_Discard" xml:space="preserve"><value>放弃</value></data>
   <data name="TunnelEdit_DeleteConfirmMessage" xml:space="preserve"><value>确定要删除该隧道吗？此操作无法撤销。</value></data>
+
+  <!-- O13 批次 1：Controls / Dialogs / Terminal -->
+  <data name="ColorSwatchPicker_TextBlock2.Text" xml:space="preserve"><value>旧</value></data>
+  <data name="ColorSwatchPicker_TextBlock1.Text" xml:space="preserve"><value>新</value></data>
+  <data name="SessionOverlay_CancelButton.Content" xml:space="preserve"><value>取消</value></data>
+  <data name="SessionOverlay_ReconnectNowButton.Content" xml:space="preserve"><value>立即重连</value></data>
+  <data name="SessionOverlay_StopButton.Content" xml:space="preserve"><value>停止</value></data>
+  <data name="SessionOverlay_RetryButton.Content" xml:space="preserve"><value>重试</value></data>
+  <data name="SessionOverlay_EditButton.Content" xml:space="preserve"><value>编辑主机</value></data>
+  <data name="SessionOverlay_CloseButton.Content" xml:space="preserve"><value>关闭</value></data>
+  <data name="SessionsPane_Button1.Content" xml:space="preserve"><value>新会话</value></data>
+  <data name="SnippetPickerFlyout_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索片段</value></data>
+  <data name="SnippetPickerFlyout_Empty.Title" xml:space="preserve"><value>没有片段</value></data>
+  <data name="SnippetPickerFlyout_Empty.Description" xml:space="preserve"><value>先去「片段」页添加常用命令。</value></data>
+  <data name="AgentUnlockDialog_ContentDialog1.Title" xml:space="preserve"><value>选择解锁密钥</value></data>
+  <data name="AgentUnlockDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>解锁</value></data>
+  <data name="AgentUnlockDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="CredentialDialog_ContentDialog1.Title" xml:space="preserve"><value>身份验证</value></data>
+  <data name="CredentialDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>连接</value></data>
+  <data name="CredentialDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="CredentialDialog_RememberBox.Content" xml:space="preserve"><value>保存在本机</value></data>
+  <data name="HostKeyDialog_ContentDialog1.Title" xml:space="preserve"><value>主机密钥确认</value></data>
+  <data name="HostKeyDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>信任并连接</value></data>
+  <data name="HostKeyDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="HostKeyMismatchDialog_ContentDialog4.Title" xml:space="preserve"><value>主机密钥已改变</value></data>
+  <data name="HostKeyMismatchDialog_ContentDialog4.PrimaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="HostKeyMismatchDialog_ContentDialog4.SecondaryButtonText" xml:space="preserve"><value>移除旧记录并重试…</value></data>
+  <data name="HostKeyMismatchDialog_TextBlock3.Text" xml:space="preserve"><value>主机密钥已改变，可能存在中间人攻击。</value></data>
+  <data name="HostKeyMismatchDialog_TextBlock2.Text" xml:space="preserve"><value>已记录指纹</value></data>
+  <data name="HostKeyMismatchDialog_TextBlock1.Text" xml:space="preserve"><value>当前指纹</value></data>
+  <data name="KbdInteractiveDialog_ContentDialog1.Title" xml:space="preserve"><value>键盘交互认证</value></data>
+  <data name="KbdInteractiveDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>提交</value></data>
+  <data name="KbdInteractiveDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="KeyGenerateDialog_ContentDialog1.Title" xml:space="preserve"><value>生成密钥</value></data>
+  <data name="KeyGenerateDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>生成</value></data>
+  <data name="KeyGenerateDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="KeyGenerateDialog_TypeBox.Header" xml:space="preserve"><value>类型</value></data>
+  <data name="KeyGenerateDialog_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="KeyGenerateDialog_CommentBox.Header" xml:space="preserve"><value>注释</value></data>
+  <data name="KeyImportDialog_ContentDialog1.Title" xml:space="preserve"><value>导入密钥</value></data>
+  <data name="KeyImportDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>继续</value></data>
+  <data name="KeyImportDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="KeyImportDialog_PickFileButton.Content" xml:space="preserve"><value>从文件导入…</value></data>
+  <data name="KeyImportDialog_PassphraseBox.Header" xml:space="preserve"><value>短语</value></data>
+  <data name="KeyImportDialog_RememberBox.Content" xml:space="preserve"><value>保存短语</value></data>
+  <data name="KeyImportDialog_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="PassphraseDialog_ContentDialog1.Title" xml:space="preserve"><value>私钥短语</value></data>
+  <data name="PassphraseDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>解锁</value></data>
+  <data name="PassphraseDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="PassphraseDialog_RememberSwitch.Header" xml:space="preserve"><value>保存在本机</value></data>
+  <data name="PasteConfirmDialog_DontAskBox.Content" xml:space="preserve"><value>不再提示</value></data>
+  <data name="PermissionsDialog_OctalBox.Header" xml:space="preserve"><value>八进制</value></data>
+  <data name="RenameDialog_NameBox.Header" xml:space="preserve"><value>名称</value></data>
+  <data name="ThemeSchemePickerDialog_ContentDialog1.Title" xml:space="preserve"><value>选择要导入的配色</value></data>
+  <data name="ThemeSchemePickerDialog_ContentDialog1.PrimaryButtonText" xml:space="preserve"><value>导入所选</value></data>
+  <data name="ThemeSchemePickerDialog_ContentDialog1.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
+  <data name="SelectionLayer_CopyButton.Content" xml:space="preserve"><value>复制</value></data>
+  <data name="SelectionLayer_PasteButton.Content" xml:space="preserve"><value>粘贴</value></data>
+  <data name="SelectionLayer_SelectAllButton.Content" xml:space="preserve"><value>全选</value></data>
+  <data name="SelectionLayer_ShareButton.Content" xml:space="preserve"><value>分享</value></data>
 </root>

@@ -49,10 +49,10 @@
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                 <ProgressRing Width="{StaticResource SpaceXl}" Height="{StaticResource SpaceXl}"
                               IsActive="True" />
-                <TextBlock Style="{StaticResource BodyTextStyle}"
+                <TextBlock x:Uid="DeleteVaultPage_TextBlock1" Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource GapSmTop}"
                            TextAlignment="Center"
-                           Text="正在删除云端保险库…" />
+ />
             </StackPanel>
         </Grid>
     </Grid>
