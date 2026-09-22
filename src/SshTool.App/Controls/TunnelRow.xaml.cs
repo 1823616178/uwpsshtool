@@ -24,6 +24,25 @@ namespace SshTool.App.Controls
             this.Unloaded += OnUnloaded;
         }
 
+        public static readonly DependencyProperty IsCompactProperty = DependencyProperty.Register(
+            nameof(IsCompact), typeof(bool), typeof(TunnelRow),
+            new PropertyMetadata(false, OnIsCompactChanged));
+
+        public bool IsCompact
+        {
+            get { return (bool)GetValue(IsCompactProperty); }
+            set { SetValue(IsCompactProperty, value); }
+        }
+
+        private static void OnIsCompactChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var tunnelRow = (TunnelRow)d;
+            if (tunnelRow.RowCtl != null)
+            {
+                tunnelRow.RowCtl.IsCompact = (bool)e.NewValue;
+            }
+        }
+
         public TunnelItemViewModel ViewModel => _vm;
 
         public event EventHandler EditRequested;
@@ -68,6 +87,7 @@ namespace SshTool.App.Controls
 
             RowCtl.Title = vm.Name;
             RowCtl.Subtitle = vm.Subtitle;
+            RowCtl.IsCompact = IsCompact;
             Dot.State = vm.StatusDotState;
 
             _suppressToggle = true;
@@ -116,7 +136,14 @@ namespace SshTool.App.Controls
 
         private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
         {
-            ShowMenu();
+            try
+            {
+                RowMenu.ShowAt(this, e.GetPosition(this));
+            }
+            catch (Exception)
+            {
+                ShowMenu();
+            }
             _ignoreNextTap = true;
             e.Handled = true;
         }

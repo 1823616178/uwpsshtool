@@ -5,6 +5,7 @@ using Windows.UI.Xaml.Automation;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
+using SshTool.App.Infrastructure;
 
 namespace SshTool.App.Controls
 {
@@ -167,7 +168,7 @@ namespace SshTool.App.Controls
             ChevronIcon.Margin = showChevron ? gapLeft : noPad;
 
             Root.MinHeight = (double)Application.Current.Resources[
-                IsCompact ? "ListRowCompactHeight" : "ListRowHeight"];
+                (IsCompact || InteractionModeHelper.IsMouseMode) ? "ListRowCompactHeight" : "ListRowHeight"];
 
             bool disabled = IsDisabled;
             Root.Opacity = disabled ? (double)Application.Current.Resources["DisabledOpacity"] : 1.0;

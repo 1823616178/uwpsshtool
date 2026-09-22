@@ -382,10 +382,10 @@ namespace SshTool.App.ViewModels
                 case ShortcutAction.PrevTab:
                     return ActivatePrevious();
                 case ShortcutAction.SplitRight:
-                    var ignoreRight = SplitFocusedPaneAsync(SplitOrientation.Column);
+                    SplitFocusedPaneAsync(SplitOrientation.Column).Forget("WorkspaceViewModel.SplitRight", AppLog.Logger);
                     return true;
                 case ShortcutAction.SplitDown:
-                    var ignoreDown = SplitFocusedPaneAsync(SplitOrientation.Row);
+                    SplitFocusedPaneAsync(SplitOrientation.Row).Forget("WorkspaceViewModel.SplitDown", AppLog.Logger);
                     return true;
                 case ShortcutAction.FocusLeft:
                     return MoveFocus(PaneDirection.Left);

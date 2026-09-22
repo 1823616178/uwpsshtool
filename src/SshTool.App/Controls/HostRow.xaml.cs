@@ -18,6 +18,25 @@ namespace SshTool.App.Controls
             this.DataContextChanged += OnDataContextChanged;
         }
 
+        public static readonly DependencyProperty IsCompactProperty = DependencyProperty.Register(
+            nameof(IsCompact), typeof(bool), typeof(HostRow),
+            new PropertyMetadata(false, OnIsCompactChanged));
+
+        public bool IsCompact
+        {
+            get { return (bool)GetValue(IsCompactProperty); }
+            set { SetValue(IsCompactProperty, value); }
+        }
+
+        private static void OnIsCompactChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var hostRow = (HostRow)d;
+            if (hostRow.RowCtl != null)
+            {
+                hostRow.RowCtl.IsCompact = (bool)e.NewValue;
+            }
+        }
+
         public HostListRow Row { get; private set; }
 
         public event EventHandler ConnectRequested;
@@ -42,6 +61,7 @@ namespace SshTool.App.Controls
             }
             RowCtl.Title = row.Name ?? string.Empty;
             RowCtl.Subtitle = row.AddressLine ?? string.Empty;
+            RowCtl.IsCompact = IsCompact;
             Dot.State = ToDot(row.Status);
             KeyBadge.Visibility = row.ShowKey ? Visibility.Visible : Visibility.Collapsed;
             TmuxBadge.Visibility = row.ShowTmux ? Visibility.Visible : Visibility.Collapsed;
@@ -91,7 +111,14 @@ namespace SshTool.App.Controls
 
         private void OnRightTapped(object sender, RightTappedRoutedEventArgs e)
         {
-            ShowMenu();
+            try
+            {
+                RowMenu.ShowAt(this, e.GetPosition(this));
+            }
+            catch (Exception)
+            {
+                ShowMenu();
+            }
             _ignoreNextTap = true;
             e.Handled = true;
         }

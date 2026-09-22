@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using SshTool.App.Controls;
@@ -91,6 +91,11 @@ namespace SshTool.App.Views
             if (ServiceRegistry.TryGet(out keepAwake))
             {
                 keepAwake.SetTerminalVisible(true);
+            }
+            // 02-UI-DESIGN.md §3：鼠标模式/Continuum 键条默认隐藏，可从菜单手动打开。
+            if (InteractionModeHelper.IsMouseMode)
+            {
+                Keys.Visibility = Visibility.Collapsed;
             }
             // R01 (C-02) + R03 (C-05)：加载/绑定共享世代；fire-and-forget 经 Forget 统一观察。
             LoadAndBindAsync(generation, e.Parameter as TerminalArgs).Forget("TerminalPage.LoadAndBind", AppLog.Logger);

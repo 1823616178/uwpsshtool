@@ -744,8 +744,19 @@ namespace SshTool.App.Controls
 
         private bool IsNarrow(double hostWidth)
         {
-            double breakpoint = (double)Application.Current.Resources["WideBreakpoint"];
-            return hostWidth < breakpoint;
+            try
+            {
+                if (Window.Current != null)
+                {
+                    double breakpoint = (double)Application.Current.Resources["WideBreakpoint"];
+                    return Window.Current.Bounds.Width < breakpoint;
+                }
+            }
+            catch (Exception)
+            {
+            }
+            double bp = (double)Application.Current.Resources["WideBreakpoint"];
+            return hostWidth < bp;
         }
 
         private void UpdateEmpty()

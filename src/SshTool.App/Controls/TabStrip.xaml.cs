@@ -176,7 +176,8 @@ namespace SshTool.App.Controls
 
         private void OnTabRightTapped(object sender, RightTappedRoutedEventArgs e)
         {
-            ShowTabMenu(sender as FrameworkElement, TabIdOf(sender));
+            var element = sender as FrameworkElement;
+            ShowTabMenu(element, TabIdOf(sender), element != null ? (Windows.Foundation.Point?)e.GetPosition(element) : null);
             e.Handled = true;
         }
 
@@ -186,13 +187,13 @@ namespace SshTool.App.Controls
             {
                 return;
             }
-            ShowTabMenu(sender as FrameworkElement, TabIdOf(sender));
+            ShowTabMenu(sender as FrameworkElement, TabIdOf(sender), null);
             e.Handled = true;
         }
 
         // §5.7 标签右键：重命名、复制会话、向右分屏、向下分屏、关闭其他（+关闭）。
         // C-06：可见文案走 resw 双语（代码构造，走 ResourceLoader）。
-        private void ShowTabMenu(FrameworkElement anchor, string tabId)
+        private void ShowTabMenu(FrameworkElement anchor, string tabId, Windows.Foundation.Point? point = null)
         {
             if (_viewModel == null || string.IsNullOrEmpty(tabId) || anchor == null)
             {
@@ -217,10 +218,24 @@ namespace SshTool.App.Controls
             flyout.Items.Add(MenuItem(loader.GetString("TabStrip_MenuClose"), () => _viewModel.CloseTab(tabId)));
             try
             {
-                flyout.ShowAt(anchor);
+                if (point.HasValue)
+                {
+                    flyout.ShowAt(anchor, point.Value);
+                }
+                else
+                {
+                    flyout.ShowAt(anchor);
+                }
             }
             catch (Exception)
             {
+                try
+                {
+                    flyout.ShowAt(anchor);
+                }
+                catch (Exception)
+                {
+                }
             }
         }
 

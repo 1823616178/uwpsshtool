@@ -186,9 +186,15 @@ namespace SshTool.App.Views.Main
 
         private void OnNewSessionRequested(object sender, EventArgs e)
         {
+            HostListRow row = RowOf(sender);
+            System.Func<HostListRow, bool> open = WorkspaceOpen;
+            if (open != null && row != null && open(row))
+            {
+                return;
+            }
             if (ViewModel != null)
             {
-                ViewModel.NewSession(RowOf(sender));
+                ViewModel.NewSession(row);
             }
         }
 
