@@ -81,3 +81,12 @@ TEST(DependencySmoke, Argon2idRfc9106Section53)
     };
     EXPECT_EQ(0, std::memcmp(output.data(), expected.data(), output.size()));
 }
+
+TEST(DependencySmoke, SecurityConstantsAndBoundaryDefinitions)
+{
+    // Q11 security patch constants (CVE-2026-55200, CVE-2026-66034, CVE-2026-66035)
+    EXPECT_EQ(40000, LIBSSH2_PACKET_MAXPAYLOAD);
+    EXPECT_EQ(-41, LIBSSH2_ERROR_OUT_OF_BOUNDARY);
+    EXPECT_EQ(-38, LIBSSH2_ERROR_BUFFER_TOO_SMALL);
+}
+

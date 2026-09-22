@@ -9,10 +9,19 @@
 - 抓取：`https://github.com/libssh2/libssh2/releases/download/libssh2-1.11.1/libssh2-1.11.1.tar.gz`
   SHA256 `D9EC76CBE34DB98EEC3539FE2C899D26B0C837CB3EB466A56B0F109CABF658F7`
 
-### 源码补丁
+### 源码补丁（Q11 安全更新）
 
-**零处。** 1.11.1 在 ARM32 UWP（v141 工具集、AppContainer、`/ZW` 工程内）下**未经修改即可编译链接通过**
-（x64 Debug 与 ARM Release 均已实测）。
+补丁文件存放在 `native/patches/libssh2/`，由 `scripts/fetch-third-party.ps1` 在解包后自动应用。
+共应用 5 处安全修复（backport 自上游修复 commits）：
+
+| 编号 | CVE | 影响文件 | 上游 Commit | 危害与修复说明 |
+|---|---|---|---|---|
+| `0001` | **CVE-2026-55200** | `src/transport.c` | `97acf3df` (`7acf3df`) | **CRITICAL**（CVSS 9.2）：`packet_length` 缺乏上限检查导致 32 位整数溢出与堆越界写，认证前可由恶意服务器触发导致 RCE。补齐 `p->packet_length > LIBSSH2_PACKET_MAXPAYLOAD` 越界检查。 |
+| `0002` | **CVE-2026-66032** | `src/sftp.c` | `5e477614` (`5e47761`) | **HIGH**：`sftp_open()` 中 `FXP_STATUS` 分支释放 `data` 后未清空指针，错误路径触发双重释放（dangling pointer）。释放后显式置 `data = NULL`。 |
+| `0003` | **CVE-2026-66033** | `src/openssl.c` | `a2ed82d4` (`a2ed82d`) | **HIGH**：`ssh2_cipher_crypt()` AES-GCM 路径在握手期计算明文长度时整数下溢导致 OOB 读/写崩溃。增加 `blocksize < aadlen + authenticationtag` 边界拦截，`cryptlen` 改无符号。 |
+| `0004` | **CVE-2026-66034** | `src/publickey.c` | `a13bb6c7` (`a13bb6c`) | **HIGH**：`libssh2_publickey_list_fetch()` 遍历公钥列表时对 `comment_len` 缺乏数据包边界检查，可致越界读。增加 `pkey->listFetch_s + comment_len > end` 校验。 |
+| `0005` | **CVE-2026-66035** | `src/transport.c` | `42e33d81` (`42e33d8`) | **HIGH**：`transport_fullpacket()` 在 ETM 解密路径计算 `decrypt_size` 时无下限保护，畸形包长导致整数下溢与堆缓冲区溢出。增加 `p->total_num < mac_len + 4 + blocksize` 前置拦截。 |
+
 
 ### 不用改的原因（逐条结论）
 

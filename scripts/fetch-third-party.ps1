@@ -94,6 +94,16 @@ foreach ($p in $Packages) {
         Remove-Item $staging -Recurse -Force -ErrorAction SilentlyContinue
     }
 
+    $patchDir = Join-Path $RepoRoot "native\patches\$($p.Name)"
+    if (Test-Path $patchDir) {
+        $patches = Get-ChildItem (Join-Path $patchDir '*.patch') | Sort-Object Name
+        foreach ($patch in $patches) {
+            Write-Host "  应用补丁: $($patch.Name)"
+            & git apply --directory="native/third_party/$($p.Name)" $patch.FullName
+            if ($LASTEXITCODE -ne 0) { throw "应用补丁 $($patch.Name) 失败（退出码 $LASTEXITCODE）" }
+        }
+    }
+
     $files = (Get-ChildItem $dest -Recurse -File).Count
     Write-Host ("  {0} {1} → {2}（{3} 个文件）" -f $p.Name, $p.Version, $dest, $files)
 }
