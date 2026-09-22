@@ -45,9 +45,9 @@
 | M5 | 云端同步 | 22 | 22 | 与桌面端同账号双向同步、冲突可解 |
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
-| M8 | 打磨与发布 | 11 | 8 | 性能/安全报告、可侧载安装包 v1.0.0 |
+| M8 | 打磨与发布 | 11 | 9 | 性能/安全报告、可侧载安装包 v1.0.0 |
 | M9 | 优化与债务清理 | 15 | 15 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **124** | |
+| **合计** | | **127** | **125** | |
 
 ### 1.1 关键路径
 
@@ -1231,7 +1231,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] 📱 开始屏幕各磁贴尺寸与应用列表图标清晰
   - 验证：真机
 
-- [ ] **Q08 Continuum 体验打磨** `S` 📱
+- [x] **Q08 Continuum 体验打磨** `S` 📱
   - 依赖：U12
   - 参考：`02-UI-DESIGN.md §3、§5.7`
   - 产出：自适应与鼠标模式细节修正
@@ -1800,3 +1800,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-22 | O15 | bc8dbf4 | **完成**。`VaultCacheStore.State` 每次读深拷贝整份文档树（BaseDocument / PendingUpload / ConflictRemoteDocument）优化完成：①在 `VaultCacheState` 与 `VaultCacheStore` 新增 `CloneWithoutDocuments()`，跳过三份完整文档树的深拷贝，完整保留标量与元数据；②新增 `ReadVaultId()`、`ReadVaultKeyBase64()`、`ReadAutoSync()`、`ReadRevision()`、`ReadPreferences()`、`ReadPendingVaultSetup()` 细粒度锁内只读方法；③逐一排查 `SyncCoordinator` 内原本 33 处 `State` 调用点，仅保留真正需读文档的 3 处（ReplayPendingUpload 校验 SameContent、ResolveConflict 应用远端文档、PerformSync 探测后合并），其余 30 处全部迁移至免文档深拷贝读法，无隐式文档空指针或陈旧读风险；④新增 13 条回归单测覆盖标量读取、元数据保留及深拷贝独立性验证（Core 单测 1483→1496）；`-Quick -Interop` 验证桌面端互通零偏差全绿，verify 8 步全流程全绿。 |
 | 2026-09-22 | Q05 | 8e2bfb9 | **完成**。各页面 AutomationProperties.Name / HelpText 与无障碍视图补齐：StatusDot 状态描述接入 Localized.Get、KeyBar 42 键按键可读名称映射与双语资源对齐、AccountSync 4 处 ToggleSwitch 补 x:Uid、Credential/Passphrase/HostKeyMismatch 对话框输入框补 x:Uid、SftpPage 传输重试按钮补 x:Uid、TerminalView 哨兵输入框设置 Raw 避免朗读干扰、CanvasControl 补 x:Uid；Resources.resw 双语各补齐 35 键且 ResourceParityTests 严格一致通过；verify 8 步全绿。⏳ 📱 讲述人走通主流程（已登记真机待办）。 |
 | 2026-09-22 | Q11 | 8f12689 | **代码完成**。CVE-2026-55200（CVSS 9.2 越界写 RCE）、CVE-2026-66032（SFTP double-free）、CVE-2026-66033（AES-GCM 下溢）、CVE-2026-66034（公钥遍历 OOB）、CVE-2026-66035（ETM 解密溢出）共 5 处上游安全修复 backport 至 native/patches/libssh2/，fetch-third-party.ps1 自动应用；native 测试补齐越界与缓冲边界常量校验；PATCHES.md 详尽登记；verify 8 步全绿。⏳ 📱 SP03 真机连接复测（已登记待办）。 |
+| 2026-09-22 | Q08 | aed8988 | **代码完成**。新增 InteractionModeHelper 检测 UIViewSettings.UserInteractionMode 鼠标模式；AppListRow / HostRow / TunnelRow 鼠标模式自动降为 ListRowCompactHeight (48)；TerminalPage 鼠标模式默认折叠 KeyBar（菜单可手动切换）；TerminalWorkspace 修复 IsNarrow 窗口宽判定，宽屏多窗格与分隔条稳定呈现，切回窄屏保活窗格树仅渲染聚焦叶；TabStrip / HostRow / TunnelRow 右键菜单精准按光标位置弹出；HostsPivot「新标签连接」支持工作区多标签接管；WorkspaceViewModel 快捷键任务安全接入 Forget。verify 8 步全绿。⏳ 📱 Continuum 完整运维流程（已在待办）。 |
