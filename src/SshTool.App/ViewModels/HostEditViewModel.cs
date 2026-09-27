@@ -369,16 +369,16 @@ namespace SshTool.App.ViewModels
 
         public string PasswordPlaceholder
         {
-            get { return Credentials != null && Credentials.HasSavedPassword ? "已保存" : string.Empty; }
+            get { return Credentials != null && Credentials.HasSavedPassword ? Localized.Get("HostEdit_CredentialSaved", "已保存") : string.Empty; }
         }
 
         public string PassphrasePlaceholder
         {
-            get { return Credentials != null && Credentials.HasSavedPassphrase ? "已保存" : string.Empty; }
+            get { return Credentials != null && Credentials.HasSavedPassphrase ? Localized.Get("HostEdit_CredentialSaved", "已保存") : string.Empty; }
         }
 
         // UI 走查（凭据三态可见化）：状态语义仍完全由 CredentialDraft 持有，这里只做只读派生 +
-        // 通知。文案集中在此（后续可整段换 resw），颜色交给 XAML 的 ThemeResource 跟随主题。
+        // 通知。文案走 resw（键见 HostEdit_Credential*），颜色交给 XAML 的 ThemeResource 跟随主题。
         public CredentialFieldState PasswordCredentialState
         {
             get { return Credentials == null ? CredentialFieldState.Unchanged : Credentials.PasswordState; }
@@ -445,13 +445,13 @@ namespace SshTool.App.ViewModels
         {
             if (state == CredentialFieldState.Modified)
             {
-                return "新凭据，保存后生效";
+                return Localized.Get("HostEdit_CredentialNew", "新凭据，保存后生效");
             }
             if (state == CredentialFieldState.Cleared)
             {
-                return "将清除已保存凭据";
+                return Localized.Get("HostEdit_CredentialCleared", "将清除已保存凭据");
             }
-            return hasSaved ? "已保存" : string.Empty;
+            return hasSaved ? Localized.Get("HostEdit_CredentialSaved", "已保存") : string.Empty;
         }
 
         // 凭据状态被改动后由页面调用（SetPassword / SetRememberPassword / ApplySwitch …）。

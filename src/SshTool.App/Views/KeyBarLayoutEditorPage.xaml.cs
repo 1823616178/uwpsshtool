@@ -23,6 +23,7 @@ namespace SshTool.App.Views
     // 未收录的 id 统一退化为「自定义按键」，绝不回落到 id。
     public static class KeyBarKeyNames
     {
+        // O16 待办：字典整体入 resw（约 45 键，见 doc/04-TASKS.md §11）。
         private static readonly Dictionary<string, string> ChineseNames = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             { "esc", "退出 Esc" },
@@ -63,7 +64,10 @@ namespace SshTool.App.Views
             { "hidekb", "隐藏键盘" }
         };
 
-        private const string CustomName = "自定义按键";
+        private static string CustomName
+        {
+            get { return Localized.Get("KeyBarEditor_CustomKey", "自定义按键"); }
+        }
 
         public static string Describe(KeyBarKey key)
         {
@@ -79,19 +83,20 @@ namespace SshTool.App.Views
             // F1–F12 等功能键不逐条列名，按类别给一句能看懂的说明。
             if (key.Kind == KeyBarKeyKind.Function)
             {
-                return "功能键 " + (string.IsNullOrEmpty(key.Label) ? key.Id : key.Label);
+                return Localized.Format("KeyBarEditor_FunctionKey", "功能键 {0}",
+                    string.IsNullOrEmpty(key.Label) ? key.Id : key.Label);
             }
             if (key.Kind == KeyBarKeyKind.Character)
             {
-                return "字符键";
+                return Localized.Get("KeyBarEditor_CharacterKey", "字符键");
             }
             if (key.Kind == KeyBarKeyKind.Modifier)
             {
-                return "修饰键";
+                return Localized.Get("KeyBarEditor_ModifierKey", "修饰键");
             }
             if (key.Kind == KeyBarKeyKind.Action)
             {
-                return "快捷操作";
+                return Localized.Get("KeyBarEditor_QuickAction", "快捷操作");
             }
             return CustomName;
         }

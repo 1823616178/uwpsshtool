@@ -1,1 +1,4 @@
-{}
+{
+  "src\\SshTool.App\\Platform\\NativeForwarder.cs": 2,
+  "src\\SshTool.App\\ViewModels\\SettingsViewModel.cs": 1
+}

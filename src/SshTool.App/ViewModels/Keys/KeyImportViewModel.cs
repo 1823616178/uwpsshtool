@@ -63,11 +63,11 @@ namespace SshTool.App.ViewModels.Keys
             string clean = (KeyName ?? string.Empty).Trim();
             if (clean.Length == 0)
             {
-                return "名称不能为空";
+                return Localized.Get("Validation_NameRequired", "名称不能为空");
             }
             if (clean.Length > 255)
             {
-                return "名称不能超过 255 个字符";
+                return Localized.Get("Validation_NameTooLong", "名称过长（不超过 255 字）");
             }
             return null;
         }

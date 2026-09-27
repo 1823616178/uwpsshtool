@@ -228,7 +228,8 @@ namespace SshTool.App.ViewModels
         {
             get
             {
-                string srvName = Hosts.FirstOrDefault(h => h.Id == _serverId)?.Name ?? "目标主机";
+                string srvName = Hosts.FirstOrDefault(h => h.Id == _serverId)?.Name
+                    ?? Localized.Get("Tunnel_EditTargetHost", "目标主机");
                 string lHost = string.IsNullOrWhiteSpace(_listenHost) ? "127.0.0.1" : _listenHost.Trim();
                 string lPort = string.IsNullOrWhiteSpace(_listenPortText) ? "?" : _listenPortText.Trim();
                 string dHost = string.IsNullOrWhiteSpace(_destHost) ? "?" : _destHost.Trim();
@@ -237,13 +238,14 @@ namespace SshTool.App.ViewModels
                 switch (_type)
                 {
                     case TunnelType.Local:
-                        return string.Format(CultureInfo.InvariantCulture, "本机 {0}:{1} → {2} → {3}:{4}", lHost, lPort, srvName, dHost, dPort);
+                        return Localized.Format("Tunnel_EditRouteLocal", "本机 {0}:{1} → {2} → {3}:{4}", lHost, lPort, srvName, dHost, dPort);
                     case TunnelType.Remote:
-                        return string.Format(CultureInfo.InvariantCulture, "{0} 监听 :{1} → {2}:{3}", srvName, lPort, dHost, dPort);
+                        return Localized.Format("Tunnel_EditRouteRemote", "{0} 监听 :{1} → {2}:{3}", srvName, lPort, dHost, dPort);
                     case TunnelType.Dynamic:
-                        return string.Format(CultureInfo.InvariantCulture, "本机 SOCKS5 代理 {0}:{1} → {2}", lHost, lPort, srvName);
+                        return Localized.Format("Tunnel_EditRouteSocks", "本机 SOCKS5 代理 {0}:{1} → {2}", lHost, lPort, srvName);
                     case TunnelType.Relay:
-                        string relayName = Hosts.FirstOrDefault(h => h.Id == _destServerId)?.Name ?? "目标服务器";
+                        string relayName = Hosts.FirstOrDefault(h => h.Id == _destServerId)?.Name
+                            ?? Localized.Get("Tunnel_EditTargetServer", "目标服务器");
                         return string.Format(CultureInfo.InvariantCulture, "{0} :{1} → {2} → {3}:{4}", srvName, lPort, relayName, dHost, dPort);
                     default:
                         return string.Empty;

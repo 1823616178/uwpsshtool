@@ -46,8 +46,8 @@
 | M6 | 外观系统 | 5 | 5 | 主题、字体、配色可改可导入 |
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 11 | 性能/安全报告、可侧载安装包 v1.0.0 |
-| M9 | 优化与债务清理 | 15 | 15 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **127** | **127** | |
+| M9 | 优化与债务清理 | 16 | 15 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
+| **合计** | | **128** | **127** | |
 
 ### 1.1 关键路径
 
@@ -1547,6 +1547,26 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
   - 验收：
     - [x] 新增 `BackoffTable` / `ColorHex` 的单测；三处/三处调用点全部改完
     - [x] `pwsh scripts/verify.ps1` 全绿
+  - 验证：`pwsh scripts/verify.ps1`
+
+- [ ] **O16 剩余形态中文文案收尾（参数/字典/Core）** `M`
+  - 依赖：—
+  - 参考：`06-OPT-AUDIT.md §3 P2-13`；C06 收尾（2026-09-27）已在 return 形态上补了门禁规则与 59 组键
+  - 产出：非 Debug 的 ViewModels / Views / Platform、`src/SshTool.Core/Sync/SyncCoordinator.cs`、`SyncStatePresenter.cs`、resw 双语
+  - 要点：
+    1. App 侧参数/字典形态盘点与资源化（体量大，按 a/b 拆提交）：`KeyDetailViewModel` /
+       `AppearanceListPage` 等的 `ConfirmDialog.ShowAsync("标题", "正文", "按钮", …)` 参数文案；
+       `SettingsViewModel.BuildDiagnosticsText` 标签与探针名；`FileTypeChoices.Add("日志文件"/"私钥文件", …)`；
+       `KeyBarKeyNames.ChineseNames` 字典（约 45 键，C06 收尾时已在代码内注明 O16 待办）。
+    2. Core 侧（netstandard1.4 无 ResourceLoader）：`SyncCoordinator`（4 处）与 `SyncStatePresenter`
+       的相对时间文案（刚刚/分钟前/小时前/昨天/前天/天前）需注入式文案提供器（如构造注入小型
+       `ILocalizedText` 接口），App 侧接到 `Localized`；**先改设计再改代码**。
+    3. 门禁扩展到参数形态（非 return 行的中文字面量）误报面大（日志拼接混排），可先按文件计数
+       进棘轮基线渐进收紧，不强制本任务达成。
+  - 验收：
+    - [ ] 上述 App 侧命中点全部资源化（resw 双语一致，`ResourceParityTests` 过）
+    - [ ] Core 同步文案经注入提供器出文案，注入路径有单测
+    - [ ] `pwsh scripts/verify.ps1` 全绿
   - 验证：`pwsh scripts/verify.ps1`
 
 ---

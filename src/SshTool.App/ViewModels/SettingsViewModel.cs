@@ -245,7 +245,8 @@ namespace SshTool.App.ViewModels
             get
             {
                 int count = SshTool.Core.Terminal.KeyBarLayout.Parse(KeyBarLayout).Count;
-                return count.ToString(CultureInfo.InvariantCulture) + " 个键";
+                return Localized.Format("Settings_KeyBarSummary", "{0} 个键",
+                    count.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -272,9 +273,11 @@ namespace SshTool.App.ViewModels
                 ShortcutMap map = CurrentShortcutMap;
                 if (map.Conflicts.Count > 0)
                 {
-                    return map.Conflicts.Count.ToString(CultureInfo.InvariantCulture) + " 处冲突";
+                    return Localized.Format("Settings_ShortcutConflicts", "{0} 处冲突",
+                        map.Conflicts.Count.ToString(CultureInfo.InvariantCulture));
                 }
-                return map.Bindings.Count.ToString(CultureInfo.InvariantCulture) + " 个动作";
+                return Localized.Format("Settings_ShortcutActions", "{0} 个动作",
+                    map.Bindings.Count.ToString(CultureInfo.InvariantCulture));
             }
         }
 
@@ -527,28 +530,28 @@ namespace SshTool.App.ViewModels
             return SyncPollOptions[index];
         }
 
-        // ---------- 快捷键中文名（§5.16） ----------
+        // ---------- 快捷键显示名（§5.16） ----------
 
         public static string ShortcutDisplayName(ShortcutAction action)
         {
             switch (action)
             {
-                case ShortcutAction.NewTab: return "新标签";
-                case ShortcutAction.ClosePane: return "关闭窗格/标签";
-                case ShortcutAction.NextTab: return "下一个标签";
-                case ShortcutAction.PrevTab: return "上一个标签";
-                case ShortcutAction.SplitRight: return "向右分屏";
-                case ShortcutAction.SplitDown: return "向下分屏";
-                case ShortcutAction.FocusLeft: return "聚焦左侧窗格";
-                case ShortcutAction.FocusUp: return "聚焦上方窗格";
-                case ShortcutAction.FocusRight: return "聚焦右侧窗格";
-                case ShortcutAction.FocusDown: return "聚焦下方窗格";
-                case ShortcutAction.Copy: return "复制";
-                case ShortcutAction.Paste: return "粘贴";
-                case ShortcutAction.FontIncrease: return "字号增大";
-                case ShortcutAction.FontDecrease: return "字号减小";
-                case ShortcutAction.FontReset: return "字号重置";
-                case ShortcutAction.Find: return "查找";
+                case ShortcutAction.NewTab: return Localized.Get("ShortcutAction_NewTab", "新标签");
+                case ShortcutAction.ClosePane: return Localized.Get("ShortcutAction_ClosePane", "关闭窗格/标签");
+                case ShortcutAction.NextTab: return Localized.Get("ShortcutAction_NextTab", "下一个标签");
+                case ShortcutAction.PrevTab: return Localized.Get("ShortcutAction_PrevTab", "上一个标签");
+                case ShortcutAction.SplitRight: return Localized.Get("Workspace_SplitRight", "向右分屏");
+                case ShortcutAction.SplitDown: return Localized.Get("Workspace_SplitDown", "向下分屏");
+                case ShortcutAction.FocusLeft: return Localized.Get("ShortcutAction_FocusLeft", "聚焦左侧窗格");
+                case ShortcutAction.FocusUp: return Localized.Get("ShortcutAction_FocusUp", "聚焦上方窗格");
+                case ShortcutAction.FocusRight: return Localized.Get("ShortcutAction_FocusRight", "聚焦右侧窗格");
+                case ShortcutAction.FocusDown: return Localized.Get("ShortcutAction_FocusDown", "聚焦下方窗格");
+                case ShortcutAction.Copy: return Localized.Get("ShortcutAction_Copy", "复制");
+                case ShortcutAction.Paste: return Localized.Get("ShortcutAction_Paste", "粘贴");
+                case ShortcutAction.FontIncrease: return Localized.Get("ShortcutAction_FontIncrease", "字号增大");
+                case ShortcutAction.FontDecrease: return Localized.Get("ShortcutAction_FontDecrease", "字号减小");
+                case ShortcutAction.FontReset: return Localized.Get("ShortcutAction_FontReset", "字号重置");
+                case ShortcutAction.Find: return Localized.Get("ShortcutAction_Find", "查找");
                 default: return action.ToString();
             }
         }
@@ -593,7 +596,7 @@ namespace SshTool.App.ViewModels
             catch (Exception ex)
             {
                 LogFailure(SshTool.Core.Common.LogLevel.Error, "打开日志目录失败", ex);
-                return "找不到日志位置，请稍后重试";
+                return Localized.Get("Settings_LogPathNotFound", "找不到日志位置，请稍后重试");
             }
 
             List<StorageFile> logFiles = new List<StorageFile>();
@@ -610,13 +613,13 @@ namespace SshTool.App.ViewModels
             catch (Exception ex)
             {
                 LogFailure(SshTool.Core.Common.LogLevel.Error, "枚举日志文件失败", ex);
-                return "读取日志列表失败，请稍后重试";
+                return Localized.Get("Settings_LogListReadFailed", "读取日志列表失败，请稍后重试");
             }
 
             logFiles.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
             if (logFiles.Count == 0)
             {
-                return "没有可导出的日志";
+                return Localized.Get("Settings_LogNothingToExport", "没有可导出的日志");
             }
 
             var sb = new StringBuilder();
@@ -654,11 +657,11 @@ namespace SshTool.App.ViewModels
             catch (Exception ex)
             {
                 LogFailure(SshTool.Core.Common.LogLevel.Error, "打开保存对话框失败", ex);
-                return "无法打开保存位置，请重试或换个文件夹";
+                return Localized.Get("Export_OpenLocationFailed", "无法打开保存位置，请重试或换个文件夹");
             }
             if (target == null)
             {
-                return "已取消导出";
+                return Localized.Get("Export_Cancelled", "已取消导出");
             }
 
             try
@@ -670,13 +673,13 @@ namespace SshTool.App.ViewModels
                 {
                     LogFailure(SshTool.Core.Common.LogLevel.Warning,
                         "日志导出未确认完成 status=" + status.ToString(), null);
-                    return "未能写入所选位置，请关闭占用该文件的程序后重试";
+                    return Localized.Get("Export_WriteFailed", "未能写入所选位置，请关闭占用该文件的程序后重试");
                 }
             }
             catch (Exception ex)
             {
                 LogFailure(SshTool.Core.Common.LogLevel.Error, "导出日志失败", ex);
-                return "导出失败，请重试";
+                return Localized.Get("Export_Failed", "导出失败，请重试");
             }
 
             try
@@ -688,7 +691,8 @@ namespace SshTool.App.ViewModels
             catch (Exception)
             {
             }
-            return "已导出 " + logFiles.Count.ToString(CultureInfo.InvariantCulture) + " 个日志文件";
+            return Localized.Format("Settings_ExportedCount", "已导出 {0} 个日志文件",
+                logFiles.Count.ToString(CultureInfo.InvariantCulture));
         }
 
         public async Task<string> ClearLogsAsync()
@@ -717,7 +721,7 @@ namespace SshTool.App.ViewModels
             catch (Exception ex)
             {
                 LogFailure(SshTool.Core.Common.LogLevel.Error, "清空日志失败", ex);
-                return "清空失败，请稍后重试";
+                return Localized.Get("Settings_ClearFailed", "清空失败，请稍后重试");
             }
 
             try
@@ -728,7 +732,9 @@ namespace SshTool.App.ViewModels
             catch (Exception)
             {
             }
-            return deleted == 0 ? "没有可清空的日志" : "已清空日志";
+            return deleted == 0
+                ? Localized.Get("Settings_ClearNone", "没有可清空的日志")
+                : Localized.Get("Settings_Cleared", "已清空日志");
         }
 
         // ---------- 内部 ----------
@@ -900,6 +906,7 @@ namespace SshTool.App.ViewModels
             }
         }
 
+        // 仅进日志（LogFailure 唯一调用方），不进 UI：不本地化，门禁基线登记豁免。
         private static string Describe(Exception ex)
         {
             if (ex == null)
@@ -983,18 +990,18 @@ namespace SshTool.App.ViewModels
             {
                 if (!ApiInformation.IsTypePresent("Windows.System.MemoryManager"))
                 {
-                    return "不可用";
+                    return Localized.Get("Settings_MemoryUnavailable", "不可用");
                 }
                 ulong limit = Windows.System.MemoryManager.AppMemoryUsageLimit;
                 ulong usage = Windows.System.MemoryManager.AppMemoryUsage;
-                return string.Format(
-                    CultureInfo.InvariantCulture, "已用 {0} MB / 上限 {1} MB",
-                    (limit == 0 ? 0 : usage / 1048576UL),
-                    (limit == 0 ? 0 : limit / 1048576UL));
+                return Localized.Format(
+                    "Settings_MemoryUsage", "已用 {0} MB / 上限 {1} MB",
+                    (limit == 0 ? 0 : usage / 1048576UL).ToString(CultureInfo.InvariantCulture),
+                    (limit == 0 ? 0 : limit / 1048576UL).ToString(CultureInfo.InvariantCulture));
             }
             catch (Exception)
             {
-                return "不可用";
+                return Localized.Get("Settings_MemoryUnavailable", "不可用");
             }
         }
 

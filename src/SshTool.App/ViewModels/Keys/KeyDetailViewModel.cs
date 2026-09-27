@@ -99,7 +99,9 @@ namespace SshTool.App.ViewModels.Keys
                 {
                     return string.Empty;
                 }
-                return _entry.Encrypted ? "是" : "否";
+                return _entry.Encrypted
+                    ? Localized.Get("Common_Yes", "是")
+                    : Localized.Get("Common_No", "否");
             }
         }
 
@@ -141,16 +143,16 @@ namespace SshTool.App.ViewModels.Keys
         {
             if (_entry == null)
             {
-                return "密钥不存在";
+                return Localized.Get("Key_NotFound", "密钥不存在");
             }
             string clean = (_name ?? string.Empty).Trim();
             if (clean.Length == 0)
             {
-                return "名称不能为空";
+                return Localized.Get("Validation_NameRequired", "名称不能为空");
             }
             if (clean.Length > 255)
             {
-                return "名称不能超过 255 个字符";
+                return Localized.Get("Validation_NameTooLong", "名称过长（不超过 255 字）");
             }
             _entry.Name = clean;
             await _services.Keys.UpdateAsync(_entry, ChangeOrigin.User).ConfigureAwait(true);
@@ -229,7 +231,7 @@ namespace SshTool.App.ViewModels.Keys
         {
             if (_entry == null)
             {
-                return "密钥不存在";
+                return Localized.Get("Key_NotFound", "密钥不存在");
             }
             ConfirmDialogResult first = await ConfirmDialog.ShowAsync(
                 "导出私钥？",
@@ -237,7 +239,7 @@ namespace SshTool.App.ViewModels.Keys
                 "继续", "取消", true).ConfigureAwait(true);
             if (!first.Confirmed)
             {
-                return "已取消导出";
+                return Localized.Get("Export_Cancelled", "已取消导出");
             }
             ConfirmDialogResult second = await ConfirmDialog.ShowAsync(
                 "再次确认",
@@ -245,13 +247,13 @@ namespace SshTool.App.ViewModels.Keys
                 "导出", "取消", true).ConfigureAwait(true);
             if (!second.Confirmed)
             {
-                return "已取消导出";
+                return Localized.Get("Export_Cancelled", "已取消导出");
             }
             string privateText = await _services.Secrets.GetAsync(SecretKeys.KeyPrivate(_entry.Id))
                 .ConfigureAwait(true);
             if (string.IsNullOrEmpty(privateText))
             {
-                return "私钥不存在（可能已被清除），无法导出";
+                return Localized.Get("Key_PrivateMissing", "私钥不存在（可能已被清除），无法导出");
             }
             FileSavePicker picker = new FileSavePicker();
             picker.SuggestedFileName = SuggestFileName(_entry.Name);
@@ -264,11 +266,11 @@ namespace SshTool.App.ViewModels.Keys
             catch (Exception ex)
             {
                 LogFailure("打开保存对话框失败", ex);
-                return "无法打开保存位置，请重试或换个文件夹";
+                return Localized.Get("Export_OpenLocationFailed", "无法打开保存位置，请重试或换个文件夹");
             }
             if (target == null)
             {
-                return "已取消导出";
+                return Localized.Get("Export_Cancelled", "已取消导出");
             }
             try
             {
@@ -278,20 +280,20 @@ namespace SshTool.App.ViewModels.Keys
                 if (status != FileUpdateStatus.Complete)
                 {
                     LogFailure("私钥导出未确认完成 status=" + status.ToString(), null);
-                    return "未能写入所选位置，请关闭占用该文件的程序后重试";
+                    return Localized.Get("Export_WriteFailed", "未能写入所选位置，请关闭占用该文件的程序后重试");
                 }
             }
             catch (Exception ex)
             {
                 LogFailure("导出私钥失败", ex);
-                return "导出失败，请重试";
+                return Localized.Get("Export_Failed", "导出失败，请重试");
             }
             finally
             {
                 privateText = null;
             }
             Logger.Log(LogLevel.Info, "Keys", "导出私钥 " + _entry.Id);
-            return "已导出私钥";
+            return Localized.Get("Key_Exported", "已导出私钥");
         }
 
         public string GetHostId(KeyHostRow row)

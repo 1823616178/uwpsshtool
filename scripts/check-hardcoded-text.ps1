@@ -8,6 +8,21 @@
 #   - .cs 里对用户可见属性赋中文字面量也算（日志字符串不算，日志不需要本地化）；
 #   - 其余「疑似硬编码」的英文字面量沿用旧规则。
 #
+# C06 收尾（2026-09-27）新增 return 规则：O13 只扫「.属性 = "中文"」赋值形态，
+# getter/辅助方法里 `return "中文"`（会话状态名、快捷键名、导出结果等 60 余处）
+# 全部漏网。现补上：
+#   - 行含 return 关键字且含中文字面量即命中（含拼接/三元；先剥掉行尾 // 注释，
+#     避免 `return x; // 中文注释` 误报）；
+#   - 行含 `Localized.` 或 `GetString(` 不算——两者都是「resw 为事实来源、中文
+#     参数仅为资源缺失时的兜底」的既定写法（Localized.Get/Format、
+#     AppServices.GetString、AccountSyncPage.GetString 等）；
+#   - 已知限制：跨行 return（如 return string.Format(\n  "中文…")）的中文字面量
+#     在续行上，本规则按行扫仍会漏；参数/字典形态（ConfirmDialog.ShowAsync("中文…")、
+#     KeyBarKeyNames 字典等）同样不在本规则内——立为任务 O16。
+#   - 仅入日志的 return（SettingsViewModel.Describe 的「无异常对象」、
+#     NativeForwarder.FormatRouteDescription 的「转发」/「(远程)」——后者当前无
+#     UI 消费者）按棘轮登记在基线里。
+#
 # 棘轮（ratchet）：现存违例数量记在 $BaselinePath 里，按文件计数。
 #   - 某文件违例数 > 基线 → 失败（新增了硬编码文案）；
 #   - 某文件违例数 < 基线 → 提示「基线可收紧」，不失败；
@@ -52,6 +67,19 @@ function Add-Hit([string]$rel, [int]$lineNo, [string]$line, [string]$why) {
     $hits.Add([pscustomobject]@{
         File = $rel; Line = $lineNo; Why = $why; Text = $line.Trim()
     })
+}
+
+# 剥掉行尾 // 注释：引号外的第一个 // 才是注释起点（"http://" 里的 // 在引号内）。
+function Get-CodePart([string]$line) {
+    $inString = $false
+    for ($i = 0; $i -lt ($line.Length - 1); $i++) {
+        $c = $line[$i]
+        if ($c -eq '"') { $inString = -not $inString; continue }
+        if (-not $inString -and $c -eq '/' -and $line[$i + 1] -eq '/') {
+            return $line.Substring(0, $i)
+        }
+    }
+    return $line
 }
 
 # XAML 按**标签**扫，不按行：x:Uid 常写在标签首行、文案属性在后续行，
@@ -101,6 +129,11 @@ Get-ChildItem $appDir -Recurse -Include *.xaml, *.cs |
                             Add-Hit $rel $lineNo $line "C# .$t 中文字面量"
                         }
                     }
+                }
+                # return 形态（C06 收尾）：见文件头说明。
+                $code = Get-CodePart $line
+                if ($code -match '\breturn\b' -and $code -notmatch '(Localized\.|GetString\()' -and $code -match $chinese) {
+                    Add-Hit $rel $lineNo $line "C# return 中文文案"
                 }
             }
         }

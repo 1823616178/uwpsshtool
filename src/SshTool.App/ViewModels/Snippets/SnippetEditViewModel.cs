@@ -37,7 +37,9 @@ namespace SshTool.App.ViewModels.Snippets
 
         public string Title
         {
-            get { return _isNew ? "新建片段" : "编辑片段"; }
+                get { return _isNew
+                    ? Localized.Get("Snippet_EditNew", "新建片段")
+                    : Localized.Get("Snippet_EditExisting", "编辑片段"); }
         }
 
         public bool IsNew
@@ -130,9 +132,11 @@ namespace SshTool.App.ViewModels.Snippets
                 IReadOnlyList<string> vars = SnippetTemplate.CollectVariables(_content);
                 if (vars.Count == 0)
                 {
-                    return "可用 ${host} ${user} ${port} ${name}，其他 ${xxx} 发送时填写";
+                    return Localized.Get("Snippet_VarHint",
+                        "可用 ${host} ${user} ${port} ${name}，其他 ${xxx} 发送时填写");
                 }
-                return "待填变量：" + string.Join("、", ListOf(vars));
+                return Localized.Format("Snippet_VarsPending", "待填变量：{0}",
+                    string.Join(Localized.Get("Snippet_VarJoiner", "、"), ListOf(vars)));
             }
         }
 

@@ -99,7 +99,7 @@ namespace SshTool.App.Views.Main
     }
 
     // UI 走查（验收项 3）：SessionUiState 是枚举，直接绑定会把英文枚举名甩到屏幕上。
-    // 这里只做显示层转换（说法与 StatusDot 的无障碍名一致），不参与任何连接判断。
+    // 这里只做显示层转换（复用 StatusDot_* 无障碍名键保证两处说法一致），不参与任何连接判断。
     public sealed class SessionStateTextConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
@@ -111,21 +111,21 @@ namespace SshTool.App.Views.Main
             switch ((SessionUiState)value)
             {
                 case SessionUiState.Connecting:
-                    return "连接中";
+                    return Localized.Get("StatusDot_Connecting", "连接中");
                 case SessionUiState.Authenticating:
-                    return "认证中";
+                    return Localized.Get("SessionState_Authenticating", "认证中");
                 case SessionUiState.Connected:
-                    return "已连接";
+                    return Localized.Get("StatusDot_Connected", "已连接");
                 case SessionUiState.Reconnecting:
-                    return "重连中";
+                    return Localized.Get("StatusDot_Reconnecting", "重连中");
                 case SessionUiState.Disconnected:
-                    return "已断开";
+                    return Localized.Get("SessionState_Disconnected", "已断开");
                 case SessionUiState.Error:
-                    return "连接错误";
+                    return Localized.Get("StatusDot_Error", "连接错误");
                 case SessionUiState.Closed:
-                    return "已关闭";
+                    return Localized.Get("SessionState_Closed", "已关闭");
                 default:
-                    return "未连接";
+                    return Localized.Get("SessionState_None", "未连接");
             }
         }
 
