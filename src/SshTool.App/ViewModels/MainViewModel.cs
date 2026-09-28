@@ -28,7 +28,6 @@ namespace SshTool.App.ViewModels
             {
                 Hosts = new HostListViewModel(services);
                 NewHostCommand = Hosts.NewHostCommand;
-                SearchCommand = Hosts.ToggleSearchCommand;
                 SignInCommand = Hosts.SignInCommand;
                 ToggleQuickConnectCommand = Hosts.ToggleQuickConnectCommand;
                 SessionsPaneViewModel sessionsVm;
@@ -41,8 +40,7 @@ namespace SshTool.App.ViewModels
             }
             else
             {
-                NewHostCommand = new RelayCommand(() => OpenPlaceholder("新建主机", "M3"));
-                SearchCommand = new RelayCommand(() => OpenPlaceholder("搜索", "M3"));
+                NewHostCommand = new RelayCommand(() => OpenPlaceholder(Localized.Get("Main_PlaceholderNewHost", "新建主机"), "M3"));
                 SignInCommand = new RelayCommand(() => Navigation.Navigate<Views.Sync.LoginPage>());
                 // 无同步栈的退化路径：快速连接无占位页（主列表本就不可用），空操作即可。
                 ToggleQuickConnectCommand = new RelayCommand(() => { });
@@ -52,11 +50,8 @@ namespace SshTool.App.ViewModels
             SyncCommand = new AsyncCommand(ManualSyncAsync, onError: OnManualSyncError);
             // U17：同步图标点击 → 同步状态页（AccountSyncPage）。
             SyncStatusCommand = new RelayCommand(() => Navigation.Navigate<Views.Sync.AccountSyncPage>());
-            SettingsCommand = new RelayCommand(() => Navigation.Navigate<SettingsPage>());
-            KeysCommand = new RelayCommand(() => Navigation.Navigate<Views.Keys.KeysPage>());
-            KnownHostsCommand = new RelayCommand(() => Navigation.Navigate<KnownHostsPage>());
-            SnippetsCommand = new RelayCommand(() => Navigation.Navigate<SnippetsPage>(SnippetsArgs.Manage()));
-            AppearanceCommand = new RelayCommand(() => Navigation.Navigate<AppearanceListPage>());
+            // W01：设置/密钥/片段/外观/已知主机/分组收进「工具与设置」页（05 §6.1）。
+            ToolsCommand = new RelayCommand(() => Navigation.Navigate<ToolsPage>());
             AboutCommand = new RelayCommand(() => Navigation.Navigate<AboutPage>());
             RefreshSyncIcon(services != null && services.Sync != null ? services.Sync.State : null);
             if (services != null && services.Sync != null)
@@ -89,15 +84,10 @@ namespace SshTool.App.ViewModels
         }
 
         public ICommand NewHostCommand { get; private set; }
-        public ICommand SearchCommand { get; private set; }
         public ICommand ToggleQuickConnectCommand { get; private set; }
         public ICommand SyncCommand { get; private set; }
         public ICommand SyncStatusCommand { get; private set; }
-        public ICommand SettingsCommand { get; private set; }
-        public ICommand KeysCommand { get; private set; }
-        public ICommand KnownHostsCommand { get; private set; }
-        public ICommand SnippetsCommand { get; private set; }
-        public ICommand AppearanceCommand { get; private set; }
+        public ICommand ToolsCommand { get; private set; }
         public ICommand AboutCommand { get; private set; }
         public ICommand SignInCommand { get; private set; }
 
@@ -113,7 +103,7 @@ namespace SshTool.App.ViewModels
             SyncTriggers triggers = services != null ? services.SyncTriggers : null;
             if (triggers == null)
             {
-                OpenPlaceholder("同步", "M5");
+                OpenPlaceholder(Localized.Get("Main_PlaceholderSync", "同步"), "M5");
                 return;
             }
             // 结果经图标相位展示（syncing→synced/error），此处只等待完成。

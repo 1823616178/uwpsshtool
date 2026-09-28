@@ -602,8 +602,8 @@ namespace SshTool.App.Views
 
         private void OnLicensesClick(object sender, RoutedEventArgs e)
         {
-            Frame.Navigate(typeof(PlaceholderPage), new PlaceholderArgs(
-                Load("Settings_About_Licenses"), "M8"));
+            // W01：原先导航到占位页，而 LicensesPage 早已实现（关于页入口一直正常）。
+            Frame.Navigate(typeof(LicensesPage));
         }
 
         private void OnLogLevelChanged(object sender, SelectionChangedEventArgs e)

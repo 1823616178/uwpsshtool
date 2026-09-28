@@ -33,11 +33,7 @@
                 </AppBarButton.Icon>
             </AppBarButton>
             <CommandBar.SecondaryCommands>
-                <AppBarButton x:Uid="Main_SettingsItem" Click="OnSettingsClick" />
-                <AppBarButton x:Uid="Main_KeysItem" Click="OnKeysClick" />
-                <AppBarButton x:Uid="Main_SnippetsItem" Click="OnSnippetsClick" />
-                <AppBarButton x:Uid="Main_AppearanceItem" Click="OnAppearanceClick" />
-                <AppBarButton x:Uid="Main_KnownHostsItem" Click="OnKnownHostsClick" />
+                <AppBarButton x:Uid="Main_ToolsItem" Click="OnToolsClick" />
                 <AppBarButton x:Uid="Main_AboutItem" Click="OnAboutClick" />
                 <AppBarButton x:Uid="Main_SignInItem" Click="OnSignInClick" />
                 <AppBarButton x:Name="DevToolsItem" x:Uid="Main_DevToolsItem" Click="OnDevToolsClick" Visibility="Collapsed" />

@@ -353,6 +353,9 @@
     <Compile Include="Views\LicensesPage.xaml.cs">
       <DependentUpon>LicensesPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ToolsPage.xaml.cs">
+      <DependentUpon>ToolsPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ShortcutEditorPage.xaml.cs">
       <DependentUpon>ShortcutEditorPage.xaml</DependentUpon>
     </Compile>
@@ -533,6 +536,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\LicensesPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ToolsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -222,29 +222,9 @@ namespace SshTool.App.Views
             ViewModel.SyncCommand.Execute(null);
         }
 
-        private void OnSettingsClick(object sender, RoutedEventArgs e)
+        private void OnToolsClick(object sender, RoutedEventArgs e)
         {
-            ViewModel.SettingsCommand.Execute(null);
-        }
-
-        private void OnKeysClick(object sender, RoutedEventArgs e)
-        {
-            ViewModel.KeysCommand.Execute(null);
-        }
-
-        private void OnKnownHostsClick(object sender, RoutedEventArgs e)
-        {
-            ViewModel.KnownHostsCommand.Execute(null);
-        }
-
-        private void OnSnippetsClick(object sender, RoutedEventArgs e)
-        {
-            ViewModel.SnippetsCommand.Execute(null);
-        }
-
-        private void OnAppearanceClick(object sender, RoutedEventArgs e)
-        {
-            ViewModel.AppearanceCommand.Execute(null);
+            ViewModel.ToolsCommand.Execute(null);
         }
 
         private void OnAboutClick(object sender, RoutedEventArgs e)

@@ -27,7 +27,6 @@ namespace SshTool.App.ViewModels
         private readonly Dictionary<string, Host> _hostById = new Dictionary<string, Host>(StringComparer.Ordinal);
         private string _searchText = string.Empty;
         private string _quickConnectText = string.Empty;
-        private bool _isSearchOpen;
         private bool _isEmpty = true;
         private bool _hasNoMatches;
         private bool _canQuickConnectFromSearch;
@@ -57,7 +56,6 @@ namespace SshTool.App.ViewModels
 
             NewHostCommand = new RelayCommand(() => Navigation.Navigate<HostEditPage>(HostEditArgs.New()));
             SignInCommand = new RelayCommand(() => Navigation.Navigate<Views.Sync.LoginPage>());
-            ToggleSearchCommand = new RelayCommand(ToggleSearch);
             QuickConnectCommand = new RelayCommand(QuickConnect, () => QuickConnectParser.TryParse(_quickConnectText, out _));
             QuickConnectFromSearchCommand = new RelayCommand(QuickConnectFromSearch, () => _canQuickConnectFromSearch);
             ToggleQuickConnectCommand = new RelayCommand(ToggleQuickConnect);
@@ -77,7 +75,6 @@ namespace SshTool.App.ViewModels
 
         public ICommand NewHostCommand { get; private set; }
         public ICommand SignInCommand { get; private set; }
-        public ICommand ToggleSearchCommand { get; private set; }
         public ICommand QuickConnectCommand { get; private set; }
         public ICommand QuickConnectFromSearchCommand { get; private set; }
         public ICommand ToggleQuickConnectCommand { get; private set; }
@@ -105,12 +102,6 @@ namespace SshTool.App.ViewModels
                     ((RelayCommand)QuickConnectCommand).RaiseCanExecuteChanged();
                 }
             }
-        }
-
-        public bool IsSearchOpen
-        {
-            get { return _isSearchOpen; }
-            private set { SetProperty(ref _isSearchOpen, value); }
         }
 
         public bool IsEmpty
@@ -154,16 +145,6 @@ namespace SshTool.App.ViewModels
         {
             get { return _isListVisible; }
             private set { SetProperty(ref _isListVisible, value); }
-        }
-
-        // V02：搜索框常驻（HostsPivot 不再按 IsSearchOpen 显隐），本方法仅为 contract 保留。
-        public void ToggleSearch()
-        {
-            IsSearchOpen = !IsSearchOpen;
-            if (!IsSearchOpen && _searchText.Length > 0)
-            {
-                SearchText = string.Empty;
-            }
         }
 
         // V02：搜索框常驻后 back 没有「关闭搜索」可退，只负责清空非空搜索词。
@@ -440,9 +421,5 @@ namespace SshTool.App.ViewModels
             Logger.Log(LogLevel.Error, "HostList", ex.GetType().Name);
         }
 
-        private void OpenPlaceholder(string title, string milestone)
-        {
-            Navigation.Navigate<PlaceholderPage>(new PlaceholderArgs(title, milestone));
-        }
     }
 }

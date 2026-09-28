@@ -464,11 +464,6 @@
   <data name="Main_TunnelsEmpty.Description" xml:space="preserve"><value>转发在会话后台运行。</value></data>
   <data name="Main_QuickConnectButton.Label" xml:space="preserve"><value>快速连接</value></data>
   <data name="Main_NewButton.Label" xml:space="preserve"><value>新建</value></data>
-  <data name="Main_SettingsItem.Label" xml:space="preserve"><value>设置</value></data>
-  <data name="Main_KeysItem.Label" xml:space="preserve"><value>密钥</value></data>
-  <data name="Main_SnippetsItem.Label" xml:space="preserve"><value>片段</value></data>
-  <data name="Main_AppearanceItem.Label" xml:space="preserve"><value>外观</value></data>
-  <data name="Main_KnownHostsItem.Label" xml:space="preserve"><value>已知主机</value></data>
   <data name="Main_AboutItem.Label" xml:space="preserve"><value>关于</value></data>
   <data name="Main_SignInItem.Label" xml:space="preserve"><value>登录</value></data>
   <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>开发工具</value></data>
@@ -1168,5 +1163,21 @@
   <data name="KeyImport_ErrPickFailed" xml:space="preserve"><value>文件选择失败：{0}</value></data>
   <data name="KeyImport_ErrReadFailed" xml:space="preserve"><value>文件读取失败：{0}</value></data>
   <data name="KeyGenerate_ErrFallback" xml:space="preserve"><value>生成失败，请重试</value></data>
+  <data name="Main_ToolsItem.Label" xml:space="preserve"><value>工具与设置</value></data>
+  <data name="Main_PlaceholderNewHost" xml:space="preserve"><value>新建主机</value></data>
+  <data name="Main_PlaceholderSync" xml:space="preserve"><value>同步</value></data>
+  <data name="Tools_PageHeader.Title" xml:space="preserve"><value>工具与设置</value></data>
+  <data name="Tools_RowSettings.Title" xml:space="preserve"><value>设置</value></data>
+  <data name="Tools_RowSettings.Subtitle" xml:space="preserve"><value>外观、终端、键盘、连接与诊断</value></data>
+  <data name="Tools_RowKeys.Title" xml:space="preserve"><value>密钥</value></data>
+  <data name="Tools_RowKeys.Subtitle" xml:space="preserve"><value>导入、生成与导出公钥</value></data>
+  <data name="Tools_RowSnippets.Title" xml:space="preserve"><value>命令片段</value></data>
+  <data name="Tools_RowSnippets.Subtitle" xml:space="preserve"><value>常用命令一键发送</value></data>
+  <data name="Tools_RowAppearance.Title" xml:space="preserve"><value>终端外观</value></data>
+  <data name="Tools_RowAppearance.Subtitle" xml:space="preserve"><value>配色、字体与光标</value></data>
+  <data name="Tools_RowKnownHosts.Title" xml:space="preserve"><value>已知主机</value></data>
+  <data name="Tools_RowKnownHosts.Subtitle" xml:space="preserve"><value>已信任的主机指纹</value></data>
+  <data name="Tools_RowGroups.Title" xml:space="preserve"><value>主机分组</value></data>
+  <data name="Tools_RowGroups.Subtitle" xml:space="preserve"><value>新建、重命名与排序分组</value></data>
 </root>
 

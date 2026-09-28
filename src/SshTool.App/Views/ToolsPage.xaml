@@ -1,0 +1,43 @@
+﻿<Page
+    x:Class="SshTool.App.Views.ToolsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <!-- W01（05 §6.1）：「工具与设置」。原主页溢出菜单平铺的 5 个次要入口与分组管理集中于此，
+         主页溢出只留「工具与设置 / 关于 / 登录」。 -->
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <controls:AppPageHeader x:Name="PageHeader" x:Uid="Tools_PageHeader"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnBackRequested" />
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel>
+                <controls:AppListRow x:Uid="Tools_RowSettings"
+                                     IconGlyph="{StaticResource IconSettings}"
+                                     ShowChevron="True" Click="OnSettingsClick" />
+                <controls:AppListRow x:Uid="Tools_RowKeys"
+                                     IconGlyph="{StaticResource IconKey}"
+                                     ShowChevron="True" Click="OnKeysClick" />
+                <controls:AppListRow x:Uid="Tools_RowSnippets"
+                                     IconGlyph="{StaticResource IconSnippet}"
+                                     ShowChevron="True" Click="OnSnippetsClick" />
+                <controls:AppListRow x:Uid="Tools_RowAppearance"
+                                     IconGlyph="{StaticResource IconEdit}"
+                                     ShowChevron="True" Click="OnAppearanceClick" />
+                <controls:AppListRow x:Uid="Tools_RowKnownHosts"
+                                     IconGlyph="{StaticResource IconLock}"
+                                     ShowChevron="True" Click="OnKnownHostsClick" />
+                <controls:AppListRow x:Uid="Tools_RowGroups"
+                                     IconGlyph="{StaticResource IconFolder}"
+                                     ShowChevron="True" Click="OnGroupsClick" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

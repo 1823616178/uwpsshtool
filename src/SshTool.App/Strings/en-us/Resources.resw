@@ -463,11 +463,6 @@
   <data name="Main_TunnelsEmpty.Description" xml:space="preserve"><value>Forwards run in the background of active sessions.</value></data>
   <data name="Main_QuickConnectButton.Label" xml:space="preserve"><value>Quick connect</value></data>
   <data name="Main_NewButton.Label" xml:space="preserve"><value>New</value></data>
-  <data name="Main_SettingsItem.Label" xml:space="preserve"><value>Settings</value></data>
-  <data name="Main_KeysItem.Label" xml:space="preserve"><value>Keys</value></data>
-  <data name="Main_SnippetsItem.Label" xml:space="preserve"><value>Snippets</value></data>
-  <data name="Main_AppearanceItem.Label" xml:space="preserve"><value>Appearance</value></data>
-  <data name="Main_KnownHostsItem.Label" xml:space="preserve"><value>Known hosts</value></data>
   <data name="Main_AboutItem.Label" xml:space="preserve"><value>About</value></data>
   <data name="Main_SignInItem.Label" xml:space="preserve"><value>Sign in</value></data>
   <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>Developer tools</value></data>
@@ -1167,5 +1162,21 @@
   <data name="KeyImport_ErrPickFailed" xml:space="preserve"><value>File picker failed: {0}</value></data>
   <data name="KeyImport_ErrReadFailed" xml:space="preserve"><value>File read failed: {0}</value></data>
   <data name="KeyGenerate_ErrFallback" xml:space="preserve"><value>Generation failed, try again</value></data>
+  <data name="Main_ToolsItem.Label" xml:space="preserve"><value>Tools &amp; settings</value></data>
+  <data name="Main_PlaceholderNewHost" xml:space="preserve"><value>New host</value></data>
+  <data name="Main_PlaceholderSync" xml:space="preserve"><value>Sync</value></data>
+  <data name="Tools_PageHeader.Title" xml:space="preserve"><value>Tools &amp; settings</value></data>
+  <data name="Tools_RowSettings.Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Tools_RowSettings.Subtitle" xml:space="preserve"><value>Appearance, terminal, keyboard, connection, diagnostics</value></data>
+  <data name="Tools_RowKeys.Title" xml:space="preserve"><value>Keys</value></data>
+  <data name="Tools_RowKeys.Subtitle" xml:space="preserve"><value>Import, generate and export public keys</value></data>
+  <data name="Tools_RowSnippets.Title" xml:space="preserve"><value>Snippets</value></data>
+  <data name="Tools_RowSnippets.Subtitle" xml:space="preserve"><value>Send frequently used commands</value></data>
+  <data name="Tools_RowAppearance.Title" xml:space="preserve"><value>Terminal appearance</value></data>
+  <data name="Tools_RowAppearance.Subtitle" xml:space="preserve"><value>Colors, font and cursor</value></data>
+  <data name="Tools_RowKnownHosts.Title" xml:space="preserve"><value>Known hosts</value></data>
+  <data name="Tools_RowKnownHosts.Subtitle" xml:space="preserve"><value>Trusted host fingerprints</value></data>
+  <data name="Tools_RowGroups.Title" xml:space="preserve"><value>Host groups</value></data>
+  <data name="Tools_RowGroups.Subtitle" xml:space="preserve"><value>Create, rename and reorder groups</value></data>
 </root>
 
