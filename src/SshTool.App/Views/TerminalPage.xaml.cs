@@ -57,6 +57,11 @@ namespace SshTool.App.Views
                     Frame.Navigate(typeof(HostEditPage), HostEditArgs.Edit(ViewModel.Session.HostId));
                 }
             };
+            // 真机修复（2026-09-28）：键条必须与终端共用同一份粘滞修饰与终端模式——否则点键条 Ctrl
+            // 只改键条自己的状态，软键盘打的下一个字母不带 Ctrl（Ctrl+C 永远发不出去），方向键也
+            // 不跟随 DECCKM（vim 里方向键乱码）。调试页一直这样接，生产终端页漏了。
+            Keys.Sticky = Term.StickyModifiers;
+            Keys.Modes = Term.TerminalModes;
             Keys.Input += (s, e) =>
             {
                 if (Term.Session != null && e != null && e.Data != null)
@@ -92,11 +97,18 @@ namespace SshTool.App.Views
             {
                 keepAwake.SetTerminalVisible(true);
             }
+            // 键条的布局、显隐、触感来自设置（此前设置页改了也不生效）；
             // 02-UI-DESIGN.md §3：鼠标模式/Continuum 键条默认隐藏，可从菜单手动打开。
-            if (InteractionModeHelper.IsMouseMode)
+            SshTool.Core.Storage.SettingsRepository settings = AppServices.Current != null ? AppServices.Current.Settings : null;
+            if (settings != null)
             {
-                Keys.Visibility = Visibility.Collapsed;
+                Keys.Layout = settings.KeyBarLayout;
+                Keys.HapticsEnabled = settings.HapticsEnabled;
             }
+            bool keyBarWanted = settings == null || settings.KeyBarVisible;
+            Keys.Visibility = keyBarWanted && !InteractionModeHelper.IsMouseMode
+                ? Visibility.Visible
+                : Visibility.Collapsed;
             // R01 (C-02) + R03 (C-05)：加载/绑定共享世代；fire-and-forget 经 Forget 统一观察。
             LoadAndBindAsync(generation, e.Parameter as TerminalArgs).Forget("TerminalPage.LoadAndBind", AppLog.Logger);
         }
@@ -114,6 +126,11 @@ namespace SshTool.App.Views
                 }
                 BindSession();
                 ViewModel.AttachNative(native => Term.Session = native);
+                await ApplyHostInputOptionsAsync().ConfigureAwait(true);
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
                 _lifetime.Track(ViewModel.Detach);
                 ApplyAppearanceForSession();
                 // A03：外观变化后已打开终端刷新调色板与字体度量（不重连）。
@@ -371,6 +388,9 @@ namespace SshTool.App.Views
             var flyout = new MenuFlyout();
             flyout.Items.Add(Item(resw.GetString("Terminal_MenuSessions"), () => SessionsSplit.IsPaneOpen = !SessionsSplit.IsPaneOpen));
             flyout.Items.Add(Item(resw.GetString("Terminal_MenuKeyBar"), ToggleKeyBar));
+            flyout.Items.Add(Item(Term.ImeMode
+                ? Localized.Get("Terminal_MenuImeOff", "切换为英文直通输入")
+                : Localized.Get("Terminal_MenuImeOn", "切换为中文输入（输入法）"), ToggleImeMode));
             // U13：终端菜单「片段」打开选择器（锚定菜单按钮）。
             FrameworkElement anchor = sender as FrameworkElement;
             // C-03（§7.5）：菜单关闭后把焦点还给哨兵。仅当开菜单时 SIP 处于弹出态才恢复——
@@ -472,6 +492,29 @@ namespace SshTool.App.Views
                 default:
                     break;
             }
+        }
+
+        // 主机级输入选项：退格发 ^H（HostEdit「退格发送 Ctrl+H」此前保存了却从未应用到终端）。
+        private async Task ApplyHostInputOptionsAsync()
+        {
+            SessionInfo session = ViewModel.Session;
+            AppServices services = AppServices.Current;
+            if (session == null || services == null || string.IsNullOrEmpty(session.HostId))
+            {
+                return;
+            }
+            SshTool.Core.Models.Host host = await services.Hosts.GetByIdAsync(session.HostId).ConfigureAwait(true);
+            bool bs = host != null && host.BackspaceSendsCtrlH;
+            Term.BackspaceAsBs = bs;
+            Keys.BackspaceAsBs = bs;
+        }
+
+        // 真机修复：软键盘默认拉丁直通；需要中文时从菜单切 IME 模式（全局偏好，新终端沿用）。
+        private void ToggleImeMode()
+        {
+            bool next = !Term.ImeMode;
+            TerminalView.PreferImeMode = next;
+            Term.ImeMode = next;
         }
 
         // U12：宽屏默认隐藏键条后可手动打开/关闭。

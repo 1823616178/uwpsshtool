@@ -469,6 +469,16 @@ public ref class KeyTool sealed {
    规则：非组合态由 `KeyDown(Back)` 发 `0x7F`（可配 `0x08`）并 `Handled=true`；组合态交给 IME，由第 3 条收尾。
    （即便如此仍建议哨兵留 2 字符：它是「文本被改动」的探针，不承担计数职责。）
 
+**真机修复（2026-09-28，Lumia 反馈「只有回车有效」）**：
+- 哨兵默认 `InputScope=Password`：键盘固定拉丁布局、无联想、无组合、不学习输入（顺带避免把服务器密码记进词库），
+  逐键走第 2 条直通。中文 IME 模式下连英文字母都进组合态，憋到组合结束才发送，且组合结束时 IME 的上屏文本未必已写入哨兵——
+  字母丢失而走 KeyDown 路的回车照常到达，正是现场症状。需要中文时从终端菜单切「中文输入」（`InputScope=Default`，走第 3 条），
+  这是应用内全局偏好，新开终端沿用。
+- 第 3 条补强：`CompositionEnded` 差分之后再在下一轮消息循环（Low 优先级）补一次差分；哨兵重新获得焦点或失焦时清掉残留的组合标志，
+  防止一次未配对的 `CompositionStarted` 让之后所有 `TextChanged` 被丢弃。
+- 终端页的键条必须与 TerminalView 共用 `StickyModifiers` 与 `TerminalModes`（调试页一直这样接，生产终端页漏接导致键条 Ctrl 对软键盘无效、方向键不跟随 DECCKM）；
+  键条布局/显隐/触感取设置，主机「退格发送 Ctrl+H」应用到终端与键条。
+
 **兜底不启用**：Word Flow 的 `TextCompositionStarted/Changed/Ended` 在 W10M 上确实成对触发且状态可靠，
 原方案里「延迟 300 ms 未再变化才发送」的降级路径**不需要**（SP05 实测，2026-09-18）。
 

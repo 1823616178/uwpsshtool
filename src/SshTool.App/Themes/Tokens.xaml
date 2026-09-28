@@ -112,6 +112,8 @@
     <x:String x:Key="IconCloudOff">&#xE8CD;</x:String>
     <x:String x:Key="IconSettings">&#xE713;</x:String>
     <x:String x:Key="IconMore">&#xE712;</x:String>
+    <!-- SFTP 重设计：排序/视图选项（MDL2 Sort）。 -->
+    <x:String x:Key="IconSort">&#xE8CB;</x:String>
     <x:String x:Key="IconConnect">&#xE703;</x:String>
     <x:String x:Key="IconDisconnect">&#xE8CD;</x:String>
     <x:String x:Key="IconTerminal">&#xE756;</x:String>

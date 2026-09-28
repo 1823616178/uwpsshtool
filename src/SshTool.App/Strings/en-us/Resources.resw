@@ -133,7 +133,6 @@
   <data name="Sftp_UploadButton.Label" xml:space="preserve"><value>Upload</value></data>
   <data name="Sftp_NewFolderButton.Label" xml:space="preserve"><value>New folder</value></data>
   <data name="Sftp_RefreshButton.Label" xml:space="preserve"><value>Refresh</value></data>
-  <data name="Sftp_MoreButton.Label" xml:space="preserve"><value>More</value></data>
   <data name="Sftp_SortHeader" xml:space="preserve"><value>Sort by</value></data>
   <data name="Sftp_SortName" xml:space="preserve"><value>Name</value></data>
   <data name="Sftp_SortSize" xml:space="preserve"><value>Size</value></data>
@@ -1228,5 +1227,8 @@
   <data name="Tools_ImportSummary" xml:space="preserve"><value>{0} host(s) will be imported. Skipped: {1} duplicate, {2} without User, {3} wildcard pattern.</value></data>
   <data name="Tools_ImportNeedsKey" xml:space="preserve"><value>{0} of them use IdentityFile: private keys are not imported. Import them under Keys and link them in the host editor.</value></data>
   <data name="Tools_ImportConfirm" xml:space="preserve"><value>Import</value></data>
+  <data name="Terminal_MenuImeOn" xml:space="preserve"><value>Switch to IME input (Chinese)</value></data>
+  <data name="Terminal_MenuImeOff" xml:space="preserve"><value>Switch to direct English input</value></data>
+  <data name="Sftp_ViewOptionsButton.Label" xml:space="preserve"><value>Sort &amp; view</value></data>
 </root>
 

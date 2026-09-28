@@ -1,5 +1,7 @@
-using System;
+﻿using System;
 using System.Text;
+using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using SshTool.Core.Terminal;
 using Windows.Foundation;
 using Windows.UI.ViewManagement;
@@ -19,6 +21,7 @@ namespace SshTool.App.Terminal
         private bool _composing;
         private bool _enterHeld;
         private bool _disposed;
+        private bool _imeMode;
 
         public SoftKeyboardInput()
         {
@@ -35,6 +38,25 @@ namespace SshTool.App.Terminal
         public bool IsComposing
         {
             get { return _composing; }
+        }
+
+        // 真机修复（2026-09-28，Lumia 反馈「只有回车有效」）：Word Flow 中文键盘连英文字母也进组合态
+        // （§7.5），字母要憋到组合结束才发送，且组合结束时 IME 的上屏文本未必已写进哨兵——结果只剩
+        // 走 KeyDown 路的回车能到远端。终端输入绝大多数是 ASCII，所以默认把哨兵设成 Password 输入范围：
+        // 键盘固定为拉丁布局、无联想无组合、不学习输入（顺带避免把服务器密码记进词库），逐键直通。
+        // 需要打中文时由终端菜单切到 IME 模式（Default 输入范围，走组合态规则）。
+        public bool ImeMode
+        {
+            get { return _imeMode; }
+            set
+            {
+                if (_imeMode == value)
+                {
+                    return;
+                }
+                _imeMode = value;
+                ApplyInputScope();
+            }
         }
 
         public bool HasFocus
@@ -68,6 +90,7 @@ namespace SshTool.App.Terminal
             _box.TextCompositionEnded += OnCompositionEnded;
             _box.GotFocus += OnGotFocus;
             _box.LostFocus += OnLostFocus;
+            ApplyInputScope();
             ResetSentinel();
             AttachInputPane();
         }
@@ -86,6 +109,12 @@ namespace SshTool.App.Terminal
             if (_box == null)
             {
                 return false;
+            }
+            if (!HasFocus)
+            {
+                // 失焦期间 IME 可能没来得及发 CompositionEnded：残留的组合标志会让之后所有
+                // TextChanged 被丢弃（字母全部失效），重新拿焦点时一律清掉。
+                _composing = false;
             }
             ResetSentinel();
             return _box.Focus(FocusState.Programmatic);
@@ -234,8 +263,38 @@ namespace SshTool.App.Terminal
             {
                 return;
             }
-            EmitDiff(SentinelDiff.Compute(sender.Text), true);
+            CommitPending(true);
+            // IME 可能在 CompositionEnded 之后才把上屏文本写进哨兵：此时上面这次差分为空，
+            // 紧随其后的 TextChanged 会因组合标志已清而正常发送；再在下一轮消息循环补一次差分兜底。
+            // 两路谁先看到新增谁发送并复位哨兵，另一路看到的是已复位的哨兵，不会重复发送。
+            sender.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () => CommitPending(true))
+                .AsTask().Forget("SoftKeyboard.CommitPending", AppLog.Logger);
+        }
+
+        private void CommitPending(bool sendDeletes)
+        {
+            if (_resetting || _box == null || _composing)
+            {
+                return;
+            }
+            SentinelDiffResult diff = SentinelDiff.Compute(_box.Text);
+            if (diff.IsEmpty)
+            {
+                return;
+            }
+            EmitDiff(diff, sendDeletes);
             ResetSentinel();
+        }
+
+        private void ApplyInputScope()
+        {
+            if (_box == null)
+            {
+                return;
+            }
+            var scope = new InputScope();
+            scope.Names.Add(new InputScopeName(_imeMode ? InputScopeNameValue.Default : InputScopeNameValue.Password));
+            _box.InputScope = scope;
         }
 
         private void OnGotFocus(object sender, RoutedEventArgs e)
@@ -249,6 +308,7 @@ namespace SshTool.App.Terminal
         private void OnLostFocus(object sender, RoutedEventArgs e)
         {
             _enterHeld = false;
+            _composing = false;
         }
 
         private void OnInputPaneShowing(InputPane sender, InputPaneVisibilityEventArgs args)

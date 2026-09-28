@@ -23,7 +23,7 @@ namespace SshTool.App.Dialogs
         private RenameDialog()
         {
             this.InitializeComponent();
-            NameBox.Header = Loader.GetString("Sftp_RenameName.Header");
+            NameBox.Header = Loader.GetString("Sftp_RenameName/Header");
             // 取消/确定复用成对共享键 Dialog_Ok / Dialog_Cancel（x:Uid 只能取每对话框前缀键，无法复用）。
             PrimaryButtonText = Loader.GetString("Dialog_Ok");
             SecondaryButtonText = Loader.GetString("Dialog_Cancel");

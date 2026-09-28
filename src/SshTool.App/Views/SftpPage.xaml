@@ -21,22 +21,15 @@
              行点按由 ListView.ItemClick 处理；长按/右键保留行菜单；尾槽按钮触发更多 flyout。
              IsCompact 走 ListRowCompactHeight（48），与旧模板一致。 -->
         <DataTemplate x:Key="EntryRowTemplate">
+            <!-- SFTP 重设计：去掉每行的「更多」按钮（与 V02 HostRow 一致，操作走长按/右键菜单），
+                 目录行显示 Chevron 提示可进入。 -->
             <controls:AppListRow IconGlyph="{Binding Glyph}"
                                  Title="{Binding Name}"
                                  Subtitle="{Binding SubtitleText}"
+                                 ShowChevron="{Binding IsDirectory}"
                                  IsCompact="True"
                                  RightTapped="OnRowRightTapped"
-                                 Holding="OnRowHolding">
-                <controls:AppListRow.TrailingContent>
-                    <Button Style="{StaticResource IconButtonStyle}"
-                            MinWidth="{StaticResource TouchTargetMin}"
-                            MinHeight="{StaticResource TouchTargetMin}"
-                            AutomationProperties.Name="{Binding MoreButtonName}"
-                            Click="OnRowMoreClick">
-                        <FontIcon Glyph="{StaticResource IconMore}" FontSize="{StaticResource FontBody}" />
-                    </Button>
-                </controls:AppListRow.TrailingContent>
-            </controls:AppListRow>
+                                 Holding="OnRowHolding" />
         </DataTemplate>
 
         <!-- 传输行：方向图标 / 名称 / 状态 / 进度条 / 速率 / [取消][重试] -->
@@ -80,14 +73,15 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
                             Margin="{StaticResource GapSmLeft}">
-                    <Button Content="{Binding CancelText}" Click="OnCancelTransferClick"
-                            Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}"
-                            MinWidth="{StaticResource TouchTargetMin}" />
+                    <Button Click="OnCancelTransferClick" Style="{StaticResource IconButtonStyle}"
+                            AutomationProperties.Name="{Binding CancelText}"
+                            Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}">
+                        <FontIcon Glyph="{StaticResource IconClose}" FontSize="{StaticResource FontBody}" />
+                    </Button>
                     <Button x:Uid="Sftp_RetryTransferButton" Click="OnRetryTransferClick"
-                            Visibility="{Binding CanRetry, Converter={StaticResource BoolToVisibility}}"
-                            MinWidth="{StaticResource TouchTargetMin}"
-                            Margin="{StaticResource GapSmLeft}">
-                        <FontIcon Glyph="{StaticResource IconSync}" />
+                            Style="{StaticResource IconButtonStyle}"
+                            Visibility="{Binding CanRetry, Converter={StaticResource BoolToVisibility}}">
+                        <FontIcon Glyph="{StaticResource IconSync}" FontSize="{StaticResource FontBody}" />
                     </Button>
 
                 </StackPanel>
@@ -103,58 +97,53 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock x:Name="TitleText" Style="{StaticResource PageTitleTextStyle}"
-                   Margin="{StaticResource PagePadding}" TextTrimming="CharacterEllipsis" />
+        <controls:AppPageHeader x:Name="PageHeader" Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
 
-        <!-- 面包屑（可点回跳）+ 返回上级 -->
-        <Grid Grid.Row="1" Padding="{StaticResource PagePadding}"
-              Background="{ThemeResource AppSurfaceBrush}">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <ScrollViewer HorizontalScrollBarVisibility="Hidden"
-                          HorizontalScrollMode="Auto" VerticalScrollMode="Disabled"
-                          VerticalAlignment="Center">
-                <ItemsControl x:Name="BreadcrumbBar">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="/" Style="{StaticResource BodyTextStyle}"
-                                           VerticalAlignment="Center" />
-                                <Button Content="{Binding Name}" Click="OnBreadcrumbClick"
-                                        Padding="{StaticResource PadNone}"
-                                        BorderThickness="{StaticResource BorderNone}"
-                                        Background="Transparent"
-                                        Foreground="{ThemeResource AppTextBrush}"
-                                        MinHeight="{StaticResource GroupHeaderHeight}" />
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-            <!-- UI 走查：上级按钮不再用裸「↑」字符（读屏念成「上箭头」、字体回落会变豆腐块）。
-                 无障碍名由 x:Uid 从 resw 的 Sftp_UpButton.AutomationProperties.Name 取（zh/en 均已登记）。 -->
-            <Button x:Uid="Sftp_UpButton" Grid.Column="1"
-                    MinWidth="{StaticResource TouchTargetMin}"
-                    MinHeight="{StaticResource TouchTargetMin}"
-                    BorderThickness="{StaticResource BorderNone}"
-                    Background="Transparent"
-                    Foreground="{ThemeResource AppTextBrush}"
-                    Click="OnUpClick">
-                <Button.Content>
+        <!-- 路径条：上级按钮在左；面包屑以 Chevron 分隔、可横向滚动，进入新目录后自动滚到末段
+             （当前目录）。底部细线与列表分隔。 -->
+        <Border Grid.Row="1" Background="{ThemeResource AppSurfaceBrush}"
+                BorderBrush="{ThemeResource AppBorderBrush}"
+                BorderThickness="{StaticResource BorderThinBottom}">
+            <Grid Padding="{StaticResource PagePadding}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <!-- UI 走查：上级按钮不用裸「↑」字符；无障碍名由 x:Uid 取 resw。 -->
+                <Button x:Uid="Sftp_UpButton" Style="{StaticResource IconButtonStyle}" Click="OnUpClick">
                     <FontIcon Glyph="{StaticResource IconChevronUp}" FontSize="{StaticResource FontBody}" />
-                </Button.Content>
-            </Button>
-        </Grid>
+                </Button>
+                <ScrollViewer x:Name="BreadcrumbScroller" Grid.Column="1"
+                              HorizontalScrollBarVisibility="Hidden"
+                              HorizontalScrollMode="Auto" VerticalScrollMode="Disabled"
+                              VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}">
+                    <ItemsControl x:Name="BreadcrumbBar">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <FontIcon Glyph="{StaticResource IconChevronRight}"
+                                              FontSize="{StaticResource FontCaption}"
+                                              Foreground="{ThemeResource AppTextFaintBrush}"
+                                              VerticalAlignment="Center" />
+                                    <Button Content="{Binding Name}" Click="OnBreadcrumbClick"
+                                            Style="{StaticResource BreadcrumbButtonStyle}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
 
         <Grid Grid.Row="2">
             <ListView x:Name="EntryList" SelectionMode="None" IsItemClickEnabled="True"
+                      ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
                       ItemClick="OnEntryClick" ItemTemplate="{StaticResource EntryRowTemplate}" />
             <controls:EmptyState x:Name="EmptyPanel" Visibility="Collapsed"
                                  Glyph="{StaticResource IconFolder}" />
@@ -166,7 +155,7 @@
         <Border x:Name="TransferPanel" Grid.Row="3" Visibility="Collapsed"
                 Background="{ThemeResource AppSurfaceBrush}"
                 BorderBrush="{ThemeResource AppBorderBrush}"
-                BorderThickness="{StaticResource BorderThin}">
+                BorderThickness="{StaticResource BorderThinTop}">
             <StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -192,10 +181,8 @@
                         </Grid>
                     </Button>
                     <Button x:Name="ClearFinishedButton" Grid.Column="1" Click="OnClearFinishedClick"
-                            BorderThickness="{StaticResource BorderNone}"
-                            Background="Transparent"
-                            Foreground="{ThemeResource AppTextDimBrush}"
-                            MinHeight="{StaticResource TouchTargetMin}" />
+                            Style="{StaticResource BreadcrumbButtonStyle}"
+                            Margin="{StaticResource GapSmRight}" />
                 </Grid>
                 <!-- 传输面板空状态：面板可见但列表暂无行时给一行说明（文案由 code-behind
                      取 resw 的 Sftp_TransfersEmpty）。整条面板的显隐仍由 ShowTransferBar 决定，
@@ -243,9 +230,12 @@
                     <FontIcon Glyph="{StaticResource IconSync}" />
                 </AppBarButton.Icon>
             </AppBarButton>
-            <CommandBar.SecondaryCommands>
-                <AppBarButton x:Uid="Sftp_MoreButton" Click="OnMoreClick" />
-            </CommandBar.SecondaryCommands>
+            <!-- SFTP 重设计：排序/隐藏文件/书签直接一个主按钮弹出，不再「溢出菜单里只有一个『更多』」。 -->
+            <AppBarButton x:Uid="Sftp_ViewOptionsButton" Click="OnMoreClick">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="{StaticResource IconSort}" />
+                </AppBarButton.Icon>
+            </AppBarButton>
         </CommandBar>
     </Page.BottomAppBar>
 </Page>

@@ -78,6 +78,14 @@
         <Setter Property="Padding" Value="{StaticResource PadNone}" />
     </Style>
 
+    <!-- SFTP 重设计：面包屑段——纯文本按钮，沿用 IconButtonStyle 的按压反馈，左右留 4 epx。 -->
+    <Style x:Key="BreadcrumbButtonStyle" TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+        <Setter Property="Padding" Value="{StaticResource PadXs}" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextDimBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+    </Style>
+
     <Style x:Key="TerminalIconButtonStyle" TargetType="Button">
         <Setter Property="AllowFocusOnInteraction" Value="False" />
         <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />

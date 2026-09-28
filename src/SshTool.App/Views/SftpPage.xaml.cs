@@ -22,6 +22,18 @@ namespace SshTool.App.Views
     // 本类只做：导航参数装配、绑定装配、行长按/右键菜单（按类型动态构建）。
     public sealed partial class SftpPage : Page
     {
+        private string _shownPath;
+
+        // SFTP 重设计：页头返回按钮（与硬件返回键同一条处理链）。
+        private void OnHeaderBackRequested(object sender, EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+            }
+        }
+
         private static readonly ResourceLoader Loader = ResourceLoader.GetForCurrentView();
         // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
         private readonly NavigationLifetime _lifetime = new NavigationLifetime();
@@ -91,8 +103,15 @@ namespace SshTool.App.Views
             {
                 return;
             }
-            TitleText.Text = string.IsNullOrEmpty(vm.Title)
-                ? Loader.GetString("Sftp_Title.Text")
+            if (!string.Equals(_shownPath, vm.CurrentPath, StringComparison.Ordinal))
+            {
+                _shownPath = vm.CurrentPath;
+                // 深层目录的面包屑比屏宽，进入后滚到末段让当前目录可见（等布局完成再滚）。
+                DispatcherHelper.Post(() => BreadcrumbScroller.ChangeView(
+                    BreadcrumbScroller.ScrollableWidth, null, null, true));
+            }
+            PageHeader.Title = string.IsNullOrEmpty(vm.Title)
+                ? Loader.GetString("Sftp_Title/Text")
                 : vm.Title;
             BusyOverlay.IsActive = vm.IsBusy;
             BusyOverlay.Message = vm.BusyMessage;
@@ -101,15 +120,15 @@ namespace SshTool.App.Views
             EmptyPanel.Visibility = empty || vm.HasError ? Visibility.Visible : Visibility.Collapsed;
             if (vm.HasError)
             {
-                EmptyPanel.Title = Loader.GetString("Sftp_LoadFailed.Text");
+                EmptyPanel.Title = Loader.GetString("Sftp_LoadFailed/Text");
                 EmptyPanel.Description = vm.StatusText;
-                EmptyPanel.PrimaryText = Loader.GetString("Sftp_Retry.Text");
+                EmptyPanel.PrimaryText = Loader.GetString("Sftp_Retry/Text");
                 EmptyPanel.PrimaryCommand = vm.RefreshCommand;
             }
             else if (empty)
             {
-                EmptyPanel.Title = Loader.GetString("Sftp_EmptyTitle.Text");
-                EmptyPanel.Description = Loader.GetString("Sftp_EmptyDescription.Text");
+                EmptyPanel.Title = Loader.GetString("Sftp_EmptyTitle/Text");
+                EmptyPanel.Description = Loader.GetString("Sftp_EmptyDescription/Text");
                 EmptyPanel.PrimaryText = null;
                 EmptyPanel.PrimaryCommand = null;
             }
@@ -272,17 +291,6 @@ namespace SshTool.App.Views
                 ShowRowMenu(sender as FrameworkElement, null);
             }
             e.Handled = true;
-        }
-
-        // §6.5：尾槽「更多」按钮——与长按/右键共享同一条行菜单。
-        // 尾槽在 AppListRow.IsWithin 溯源中已被排除，行 Click 不会由此触发，无需 MarkHandled。
-        private void OnRowMoreClick(object sender, RoutedEventArgs e)
-        {
-            var anchor = sender as FrameworkElement;
-            if (anchor != null)
-            {
-                ShowRowMenu(anchor, null);
-            }
         }
 
         private void ShowRowMenu(FrameworkElement anchor, Point? point)

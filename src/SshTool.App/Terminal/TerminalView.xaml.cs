@@ -89,6 +89,7 @@ namespace SshTool.App.Terminal
             _resizeTimer.Tick += OnResizeTimerTick;
             _softKeyboard.Sticky = _sticky;
             _softKeyboard.Modes = _modes;
+            _softKeyboard.ImeMode = PreferImeMode;
             _softKeyboard.Input += OnSoftKeyboardInput;
             _softKeyboard.OcclusionChanged += OnOcclusionChanged;
             _hardwareKeyboard.Sticky = _sticky;
@@ -128,6 +129,34 @@ namespace SshTool.App.Terminal
         public TerminalModes TerminalModes
         {
             get { return _modes; }
+        }
+
+        // 真机修复：软键盘默认拉丁直通；IME 模式（中文输入）是应用内全局偏好，新开的终端沿用。
+        public static bool PreferImeMode { get; set; }
+
+        public bool ImeMode
+        {
+            get { return _softKeyboard.ImeMode; }
+            set
+            {
+                if (_softKeyboard.ImeMode == value)
+                {
+                    return;
+                }
+                bool refocus = _softKeyboard.HasFocus;
+                _softKeyboard.ImeMode = value;
+                if (refocus)
+                {
+                    // 输入范围只在获得焦点时生效：先把焦点挪到本控件再还给哨兵，软键盘随之换布局。
+                    DispatcherHelper.Post(() =>
+                    {
+                        this.IsTabStop = true;
+                        this.Focus(FocusState.Programmatic);
+                        this.IsTabStop = false;
+                        FocusInput();
+                    });
+                }
+            }
         }
 
         public bool BackspaceAsBs

@@ -133,7 +133,6 @@
   <data name="Sftp_UploadButton.Label" xml:space="preserve"><value>上传</value></data>
   <data name="Sftp_NewFolderButton.Label" xml:space="preserve"><value>新建文件夹</value></data>
   <data name="Sftp_RefreshButton.Label" xml:space="preserve"><value>刷新</value></data>
-  <data name="Sftp_MoreButton.Label" xml:space="preserve"><value>更多</value></data>
   <data name="Sftp_SortHeader" xml:space="preserve"><value>排序方式</value></data>
   <data name="Sftp_SortName" xml:space="preserve"><value>按名称</value></data>
   <data name="Sftp_SortSize" xml:space="preserve"><value>按大小</value></data>
@@ -1229,5 +1228,8 @@
   <data name="Tools_ImportSummary" xml:space="preserve"><value>将导入 {0} 台主机。跳过：重名 {1}、缺少 User {2}、通配符模式 {3}。</value></data>
   <data name="Tools_ImportNeedsKey" xml:space="preserve"><value>其中 {0} 台配置了 IdentityFile：私钥不会导入，请在「密钥」中导入后到主机编辑页关联。</value></data>
   <data name="Tools_ImportConfirm" xml:space="preserve"><value>导入</value></data>
+  <data name="Terminal_MenuImeOn" xml:space="preserve"><value>切换为中文输入（输入法）</value></data>
+  <data name="Terminal_MenuImeOff" xml:space="preserve"><value>切换为英文直通输入</value></data>
+  <data name="Sftp_ViewOptionsButton.Label" xml:space="preserve"><value>排序与视图</value></data>
 </root>
 

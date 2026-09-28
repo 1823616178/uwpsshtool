@@ -35,7 +35,7 @@ namespace SshTool.App.Dialogs
             ReadLabel.Text = Loader.GetString("Sftp_PermissionsRead");
             WriteLabel.Text = Loader.GetString("Sftp_PermissionsWrite");
             ExecuteLabel.Text = Loader.GetString("Sftp_PermissionsExecute");
-            OctalBox.Header = Loader.GetString("Sftp_PermissionsOctal.Header");
+            OctalBox.Header = Loader.GetString("Sftp_PermissionsOctal/Header");
             // PermissionBits.ToRwx 位序：r,w,x | r,w,x | r,w,x（高→低 0x100→0x1）。
             _bits = new CheckBox[9]
             {
