@@ -48,6 +48,8 @@ $Exempt = @{
         '同上：应用级容器订阅应用级仓库'
     'NativeForwarder.cs:StateChanged:lambda' =
         '订阅的是本转发器自建自管的专用会话，ActiveTunnel.Dispose 一并释放（见该文件 :34-46）'
+    'DisconnectNotifier.cs:SessionsChanged:OnSessionsChanged' =
+        'W04：App 在启动时建一个、与进程同寿命（App._disconnectNotifier），与 SessionManager 同寿命'
 }
 
 $scanDirs = @('ViewModels', 'Views', 'Controls', 'Terminal', 'Infrastructure', 'Platform')

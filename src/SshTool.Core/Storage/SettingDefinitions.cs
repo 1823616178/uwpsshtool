@@ -131,7 +131,12 @@ namespace SshTool.Core.Storage
             new SettingDefinition("syncPollForegroundSeconds", SettingType.Int, 60),
             new SettingDefinition("lastVersionSeen", SettingType.String, ""),
             new SettingDefinition("logLevel", SettingType.String, "info",
-                new[] { "debug", "info", "warn", "error" })
+                new[] { "debug", "info", "warn", "error" }),
+            // W04（01-DESIGN §16.4）：应用锁、后台断线通知、终端响铃反馈。
+            new SettingDefinition("appLockEnabled", SettingType.Bool, false),
+            new SettingDefinition("notifyOnDisconnect", SettingType.Bool, true),
+            new SettingDefinition("bellMode", SettingType.String, "vibrate",
+                new[] { "vibrate", "visual", "none" })
         };
 
         public static SettingDefinition Find(string key)

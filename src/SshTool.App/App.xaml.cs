@@ -16,6 +16,8 @@ namespace SshTool.App
     /// </summary>
     sealed partial class App : Application
     {
+        private Platform.DisconnectNotifier _disconnectNotifier;
+
         public App()
         {
             this.InitializeComponent();
@@ -38,25 +40,36 @@ namespace SshTool.App
             {
                 ShowMainPage(rootFrame, hostId != null);
                 Window.Current.Activate();
+                Platform.AppLockService.Instance.OnColdStart();
             }
 
             var ignoreAutoTest = Views.Debug.SshAutoTest.RunIfSeedPresentAsync();
         }
 
-        // W03：ssh:// 协议激活（冷启动或运行中都会走这里）。
+        // W03：ssh:// 协议激活；W04：点断线通知。冷启动或运行中都会走这里。
         protected override async void OnActivated(IActivatedEventArgs args)
         {
+            bool handled = false;
             var protocol = args as ProtocolActivatedEventArgs;
             string quick;
-            bool handled = protocol != null && protocol.Uri != null
-                && HostLaunchLinks.TryParseSshUri(protocol.Uri.OriginalString, out quick);
-            if (handled)
+            if (protocol != null && protocol.Uri != null
+                && HostLaunchLinks.TryParseSshUri(protocol.Uri.OriginalString, out quick))
             {
                 Infrastructure.LaunchRequests.RequestQuickConnect(quick);
+                handled = true;
+            }
+            var toast = args as ToastNotificationActivatedEventArgs;
+            if (toast != null && toast.Argument != null
+                && toast.Argument.StartsWith(Platform.DisconnectNotifier.LaunchPrefix, StringComparison.Ordinal))
+            {
+                Infrastructure.LaunchRequests.RequestSession(
+                    toast.Argument.Substring(Platform.DisconnectNotifier.LaunchPrefix.Length));
+                handled = true;
             }
             Frame rootFrame = await EnsureStartedAsync();
             ShowMainPage(rootFrame, handled);
             Window.Current.Activate();
+            Platform.AppLockService.Instance.OnColdStart();
         }
 
         // 首次激活时建 Frame、注册服务并启动；后续激活直接返回已有 Frame。
@@ -89,6 +102,13 @@ namespace SshTool.App
                     {
                         services.Lifecycle.Start();
                     }
+                    // W04：应用锁与后台断线通知（与应用同寿命）。
+                    Platform.AppLockService.Instance.Start(services.Settings);
+                    Platform.LifecycleService lifecycle = services.Lifecycle;
+                    _disconnectNotifier = new Platform.DisconnectNotifier(
+                        services.Sessions, services.Settings,
+                        () => lifecycle != null && lifecycle.IsInBackground);
+                    _disconnectNotifier.Start();
                 }
                 catch (Exception ex)
                 {

@@ -105,6 +105,11 @@
                         <ToggleSwitch x:Name="PasteConfirmSwitch" x:Uid="Settings_Terminal_PasteConfirm"
                                       Margin="{StaticResource GapSmTop}"
                                       Toggled="OnPasteConfirmToggled" />
+                        <!-- W04：终端响铃反馈。 -->
+                        <ComboBox x:Name="BellBox" x:Uid="Settings_Terminal_Bell"
+                                  HorizontalAlignment="Stretch"
+                                  Margin="{StaticResource GapSmTop}"
+                                  SelectionChanged="OnBellChanged" />
                         <controls:FormSection Margin="{StaticResource GapSmTop}">
                             <controls:FormSection.SectionContent>
                                 <StackPanel>
@@ -157,6 +162,15 @@
                                       Margin="{StaticResource GapSmTop}"
                                       Toggled="OnKeepAliveToggled" />
                         <TextBlock x:Uid="Settings_Connection_KeepAlive_Note"
+                                   Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                        <!-- W04：后台断线通知与应用锁（01-DESIGN §16.4）。 -->
+                        <ToggleSwitch x:Name="NotifySwitch" x:Uid="Settings_Connection_NotifyDisconnect"
+                                      Margin="{StaticResource GapSmTop}"
+                                      Toggled="OnNotifyToggled" />
+                        <ToggleSwitch x:Name="AppLockSwitch" x:Uid="Settings_Security_AppLock"
+                                      Margin="{StaticResource GapSmTop}"
+                                      Toggled="OnAppLockToggled" />
+                        <TextBlock x:Name="AppLockNote" x:Uid="Settings_Security_AppLock_Note"
                                    Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
                         <ComboBox x:Name="BgDiscBox" x:Uid="Settings_Connection_BgDisc"
                                   HorizontalAlignment="Stretch"

@@ -139,5 +139,8 @@ namespace SshTool.Core.Storage
         public int SyncPollForegroundSeconds { get { return GetInt("syncPollForegroundSeconds"); } set { Set("syncPollForegroundSeconds", value); } }
         public string LastVersionSeen { get { return GetString("lastVersionSeen"); } set { Set("lastVersionSeen", value); } }
         public string LogLevel { get { return GetString("logLevel"); } set { Set("logLevel", value); } }
+        public bool AppLockEnabled { get { return GetBool("appLockEnabled"); } set { Set("appLockEnabled", value); } }
+        public bool NotifyOnDisconnect { get { return GetBool("notifyOnDisconnect"); } set { Set("notifyOnDisconnect", value); } }
+        public string BellMode { get { return GetString("bellMode"); } set { Set("bellMode", value); } }
     }
 }

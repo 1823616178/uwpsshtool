@@ -194,6 +194,51 @@ namespace SshTool.App.ViewModels
             }
         }
 
+        // W04（01-DESIGN §16.4）：终端响铃反馈 vibrate/visual/none。
+        public string BellMode
+        {
+            get { return _settings.GetString("bellMode"); }
+            set
+            {
+                _settings.Set("bellMode", SettingDefinitions.Require("bellMode").NormalizeString(value));
+                RaisePropertyChanged(nameof(BellMode));
+            }
+        }
+
+        public bool NotifyOnDisconnect
+        {
+            get { return _settings.GetBool("notifyOnDisconnect"); }
+            set
+            {
+                _settings.Set("notifyOnDisconnect", value);
+                RaisePropertyChanged(nameof(NotifyOnDisconnect));
+            }
+        }
+
+        public bool AppLockEnabled
+        {
+            get { return _settings.GetBool("appLockEnabled"); }
+            set
+            {
+                _settings.Set("appLockEnabled", value);
+                RaisePropertyChanged(nameof(AppLockEnabled));
+            }
+        }
+
+        public static int BellModeToIndex(string value)
+        {
+            if (string.Equals(value, "visual", StringComparison.Ordinal)) { return 1; }
+            if (string.Equals(value, "none", StringComparison.Ordinal)) { return 2; }
+            return 0;
+        }
+
+        public static string IndexToBellMode(int index)
+        {
+            if (index == 1) { return "visual"; }
+            if (index == 2) { return "none"; }
+            return "vibrate";
+        }
+
         public bool PasteConfirmMultiline
         {
             get { return _settings.GetBool("pasteConfirmMultiline"); }

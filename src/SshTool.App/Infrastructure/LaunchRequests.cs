@@ -1,40 +1,50 @@
 ﻿namespace SshTool.App.Infrastructure
 {
-    // W03（01-DESIGN §16.3）：激活参数（磁贴 / ssh:// 链接）到主页的一次性交接。
+    // W03/W04（01-DESIGN §16.3、§16.4）：激活参数（磁贴 / ssh:// 链接 / 断线通知）到主页的一次性交接。
     // App 在激活时写入，MainPage 导航进来时取走；取走即清空，返回主页不会重复触发。
+    // 三种请求互斥，后写入的覆盖先写入的。
+    public sealed class LaunchRequest
+    {
+        public string HostId { get; set; }
+        public string QuickConnectText { get; set; }
+        public string SessionId { get; set; }
+    }
+
     public static class LaunchRequests
     {
         private static readonly object Gate = new object();
-        private static string _hostId;
-        private static string _quickConnectText;
+        private static LaunchRequest _pending;
 
         public static void RequestHost(string hostId)
         {
-            lock (Gate)
-            {
-                _hostId = hostId;
-                _quickConnectText = null;
-            }
+            Set(new LaunchRequest { HostId = hostId });
         }
 
         public static void RequestQuickConnect(string text)
         {
-            lock (Gate)
-            {
-                _quickConnectText = text;
-                _hostId = null;
-            }
+            Set(new LaunchRequest { QuickConnectText = text });
         }
 
-        public static bool TryTake(out string hostId, out string quickConnectText)
+        public static void RequestSession(string sessionId)
+        {
+            Set(new LaunchRequest { SessionId = sessionId });
+        }
+
+        public static LaunchRequest Take()
         {
             lock (Gate)
             {
-                hostId = _hostId;
-                quickConnectText = _quickConnectText;
-                _hostId = null;
-                _quickConnectText = null;
-                return hostId != null || quickConnectText != null;
+                LaunchRequest pending = _pending;
+                _pending = null;
+                return pending;
+            }
+        }
+
+        private static void Set(LaunchRequest request)
+        {
+            lock (Gate)
+            {
+                _pending = request;
             }
         }
     }

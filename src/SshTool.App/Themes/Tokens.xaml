@@ -68,6 +68,8 @@
     <!-- V03b（05 §6.2 第 4 点）：Locked 态键底 accent 条高度（2 epx）。 -->
     <x:Double x:Key="KeyBarAccentBarHeight">2</x:Double>
     <x:Double x:Key="SelectionOverlayOpacity">0.35</x:Double>
+    <!-- W04（01-DESIGN §16.4）：终端响铃「闪屏」模式的起始不透明度。 -->
+    <x:Double x:Key="BellFlashOpacity">0.3</x:Double>
     <x:Double x:Key="TerminalInfoBarHeight">32</x:Double>
     <!-- V03a（05 §6.2）：紧凑信息条——默认单行 44 epx，展开双行 64 epx。 -->
     <x:Double x:Key="TerminalCompactBarHeight">44</x:Double>

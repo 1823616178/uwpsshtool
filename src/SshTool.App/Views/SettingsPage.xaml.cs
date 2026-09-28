@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Globalization;
+using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.Core.Common;
 using SshTool.Core.Storage;
 using SshTool.App.ViewModels;
@@ -90,6 +92,7 @@ namespace SshTool.App.Views
             ViewModel.RefreshDiagnostics();
             BindAll();
             RefreshAppearanceNameAsync(generation).Forget("SettingsPage.RefreshAppearanceName", AppLog.Logger);
+            RefreshAppLockAvailabilityAsync(generation).Forget("SettingsPage.AppLockAvailability", AppLog.Logger);
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -154,6 +157,11 @@ namespace SshTool.App.Views
                 AltScrollBox.Items.Add(Load("Settings_Terminal_AltScroll_Wheel"));
                 AltScrollBox.SelectedIndex = SettingsViewModel.AltScrollToIndex(ViewModel.AltScreenScroll);
                 PasteConfirmSwitch.IsOn = ViewModel.PasteConfirmMultiline;
+                BellBox.Items.Clear();
+                BellBox.Items.Add(Load("Settings_Terminal_Bell_Vibrate"));
+                BellBox.Items.Add(Load("Settings_Terminal_Bell_Visual"));
+                BellBox.Items.Add(Load("Settings_Terminal_Bell_None"));
+                BellBox.SelectedIndex = SettingsViewModel.BellModeToIndex(ViewModel.BellMode);
 
                 // 键盘
                 KeyBarVisibleSwitch.IsOn = ViewModel.KeyBarVisible;
@@ -169,6 +177,8 @@ namespace SshTool.App.Views
                 KeepScreenBox.Items.Add(Load("Settings_Connection_KeepScreen_Always"));
                 KeepScreenBox.SelectedIndex = SettingsViewModel.KeepScreenOnToIndex(ViewModel.KeepScreenOn);
                 KeepAliveSwitch.IsOn = ViewModel.KeepAliveInBackground;
+                NotifySwitch.IsOn = ViewModel.NotifyOnDisconnect;
+                AppLockSwitch.IsOn = ViewModel.AppLockEnabled;
 
                 BgDiscBox.Items.Clear();
                 BgDiscBox.Items.Add(Load("Settings_Connection_BgDisc_Off"));
@@ -579,6 +589,61 @@ namespace SshTool.App.Views
             if (_suppress || KeepScreenBox.SelectedIndex < 0) { return; }
             ViewModel.KeepScreenOn = SettingsViewModel.IndexToKeepScreenOn(KeepScreenBox.SelectedIndex);
             Toast.Show(Load("Settings_Toast_KeepScreenChanged"));
+        }
+
+        private void OnBellChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (_suppress || BellBox.SelectedIndex < 0) { return; }
+            ViewModel.BellMode = SettingsViewModel.IndexToBellMode(BellBox.SelectedIndex);
+        }
+
+        private void OnNotifyToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppress) { return; }
+            ViewModel.NotifyOnDisconnect = NotifySwitch.IsOn;
+        }
+
+        // W04：设备没有 Windows Hello/PIN 时开关禁用并说明原因（已开启的保持可关闭）。
+        private async Task RefreshAppLockAvailabilityAsync(int generation)
+        {
+            bool available = await AppLockService.IsAvailableAsync();
+            if (!_lifetime.IsCurrent(generation))
+            {
+                return;
+            }
+            AppLockSwitch.IsEnabled = available || AppLockSwitch.IsOn;
+            if (!available)
+            {
+                AppLockNote.Text = Load("Settings_Security_AppLock_Unavailable");
+            }
+        }
+
+        // 开启前先验证一次：确认用户确实能通过验证，免得把自己锁在外面。
+        private void OnAppLockToggled(object sender, RoutedEventArgs e)
+        {
+            if (_suppress) { return; }
+            if (!AppLockSwitch.IsOn)
+            {
+                ViewModel.AppLockEnabled = false;
+                return;
+            }
+            ConfirmAppLockAsync(_lifetime.Current).Forget("SettingsPage.ConfirmAppLock", AppLog.Logger);
+        }
+
+        private async Task ConfirmAppLockAsync(int generation)
+        {
+            bool verified = await AppLockService.VerifyAsync(Load("Settings_Security_AppLock_Confirm"));
+            if (verified)
+            {
+                ViewModel.AppLockEnabled = true;
+                return;
+            }
+            if (_lifetime.IsCurrent(generation))
+            {
+                _suppress = true;
+                AppLockSwitch.IsOn = false;
+                _suppress = false;
+            }
         }
 
         private void OnKeepAliveToggled(object sender, RoutedEventArgs e)

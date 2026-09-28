@@ -116,6 +116,8 @@
     <Compile Include="Platform\NativeKeyTool.cs" />
     <Compile Include="Platform\NativeTerminalScreen.cs" />
     <Compile Include="Platform\HostTileService.cs" />
+    <Compile Include="Platform\AppLockService.cs" />
+    <Compile Include="Platform\DisconnectNotifier.cs" />
     <Compile Include="Platform\NativeForwarder.cs" />
     <Compile Include="Terminal\FrameScheduler.cs" />
     <Compile Include="Terminal\FontMetrics.cs" />

@@ -31,6 +31,8 @@ namespace SshTool
                 property int MouseMode { int get(); }
                 property bool MouseSgr { bool get(); }
                 property int ScrollbackCount { int get(); }
+                // W04（01-DESIGN §16.4）：累计收到的 BEL 次数；UI 按帧比较增量触发振动/闪烁。
+                property int64 BellCount { int64 get(); }
 
                 bool CopyDirtyRows(Platform::WriteOnlyArray<uint8>^ rowsOut,
                                    Platform::WriteOnlyArray<uint8>^ dirtyOut);

@@ -1195,5 +1195,19 @@
   <data name="HostRow_MenuFavoriteText" xml:space="preserve"><value>收藏</value></data>
   <data name="HostRow_MenuUnfavorite" xml:space="preserve"><value>取消收藏</value></data>
   <data name="HostRow_MenuPin.Text" xml:space="preserve"><value>固定到开始屏幕</value></data>
+  <data name="Settings_Terminal_Bell.Header" xml:space="preserve"><value>终端响铃</value></data>
+  <data name="Settings_Terminal_Bell_Vibrate" xml:space="preserve"><value>振动</value></data>
+  <data name="Settings_Terminal_Bell_Visual" xml:space="preserve"><value>闪屏</value></data>
+  <data name="Settings_Terminal_Bell_None" xml:space="preserve"><value>无</value></data>
+  <data name="Settings_Connection_NotifyDisconnect.Header" xml:space="preserve"><value>后台断线时通知</value></data>
+  <data name="Settings_Security_AppLock.Header" xml:space="preserve"><value>应用锁</value></data>
+  <data name="Settings_Security_AppLock_Note.Text" xml:space="preserve"><value>启动或离开应用超过 1 分钟后，需通过 Windows Hello 或 PIN 验证</value></data>
+  <data name="Settings_Security_AppLock_Unavailable" xml:space="preserve"><value>此设备未设置 PIN 或 Windows Hello，无法启用应用锁</value></data>
+  <data name="Settings_Security_AppLock_Confirm" xml:space="preserve"><value>验证身份以启用应用锁</value></data>
+  <data name="AppLock_Title" xml:space="preserve"><value>Lumia SSH 已锁定</value></data>
+  <data name="AppLock_Unlock" xml:space="preserve"><value>解锁</value></data>
+  <data name="AppLock_Prompt" xml:space="preserve"><value>验证身份以解锁 Lumia SSH</value></data>
+  <data name="Notify_DisconnectTitle" xml:space="preserve"><value>连接已断开</value></data>
+  <data name="Notify_DisconnectBody" xml:space="preserve"><value>「{0}」的会话已断开，点按返回</value></data>
 </root>
 

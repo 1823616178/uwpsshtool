@@ -4,7 +4,7 @@ using NativeBridge = SshTool.Native.Bridge;
 namespace SshTool.App.Platform
 {
     // T03：ITerminalScreen 的原生适配。
-    public sealed class NativeTerminalScreen : ITerminalScreen
+    public sealed class NativeTerminalScreen : ITerminalScreen, IBellSource
     {
         private readonly NativeBridge.TerminalScreen _native;
 
@@ -25,6 +25,7 @@ namespace SshTool.App.Platform
         public int MouseMode { get { return _native.MouseMode; } }
         public bool MouseSgr { get { return _native.MouseSgr; } }
         public int ScrollbackCount { get { return _native.ScrollbackCount; } }
+        public long BellCount { get { return _native.BellCount; } }
 
         public bool CopyDirtyRows(byte[] rowsOut, byte[] dirtyOut)
         {

@@ -41,6 +41,10 @@ namespace SshTool.App.Terminal
         private bool _draggingSelection;
         // W02：查找命中（逻辑行坐标）与当前定位下标。
         private List<TextMatch> _matches = new List<TextMatch>();
+        // W04：响铃反馈（200 ms 合并窗见 BellThrottle）。
+        private const int BellFlashMilliseconds = 120;
+        private static readonly System.Diagnostics.Stopwatch BellClock = System.Diagnostics.Stopwatch.StartNew();
+        private readonly BellThrottle _bell = new BellThrottle();
         private int _matchIndex = -1;
         private int _pulledOffset = int.MinValue;
         private bool _ignoreNextTap;
@@ -239,6 +243,45 @@ namespace SshTool.App.Terminal
                 _selection.Cancel();
                 RefreshSelectionOverlay();
             }
+        }
+
+        // W04（01-DESIGN §16.4）：BEL 不一定改动网格（Revision 可能不变），所以每帧比较计数。
+        private void CheckBell()
+        {
+            var source = _screen as IBellSource;
+            if (source == null || !_bell.ShouldRing(source.BellCount, BellClock.ElapsedMilliseconds))
+            {
+                return;
+            }
+            AppServices services = AppServices.Current;
+            if (services == null || services.Settings == null)
+            {
+                return;
+            }
+            string mode = services.Settings.BellMode;
+            if (string.Equals(mode, "vibrate", StringComparison.Ordinal))
+            {
+                Haptics.VibrateLight(services.Settings.HapticsEnabled);
+            }
+            else if (string.Equals(mode, "visual", StringComparison.Ordinal))
+            {
+                FlashBell();
+            }
+        }
+
+        private void FlashBell()
+        {
+            var animation = new Windows.UI.Xaml.Media.Animation.DoubleAnimation
+            {
+                From = (double)Application.Current.Resources["BellFlashOpacity"],
+                To = 0,
+                Duration = new Duration(TimeSpan.FromMilliseconds(BellFlashMilliseconds))
+            };
+            var storyboard = new Windows.UI.Xaml.Media.Animation.Storyboard();
+            Windows.UI.Xaml.Media.Animation.Storyboard.SetTarget(animation, BellFlash);
+            Windows.UI.Xaml.Media.Animation.Storyboard.SetTargetProperty(animation, "Opacity");
+            storyboard.Children.Add(animation);
+            storyboard.Begin();
         }
 
         // W02：视口格 (row, col) 上的链接；没有返回 null。只识别单行内的链接。
@@ -455,6 +498,7 @@ namespace SshTool.App.Terminal
             {
                 _screen = value;
                 _lastRevision = -1;
+                _bell.Reset();
                 _fullRedraw = true;
                 FrameScheduler.Instance.Wake();
             }
@@ -627,6 +671,7 @@ namespace SshTool.App.Terminal
                 blinkChanged = false;
             }
 
+            CheckBell();
             bool pulled = false;
             if (_screen.Revision != _lastRevision)
             {

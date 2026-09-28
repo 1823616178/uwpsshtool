@@ -122,6 +122,12 @@ namespace SshTool
                 return static_cast<int>(impl_->bridge.scrollback().size());
             }
 
+            int64 TerminalScreen::BellCount::get()
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                return static_cast<int64>(impl_->bridge.bellCount());
+            }
+
             bool TerminalScreen::CopyDirtyRows(Platform::WriteOnlyArray<uint8>^ rowsOut,
                                                Platform::WriteOnlyArray<uint8>^ dirtyOut)
             {

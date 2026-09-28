@@ -1194,5 +1194,19 @@
   <data name="HostRow_MenuFavoriteText" xml:space="preserve"><value>Add to favorites</value></data>
   <data name="HostRow_MenuUnfavorite" xml:space="preserve"><value>Remove from favorites</value></data>
   <data name="HostRow_MenuPin.Text" xml:space="preserve"><value>Pin to Start</value></data>
+  <data name="Settings_Terminal_Bell.Header" xml:space="preserve"><value>Terminal bell</value></data>
+  <data name="Settings_Terminal_Bell_Vibrate" xml:space="preserve"><value>Vibrate</value></data>
+  <data name="Settings_Terminal_Bell_Visual" xml:space="preserve"><value>Flash screen</value></data>
+  <data name="Settings_Terminal_Bell_None" xml:space="preserve"><value>Off</value></data>
+  <data name="Settings_Connection_NotifyDisconnect.Header" xml:space="preserve"><value>Notify when disconnected in background</value></data>
+  <data name="Settings_Security_AppLock.Header" xml:space="preserve"><value>App lock</value></data>
+  <data name="Settings_Security_AppLock_Note.Text" xml:space="preserve"><value>Require Windows Hello or PIN on launch and after being away for more than 1 minute</value></data>
+  <data name="Settings_Security_AppLock_Unavailable" xml:space="preserve"><value>Set up a PIN or Windows Hello on this device to use app lock</value></data>
+  <data name="Settings_Security_AppLock_Confirm" xml:space="preserve"><value>Verify your identity to turn on app lock</value></data>
+  <data name="AppLock_Title" xml:space="preserve"><value>Lumia SSH is locked</value></data>
+  <data name="AppLock_Unlock" xml:space="preserve"><value>Unlock</value></data>
+  <data name="AppLock_Prompt" xml:space="preserve"><value>Verify your identity to unlock Lumia SSH</value></data>
+  <data name="Notify_DisconnectTitle" xml:space="preserve"><value>Connection lost</value></data>
+  <data name="Notify_DisconnectBody" xml:space="preserve"><value>Session "{0}" was disconnected. Tap to return.</value></data>
 </root>
 

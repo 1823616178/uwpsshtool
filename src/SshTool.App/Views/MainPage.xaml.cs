@@ -87,17 +87,31 @@ namespace SshTool.App.Views
         // W03：磁贴 / ssh:// 激活交接（App 写入，这里取走一次）。
         public void ConsumeLaunchRequest()
         {
-            string launchHostId;
-            string launchQuick;
-            if (ViewModel.Hosts != null && LaunchRequests.TryTake(out launchHostId, out launchQuick))
+            LaunchRequest request = LaunchRequests.Take();
+            if (request == null)
             {
-                if (launchQuick != null)
-                {
-                    MainPivot.SelectedIndex = 0; // 快速连接在主机页签
-                }
-                ViewModel.Hosts.ApplyLaunchRequestAsync(launchHostId, launchQuick)
-                    .Forget("MainPage.ApplyLaunchRequest", AppLog.Logger);
+                return;
             }
+            // W04：断线通知 → 回到该会话（会话已关闭时 TerminalPage 自行回退）。
+            if (!string.IsNullOrEmpty(request.SessionId))
+            {
+                NavigationService nav;
+                if (ServiceRegistry.TryGet(out nav))
+                {
+                    nav.Navigate<TerminalPage>(new TerminalArgs { SessionId = request.SessionId });
+                }
+                return;
+            }
+            if (ViewModel.Hosts == null)
+            {
+                return;
+            }
+            if (request.QuickConnectText != null)
+            {
+                MainPivot.SelectedIndex = 0; // 快速连接在主机页签
+            }
+            ViewModel.Hosts.ApplyLaunchRequestAsync(request.HostId, request.QuickConnectText)
+                .Forget("MainPage.ApplyLaunchRequest", AppLog.Logger);
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)

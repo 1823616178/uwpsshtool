@@ -21,6 +21,9 @@
                               AllowFocusOnInteraction="False"
                               Draw="OnDraw"
                               CreateResources="OnCreateResources" />
+        <!-- W04：响铃「闪屏」层，平时透明、不参与命中测试。 -->
+        <Border x:Name="BellFlash" Background="{ThemeResource AppTextBrush}"
+                Opacity="0" IsHitTestVisible="False" />
         <local:SelectionLayer x:Name="Selection"
                               Visibility="Collapsed" />
         <controls:TransientToast x:Name="CopiedToast" />
