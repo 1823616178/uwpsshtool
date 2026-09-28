@@ -62,7 +62,7 @@ namespace SshTool.App.Dialogs
                     KeyGenerateOutcome outcome = await _vm.GenerateAsync();
                     if (!outcome.Success || outcome.Entry == null)
                     {
-                        SetError(outcome.Error ?? "生成失败，请重试");
+                        SetError(outcome.Error ?? Localized.Get("KeyGenerate_ErrFallback", "生成失败，请重试"));
                         args.Cancel = true;
                         return;
                     }

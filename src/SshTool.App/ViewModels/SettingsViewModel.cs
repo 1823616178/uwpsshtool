@@ -570,10 +570,10 @@ namespace SshTool.App.ViewModels
         public string BuildDiagnosticsText()
         {
             var sb = new StringBuilder();
-            sb.Append("应用版本：").Append(AppVersionText).Append("\r\n");
-            sb.Append("设备系列：").Append(DeviceFamilyText).Append("\r\n");
-            sb.Append("系统版本：").Append(OsVersionText).Append("\r\n");
-            sb.Append("内存：").Append(MemoryText).Append("\r\n");
+            sb.Append(Localized.Get("Settings_DiagAppVersion", "应用版本：")).Append(AppVersionText).Append("\r\n");
+            sb.Append(Localized.Get("Settings_DiagDeviceFamily", "设备系列：")).Append(DeviceFamilyText).Append("\r\n");
+            sb.Append(Localized.Get("Settings_DiagOsVersion", "系统版本：")).Append(OsVersionText).Append("\r\n");
+            sb.Append(Localized.Get("Settings_DiagMemory", "内存：")).Append(MemoryText).Append("\r\n");
             for (int i = 0; i < Probes.Count; i++)
             {
                 sb.Append(Probes[i].Name).Append("：").Append(Probes[i].Status).Append("\r\n");
@@ -648,7 +648,7 @@ namespace SshTool.App.ViewModels
             FileSavePicker picker = new FileSavePicker();
             picker.SuggestedFileName = string.Format(
                 CultureInfo.InvariantCulture, "lumia-ssh-logs-{0:yyyyMMdd-HHmmss}", DateTime.Now);
-            picker.FileTypeChoices.Add("日志文件", new List<string> { ".log" });
+            picker.FileTypeChoices.Add(Localized.Get("Settings_LogFileType", "日志文件"), new List<string> { ".log" });
             StorageFile target;
             try
             {
@@ -990,18 +990,17 @@ namespace SshTool.App.ViewModels
             {
                 if (!ApiInformation.IsTypePresent("Windows.System.MemoryManager"))
                 {
-                    return Localized.Get("Settings_MemoryUnavailable", "不可用");
+                    return Localized.Get("Common_Unavailable", "不可用");
                 }
                 ulong limit = Windows.System.MemoryManager.AppMemoryUsageLimit;
                 ulong usage = Windows.System.MemoryManager.AppMemoryUsage;
-                return Localized.Format(
-                    "Settings_MemoryUsage", "已用 {0} MB / 上限 {1} MB",
+                return Localized.Format("Settings_MemoryUsage", "已用 {0} MB / 上限 {1} MB",
                     (limit == 0 ? 0 : usage / 1048576UL).ToString(CultureInfo.InvariantCulture),
                     (limit == 0 ? 0 : limit / 1048576UL).ToString(CultureInfo.InvariantCulture));
             }
             catch (Exception)
             {
-                return Localized.Get("Settings_MemoryUnavailable", "不可用");
+                return Localized.Get("Common_Unavailable", "不可用");
             }
         }
 
@@ -1029,18 +1028,20 @@ namespace SshTool.App.ViewModels
         private void RefreshProbes()
         {
             Probes.Clear();
-            AddProbe("触感", "Windows.Phone.Devices.Notification.VibrationDevice");
-            AddProbe("状态栏", "Windows.UI.ViewManagement.StatusBar");
-            AddProbe("后台保活", "Windows.ApplicationModel.ExtendedExecution.ExtendedExecutionSession");
-            AddProbe("屏幕常亮", "Windows.System.Display.DisplayRequest");
-            AddProbe("设备信息", "Windows.System.Profile.AnalyticsInfo");
-            AddProbe("内存诊断", "Windows.System.MemoryManager");
-            AddProbe("日志导出", "Windows.Storage.Pickers.FileSavePicker");
-            AddProbe("凭据加密", "Windows.Security.Cryptography.DataProtection.DataProtectionProvider");
-            AddProbe("设备名称", "Windows.Security.ExchangeActiveSyncProvisioning.EasClientDeviceInformation");
+            // gate:resw-fallback-start —— 第二参是 AddProbe 内部 Localized.Get 的中文兜底
+            AddProbe("Settings_ProbeHaptics", "触感", "Windows.Phone.Devices.Notification.VibrationDevice");
+            AddProbe("Settings_ProbeStatusBar", "状态栏", "Windows.UI.ViewManagement.StatusBar");
+            AddProbe("Settings_ProbeKeepAlive", "后台保活", "Windows.ApplicationModel.ExtendedExecution.ExtendedExecutionSession");
+            AddProbe("Settings_ProbeDisplayRequest", "屏幕常亮", "Windows.System.Display.DisplayRequest");
+            AddProbe("Settings_ProbeDeviceInfo", "设备信息", "Windows.System.Profile.AnalyticsInfo");
+            AddProbe("Settings_ProbeMemory", "内存诊断", "Windows.System.MemoryManager");
+            AddProbe("Settings_ProbeLogExport", "日志导出", "Windows.Storage.Pickers.FileSavePicker");
+            AddProbe("Settings_ProbeCredentialEncryption", "凭据加密", "Windows.Security.Cryptography.DataProtection.DataProtectionProvider");
+            AddProbe("Settings_ProbeDeviceName", "设备名称", "Windows.Security.ExchangeActiveSyncProvisioning.EasClientDeviceInformation");
+            // gate:resw-fallback-end
         }
 
-        private void AddProbe(string name, string typeName)
+        private void AddProbe(string key, string fallback, string typeName)
         {
             bool present = false;
             try
@@ -1053,8 +1054,10 @@ namespace SshTool.App.ViewModels
             }
             Probes.Add(new DiagnosticProbeRow
             {
-                Name = name,
-                Status = present ? "可用" : "不可用"
+                Name = Localized.Get(key, fallback),
+                Status = present
+                    ? Localized.Get("Common_Available", "可用")
+                    : Localized.Get("Common_Unavailable", "不可用")
             });
         }
     }

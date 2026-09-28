@@ -23,6 +23,17 @@
 #     NativeForwarder.FormatRouteDescription 的「转发」/「(远程)」——后者当前无
 #     UI 消费者）按棘轮登记在基线里。
 #
+# O16a（2026-09-28）新增参数形态规则：代码里**任何**中文字面量（非注释行）
+# 都算命中，除非该行属于日志调用（Logger.Log/LogFailure/AppLog/.Log(，
+# 含多行调用的续行——用引号感知的括号深度跟踪判定）或含 Localized./GetString(
+# （resw 兜底家族）。throw 的内部异常消息、Platform 桥的错误串等暂时进基线，
+# 由 O16b/O16c 逐批清零或给出不算文案的理由。
+#
+# 区域豁免：注释行 `// gate:resw-fallback-start` … `// gate:resw-fallback-end`
+# 之间跳过中文字面量检查。只用于「代码内的 resw 中文兜底表」这类例外
+# （如 KeyBarLayoutEditorPage.FallbackOf、AddProbe 调用块的兜底实参），
+# 豁免理由写在标记行旁。
+#
 # 棘轮（ratchet）：现存违例数量记在 $BaselinePath 里，按文件计数。
 #   - 某文件违例数 > 基线 → 失败（新增了硬编码文案）；
 #   - 某文件违例数 < 基线 → 提示「基线可收紧」，不失败；
@@ -69,16 +80,25 @@ function Add-Hit([string]$rel, [int]$lineNo, [string]$line, [string]$why) {
     })
 }
 
-# 剥掉行尾 // 注释：引号外的第一个 // 才是注释起点（"http://" 里的 // 在引号内）。
-function Get-CodePart([string]$line) {
+# 剥掉行尾 // 注释并统计引号外的圆括号增减：// 只有在引号外才是注释起点
+# （"http://" 里的 // 在引号内）；括号深度供「日志调用续行」判定。
+function Get-CodePart([string]$line, [ref]$parenDelta) {
     $inString = $false
-    for ($i = 0; $i -lt ($line.Length - 1); $i++) {
+    $delta = 0
+    $cutIndex = -1
+    for ($i = 0; $i -lt $line.Length; $i++) {
         $c = $line[$i]
-        if ($c -eq '"') { $inString = -not $inString; continue }
-        if (-not $inString -and $c -eq '/' -and $line[$i + 1] -eq '/') {
-            return $line.Substring(0, $i)
+        if ($inString) {
+            if ($c -eq '"') { $inString = $false }
+            continue
         }
+        if ($c -eq '"') { $inString = $true; continue }
+        if ($c -eq '(') { $delta++; continue }
+        if ($c -eq ')') { $delta--; continue }
+        if ($c -eq '/' -and ($i + 1) -lt $line.Length -and $line[$i + 1] -eq '/') { $cutIndex = $i; break }
     }
+    $parenDelta.Value = $delta
+    if ($cutIndex -ge 0) { return $line.Substring(0, $cutIndex) }
     return $line
 }
 
@@ -91,7 +111,10 @@ Get-ChildItem $appDir -Recurse -Include *.xaml, *.cs |
     ForEach-Object {
         $file = $_
         $rel = $file.FullName.Substring($RepoRoot.Length + 1)
-        $text = Get-Content $file.FullName -Raw
+        # 必须显式 UTF8：仓库源文件是无 BOM 的 UTF-8，PS5.1 的 Get-Content 默认按
+        # ANSI(GBK) 解码会把多字节序列拼成伪 CJK 字（如 "—" 的 E2 80 94），
+        # 造成中文误报与行号漂移（O16a 探针实测 TerminalWorkspace 行号差 29）。
+        $text = Get-Content $file.FullName -Raw -Encoding UTF8
         if (-not $text) { return }
 
         if ($file.Extension -eq '.xaml') {
@@ -120,21 +143,45 @@ Get-ChildItem $appDir -Recurse -Include *.xaml, *.cs |
         }
         else {
             $lineNo = 0
+            $parenDepth = 0
+            $logDepth = -1   # >=0 表示处于日志调用的括号内（起始行与续行都不算文案）
+            $regionSkip = $false
             foreach ($line in ($text -split "`r?`n")) {
                 $lineNo++
-                if ($line -match '^\s*//') { continue }
+                if ($line -match '^\s*//') {
+                    if ($line -match 'gate:resw-fallback-start') { $regionSkip = $true }
+                    elseif ($line -match 'gate:resw-fallback-end') { $regionSkip = $false }
+                    continue
+                }
+                $delta = 0
+                $code = Get-CodePart $line ([ref]$delta)
+
+                $hitThisLine = $false
                 foreach ($t in $csTargets) {
-                    if ($line -match ("\.{0}\s*=\s*`"([^`"]*)`"" -f $t)) {
+                    if ($code -match ("\.{0}\s*=\s*`"([^`"]*)`"" -f $t)) {
                         if ($Matches[1] -match $chinese) {
                             Add-Hit $rel $lineNo $line "C# .$t 中文字面量"
+                            $hitThisLine = $true
                         }
                     }
                 }
                 # return 形态（C06 收尾）：见文件头说明。
-                $code = Get-CodePart $line
-                if ($code -match '\breturn\b' -and $code -notmatch '(Localized\.|GetString\()' -and $code -match $chinese) {
+                if (-not $hitThisLine -and -not $regionSkip -and $code -match '\breturn\b' `
+                    -and $code -notmatch '(Localized\.|GetString\()' -and $code -match $chinese) {
                     Add-Hit $rel $lineNo $line "C# return 中文文案"
+                    $hitThisLine = $true
                 }
+                # 参数形态（O16a）：日志调用内或资源兜底参数不算，其余中文字面量都算。
+                # Platform 桥自定义的 Log(op, what, watch) 助手无点前缀，用 \bLog\() 覆盖。
+                $isLogLine = $code -match '(Logger\.|LogFailure|AppLog\.[A-Za-z]|\.Log\(|\bLog\()'
+                if ($isLogLine -and $logDepth -lt 0) { $logDepth = $parenDepth }
+                if (-not $hitThisLine -and -not $regionSkip -and $logDepth -lt 0 `
+                    -and $code -notmatch '(Localized\.|GetString\()' -and $code -match $chinese) {
+                    Add-Hit $rel $lineNo $line "C# 参数中文文案"
+                }
+
+                $parenDepth += $delta
+                if ($logDepth -ge 0 -and $parenDepth -le $logDepth) { $logDepth = -1 }
             }
         }
     }

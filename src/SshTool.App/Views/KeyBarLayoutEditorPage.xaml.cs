@@ -19,49 +19,50 @@ namespace SshTool.App.Views
         public string Description { get; set; }
     }
 
-    // 内置键条键的中文显示名（KeyBarKey 只有 Id + 键面 Label，没有 Name/DisplayName）。
-    // 未收录的 id 统一退化为「自定义按键」，绝不回落到 id。
+    // 内置键条键的显示名（KeyBarKey 只有 Id + 键面 Label，没有 Name/DisplayName）。
+    // 与 KeyBar 控件的无障碍名共用一套 resw 键（KeyBar_Key_*，Q05 口径），编辑器副行
+    // 不再自备一套中文。未收录的 id 统一退化为「自定义按键」，绝不回落到 id。
     public static class KeyBarKeyNames
     {
-        // O16 待办：字典整体入 resw（约 45 键，见 doc/04-TASKS.md §11）。
-        private static readonly Dictionary<string, string> ChineseNames = new Dictionary<string, string>(StringComparer.Ordinal)
+        // id → KeyBar_Key_<Suffix>。新按键先在 resw 双语补键，再在这里登记映射。
+        private static readonly Dictionary<string, string> ResourceSuffixes = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            { "esc", "退出 Esc" },
-            { "tab", "制表 Tab" },
-            { "ctrl", "Ctrl 修饰键" },
-            { "alt", "Alt 修饰键" },
-            { "shift", "Shift 修饰键" },
-            { "up", "方向键 上" },
-            { "down", "方向键 下" },
-            { "left", "方向键 左" },
-            { "right", "方向键 右" },
-            { "home", "行首 Home" },
-            { "end", "行尾 End" },
-            { "pgup", "向上翻页" },
-            { "pgdn", "向下翻页" },
-            { "ins", "插入模式" },
-            { "del", "向后删除" },
-            { "pipe", "字符 竖线" },
-            { "slash", "字符 斜杠" },
-            { "backslash", "字符 反斜杠" },
-            { "minus", "字符 减号" },
-            { "underscore", "字符 下划线" },
-            { "tilde", "字符 波浪号" },
-            { "colon", "字符 冒号" },
-            { "semicolon", "字符 分号" },
-            { "quote", "字符 单引号" },
-            { "dquote", "字符 双引号" },
-            { "backtick", "字符 反引号" },
-            { "lt", "字符 小于号" },
-            { "gt", "字符 大于号" },
-            { "lbrace", "字符 左大括号" },
-            { "rbrace", "字符 右大括号" },
-            { "lbracket", "字符 左方括号" },
-            { "rbracket", "字符 右方括号" },
-            { "paste", "粘贴操作" },
-            { "copy", "复制操作" },
-            { "snippets", "片段面板" },
-            { "hidekb", "隐藏键盘" }
+            { "esc", "Esc" },
+            { "tab", "Tab" },
+            { "ctrl", "Ctrl" },
+            { "alt", "Alt" },
+            { "shift", "Shift" },
+            { "up", "Up" },
+            { "down", "Down" },
+            { "left", "Left" },
+            { "right", "Right" },
+            { "home", "Home" },
+            { "end", "End" },
+            { "pgup", "PgUp" },
+            { "pgdn", "PgDn" },
+            { "ins", "Ins" },
+            { "del", "Del" },
+            { "pipe", "Pipe" },
+            { "slash", "Slash" },
+            { "backslash", "Backslash" },
+            { "minus", "Minus" },
+            { "underscore", "Underscore" },
+            { "tilde", "Tilde" },
+            { "colon", "Colon" },
+            { "semicolon", "Semicolon" },
+            { "quote", "SingleQuote" },
+            { "dquote", "DoubleQuote" },
+            { "backtick", "Backtick" },
+            { "lt", "LessThan" },
+            { "gt", "GreaterThan" },
+            { "lbrace", "LeftBrace" },
+            { "rbrace", "RightBrace" },
+            { "lbracket", "LeftBracket" },
+            { "rbracket", "RightBracket" },
+            { "paste", "Paste" },
+            { "copy", "Copy" },
+            { "snippets", "Snippets" },
+            { "hidekb", "HideKeyboard" }
         };
 
         private static string CustomName
@@ -75,10 +76,11 @@ namespace SshTool.App.Views
             {
                 return CustomName;
             }
-            string name;
-            if (ChineseNames.TryGetValue(key.Id, out name))
+            string suffix;
+            if (ResourceSuffixes.TryGetValue(key.Id, out suffix))
             {
-                return name;
+                // 第二参兜底仅防资源表缺键（O16 起文案事实来源在 resw）。
+                return Localized.Get("KeyBar_Key_" + suffix, FallbackOf(suffix));
             }
             // F1–F12 等功能键不逐条列名，按类别给一句能看懂的说明。
             if (key.Kind == KeyBarKeyKind.Function)
@@ -100,6 +102,53 @@ namespace SshTool.App.Views
             }
             return CustomName;
         }
+
+        // 资源表缺键时的中文兜底（与 KeyBar_Key_* 的 zh-CN 值一致）。
+        // gate:resw-fallback-start —— 兜底表本身允许中文字面量（resw 为事实来源）
+        private static string FallbackOf(string suffix)
+        {
+            switch (suffix)
+            {
+                case "Esc": return "Esc 键";
+                case "Tab": return "Tab 键";
+                case "Ctrl": return "Ctrl 键";
+                case "Alt": return "Alt 键";
+                case "Shift": return "Shift 键";
+                case "Up": return "向上方向键";
+                case "Down": return "向下方向键";
+                case "Left": return "向左方向键";
+                case "Right": return "向右方向键";
+                case "Home": return "Home 键";
+                case "End": return "End 键";
+                case "PgUp": return "上一页";
+                case "PgDn": return "下一页";
+                case "Ins": return "插入键";
+                case "Del": return "删除键";
+                case "Pipe": return "管道符";
+                case "Slash": return "正斜杠";
+                case "Backslash": return "反斜杠";
+                case "Minus": return "减号";
+                case "Underscore": return "下划线";
+                case "Tilde": return "波浪号";
+                case "Colon": return "冒号";
+                case "Semicolon": return "分号";
+                case "SingleQuote": return "单引号";
+                case "DoubleQuote": return "双引号";
+                case "Backtick": return "反引号";
+                case "LessThan": return "小于号";
+                case "GreaterThan": return "大于号";
+                case "LeftBrace": return "左大括号";
+                case "RightBrace": return "右大括号";
+                case "LeftBracket": return "左方括号";
+                case "RightBracket": return "右方括号";
+                case "Paste": return "粘贴";
+                case "Copy": return "复制";
+                case "Snippets": return "代码片段";
+                case "HideKeyboard": return "隐藏键盘";
+                default: return string.Empty;
+            }
+        }
+        // gate:resw-fallback-end
     }
 
     public sealed partial class KeyBarLayoutEditorPage : Page

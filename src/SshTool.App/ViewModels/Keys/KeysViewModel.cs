@@ -124,17 +124,15 @@ namespace SshTool.App.ViewModels.Keys
             IReadOnlyList<Host> refs = await ReferencingHostsAsync(row.Id).ConfigureAwait(true);
             if (refs.Count > 0)
             {
-                await ConfirmDialog.ShowAsync(
-                    "无法删除",
-                    "该密钥正被 " + refs.Count.ToString() + " 台主机使用（"
-                        + JoinNames(refs) + "），请先更换这些主机的认证方式。",
-                    "确定", "关闭").ConfigureAwait(true);
+                await ShowBlockedDialogAsync(refs.Count, JoinNames(refs));
                 return;
             }
             ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
-                "删除密钥？",
-                "删除「" + (row.Name ?? string.Empty) + "」后无法恢复，已保存的私钥与短语将一并清除。",
-                "删除", "取消", true).ConfigureAwait(true);
+                Localized.Get("Key_DeleteConfirmTitle", "删除密钥？"),
+                Localized.Format("Key_DeleteConfirmMessage", "删除「{0}」后无法恢复，已保存的私钥与短语将一并清除。",
+                    row.Name ?? string.Empty),
+                Localized.Get("Common_Delete", "删除"),
+                Localized.Get("Dialog_Cancel", "取消"), true).ConfigureAwait(true);
             if (!confirm.Confirmed)
             {
                 return;
@@ -147,15 +145,22 @@ namespace SshTool.App.ViewModels.Keys
             {
                 // 并发：对话框确认期间密钥又被主机引用，ConfigService 拒绝删除。
                 IReadOnlyList<Host> raced = await ReferencingHostsAsync(row.Id).ConfigureAwait(true);
-                await ConfirmDialog.ShowAsync(
-                    "无法删除",
-                    "该密钥正被 " + raced.Count.ToString() + " 台主机使用（"
-                        + JoinNames(raced) + "），请先更换这些主机的认证方式。",
-                    "确定", "关闭").ConfigureAwait(true);
+                await ShowBlockedDialogAsync(raced.Count, JoinNames(raced));
                 return;
             }
             Logger.Log(LogLevel.Info, "Keys", "删除密钥 " + row.Id);
             await RefreshAsync().ConfigureAwait(true);
+        }
+
+        // 「密钥仍被主机引用」的提示对话框（DeleteAsync 两处共用）。
+        private async Task ShowBlockedDialogAsync(int hostCount, string names)
+        {
+            await ConfirmDialog.ShowAsync(
+                Localized.Get("Key_DeleteBlockedTitle", "无法删除"),
+                Localized.Format("Key_DeleteBlockedMessage", "该密钥正被 {0} 台主机使用（{1}），请先更换这些主机的认证方式。",
+                    hostCount.ToString(), names),
+                Localized.Get("Dialog_Ok", "确定"),
+                Localized.Get("Common_Close", "关闭")).ConfigureAwait(true);
         }
 
         public async Task<IReadOnlyList<Host>> ReferencingHostsAsync(string keyId)
@@ -186,7 +191,8 @@ namespace SshTool.App.ViewModels.Keys
                 + " · " + CredentialDraft.FingerprintTail(key.FingerprintSha256);
             if (usage > 0)
             {
-                subtitle += " · 被 " + usage.ToString() + " 台主机使用";
+                subtitle += Localized.Format("Key_UsedByHostsSuffix", " · 被 {0} 台主机使用",
+                    usage.ToString());
             }
             return new KeyRow
             {

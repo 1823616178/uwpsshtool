@@ -1084,7 +1084,7 @@
   <data name="Settings_ClearFailed" xml:space="preserve"><value>清空失败，请稍后重试</value></data>
   <data name="Settings_ClearNone" xml:space="preserve"><value>没有可清空的日志</value></data>
   <data name="Settings_Cleared" xml:space="preserve"><value>已清空日志</value></data>
-  <data name="Settings_MemoryUnavailable" xml:space="preserve"><value>不可用</value></data>
+  <data name="Common_Unavailable" xml:space="preserve"><value>不可用</value></data>
   <data name="Settings_MemoryUsage" xml:space="preserve"><value>已用 {0} MB / 上限 {1} MB</value></data>
   <data name="Export_Cancelled" xml:space="preserve"><value>已取消导出</value></data>
   <data name="Export_OpenLocationFailed" xml:space="preserve"><value>无法打开保存位置，请重试或换个文件夹</value></data>
@@ -1114,5 +1114,59 @@
   <data name="Tunnel_EditRouteSocks" xml:space="preserve"><value>本机 SOCKS5 代理 {0}:{1} → {2}</value></data>
   <data name="Tunnel_EditTargetHost" xml:space="preserve"><value>目标主机</value></data>
   <data name="Tunnel_EditTargetServer" xml:space="preserve"><value>目标服务器</value></data>
+  <data name="Common_Close" xml:space="preserve"><value>关闭</value></data>
+  <data name="Common_Delete" xml:space="preserve"><value>删除</value></data>
+  <data name="Common_Export" xml:space="preserve"><value>导出</value></data>
+  <data name="Common_Continue" xml:space="preserve"><value>继续</value></data>
+  <data name="Common_Available" xml:space="preserve"><value>可用</value></data>
+  <data name="KeyBar_Key_Colon" xml:space="preserve"><value>冒号</value></data>
+  <data name="KeyBar_Key_Semicolon" xml:space="preserve"><value>分号</value></data>
+  <data name="KeyBar_Key_SingleQuote" xml:space="preserve"><value>单引号</value></data>
+  <data name="KeyBar_Key_DoubleQuote" xml:space="preserve"><value>双引号</value></data>
+  <data name="KeyBar_Key_Backtick" xml:space="preserve"><value>反引号</value></data>
+  <data name="KeyBar_Key_LessThan" xml:space="preserve"><value>小于号</value></data>
+  <data name="KeyBar_Key_GreaterThan" xml:space="preserve"><value>大于号</value></data>
+  <data name="KeyBar_Key_LeftBrace" xml:space="preserve"><value>左大括号</value></data>
+  <data name="KeyBar_Key_RightBrace" xml:space="preserve"><value>右大括号</value></data>
+  <data name="KeyBar_Key_LeftBracket" xml:space="preserve"><value>左方括号</value></data>
+  <data name="KeyBar_Key_RightBracket" xml:space="preserve"><value>右方括号</value></data>
+  <data name="KeyBar_Key_HideKeyboard" xml:space="preserve"><value>隐藏键盘</value></data>
+  <data name="Settings_DiagAppVersion" xml:space="preserve"><value>应用版本：</value></data>
+  <data name="Settings_DiagDeviceFamily" xml:space="preserve"><value>设备系列：</value></data>
+  <data name="Settings_DiagOsVersion" xml:space="preserve"><value>系统版本：</value></data>
+  <data name="Settings_DiagMemory" xml:space="preserve"><value>内存：</value></data>
+  <data name="Settings_LogFileType" xml:space="preserve"><value>日志文件</value></data>
+  <data name="Settings_ProbeHaptics" xml:space="preserve"><value>触感</value></data>
+  <data name="Settings_ProbeStatusBar" xml:space="preserve"><value>状态栏</value></data>
+  <data name="Settings_ProbeKeepAlive" xml:space="preserve"><value>后台保活</value></data>
+  <data name="Settings_ProbeDisplayRequest" xml:space="preserve"><value>屏幕常亮</value></data>
+  <data name="Settings_ProbeDeviceInfo" xml:space="preserve"><value>设备信息</value></data>
+  <data name="Settings_ProbeMemory" xml:space="preserve"><value>内存诊断</value></data>
+  <data name="Settings_ProbeLogExport" xml:space="preserve"><value>日志导出</value></data>
+  <data name="Settings_ProbeCredentialEncryption" xml:space="preserve"><value>凭据加密</value></data>
+  <data name="Settings_ProbeDeviceName" xml:space="preserve"><value>设备名称</value></data>
+  <data name="Key_DeleteBlockedTitle" xml:space="preserve"><value>无法删除</value></data>
+  <data name="Key_DeleteBlockedMessage" xml:space="preserve"><value>该密钥正被 {0} 台主机使用（{1}），请先更换这些主机的认证方式。</value></data>
+  <data name="Key_DeleteConfirmTitle" xml:space="preserve"><value>删除密钥？</value></data>
+  <data name="Key_DeleteConfirmMessage" xml:space="preserve"><value>删除「{0}」后无法恢复，已保存的私钥与短语将一并清除。</value></data>
+  <data name="Key_UsedByHostsSuffix" xml:space="preserve"><value> · 被 {0} 台主机使用</value></data>
+  <data name="Key_ExportConfirmTitle" xml:space="preserve"><value>导出私钥？</value></data>
+  <data name="Key_ExportConfirmMessage" xml:space="preserve"><value>私钥将以明文写入你选择的文件，任何能读到该文件的应用都能使用它。</value></data>
+  <data name="Key_ExportAgainTitle" xml:space="preserve"><value>再次确认</value></data>
+  <data name="Key_ExportAgainMessage" xml:space="preserve"><value>私钥一旦离开应用即失去 DPAPI 保护。请确认目标位置只有你能访问。</value></data>
+  <data name="Key_PrivatePemType" xml:space="preserve"><value>私钥文件</value></data>
+  <data name="Key_Saved" xml:space="preserve"><value>已保存</value></data>
+  <data name="KeyImport_ExistsTitle" xml:space="preserve"><value>密钥已存在</value></data>
+  <data name="KeyImport_ExistsMessage" xml:space="preserve"><value>已存在相同指纹的密钥「{0}」。仍要保存为新密钥吗？</value></data>
+  <data name="KeyImport_SaveAnyway" xml:space="preserve"><value>仍要保存</value></data>
+  <data name="KeyImport_ErrEncrypted" xml:space="preserve"><value>该私钥已加密，请输入短语后继续</value></data>
+  <data name="KeyImport_ErrParse" xml:space="preserve"><value>无法解析该私钥（文件损坏或短语错误），请检查后重试</value></data>
+  <data name="KeyImport_ErrTooLarge" xml:space="preserve"><value>文件超过 256 KiB，拒绝导入</value></data>
+  <data name="KeyImport_ErrEmpty" xml:space="preserve"><value>请粘贴私钥内容或从文件导入</value></data>
+  <data name="KeyImport_TypeBits" xml:space="preserve"><value>{0} · {1} 位 · {2}</value></data>
+  <data name="KeyImport_SuffixEncrypted" xml:space="preserve"><value> · 已加密</value></data>
+  <data name="KeyImport_ErrPickFailed" xml:space="preserve"><value>文件选择失败：{0}</value></data>
+  <data name="KeyImport_ErrReadFailed" xml:space="preserve"><value>文件读取失败：{0}</value></data>
+  <data name="KeyGenerate_ErrFallback" xml:space="preserve"><value>生成失败，请重试</value></data>
 </root>
 

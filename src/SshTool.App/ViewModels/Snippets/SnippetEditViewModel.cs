@@ -132,8 +132,7 @@ namespace SshTool.App.ViewModels.Snippets
                 IReadOnlyList<string> vars = SnippetTemplate.CollectVariables(_content);
                 if (vars.Count == 0)
                 {
-                    return Localized.Get("Snippet_VarHint",
-                        "可用 ${host} ${user} ${port} ${name}，其他 ${xxx} 发送时填写");
+                    return Localized.Get("Snippet_VarHint", "可用 ${host} ${user} ${port} ${name}，其他 ${xxx} 发送时填写");
                 }
                 return Localized.Format("Snippet_VarsPending", "待填变量：{0}",
                     string.Join(Localized.Get("Snippet_VarJoiner", "、"), ListOf(vars)));

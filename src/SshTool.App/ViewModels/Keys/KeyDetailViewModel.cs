@@ -171,17 +171,15 @@ namespace SshTool.App.ViewModels.Keys
             await RefreshHostsAsync().ConfigureAwait(true);
             if (Hosts.Count > 0)
             {
-                await ConfirmDialog.ShowAsync(
-                    "无法删除",
-                    "该密钥正被 " + Hosts.Count.ToString() + " 台主机使用（"
-                        + JoinNames() + "），请先更换这些主机的认证方式。",
-                    "确定", "关闭").ConfigureAwait(true);
+                await ShowBlockedDialogAsync();
                 return false;
             }
             ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
-                "删除密钥？",
-                "删除「" + (_entry.Name ?? string.Empty) + "」后无法恢复，已保存的私钥与短语将一并清除。",
-                "删除", "取消", true).ConfigureAwait(true);
+                Localized.Get("Key_DeleteConfirmTitle", "删除密钥？"),
+                Localized.Format("Key_DeleteConfirmMessage", "删除「{0}」后无法恢复，已保存的私钥与短语将一并清除。",
+                    _entry.Name ?? string.Empty),
+                Localized.Get("Common_Delete", "删除"),
+                Localized.Get("Dialog_Cancel", "取消"), true).ConfigureAwait(true);
             if (!confirm.Confirmed)
             {
                 return false;
@@ -193,15 +191,22 @@ namespace SshTool.App.ViewModels.Keys
             catch (InvalidOperationException)
             {
                 await RefreshHostsAsync().ConfigureAwait(true);
-                await ConfirmDialog.ShowAsync(
-                    "无法删除",
-                    "该密钥正被 " + Hosts.Count.ToString() + " 台主机使用（"
-                        + JoinNames() + "），请先更换这些主机的认证方式。",
-                    "确定", "关闭").ConfigureAwait(true);
+                await ShowBlockedDialogAsync();
                 return false;
             }
             Logger.Log(LogLevel.Info, "Keys", "删除密钥 " + _entry.Id);
             return true;
+        }
+
+        // 「密钥仍被主机引用」的提示对话框（DeleteAsync 两处共用）。
+        private async Task ShowBlockedDialogAsync()
+        {
+            await ConfirmDialog.ShowAsync(
+                Localized.Get("Key_DeleteBlockedTitle", "无法删除"),
+                Localized.Format("Key_DeleteBlockedMessage", "该密钥正被 {0} 台主机使用（{1}），请先更换这些主机的认证方式。",
+                    Hosts.Count.ToString(), JoinNames()),
+                Localized.Get("Dialog_Ok", "确定"),
+                Localized.Get("Common_Close", "关闭")).ConfigureAwait(true);
         }
 
         public void CopyPublicKey()
@@ -234,17 +239,19 @@ namespace SshTool.App.ViewModels.Keys
                 return Localized.Get("Key_NotFound", "密钥不存在");
             }
             ConfirmDialogResult first = await ConfirmDialog.ShowAsync(
-                "导出私钥？",
-                "私钥将以明文写入你选择的文件，任何能读到该文件的应用都能使用它。",
-                "继续", "取消", true).ConfigureAwait(true);
+                Localized.Get("Key_ExportConfirmTitle", "导出私钥？"),
+                Localized.Get("Key_ExportConfirmMessage", "私钥将以明文写入你选择的文件，任何能读到该文件的应用都能使用它。"),
+                Localized.Get("Common_Continue", "继续"),
+                Localized.Get("Dialog_Cancel", "取消"), true).ConfigureAwait(true);
             if (!first.Confirmed)
             {
                 return Localized.Get("Export_Cancelled", "已取消导出");
             }
             ConfirmDialogResult second = await ConfirmDialog.ShowAsync(
-                "再次确认",
-                "私钥一旦离开应用即失去 DPAPI 保护。请确认目标位置只有你能访问。",
-                "导出", "取消", true).ConfigureAwait(true);
+                Localized.Get("Key_ExportAgainTitle", "再次确认"),
+                Localized.Get("Key_ExportAgainMessage", "私钥一旦离开应用即失去 DPAPI 保护。请确认目标位置只有你能访问。"),
+                Localized.Get("Common_Export", "导出"),
+                Localized.Get("Dialog_Cancel", "取消"), true).ConfigureAwait(true);
             if (!second.Confirmed)
             {
                 return Localized.Get("Export_Cancelled", "已取消导出");
@@ -257,7 +264,7 @@ namespace SshTool.App.ViewModels.Keys
             }
             FileSavePicker picker = new FileSavePicker();
             picker.SuggestedFileName = SuggestFileName(_entry.Name);
-            picker.FileTypeChoices.Add("私钥文件", new List<string> { ".pem" });
+            picker.FileTypeChoices.Add(Localized.Get("Key_PrivatePemType", "私钥文件"), new List<string> { ".pem" });
             StorageFile target;
             try
             {

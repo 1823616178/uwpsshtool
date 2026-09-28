@@ -87,9 +87,11 @@ namespace SshTool.App.Dialogs
                             string existingName = dialog._vm.DuplicateName();
                             dialog.ClearSecrets();
                             ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
-                                "密钥已存在",
-                                "已存在相同指纹的密钥「" + existingName + "」。仍要保存为新密钥吗？",
-                                "仍要保存", "取消");
+                                Localized.Get("KeyImport_ExistsTitle", "密钥已存在"),
+                                Localized.Format("KeyImport_ExistsMessage", "已存在相同指纹的密钥「{0}」。仍要保存为新密钥吗？",
+                                    existingName),
+                                Localized.Get("KeyImport_SaveAnyway", "仍要保存"),
+                                Localized.Get("Dialog_Cancel", "取消"));
                             if (confirm.Confirmed)
                             {
                                 string retryNameError = dialog._vm.ValidateName();
@@ -111,22 +113,22 @@ namespace SshTool.App.Dialogs
                         }
                     case KeyInspectStatus.NeedsPassphrase:
                         dialog.PassphrasePanel.Visibility = Visibility.Visible;
-                        dialog.SetError("该私钥已加密，请输入短语后继续");
+                        dialog.SetError(Localized.Get("KeyImport_ErrEncrypted", "该私钥已加密，请输入短语后继续"));
                         dialog._awaitingSaveConfirm = false;
                         dialog.PrimaryButtonText = Localized.Get("KeyImport_Continue", "继续");
                         continue;
                     case KeyInspectStatus.Invalid:
-                        dialog.SetError("无法解析该私钥（文件损坏或短语错误），请检查后重试");
+                        dialog.SetError(Localized.Get("KeyImport_ErrParse", "无法解析该私钥（文件损坏或短语错误），请检查后重试"));
                         dialog._awaitingSaveConfirm = false;
                         dialog.PrimaryButtonText = Localized.Get("KeyImport_Continue", "继续");
                         continue;
                     case KeyInspectStatus.TooLarge:
-                        dialog.SetError("文件超过 256 KiB，拒绝导入");
+                        dialog.SetError(Localized.Get("KeyImport_ErrTooLarge", "文件超过 256 KiB，拒绝导入"));
                         dialog._awaitingSaveConfirm = false;
                         dialog.PrimaryButtonText = Localized.Get("KeyImport_Continue", "继续");
                         continue;
                     default:
-                        dialog.SetError("请粘贴私钥内容或从文件导入");
+                        dialog.SetError(Localized.Get("KeyImport_ErrEmpty", "请粘贴私钥内容或从文件导入"));
                         dialog._awaitingSaveConfirm = false;
                         dialog.PrimaryButtonText = Localized.Get("KeyImport_Continue", "继续");
                         continue;
@@ -153,8 +155,9 @@ namespace SshTool.App.Dialogs
 
         private void ShowPreview(InspectedKeyInfo info)
         {
-            TypeText.Text = (info.KeyType ?? string.Empty) + " · " + info.Bits.ToString() + " 位 · "
-                + (info.Format ?? string.Empty) + (info.Encrypted ? " · 已加密" : string.Empty);
+            TypeText.Text = Localized.Format("KeyImport_TypeBits", "{0} · {1} 位 · {2}",
+                info.KeyType ?? string.Empty, info.Bits.ToString(), info.Format ?? string.Empty)
+                + (info.Encrypted ? Localized.Get("KeyImport_SuffixEncrypted", " · 已加密") : string.Empty);
             FingerprintText.Text = info.FingerprintSha256 ?? string.Empty;
             PreviewPanel.Visibility = Visibility.Visible;
             if (string.IsNullOrWhiteSpace(NameBox.Text) && !string.IsNullOrEmpty(info.Comment))
@@ -181,7 +184,7 @@ namespace SshTool.App.Dialogs
         {
             // 输入变化后之前的类型/指纹确认作废。
             _awaitingSaveConfirm = false;
-            PrimaryButtonText = "继续";
+            PrimaryButtonText = Localized.Get("KeyImport_Continue", "继续");
             PreviewPanel.Visibility = Visibility.Collapsed;
         }
 
@@ -198,7 +201,7 @@ namespace SshTool.App.Dialogs
             }
             catch (Exception ex)
             {
-                SetError("文件选择失败：" + ex.GetType().Name);
+                SetError(Localized.Format("KeyImport_ErrPickFailed", "文件选择失败：{0}", ex.GetType().Name));
                 return;
             }
             if (file == null)
@@ -211,7 +214,7 @@ namespace SshTool.App.Dialogs
                     await file.GetBasicPropertiesAsync();
                 if (props.Size > (ulong)KeyImportService.MaxPrivateKeyBytes)
                 {
-                    SetError("文件超过 256 KiB，拒绝导入");
+                    SetError(Localized.Get("KeyImport_ErrTooLarge", "文件超过 256 KiB，拒绝导入"));
                     return;
                 }
                 PasteBox.Text = await FileIO.ReadTextAsync(file);
@@ -223,7 +226,7 @@ namespace SshTool.App.Dialogs
             }
             catch (Exception ex)
             {
-                SetError("文件读取失败：" + ex.GetType().Name);
+                SetError(Localized.Format("KeyImport_ErrReadFailed", "文件读取失败：{0}", ex.GetType().Name));
             }
         }
     }
