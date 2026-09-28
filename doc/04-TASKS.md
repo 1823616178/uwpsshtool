@@ -47,7 +47,8 @@
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 11 | 性能/安全报告、可侧载安装包 v1.0.0 |
 | M9 | 优化与债务清理 | 16 | 15 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| **合计** | | **128** | **127** | |
+| M10 | UI 收尾与功能补齐 | 6 | 0 | 回滚搜索、链接、收藏/磁贴、应用锁、断线通知、SFTP 增强；全页统一 V2 组件（依据 `01-DESIGN.md §16`） |
+| **合计** | | **134** | **127** | |
 
 ### 1.1 关键路径
 
@@ -1568,6 +1569,87 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] Core 同步文案经注入提供器出文案，注入路径有单测
     - [ ] `pwsh scripts/verify.ps1` 全绿
   - 验证：`pwsh scripts/verify.ps1`
+
+## 11A. M10 — UI 收尾与功能补齐
+
+> 依据：2026-09-28 UI/功能审查（`01-DESIGN.md §16`）。V01–V06 已在代码层完成但观感全部待真机验收；
+> 本里程碑修掉审查发现的 UI 缺陷、补齐常见 SSH 客户端能力，并把尚未迁移的页面统一到 V2 组件。
+> **不动同步线格式**：新增的收藏、书签、应用锁等全部是本机专有数据（🏠）。
+
+- [ ] **W01 UI 小缺陷修复** `S`
+  - 依赖：—
+  - 参考：`01-DESIGN.md §16.1`
+  - 产出：`Views/SettingsPage.xaml.cs`、`Views/MainPage.xaml(.cs)`、新增 `Views/ToolsPage.xaml(.cs)`、`ViewModels/MainViewModel.cs`、resw
+  - 要点：
+    1. 设置页「开源许可」导航到 `LicensesPage`（原为占位页）。
+    2. 主页溢出菜单 7 项收进「工具与设置」页（05 §6.1 原计划）：溢出菜单只留「工具与设置」「关于」「登录」。
+    3. 清理 V02 遗留死契约（`SearchCommand`/`ToggleSearchCommand`/`IsSearchOpen`）；无同步栈退化路径的占位页标题走资源。
+  - 验收：
+    - [ ] 全仓无导航到 `PlaceholderPage` 的非退化路径
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [ ] 📱 工具页入口与各子页往返正常
+
+- [ ] **W02 终端回滚搜索与链接识别** `M`
+  - 依赖：—
+  - 参考：`01-DESIGN.md §16.2`
+  - 产出：`Core/Terminal/ScrollbackSearch.cs`、`Core/Terminal/LinkDetector.cs`、`App/Terminal/TerminalView.xaml(.cs)`、`Views/TerminalPage.xaml(.cs)`、resw
+  - 要点：
+    1. Core 纯逻辑：按行文本（含回滚）大小写不敏感查找，返回 (行, 列, 长度) 命中表；宽字符按格计列。
+    2. 链接：`http(s)://` 与 `www.` 开头的 URL，去掉结尾标点；长按/双击命中链接时弹「打开链接/复制」。
+    3. 终端菜单加「查找」：输入框 + 上一个/下一个 + 命中计数；命中行滚入视口并高亮。
+  - 验收：
+    - [ ] Core 单测覆盖：跨回滚、多命中、宽字符列、空查询、URL 边界标点
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [ ] 📱 查找与点开链接可用，不抢 SIP 焦点
+
+- [ ] **W03 收藏/最近分组、开始屏幕磁贴与 ssh:// 唤起** `M`
+  - 依赖：—
+  - 参考：`01-DESIGN.md §16.3`、§8.1（`favorite` 🏠）
+  - 产出：`Core/Models/Host.cs`、`Storage/Codecs/HostCodec.cs`、`Core/Hosts/HostListBuilder.cs`、`Core/Hosts/SshUri.cs`、`App/Platform/HostTileService.cs`、`App.xaml.cs`、`Package.appxmanifest`、HostRow 菜单、resw
+  - 要点：
+    1. `Host.favorite` 本机专有：编解码 + Clone；同步上行不含、下行经 `lh.Clone()` 保留（已有机制）。
+    2. 主机列表在分组之前插「收藏」「最近」两段（最近 = 最近 5 个有 `lastConnectedAt` 的主机），搜索时不显示这两段。
+    3. `SecondaryTile` 固定主机，tileId = `host-<id>`，激活参数 `host:<id>`；`ssh://user@host:port` 协议激活走快速连接预填。
+  - 验收：
+    - [ ] Core 单测：收藏/最近分段、SshUri 解析、HostCodec 往返含 favorite、同步上行文档不含 favorite
+    - [ ] `pwsh scripts/verify.ps1 -Quick -Interop` 全绿（上传字节零偏差）
+    - [ ] 📱 磁贴点击直达终端；`ssh://` 链接唤起
+
+- [ ] **W04 应用锁、后台断线通知与终端响铃** `M`
+  - 依赖：—
+  - 参考：`01-DESIGN.md §16.4`
+  - 产出：`App/Platform/AppLockService.cs`、`App/Platform/DisconnectNotifier.cs`、`Native/Bridge/TerminalScreen.{h,cpp}`（BellCount）、`TerminalView`、设置键 3 个、resw
+  - 要点：
+    1. `appLockEnabled`：启动与从后台返回（离开 ≥ 1 分钟）时 `UserConsentVerifier` 验证；设备不支持时设置项禁用并说明。
+    2. `notifyOnDisconnect`：应用在后台时会话进入断开/错误，发本地 Toast（不含主机地址与用户名，只含主机显示名）。
+    3. `bellMode`（vibrate/visual/none）：Bridge 暴露 `BellCount`，渲染帧比较增量触发振动或整屏闪一下。
+  - 验收：
+    - [ ] 设置键表与单测同步（25→28）
+    - [ ] `pwsh scripts/verify.ps1` 全绿（含 v141 Native 构建）
+    - [ ] 📱 锁屏返回要求验证；后台断线弹通知；`printf '\a'` 振动
+
+- [ ] **W05 SFTP 增强、分享上传与 ssh_config 导入** `M`
+  - 依赖：—
+  - 参考：`01-DESIGN.md §16.5`
+  - 产出：`ViewModels/SftpViewModel.cs`、`Views/SftpPage.xaml(.cs)`、`Core/Sftp/SftpBookmarks.cs`、`Core/Hosts/SshConfigImporter.cs`、`App.xaml.cs`（ShareTarget）、`Package.appxmanifest`、`Views/HostEditPage` 或主页导入入口、resw
+  - 要点：
+    1. SFTP：文件「用其他应用打开」（下载到临时目录后 `Launcher.LaunchFileAsync`）；下载目标可选文件夹（`FolderPicker`）；每主机路径书签（本机设置键 JSON）。
+    2. 分享目标：接收 StorageItems → 选主机 → 打开 SFTP 页并排队上传。
+    3. `~/.ssh/config` 文本导入：Host/HostName/User/Port/ProxyJump（同文件内别名）→ 主机草稿，重名跳过并报告。
+  - 验收：
+    - [ ] Core 单测：书签增删去重、config 解析（通配符 Host 跳过、多别名、注释、大小写键、ProxyJump 解析）
+    - [ ] `pwsh scripts/verify.ps1` 全绿
+    - [ ] 📱 打开方式、文件夹下载、相册分享上传
+
+- [ ] **W06 剩余页面统一 V2 组件** `M`
+  - 依赖：W01
+  - 参考：`05-CODE-AUDIT-UI-REDESIGN.md §5.3`、§6.4
+  - 产出：`Views/{AppearanceEdit,AppearanceList,GroupManage,KeyBarLayoutEditor,ShortcutEditor,KnownHosts,Snippets,SnippetEdit}Page.xaml`、`Views/Keys/KeyDetailPage.xaml`、`Views/Sync/{Login,VaultSetup,VaultUnlock}Page.xaml`
+  - 要点：页头统一 `AppPageHeader`，列表行 `AppListRow`，表单 `FormSection`，页面主操作 `BottomActionBar`；只换视觉容器，不动 ViewModel 契约与 x:Name。
+  - 验收：
+    - [ ] 12 个页面均使用 V2 组件，无页面私有颜色/圆角
+    - [ ] `pwsh scripts/verify.ps1` 全绿（XAML 编译、魔法数字、文案门禁）
+    - [ ] 📱 深浅主题、360×640 与宽屏无裁切
 
 ---
 

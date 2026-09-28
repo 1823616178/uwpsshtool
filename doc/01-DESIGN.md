@@ -553,6 +553,7 @@ public ref class KeyTool sealed {
 | backspaceSendsCtrlH | bool | 🏠 | 默认 false |
 | sortOrder | int | 🏠 | 组内排序 |
 | lastConnectedAt | string? | 🏠 | ISO 时间，用于「最近使用」 |
+| favorite | bool | 🏠 | 默认 false；主机列表「收藏」段（W03，§16.3） |
 
 **HostGroup**：`id` ☁、`name` ☁（1–255）、`color` ☁（必填 `#RRGGBB`，默认 `#4F8CFF`）、`order` 🏠、`collapsed` 🏠。
 > 桌面端的分组挂在隧道上（`tunnel.groupId`），本应用同时用于主机归属（`host.groupId` 🏠）；下行删除分组时，本机主机的 `groupId` 置空而非删除主机。
@@ -618,6 +619,10 @@ public ref class KeyTool sealed {
 | `syncPollForegroundSeconds` | int | 60 | 0 = 关闭轮询 |
 | `lastVersionSeen` | string | "" | 升级提示 |
 | `logLevel` | string | `info` | debug/info/warn/error |
+| `appLockEnabled` | bool | false | 启动/返回前台时 Windows Hello 或 PIN 验证（W04，§16.4） |
+| `notifyOnDisconnect` | bool | true | 应用在后台时会话断开发本地通知（W04） |
+| `bellMode` | string | `vibrate` | vibrate/visual/none，终端响铃反馈（W04） |
+| `sftpBookmarks` | string | `{}` | JSON：hostId → 路径数组，SFTP 书签（W05，§16.5） |
 
 ### 8.4 仓库与迁移
 
@@ -781,3 +786,56 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
 | 100 台主机列表滚动 | 无明显卡顿（虚拟化 ListView） |
 | 内存 | 单会话 < 120 MB；4 会话 + 各 5000 行回滚 < 250 MB |
 | Argon2id 解锁保险库 | 有进度提示；< 8 s |
+
+---
+
+## 16. M10 增补：UI 收尾与功能补齐（2026-09-28）
+
+> 来源：UI/功能审查。所有新增持久数据都是本机专有（🏠），**不进 SyncDocumentV1**：
+> 桌面端对文档用 `z.strictObject`，多一个键整份拒绝（`03-SYNC-PROTOCOL.md`）。
+> 主机上的 `favorite` 与其它 🏠 字段一样，上行由 `SyncLocalAdapter.BuildServerAsync` 按白名单取字段而天然排除，
+> 下行合并以本机 `Host.Clone()` 为底而天然保留。设置键不参与同步。
+
+### 16.1 UI 缺陷（W01）
+
+- 设置页「开源许可」→ `LicensesPage`（原误导到占位页）。
+- 主页溢出菜单改为「工具与设置 / 关于 / 登录」三项；「工具与设置」页用 `AppListRow` 列出设置、密钥、片段、外观、已知主机、分组管理。
+- 占位页只保留「同步栈构造失败」这一条退化路径。
+
+### 16.2 回滚搜索与链接（W02）
+
+- `ScrollbackSearch`（Core，纯函数）：输入「行文本提供器」（回滚 + 屏幕，逻辑行号从回滚最旧行 0 起）与查询串，
+  返回按位置排序的命中 `(row, col, length)`；列按终端格计（宽字符占 2 格）；大小写不敏感（Ordinal IgnoreCase）；
+  查询为空或纯空白返回空表；单次最多 1000 个命中防止病态查询卡 UI。
+- `LinkDetector`（Core，纯函数）：在一行文本中找 `https?://` 或 `www.` 开头的 URL，截止于空白或 `<>"'`，
+  去掉结尾的 `.,;:!?` 与不成对的右括号；`www.` 补 `http://`。
+- 交互：终端菜单「查找」弹出查找条（不抢哨兵焦点之外的 SIP 行为：打开查找时 SIP 给查找框，关闭后回哨兵）；
+  上/下一个跳转时把命中行滚入视口并以选区样式高亮。长按命中 URL 的格时菜单首项为「打开链接」（`Launcher.LaunchUriAsync`）。
+
+### 16.3 收藏、最近、磁贴、ssh://（W03）
+
+- `HostListBuilder` 在非搜索态、且有内容时，在分组前插入「收藏」段（favorite=true，按名称）与「最近」段
+  （lastConnectedAt 最新的 5 个）；两段是视图，不改变主机归属，同一主机可同时出现在段与分组中。
+- 磁贴：`SecondaryTile`（10240 起可用），tileId `host-<id>`，Arguments `host:<id>`；
+  启动/激活时 `App.OnLaunched` 解析 Arguments，主机存在则直接进终端，不存在则回主页并提示。删除主机时顺带移除磁贴。
+- 协议：`ssh://[user@]host[:port]`（清单声明 `ssh` 协议），解析后打开快速连接并预填，不自动连接（避免被网页一键触发）。
+
+### 16.4 应用锁、断线通知、响铃（W04）
+
+- 应用锁：`UserConsentVerifier.CheckAvailabilityAsync` 不可用时设置开关禁用并显示原因；
+  启用后冷启动与「后台停留 ≥ 60 s 再返回」时覆盖锁定页并请求验证，失败可重试，不提供绕过。
+- 断线通知：`LifecycleService` 已知前后台状态；后台时会话进入 Disconnected/Error 由 `DisconnectNotifier` 发 Toast，
+  文案只含主机**显示名**（不含地址、用户名），点通知回到该会话。同一会话 60 s 内只通知一次。
+- 响铃：native 已计 `bellCount_`；Bridge `TerminalScreen.BellCount` 只读暴露，`TerminalView` 每帧比较增量，
+  `bellMode=vibrate` 走现有 `Haptics`（受 `hapticsEnabled` 约束），`visual` 做 120 ms 反色闪烁；200 ms 内多次合并。
+
+### 16.5 SFTP 增强、分享上传、ssh_config 导入（W05）
+
+- 打开方式：下载到 `TemporaryFolder\sftp-open\` 后 `Launcher.LaunchFileAsync`；目录内文件超过 24 h 在下次启动清理。
+- 下载到文件夹：`FolderPicker`（15063 可用）选择目标目录，队列逐个写入，同名自动加序号。
+- 书签：`SftpBookmarks`（Core）对 `sftpBookmarks` JSON 做增删、去重、每主机上限 20。
+- 分享目标：清单声明 `shareTarget`（StorageItems），`OnShareTargetActivated` 进入「选择主机」页，选定后打开 SFTP 页排队上传到当前目录。
+- `SshConfigImporter`（Core）：解析 `Host`/`HostName`/`User`/`Port`/`ProxyJump`/`IdentityFile`（后者只记录提示，不导入私钥）；
+  含 `*`/`?` 的 Host 模式跳过；一个 Host 行多个别名取第一个为名称；ProxyJump 指向同文件别名时建立跳板引用；
+  与现有主机同名则跳过并在结果中报告。
+
