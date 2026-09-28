@@ -122,6 +122,14 @@ namespace SshTool.App.Platform
                     {
                         Application.Current.Resources["AppAccentBrush"] =
                             new SolidColorBrush(accentFallback.Color);
+                        Application.Current.Resources["TextControlBorderBrushFocused"] =
+                            new SolidColorBrush(accentFallback.Color);
+                        Application.Current.Resources["ComboBoxBackgroundBorderBrushFocused"] =
+                            new SolidColorBrush(accentFallback.Color);
+                        Application.Current.Resources["ComboBoxItemBorderBrushSelected"] =
+                            new SolidColorBrush(accentFallback.Color);
+                        Application.Current.Resources["ComboBoxItemForegroundSelected"] =
+                            new SolidColorBrush(accentFallback.Color);
                     }
                     if (keyFallback != null)
                     {
@@ -137,6 +145,10 @@ namespace SshTool.App.Platform
                 var accent = UiSettings.GetColorValue(UIColorType.Accent);
                 Application.Current.Resources["AppAccentBrush"] = new SolidColorBrush(accent);
                 Application.Current.Resources["KeyBarKeyActiveBrush"] = new SolidColorBrush(accent);
+                Application.Current.Resources["TextControlBorderBrushFocused"] = new SolidColorBrush(accent);
+                Application.Current.Resources["ComboBoxBackgroundBorderBrushFocused"] = new SolidColorBrush(accent);
+                Application.Current.Resources["ComboBoxItemBorderBrushSelected"] = new SolidColorBrush(accent);
+                Application.Current.Resources["ComboBoxItemForegroundSelected"] = new SolidColorBrush(accent);
             }
             catch (Exception)
             {

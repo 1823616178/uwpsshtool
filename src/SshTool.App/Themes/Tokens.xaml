@@ -24,6 +24,8 @@
     <Thickness x:Key="GapXlTop">0,24,0,0</Thickness>
     <!-- 发丝描边（Banner 底线、Toast 边框）；不写字面量 1。 -->
     <Thickness x:Key="BorderThin">1</Thickness>
+    <!-- G01：输入类控件边框粗细（1 epx，07-UI-POLISH-TASKS §4.3） -->
+    <Thickness x:Key="InputBorderThickness">1</Thickness>
     <!-- Shape.StrokeThickness 用 Double 档（Thickness 不能赋给 StrokeThickness）。 -->
     <x:Double x:Key="StrokeThin">1</x:Double>
     <Thickness x:Key="BorderThinBottom">0,0,0,1</Thickness>
@@ -31,6 +33,11 @@
     <Thickness x:Key="BorderThinTop">0,1,0,0</Thickness>
     <Thickness x:Key="BorderNone">0</Thickness>
     <Thickness x:Key="PadNone">0</Thickness>
+    <!-- G01：输入类控件内边距与高度 -->
+    <x:Double x:Key="InputHeight">40</x:Double>
+    <Thickness x:Key="PadInput">10,6,10,6</Thickness>
+    <!-- G01：ComboBox 选中项左侧指示条（2 epx） -->
+    <Thickness x:Key="ComboBoxItemSelectedBorder">2,0,0,0</Thickness>
     <!-- T09：隐藏 IME 哨兵 TextBox。1×1 保持可聚焦；Opacity 0 会被渲染裁掉。 -->
     <x:Double x:Key="SentinelInputSize">1</x:Double>
     <x:Double x:Key="SentinelInputOpacity">0.01</x:Double>
@@ -98,6 +105,7 @@
     <!-- U05：等宽字形（指纹/公钥/randomart，§2.4）；对话框内 4/8 小间距 -->
     <FontFamily x:Key="AppMonoFontFamily">Consolas</FontFamily>
     <Thickness x:Key="GapXsTop">0,4,0,0</Thickness>
+    <Thickness x:Key="GapXsBottom">0,0,0,4</Thickness>
     <Thickness x:Key="GapSmTop">0,8,0,0</Thickness>
 
     <!-- §2.3 图标（Segoe MDL2 Assets 字形） -->

@@ -30,4 +30,75 @@
     <SolidColorBrush x:Key="KeyBarKeyActiveBrush" Color="#4D8DFF" />
     <SolidColorBrush x:Key="KeyBarKeyLockedBrush" Color="#F5A524" />
     <SolidColorBrush x:Key="OverlayScrimBrush" Color="#B3000000" />
+
+    <!-- G01: TextControl（TextBox / PasswordBox / AutoSuggestBox）系统画刷重写 -->
+    <SolidColorBrush x:Key="TextControlBackground" Color="#1A2030" />
+    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1A2030" />
+    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="#1A2030" />
+    <SolidColorBrush x:Key="TextControlBackgroundDisabled" Color="#12161F" />
+    <SolidColorBrush x:Key="TextControlBorderBrush" Color="#2A3448" />
+    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="#2A3448" />
+    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#4D8DFF" />
+    <SolidColorBrush x:Key="TextControlBorderBrushDisabled" Color="#2A3448" />
+    <SolidColorBrush x:Key="TextControlForeground" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="TextControlForegroundPointerOver" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="TextControlForegroundFocused" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="TextControlForegroundDisabled" Color="#6B7891" />
+    <SolidColorBrush x:Key="TextControlHeaderForeground" Color="#9AA7C0" />
+    <SolidColorBrush x:Key="TextControlHeaderForegroundDisabled" Color="#6B7891" />
+    <SolidColorBrush x:Key="TextControlPlaceholderForeground" Color="#6B7891" />
+    <SolidColorBrush x:Key="TextControlPlaceholderForegroundPointerOver" Color="#6B7891" />
+    <SolidColorBrush x:Key="TextControlPlaceholderForegroundFocused" Color="#6B7891" />
+    <SolidColorBrush x:Key="TextControlPlaceholderForegroundDisabled" Color="#6B7891" />
+    <SolidColorBrush x:Key="TextControlButtonBackground" Color="#00000000" />
+    <SolidColorBrush x:Key="TextControlButtonBackgroundPointerOver" Color="#243048" />
+    <SolidColorBrush x:Key="TextControlButtonBackgroundPressed" Color="#243048" />
+    <SolidColorBrush x:Key="TextControlButtonForeground" Color="#9AA7C0" />
+    <SolidColorBrush x:Key="TextControlButtonForegroundPointerOver" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="TextControlButtonForegroundPressed" Color="#E8EEFB" />
+
+    <!-- G01: ComboBox 系统画刷重写 -->
+    <SolidColorBrush x:Key="ComboBoxBackground" Color="#1A2030" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundPointerOver" Color="#1A2030" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundPressed" Color="#243048" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundDisabled" Color="#12161F" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrush" Color="#2A3448" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrushPointerOver" Color="#2A3448" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrushPressed" Color="#2A3448" />
+    <SolidColorBrush x:Key="ComboBoxBorderBrushDisabled" Color="#2A3448" />
+    <SolidColorBrush x:Key="ComboBoxBackgroundBorderBrushFocused" Color="#4D8DFF" />
+    <SolidColorBrush x:Key="ComboBoxForeground" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="ComboBoxForegroundPointerOver" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="ComboBoxForegroundPressed" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="ComboBoxForegroundFocused" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="ComboBoxForegroundFocusedPressed" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="ComboBoxForegroundDisabled" Color="#6B7891" />
+    <SolidColorBrush x:Key="ComboBoxPlaceHolderForeground" Color="#6B7891" />
+    <SolidColorBrush x:Key="ComboBoxPlaceHolderForegroundFocusedPressed" Color="#6B7891" />
+    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForeground" Color="#9AA7C0" />
+    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundDisabled" Color="#6B7891" />
+    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundFocused" Color="#9AA7C0" />
+    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundFocusedPressed" Color="#9AA7C0" />
+    <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="#1A2030" />
+    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="#2A3448" />
+    <SolidColorBrush x:Key="ComboBoxHeaderForeground" Color="#9AA7C0" />
+    <SolidColorBrush x:Key="ComboBoxItemBackground" Color="#00000000" />
+    <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="#243048" />
+    <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="#243048" />
+    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelected" Color="#243048" />
+    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPointerOver" Color="#243048" />
+    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedPressed" Color="#243048" />
+    <SolidColorBrush x:Key="ComboBoxItemBackgroundSelectedUnfocused" Color="#243048" />
+    <SolidColorBrush x:Key="ComboBoxItemBorderBrush" Color="#00000000" />
+    <SolidColorBrush x:Key="ComboBoxItemBorderBrushPointerOver" Color="#00000000" />
+    <SolidColorBrush x:Key="ComboBoxItemBorderBrushSelected" Color="#4D8DFF" />
+    <SolidColorBrush x:Key="ComboBoxItemBorderBrushSelectedPointerOver" Color="#4D8DFF" />
+    <SolidColorBrush x:Key="ComboBoxItemBorderBrushSelectedPressed" Color="#4D8DFF" />
+    <SolidColorBrush x:Key="ComboBoxItemBorderBrushSelectedUnfocused" Color="#4D8DFF" />
+    <SolidColorBrush x:Key="ComboBoxItemForeground" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="ComboBoxItemForegroundPointerOver" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="ComboBoxItemForegroundSelected" Color="#4D8DFF" />
+    <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedPointerOver" Color="#4D8DFF" />
+    <SolidColorBrush x:Key="ComboBoxItemForegroundSelectedUnfocused" Color="#E8EEFB" />
+    <SolidColorBrush x:Key="ComboBoxItemForegroundDisabled" Color="#6B7891" />
 </ResourceDictionary>

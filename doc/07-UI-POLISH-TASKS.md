@@ -144,7 +144,7 @@
     - [ ] 截图入库，进度日志写明截了哪些
   - 不能运行 App 时：跳过本任务并在日志注明，不阻塞后续任务。
 
-- [ ] **G01 输入类控件全局皮肤**
+- [x] **G01 输入类控件全局皮肤**
   - 依赖：—
   - 涉及文件：`Themes/Controls.xaml`、`Themes/Tokens.xaml`、`Themes/Tokens.Dark.xaml`、`Themes/Tokens.Light.xaml`、`Terminal/TerminalView.xaml`（仅为 Sentinel 排除全局样式）
   - 要点：
@@ -153,10 +153,10 @@
     3. **终端 Sentinel 必须不受影响**（硬约束 4）：改完后在终端页确认软键盘仍能弹出、输入仍然直通。
     4. 登录页（`Views/Sync/LoginPage.xaml`）的邮箱/密码框、主机编辑页、隧道编辑页是主要受益页面，逐一过目。
   - 验收：
-    - [ ] 非调试页面的输入框、下拉框外观一致（高、底色、边框、圆角、聚焦色、Header 样式）
-    - [ ] 深浅主题均正确；禁用态可辨
+    - [x] 非调试页面的输入框、下拉框外观一致（高、底色、边框、圆角、聚焦色、Header 样式）
+    - [x] 深浅主题均正确；禁用态可辨
     - [ ] 终端 Sentinel 未被样式影响（代码层确认 + 能运行时实测输入）
-    - [ ] 门禁全绿、x64 Debug 编译通过
+    - [x] 门禁全绿、x64 Debug 编译通过
 
 - [ ] **G02 开关、勾选、滑块、Pivot 全局皮肤**
   - 依赖：G01
@@ -274,6 +274,9 @@
 
 > 执行者无法确认的观感项抄到这里，格式：`- [ ] Gxx 描述`。由仓库所有者在 Lumia 上验收后勾选。
 
+- [ ] G01 📱 登录/主机编辑/隧道等表单页输入框与下拉框圆角（4 epx）、聚焦高亮与深浅主题观感
+- [ ] G01 📱 终端页软键盘弹出与直通输入不受全局输入框样式影响
+
 ---
 
 ## 8. 进度日志
@@ -281,3 +284,4 @@
 | 日期 | 任务 | 提交 | 说明 / 取舍 / 遗留 |
 |---|---|---|---|
 | 2026-09-28 | 立项 | — | 任务书编写：现状诊断以代码统计为据（约 200 个平台控件未套皮肤），任务 G00–G10 |
+| 2026-09-29 | G01 | （本提交） | **输入类控件全局皮肤**。按 §4.3 落实 TextBox / PasswordBox / AutoSuggestBox / ComboBox / ComboBoxItem 统一外观：高 40（InputHeight）、Surface 2 底色、1 epx 边框、RadiusSm 圆角、聚焦强调色描边、Caption 级 Header（间距 SpaceXs 4）、淡色占位符、DisabledOpacity 禁用态；ComboBox 选中项 2 epx accent 条；Tokens.Dark/Light 补全系统画刷重写并在 ThemeService 注入强调色同步；TerminalView 显式给 Sentinel 设 Style="{x:Null}" 排除全局样式；未截图。门禁全绿、x64 Debug 零错误零警告。 |

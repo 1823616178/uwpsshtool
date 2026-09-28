@@ -41,7 +41,9 @@
         </Border>
         <!-- T09：隐藏哨兵，承接 SIP / IME。IsHitTestVisible=False 让点击落到画布。 -->
         <!-- Q05：AccessibilityView=Raw 避免读屏将输入哨兵念为普通未命名输入框。 -->
+        <!-- G01（硬约束 4）：显式 Style="{x:Null}" 排除全局 TextBox 样式，保证尺寸与模板不受影响。 -->
         <TextBox x:Name="Sentinel"
+                 Style="{x:Null}"
                  AutomationProperties.AccessibilityView="Raw"
                  Width="{StaticResource SentinelInputSize}"
                  Height="{StaticResource SentinelInputSize}"
