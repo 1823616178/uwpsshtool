@@ -118,6 +118,8 @@
     <Compile Include="Platform\HostTileService.cs" />
     <Compile Include="Platform\AppLockService.cs" />
     <Compile Include="Platform\DisconnectNotifier.cs" />
+    <Compile Include="Platform\SftpOpenCache.cs" />
+    <Compile Include="Platform\ShareInbox.cs" />
     <Compile Include="Platform\NativeForwarder.cs" />
     <Compile Include="Terminal\FrameScheduler.cs" />
     <Compile Include="Terminal\FontMetrics.cs" />
@@ -360,6 +362,9 @@
     <Compile Include="Views\ToolsPage.xaml.cs">
       <DependentUpon>ToolsPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\ShareTargetPage.xaml.cs">
+      <DependentUpon>ShareTargetPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\ShortcutEditorPage.xaml.cs">
       <DependentUpon>ShortcutEditorPage.xaml</DependentUpon>
     </Compile>
@@ -544,6 +549,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\ToolsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\ShareTargetPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

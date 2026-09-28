@@ -27,6 +27,8 @@ namespace SshTool.App.ViewModels
         // 的会话，没有则新建一条无 shell 的专用连接（01-DESIGN.md §11.1）。
         public string SessionId { get; set; }
         public string HostId { get; set; }
+        // W05（01-DESIGN §16.5）：分享目标带来的待上传文件，连上并列出目录后排队上传到当前目录。
+        public IReadOnlyList<StorageFile> PendingUploads { get; set; }
     }
 
     // 文件列表行（ListView 数据模板；Entry 为 Core RemoteEntry 原件）。
@@ -341,6 +343,14 @@ namespace SshTool.App.ViewModels
             // 行命令带参数（AsyncCommand 无泛型版），改用 .Forget(context, logger) 统一观察异常。
             DownloadRowCommand = new RelayCommand<SftpRowVm>(
                 row => DownloadRow(row).Forget("Sftp.Download", AppLog.Logger));
+            // W05：下载到选定文件夹 / 用其他应用打开 / 路径书签。
+            DownloadRowToFolderCommand = new RelayCommand<SftpRowVm>(
+                row => DownloadRowToFolderAsync(row).Forget("Sftp.DownloadToFolder", AppLog.Logger));
+            OpenRowWithCommand = new RelayCommand<SftpRowVm>(
+                row => OpenRowWithAsync(row).Forget("Sftp.OpenWith", AppLog.Logger));
+            AddBookmarkCommand = new RelayCommand(AddBookmark);
+            RemoveBookmarkCommand = new RelayCommand<string>(RemoveBookmark);
+            GoToBookmarkCommand = new RelayCommand<string>(GoToBookmark);
             RenameRowCommand = new RelayCommand<SftpRowVm>(
                 row => RenameRow(row).Forget("Sftp.Rename", AppLog.Logger));
             PermissionsRowCommand = new RelayCommand<SftpRowVm>(
@@ -385,6 +395,11 @@ namespace SshTool.App.ViewModels
         public ICommand NavigateCommand { get; private set; }
         public ICommand EnterRowCommand { get; private set; }
         public ICommand DownloadRowCommand { get; private set; }
+        public ICommand DownloadRowToFolderCommand { get; private set; }
+        public ICommand OpenRowWithCommand { get; private set; }
+        public ICommand AddBookmarkCommand { get; private set; }
+        public ICommand RemoveBookmarkCommand { get; private set; }
+        public ICommand GoToBookmarkCommand { get; private set; }
         public ICommand RenameRowCommand { get; private set; }
         public ICommand PermissionsRowCommand { get; private set; }
         public ICommand DeleteRowCommand { get; private set; }
@@ -568,7 +583,18 @@ namespace SshTool.App.ViewModels
                 }
                 _queue = new TransferQueue();
                 _queue.ItemChanged += OnQueueItemChanged;
-                RefreshAsync().Forget("Sftp.Refresh", AppLog.Logger);
+                IReadOnlyList<StorageFile> pending = _args.PendingUploads;
+                _args.PendingUploads = null;
+                if (pending == null || pending.Count == 0)
+                {
+                    RefreshAsync().Forget("Sftp.Refresh", AppLog.Logger);
+                }
+                else
+                {
+                    // W05：分享上传——先列出初始目录（即上传目标），再排队。
+                    await RefreshAsync().ConfigureAwait(true);
+                    await QueueUploadsAsync(pending).ConfigureAwait(true);
+                }
             }
             finally
             {
@@ -1099,7 +1125,13 @@ namespace SshTool.App.ViewModels
             picker.FileTypeFilter.Add("*");
             IReadOnlyList<StorageFile> files =
                 await picker.PickMultipleFilesAsync().AsTask().ConfigureAwait(true);
-            if (files == null || files.Count == 0)
+            await QueueUploadsAsync(files).ConfigureAwait(true);
+        }
+
+        // 选择器与分享目标共用：把本地文件排队上传到当前目录。
+        private async Task QueueUploadsAsync(IReadOnlyList<StorageFile> files)
+        {
+            if (_client == null || _queue == null || files == null || files.Count == 0)
             {
                 return;
             }
@@ -1194,6 +1226,123 @@ namespace SshTool.App.ViewModels
                 (progress, token) => ExecuteDownloadAsync(file, entry.Path, progress, token));
             _queue.Enqueue(item);
             TransfersExpanded = true;
+        }
+
+        // W05：选一个本地文件夹作为下载目标；同名自动加序号（GenerateUniqueName）。
+        private async Task DownloadRowToFolderAsync(SftpRowVm row)
+        {
+            if (_client == null || row == null || row.Entry == null || row.IsDirectory || IsBusy)
+            {
+                return;
+            }
+            var picker = new FolderPicker();
+            picker.FileTypeFilter.Add("*");
+            picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            StorageFolder folder = await picker.PickSingleFolderAsync().AsTask().ConfigureAwait(true);
+            if (folder == null)
+            {
+                return;
+            }
+            RemoteEntry entry = row.Entry;
+            StorageFile file = await folder.CreateFileAsync(
+                entry.Name, CreationCollisionOption.GenerateUniqueName).AsTask().ConfigureAwait(true);
+            EnqueueDownload(entry, file, null);
+        }
+
+        // W05：下载到临时目录后交给系统用默认应用打开（下次启动清理超过 24 h 的缓存）。
+        private async Task OpenRowWithAsync(SftpRowVm row)
+        {
+            if (_client == null || row == null || row.Entry == null || row.IsDirectory || IsBusy)
+            {
+                return;
+            }
+            RemoteEntry entry = row.Entry;
+            StorageFolder cache = await SftpOpenCache.GetFolderAsync().ConfigureAwait(true);
+            StorageFile file = await cache.CreateFileAsync(
+                entry.Name, CreationCollisionOption.ReplaceExisting).AsTask().ConfigureAwait(true);
+            EnqueueDownload(entry, file, () =>
+                DispatcherHelper.Post(() => Windows.System.Launcher.LaunchFileAsync(file)
+                    .AsTask().Forget("Sftp.LaunchFile", AppLog.Logger)));
+        }
+
+        private void EnqueueDownload(RemoteEntry entry, StorageFile file, Action onSuccess)
+        {
+            long total = entry.HasSize ? entry.Size : -1;
+            TransferItem item = TransferItem.CreateDownload(entry.Path, entry.Name, total,
+                async (progress, token) =>
+                {
+                    SftpResult result = await ExecuteDownloadAsync(file, entry.Path, progress, token).ConfigureAwait(false);
+                    if (result.Ok && onSuccess != null)
+                    {
+                        onSuccess();
+                    }
+                    return result;
+                });
+            _queue.Enqueue(item);
+            TransfersExpanded = true;
+        }
+
+        // ---- W05 路径书签（本机设置 sftpBookmarks，按主机分开） ----
+
+        private string BookmarkHostId
+        {
+            get
+            {
+                if (_session != null && !string.IsNullOrEmpty(_session.HostId))
+                {
+                    return _session.HostId;
+                }
+                return _args.HostId;
+            }
+        }
+
+        public IReadOnlyList<string> Bookmarks
+        {
+            get
+            {
+                SshTool.Core.Storage.SettingsRepository settings = AppServices.Current != null ? AppServices.Current.Settings : null;
+                return settings == null
+                    ? (IReadOnlyList<string>)new List<string>()
+                    : SftpBookmarks.Get(settings.SftpBookmarks, BookmarkHostId);
+            }
+        }
+
+        public bool IsCurrentBookmarked
+        {
+            get
+            {
+                SshTool.Core.Storage.SettingsRepository settings = AppServices.Current != null ? AppServices.Current.Settings : null;
+                return settings != null && SftpBookmarks.Contains(settings.SftpBookmarks, BookmarkHostId, _currentPath);
+            }
+        }
+
+        private void AddBookmark()
+        {
+            SshTool.Core.Storage.SettingsRepository settings = AppServices.Current != null ? AppServices.Current.Settings : null;
+            if (settings == null || string.IsNullOrEmpty(BookmarkHostId))
+            {
+                return;
+            }
+            settings.SftpBookmarks = SftpBookmarks.Add(settings.SftpBookmarks, BookmarkHostId, _currentPath);
+            Notify(Loader.GetString("Sftp_BookmarkAdded"));
+        }
+
+        private void RemoveBookmark(string path)
+        {
+            SshTool.Core.Storage.SettingsRepository settings = AppServices.Current != null ? AppServices.Current.Settings : null;
+            if (settings == null || string.IsNullOrEmpty(BookmarkHostId))
+            {
+                return;
+            }
+            settings.SftpBookmarks = SftpBookmarks.Remove(settings.SftpBookmarks, BookmarkHostId, path);
+        }
+
+        private void GoToBookmark(string path)
+        {
+            if (!string.IsNullOrEmpty(path) && !IsBusy)
+            {
+                NavigateTo(path);
+            }
         }
 
         // 断点续传按「本地已写大小」续写（下载入参 resumeOffset 语义见 F02 ISftpClient）。

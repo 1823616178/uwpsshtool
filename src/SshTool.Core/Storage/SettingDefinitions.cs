@@ -136,7 +136,9 @@ namespace SshTool.Core.Storage
             new SettingDefinition("appLockEnabled", SettingType.Bool, false),
             new SettingDefinition("notifyOnDisconnect", SettingType.Bool, true),
             new SettingDefinition("bellMode", SettingType.String, "vibrate",
-                new[] { "vibrate", "visual", "none" })
+                new[] { "vibrate", "visual", "none" }),
+            // W05（01-DESIGN §16.5）：SFTP 路径书签，JSON：hostId → 路径数组。
+            new SettingDefinition("sftpBookmarks", SettingType.String, "{}")
         };
 
         public static SettingDefinition Find(string key)

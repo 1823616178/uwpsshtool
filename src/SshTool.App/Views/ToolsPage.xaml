@@ -37,6 +37,10 @@
                 <controls:AppListRow x:Uid="Tools_RowGroups"
                                      IconGlyph="{StaticResource IconFolder}"
                                      ShowChevron="True" Click="OnGroupsClick" />
+                <!-- W05（01-DESIGN §16.5）：从 OpenSSH 配置文件批量导入主机。 -->
+                <controls:AppListRow x:Uid="Tools_RowImportConfig"
+                                     IconGlyph="{StaticResource IconUpload}"
+                                     ShowChevron="True" Click="OnImportConfigClick" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

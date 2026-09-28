@@ -1209,5 +1209,25 @@
   <data name="AppLock_Prompt" xml:space="preserve"><value>验证身份以解锁 Lumia SSH</value></data>
   <data name="Notify_DisconnectTitle" xml:space="preserve"><value>连接已断开</value></data>
   <data name="Notify_DisconnectBody" xml:space="preserve"><value>「{0}」的会话已断开，点按返回</value></data>
+  <data name="Sftp_RowDownloadToFolder" xml:space="preserve"><value>下载到文件夹…</value></data>
+  <data name="Sftp_RowOpenWith" xml:space="preserve"><value>用其他应用打开</value></data>
+  <data name="Sftp_BookmarkAdd" xml:space="preserve"><value>收藏此目录</value></data>
+  <data name="Sftp_BookmarkRemove" xml:space="preserve"><value>取消收藏此目录</value></data>
+  <data name="Sftp_Bookmarks" xml:space="preserve"><value>书签</value></data>
+  <data name="Sftp_BookmarkAdded" xml:space="preserve"><value>已收藏此目录</value></data>
+  <data name="Share_PageHeader.Title" xml:space="preserve"><value>上传到 Lumia SSH</value></data>
+  <data name="Share_DoneButton.Content" xml:space="preserve"><value>完成</value></data>
+  <data name="Share_Received" xml:space="preserve"><value>已收到 {0} 个文件。打开 Lumia SSH，选择主机即可上传。</value></data>
+  <data name="Share_Nothing" xml:space="preserve"><value>没有可上传的文件（不支持文件夹）。</value></data>
+  <data name="Share_PickHostTitle" xml:space="preserve"><value>上传分享的文件到…</value></data>
+  <data name="Share_Later" xml:space="preserve"><value>稍后</value></data>
+  <data name="Share_Discard" xml:space="preserve"><value>丢弃</value></data>
+  <data name="Tools_RowImportConfig.Title" xml:space="preserve"><value>从 ssh_config 导入</value></data>
+  <data name="Tools_RowImportConfig.Subtitle" xml:space="preserve"><value>读取 OpenSSH 配置文件批量添加主机</value></data>
+  <data name="Tools_ImportTitle" xml:space="preserve"><value>导入 ssh_config</value></data>
+  <data name="Tools_ImportReadFailed" xml:space="preserve"><value>无法读取该文件，请确认它是 UTF-8 文本。</value></data>
+  <data name="Tools_ImportSummary" xml:space="preserve"><value>将导入 {0} 台主机。跳过：重名 {1}、缺少 User {2}、通配符模式 {3}。</value></data>
+  <data name="Tools_ImportNeedsKey" xml:space="preserve"><value>其中 {0} 台配置了 IdentityFile：私钥不会导入，请在「密钥」中导入后到主机编辑页关联。</value></data>
+  <data name="Tools_ImportConfirm" xml:space="preserve"><value>导入</value></data>
 </root>
 

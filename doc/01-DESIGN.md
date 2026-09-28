@@ -835,7 +835,11 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
 - 打开方式：下载到 `TemporaryFolder\sftp-open\` 后 `Launcher.LaunchFileAsync`；目录内文件超过 24 h 在下次启动清理。
 - 下载到文件夹：`FolderPicker`（15063 可用）选择目标目录，队列逐个写入，同名自动加序号。
 - 书签：`SftpBookmarks`（Core）对 `sftpBookmarks` JSON 做增删、去重、每主机上限 20。
-- 分享目标：清单声明 `shareTarget`（StorageItems），`OnShareTargetActivated` 进入「选择主机」页，选定后打开 SFTP 页排队上传到当前目录。
+- 分享目标：清单声明 `shareTarget`（StorageItems）。分享在**独立视图**里激活，不能在里面启动应用服务
+  （SessionManager、调度器都绑主视图，随分享窗口关闭而失效），所以分享页只把文件复制进
+  `LocalCacheFolder\share-inbox` 并提示用户回到应用；主页 `OnNavigatedTo` 发现收件箱非空时弹「选择主机」，
+  选定后把文件移进 `share-outbox\<批次>` 并以 `SftpArgs.PendingUploads` 打开 SFTP 页，列出初始目录后排队上传。
+  已取走批次 24 h 后启动时回收。不支持分享文件夹。
 - `SshConfigImporter`（Core）：解析 `Host`/`HostName`/`User`/`Port`/`ProxyJump`/`IdentityFile`（后者只记录提示，不导入私钥）；
   含 `*`/`?` 的 Host 模式跳过；一个 Host 行多个别名取第一个为名称；ProxyJump 指向同文件别名时建立跳板引用；
   与现有主机同名则跳过并在结果中报告。

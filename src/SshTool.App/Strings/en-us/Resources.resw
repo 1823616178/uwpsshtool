@@ -1208,5 +1208,25 @@
   <data name="AppLock_Prompt" xml:space="preserve"><value>Verify your identity to unlock Lumia SSH</value></data>
   <data name="Notify_DisconnectTitle" xml:space="preserve"><value>Connection lost</value></data>
   <data name="Notify_DisconnectBody" xml:space="preserve"><value>Session "{0}" was disconnected. Tap to return.</value></data>
+  <data name="Sftp_RowDownloadToFolder" xml:space="preserve"><value>Download to folder…</value></data>
+  <data name="Sftp_RowOpenWith" xml:space="preserve"><value>Open with another app</value></data>
+  <data name="Sftp_BookmarkAdd" xml:space="preserve"><value>Bookmark this folder</value></data>
+  <data name="Sftp_BookmarkRemove" xml:space="preserve"><value>Remove bookmark</value></data>
+  <data name="Sftp_Bookmarks" xml:space="preserve"><value>Bookmarks</value></data>
+  <data name="Sftp_BookmarkAdded" xml:space="preserve"><value>Folder bookmarked</value></data>
+  <data name="Share_PageHeader.Title" xml:space="preserve"><value>Upload to Lumia SSH</value></data>
+  <data name="Share_DoneButton.Content" xml:space="preserve"><value>Done</value></data>
+  <data name="Share_Received" xml:space="preserve"><value>Received {0} file(s). Open Lumia SSH and pick a host to upload.</value></data>
+  <data name="Share_Nothing" xml:space="preserve"><value>Nothing to upload (folders are not supported).</value></data>
+  <data name="Share_PickHostTitle" xml:space="preserve"><value>Upload shared files to…</value></data>
+  <data name="Share_Later" xml:space="preserve"><value>Later</value></data>
+  <data name="Share_Discard" xml:space="preserve"><value>Discard</value></data>
+  <data name="Tools_RowImportConfig.Title" xml:space="preserve"><value>Import from ssh_config</value></data>
+  <data name="Tools_RowImportConfig.Subtitle" xml:space="preserve"><value>Add hosts from an OpenSSH config file</value></data>
+  <data name="Tools_ImportTitle" xml:space="preserve"><value>Import ssh_config</value></data>
+  <data name="Tools_ImportReadFailed" xml:space="preserve"><value>Could not read the file. Make sure it is UTF-8 text.</value></data>
+  <data name="Tools_ImportSummary" xml:space="preserve"><value>{0} host(s) will be imported. Skipped: {1} duplicate, {2} without User, {3} wildcard pattern.</value></data>
+  <data name="Tools_ImportNeedsKey" xml:space="preserve"><value>{0} of them use IdentityFile: private keys are not imported. Import them under Keys and link them in the host editor.</value></data>
+  <data name="Tools_ImportConfirm" xml:space="preserve"><value>Import</value></data>
 </root>
 

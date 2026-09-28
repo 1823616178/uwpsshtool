@@ -72,6 +72,16 @@ namespace SshTool.App
             Platform.AppLockService.Instance.OnColdStart();
         }
 
+        // W05：分享目标在独立视图里激活；这里只收文件进收件箱，不启动应用服务
+        // （会话、调度器都绑主视图，在分享视图里起服务会让它们随分享窗口一起失效）。
+        protected override void OnShareTargetActivated(ShareTargetActivatedEventArgs args)
+        {
+            var frame = new Frame();
+            frame.Navigate(typeof(Views.ShareTargetPage), args.ShareOperation);
+            Window.Current.Content = frame;
+            Window.Current.Activate();
+        }
+
         // 首次激活时建 Frame、注册服务并启动；后续激活直接返回已有 Frame。
         private async Task<Frame> EnsureStartedAsync()
         {
@@ -109,6 +119,9 @@ namespace SshTool.App
                         services.Sessions, services.Settings,
                         () => lifecycle != null && lifecycle.IsInBackground);
                     _disconnectNotifier.Start();
+                    // W05：回收「用其他应用打开」缓存与已取走的分享批次。
+                    Platform.SftpOpenCache.CleanupAsync().Forget("App.SftpOpenCacheCleanup", AppLog.Logger);
+                    Platform.ShareInbox.CleanupAsync().Forget("App.ShareInboxCleanup", AppLog.Logger);
                 }
                 catch (Exception ex)
                 {

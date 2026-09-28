@@ -1,7 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Collections.Generic;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.App.ViewModels;
 using SshTool.App.Views.Debug;
 using SshTool.Core;
@@ -82,6 +84,58 @@ namespace SshTool.App.Views
                 nav.RegisterBackHandler(this);
             }
             ConsumeLaunchRequest();
+            OfferSharedUploadsAsync().Forget("MainPage.OfferSharedUploads", AppLog.Logger);
+        }
+
+        // W05（01-DESIGN §16.5）：分享目标收下的文件在这里认领——选主机后打开 SFTP 页排队上传。
+        private async System.Threading.Tasks.Task OfferSharedUploadsAsync()
+        {
+            AppServices services = AppServices.Current;
+            if (services == null || await ShareInbox.CountAsync() == 0)
+            {
+                return;
+            }
+            IReadOnlyList<SshTool.Core.Models.Host> hosts = await services.Hosts.GetAllAsync();
+            var list = new ListView { SelectionMode = ListViewSelectionMode.Single, IsItemClickEnabled = true };
+            foreach (SshTool.Core.Models.Host host in hosts)
+            {
+                list.Items.Add(new ListViewItem
+                {
+                    Content = string.IsNullOrEmpty(host.Name) ? host.HostName : host.Name,
+                    Tag = host.Id
+                });
+            }
+            var dialog = new ContentDialog
+            {
+                Title = Localized.Get("Share_PickHostTitle", "上传分享的文件到…"),
+                Content = list,
+                PrimaryButtonText = Localized.Get("Share_Later", "稍后"),
+                SecondaryButtonText = Localized.Get("Share_Discard", "丢弃")
+            };
+            string pickedHostId = null;
+            list.ItemClick += (s, a) =>
+            {
+                var item = list.ContainerFromItem(a.ClickedItem) as ListViewItem ?? a.ClickedItem as ListViewItem;
+                pickedHostId = item != null ? item.Tag as string : null;
+                dialog.Hide();
+            };
+            DialogService dialogs;
+            ContentDialogResult result = ServiceRegistry.TryGet(out dialogs)
+                ? await dialogs.ShowAsync(dialog)
+                : await dialog.ShowAsync();
+            if (pickedHostId != null)
+            {
+                IReadOnlyList<Windows.Storage.StorageFile> files = await ShareInbox.TakeAsync();
+                NavigationService nav;
+                if (files.Count > 0 && ServiceRegistry.TryGet(out nav))
+                {
+                    nav.Navigate<SftpPage>(new SftpArgs { HostId = pickedHostId, PendingUploads = files });
+                }
+            }
+            else if (result == ContentDialogResult.Secondary)
+            {
+                await ShareInbox.ClearAsync();
+            }
         }
 
         // W03：磁贴 / ssh:// 激活交接（App 写入，这里取走一次）。

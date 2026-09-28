@@ -142,5 +142,6 @@ namespace SshTool.Core.Storage
         public bool AppLockEnabled { get { return GetBool("appLockEnabled"); } set { Set("appLockEnabled", value); } }
         public bool NotifyOnDisconnect { get { return GetBool("notifyOnDisconnect"); } set { Set("notifyOnDisconnect", value); } }
         public string BellMode { get { return GetString("bellMode"); } set { Set("bellMode", value); } }
+        public string SftpBookmarks { get { return GetString("sftpBookmarks"); } set { Set("sftpBookmarks", value); } }
     }
 }

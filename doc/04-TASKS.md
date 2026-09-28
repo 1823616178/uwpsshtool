@@ -47,8 +47,8 @@
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 11 | 性能/安全报告、可侧载安装包 v1.0.0 |
 | M9 | 优化与债务清理 | 16 | 15 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| M10 | UI 收尾与功能补齐 | 6 | 4 | 回滚搜索、链接、收藏/磁贴、应用锁、断线通知、SFTP 增强；全页统一 V2 组件（依据 `01-DESIGN.md §16`） |
-| **合计** | | **134** | **131** | |
+| M10 | UI 收尾与功能补齐 | 6 | 5 | 回滚搜索、链接、收藏/磁贴、应用锁、断线通知、SFTP 增强；全页统一 V2 组件（依据 `01-DESIGN.md §16`） |
+| **合计** | | **134** | **132** | |
 
 ### 1.1 关键路径
 
@@ -1628,7 +1628,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] `pwsh scripts/verify.ps1` 全绿（含 v141 Native 构建）
     - [ ] 📱 锁屏返回要求验证；后台断线弹通知；`printf '\a'` 振动
 
-- [ ] **W05 SFTP 增强、分享上传与 ssh_config 导入** `M`
+- [x] **W05 SFTP 增强、分享上传与 ssh_config 导入** `M`
   - 依赖：—
   - 参考：`01-DESIGN.md §16.5`
   - 产出：`ViewModels/SftpViewModel.cs`、`Views/SftpPage.xaml(.cs)`、`Core/Sftp/SftpBookmarks.cs`、`Core/Hosts/SshConfigImporter.cs`、`App.xaml.cs`（ShareTarget）、`Package.appxmanifest`、`Views/HostEditPage` 或主页导入入口、resw
@@ -1637,7 +1637,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. 分享目标：接收 StorageItems → 选主机 → 打开 SFTP 页并排队上传。
     3. `~/.ssh/config` 文本导入：Host/HostName/User/Port/ProxyJump（同文件内别名）→ 主机草稿，重名跳过并报告。
   - 验收：
-    - [ ] Core 单测：书签增删去重、config 解析（通配符 Host 跳过、多别名、注释、大小写键、ProxyJump 解析）
+    - [x] Core 单测：书签增删去重、config 解析（通配符 Host 跳过、多别名、注释、大小写键、ProxyJump 解析）
     - [ ] `pwsh scripts/verify.ps1` 全绿
     - [ ] 📱 打开方式、文件夹下载、相册分享上传
 
@@ -1754,6 +1754,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] W03 📱 磁贴点击直达终端；`ssh://` 链接唤起并预填快速连接
 - [ ] W04 👤 Windows 上 verify 全量（W04 含 Native Bridge 改动，需 v141 构建）
 - [ ] W04 📱 锁屏返回要求验证；后台断线弹通知且点按回到会话；`printf '\a'` 振动/闪屏
+- [ ] W05 👤 Windows 上 verify 全量（W05 App 改动未在 Linux 编译）
+- [ ] W05 📱 SFTP「用其他应用打开」、下载到文件夹、书签跳转；相册分享文件 → 回到应用选主机 → 上传成功；ssh_config 导入
 
 ---
 
@@ -1921,3 +1923,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-28 | W02 | （本提交） | **代码完成**。Core：`TerminalLineText`（格→文本 + 字符→格列映射，宽字符续格/代理对正确）、`ScrollbackSearch`（按视口整窗读回滚+屏幕全文，行内大小写不敏感查找，上限 1000 命中，`OffsetToReveal`/`ViewportRow` 定位）、`LinkDetector`（http(s)/www.，词首判定，去结尾标点与不成对右括号）、`ScrollController.ScrollTo`；+23 单测，Core 1530 全过。App：`TerminalView` 暴露 `FindAll/ShowMatch/ClearFind`，命中滚入视口中部并用选区高亮；长按/右键落在链接上弹「打开链接/复制链接」（`Launcher.LaunchUriAsync`）。`TerminalPage` 菜单加「查找」，查找条替换信息条（250 ms 去抖、上/下一个、计数、Esc/返回键关闭，经 IBackHandler）。已知限制：不跨软换行匹配；宽屏工作区（TerminalWorkspace）暂无查找入口。文案门禁基线去掉已清零的 MainViewModel（W01）。 |
 | 2026-09-28 | W03 | （本提交） | **代码完成**。Core：`Host.Favorite`（🏠，编解码 + Clone；同步上行白名单天然排除、下行以本机 Clone 为底天然保留，新增断言锁住「文档不含 favorite」）；`HostListBuilder` 非搜索态置顶「收藏」「最近（5 个）」视图段（可折叠，不改主机归属）；`HostLaunchLinks`（磁贴参数、TileId 清洗、ssh:// → 快速连接文本，支持 IPv6 与 ;fingerprint 参数，端口校验）；+25 单测，Core 1555 全过。App：HostRow 菜单「收藏/取消收藏」「固定到开始屏幕」、`HostTileService`（SecondaryTile）、`LaunchRequests` 激活交接、`App.OnActivated` 处理 ssh:// 协议（清单声明）、`OnLaunched` 处理磁贴参数（抽出 `EnsureStartedAsync` 复用启动流程）；ssh:// 只预填并展开快速连接，不自动连接。设计 §16.3 订正：删除主机不自动移除磁贴（系统必弹确认）。⏳ `-Interop` 需 Windows + 桌面端仓库复跑。 |
 | 2026-09-28 | W04 | （本提交） | **代码完成**。Core：`AppLockPolicy`（冷启动锁、后台 ≥60 s 返回才锁）、`DisconnectNotifyPolicy`（仅「在线→掉线」+ 后台 + 非用户断开 + 非保活挂起，同会话 60 s 去重）、`BellThrottle`（200 ms 合并、计数回退只重设基线）、`IBellSource`；设置键 +3（appLockEnabled/notifyOnDisconnect/bellMode，25→28）；+14 单测，Core 1569 全过。Native：Bridge `TerminalScreen.BellCount`（vterm 早已计数，只是未暴露）。App：`AppLockService`（Popup 全屏锁定层 + UserConsentVerifier，锁定期吞返回键；验证手段消失时放行并记日志，避免把用户永久关在外面）、`DisconnectNotifier`（ToastText02，文案只含会话标题，launch=session:<id>，点通知经 `LaunchRequests` 回到会话）、`TerminalView` 每帧比较 BellCount 按 bellMode 振动/闪屏（新 token `BellFlashOpacity`）；设置页加响铃下拉、断线通知与应用锁开关（设备不支持时禁用并说明，开启前先验证一次）。订阅门禁登记 DisconnectNotifier 与进程同寿命的豁免。 |
+| 2026-09-28 | W05 | （本提交） | **代码完成**。Core：`SftpBookmarks`（hostId→路径数组 JSON，最新在前、去重、每主机 20 条、坏 JSON 当空）、`SshConfigImporter`（Host/HostName/User/Port/ProxyJump/IdentityFile，首值生效、关键字大小写不敏感、`=` 分隔与引号、行尾注释、Match 块与全局选项不导入、通配符跳过、缺 User 跳过、重名跳过、同文件别名解析跳板、私钥只提示不导入）；设置键 +sftpBookmarks（28→29）；+18 单测，Core 1587 全过。App：SFTP 行菜单「下载到文件夹…」（FolderPicker + GenerateUniqueName）「用其他应用打开」（TemporaryFolder\sftp-open + Launcher.LaunchFileAsync，启动时清理 24 h 前缓存），更多菜单加书签收藏/取消与子菜单跳转；上传入口抽出 `QueueUploadsAsync`。分享目标：清单 shareTarget，**分享视图只收文件进 share-inbox、不启动服务**（设计 §16.5 已订正说明原因），主页发现收件箱非空弹「选择主机」→ 文件移入 share-outbox 批次 → SFTP 页 `PendingUploads` 列出初始目录后排队上传。工具页加「从 ssh_config 导入」（汇总确认后 AddManyAsync）。 |

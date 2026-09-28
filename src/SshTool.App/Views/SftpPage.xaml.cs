@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
@@ -181,6 +182,30 @@ namespace SshTool.App.Views
             };
             hidden.Click += (s, a) => vm.ToggleHiddenCommand.Execute(null);
             flyout.Items.Add(hidden);
+            // W05：路径书签——收藏/取消当前目录，子菜单列出本主机的书签。
+            flyout.Items.Add(new MenuFlyoutSeparator());
+            string current = vm.CurrentPath;
+            if (vm.IsCurrentBookmarked)
+            {
+                flyout.Items.Add(Item(Loader.GetString("Sftp_BookmarkRemove"),
+                    () => vm.RemoveBookmarkCommand.Execute(current)));
+            }
+            else
+            {
+                flyout.Items.Add(Item(Loader.GetString("Sftp_BookmarkAdd"),
+                    () => vm.AddBookmarkCommand.Execute(null)));
+            }
+            IReadOnlyList<string> bookmarks = vm.Bookmarks;
+            if (bookmarks.Count > 0)
+            {
+                var sub = new MenuFlyoutSubItem { Text = Loader.GetString("Sftp_Bookmarks") };
+                foreach (string path in bookmarks)
+                {
+                    string target = path;
+                    sub.Items.Add(Item(target, () => vm.GoToBookmarkCommand.Execute(target)));
+                }
+                flyout.Items.Add(sub);
+            }
             FrameworkElement anchor = sender as FrameworkElement;
             if (anchor != null)
             {
@@ -289,6 +314,11 @@ namespace SshTool.App.Views
             {
                 flyout.Items.Add(Item(Loader.GetString("Sftp_RowDownload"),
                     () => vm.DownloadRowCommand.Execute(row)));
+                // W05：下载到选定文件夹 / 用其他应用打开。
+                flyout.Items.Add(Item(Loader.GetString("Sftp_RowDownloadToFolder"),
+                    () => vm.DownloadRowToFolderCommand.Execute(row)));
+                flyout.Items.Add(Item(Loader.GetString("Sftp_RowOpenWith"),
+                    () => vm.OpenRowWithCommand.Execute(row)));
             }
             flyout.Items.Add(Item(Loader.GetString("Sftp_RowRename"),
                 () => vm.RenameRowCommand.Execute(row)));
