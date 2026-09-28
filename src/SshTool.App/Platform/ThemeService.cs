@@ -103,6 +103,41 @@ namespace SshTool.App.Platform
             }
         }
 
+        private static readonly string[] AccentDependentKeys = new[]
+        {
+            "AppAccentBrush",
+            "TextControlBorderBrushFocused",
+            "ComboBoxBackgroundBorderBrushFocused",
+            "ComboBoxItemBorderBrushSelected",
+            "ComboBoxItemForegroundSelected",
+            // G02: ToggleSwitch
+            "ToggleSwitchFillOn",
+            "ToggleSwitchFillOnPointerOver",
+            "ToggleSwitchFillOnPressed",
+            // G02: CheckBox
+            "CheckBoxCheckBackgroundFillChecked",
+            "CheckBoxCheckBackgroundStrokeChecked",
+            "CheckBoxCheckBackgroundFillCheckedPointerOver",
+            "CheckBoxCheckBackgroundStrokeCheckedPointerOver",
+            "CheckBoxCheckBackgroundFillCheckedPressed",
+            "CheckBoxCheckBackgroundStrokeCheckedPressed",
+            "CheckBoxCheckBackgroundFillIndeterminate",
+            "CheckBoxCheckBackgroundStrokeIndeterminate",
+            // G02: RadioButton
+            "RadioButtonOuterEllipseCheckedStroke",
+            "RadioButtonOuterEllipseCheckedStrokePointerOver",
+            "RadioButtonOuterEllipseCheckedStrokePressed",
+            "RadioButtonCheckGlyphFill",
+            "RadioButtonCheckGlyphFillPointerOver",
+            "RadioButtonCheckGlyphFillPressed",
+            // G02: Slider
+            "SliderTrackValueFill",
+            "SliderTrackValueFillPointerOver",
+            "SliderTrackValueFillPressed",
+            // G02: Pivot
+            "PivotHeaderItemFocusPipeFill"
+        };
+
         private static void ApplyAccent()
         {
             if (Application.Current == null)
@@ -120,16 +155,10 @@ namespace SshTool.App.Platform
                     SolidColorBrush keyFallback = FindThemedBrush("KeyBarKeyActiveBrush", theme);
                     if (accentFallback != null)
                     {
-                        Application.Current.Resources["AppAccentBrush"] =
-                            new SolidColorBrush(accentFallback.Color);
-                        Application.Current.Resources["TextControlBorderBrushFocused"] =
-                            new SolidColorBrush(accentFallback.Color);
-                        Application.Current.Resources["ComboBoxBackgroundBorderBrushFocused"] =
-                            new SolidColorBrush(accentFallback.Color);
-                        Application.Current.Resources["ComboBoxItemBorderBrushSelected"] =
-                            new SolidColorBrush(accentFallback.Color);
-                        Application.Current.Resources["ComboBoxItemForegroundSelected"] =
-                            new SolidColorBrush(accentFallback.Color);
+                        foreach (string key in AccentDependentKeys)
+                        {
+                            Application.Current.Resources[key] = new SolidColorBrush(accentFallback.Color);
+                        }
                     }
                     if (keyFallback != null)
                     {
@@ -143,12 +172,11 @@ namespace SshTool.App.Platform
                     return;
                 }
                 var accent = UiSettings.GetColorValue(UIColorType.Accent);
-                Application.Current.Resources["AppAccentBrush"] = new SolidColorBrush(accent);
+                foreach (string key in AccentDependentKeys)
+                {
+                    Application.Current.Resources[key] = new SolidColorBrush(accent);
+                }
                 Application.Current.Resources["KeyBarKeyActiveBrush"] = new SolidColorBrush(accent);
-                Application.Current.Resources["TextControlBorderBrushFocused"] = new SolidColorBrush(accent);
-                Application.Current.Resources["ComboBoxBackgroundBorderBrushFocused"] = new SolidColorBrush(accent);
-                Application.Current.Resources["ComboBoxItemBorderBrushSelected"] = new SolidColorBrush(accent);
-                Application.Current.Resources["ComboBoxItemForegroundSelected"] = new SolidColorBrush(accent);
             }
             catch (Exception)
             {

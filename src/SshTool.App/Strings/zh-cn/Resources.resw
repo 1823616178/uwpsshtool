@@ -545,18 +545,18 @@
   <data name="Settings_Toast_CopyFailed" xml:space="preserve"><value>复制失败</value></data>
 
   <!-- V04a：通用 Pivot -->
-  <data name="Settings_General_Theme_Header" xml:space="preserve"><value>主题</value></data>
+  <data name="Settings_General_Theme.Header" xml:space="preserve"><value>主题</value></data>
   <data name="Settings_General_Theme_System" xml:space="preserve"><value>跟随系统</value></data>
   <data name="Settings_General_Theme_Dark" xml:space="preserve"><value>深色</value></data>
   <data name="Settings_General_Theme_Light" xml:space="preserve"><value>浅色</value></data>
   <data name="Settings_General_Theme_Note" xml:space="preserve"><value>切换后立即生效，无需重启</value></data>
-  <data name="Settings_General_Accent_Header" xml:space="preserve"><value>使用系统强调色</value></data>
-  <data name="Settings_General_Sort_Header" xml:space="preserve"><value>主机排序</value></data>
+  <data name="Settings_General_Accent.Header" xml:space="preserve"><value>使用系统强调色</value></data>
+  <data name="Settings_General_Sort.Header" xml:space="preserve"><value>主机排序</value></data>
   <data name="Settings_General_Sort_Name" xml:space="preserve"><value>按名称</value></data>
   <data name="Settings_General_Sort_Recent" xml:space="preserve"><value>按最近连接</value></data>
-  <data name="Settings_General_QuickConnect_Header" xml:space="preserve"><value>显示快速连接卡</value></data>
-  <data name="Settings_General_Haptics_Header" xml:space="preserve"><value>触感反馈</value></data>
-  <data name="Settings_General_Language_Header" xml:space="preserve"><value>语言</value></data>
+  <data name="Settings_General_QuickConnect.Header" xml:space="preserve"><value>显示快速连接卡</value></data>
+  <data name="Settings_General_Haptics.Header" xml:space="preserve"><value>触感反馈</value></data>
+  <data name="Settings_General_Language.Header" xml:space="preserve"><value>语言</value></data>
   <data name="Settings_General_Language_System" xml:space="preserve"><value>跟随系统</value></data>
   <data name="Settings_General_Language_Zh" xml:space="preserve"><value>简体中文</value></data>
   <data name="Settings_General_Language_En" xml:space="preserve"><value>English</value></data>
@@ -571,13 +571,13 @@
   <data name="Settings_Terminal_AltScroll_Header" xml:space="preserve"><value>Alt-screen 滚动</value></data>
   <data name="Settings_Terminal_AltScroll_Arrows" xml:space="preserve"><value>方向键</value></data>
   <data name="Settings_Terminal_AltScroll_Wheel" xml:space="preserve"><value>滚轮</value></data>
-  <data name="Settings_Terminal_PasteConfirm_Header" xml:space="preserve"><value>多行粘贴前确认</value></data>
+  <data name="Settings_Terminal_PasteConfirm.Header" xml:space="preserve"><value>多行粘贴前确认</value></data>
   <data name="Settings_Terminal_CursorBlink_Header" xml:space="preserve"><value>光标闪烁跟随外观</value></data>
   <data name="Settings_Terminal_CursorBlink_Note" xml:space="preserve"><value>在外观页中修改</value></data>
   <data name="Settings_Terminal_CursorBlink_Link" xml:space="preserve"><value>去外观</value></data>
 
   <!-- V04a：键盘 Pivot -->
-  <data name="Settings_Keyboard_KeyBar_Header" xml:space="preserve"><value>显示键条</value></data>
+  <data name="Settings_Keyboard_KeyBar.Header" xml:space="preserve"><value>显示键条</value></data>
   <data name="Settings_Keyboard_KeyBarLayout_Header" xml:space="preserve"><value>键条布局</value></data>
   <data name="Settings_Keyboard_KeyBarLayout_Edit" xml:space="preserve"><value>编辑键条布局</value></data>
   <data name="Settings_Keyboard_Backspace_Header" xml:space="preserve"><value>退格默认发送</value></data>
@@ -586,13 +586,13 @@
   <data name="Settings_Keyboard_Shortcuts_Edit" xml:space="preserve"><value>编辑快捷键</value></data>
 
   <!-- V04a：连接 Pivot -->
-  <data name="Settings_Connection_KeepScreen_Header" xml:space="preserve"><value>屏幕常亮</value></data>
+  <data name="Settings_Connection_KeepScreen.Header" xml:space="preserve"><value>屏幕常亮</value></data>
   <data name="Settings_Connection_KeepScreen_Never" xml:space="preserve"><value>从不</value></data>
   <data name="Settings_Connection_KeepScreen_Session" xml:space="preserve"><value>会话中有连接时</value></data>
   <data name="Settings_Connection_KeepScreen_Always" xml:space="preserve"><value>总是</value></data>
-  <data name="Settings_Connection_KeepAlive_Header" xml:space="preserve"><value>后台保持连接</value></data>
+  <data name="Settings_Connection_KeepAlive.Header" xml:space="preserve"><value>后台保持连接</value></data>
   <data name="Settings_Connection_KeepAlive_Note" xml:space="preserve"><value>关闭后进入后台立即断开，回到应用后自动重连</value></data>
-  <data name="Settings_Connection_BgDisc_Header" xml:space="preserve"><value>后台 N 分钟后断开</value></data>
+  <data name="Settings_Connection_BgDisc.Header" xml:space="preserve"><value>后台 N 分钟后断开</value></data>
   <data name="Settings_Connection_BgDisc_Off" xml:space="preserve"><value>关</value></data>
   <data name="Settings_Connection_BgDisc_5" xml:space="preserve"><value>5 分钟</value></data>
   <data name="Settings_Connection_BgDisc_15" xml:space="preserve"><value>15 分钟</value></data>
@@ -613,7 +613,7 @@
   <!-- V04a：关于 Pivot -->
   <data name="Settings_About_Version_Header" xml:space="preserve"><value>版本</value></data>
   <data name="Settings_About_Licenses" xml:space="preserve"><value>开源许可</value></data>
-  <data name="Settings_About_LogLevel_Header" xml:space="preserve"><value>日志级别</value></data>
+  <data name="Settings_About_LogLevel.Header" xml:space="preserve"><value>日志级别</value></data>
   <data name="Settings_About_LogLevel_Debug" xml:space="preserve"><value>调试</value></data>
   <data name="Settings_About_LogLevel_Info" xml:space="preserve"><value>信息</value></data>
   <data name="Settings_About_LogLevel_Warn" xml:space="preserve"><value>警告</value></data>

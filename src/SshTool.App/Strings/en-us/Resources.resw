@@ -544,18 +544,18 @@
   <data name="Settings_Toast_CopyFailed" xml:space="preserve"><value>Copy failed</value></data>
 
   <!-- V04a: General Pivot -->
-  <data name="Settings_General_Theme_Header" xml:space="preserve"><value>Theme</value></data>
+  <data name="Settings_General_Theme.Header" xml:space="preserve"><value>Theme</value></data>
   <data name="Settings_General_Theme_System" xml:space="preserve"><value>System</value></data>
   <data name="Settings_General_Theme_Dark" xml:space="preserve"><value>Dark</value></data>
   <data name="Settings_General_Theme_Light" xml:space="preserve"><value>Light</value></data>
   <data name="Settings_General_Theme_Note" xml:space="preserve"><value>Takes effect immediately, no restart needed</value></data>
-  <data name="Settings_General_Accent_Header" xml:space="preserve"><value>Use system accent color</value></data>
-  <data name="Settings_General_Sort_Header" xml:space="preserve"><value>Host sort order</value></data>
+  <data name="Settings_General_Accent.Header" xml:space="preserve"><value>Use system accent color</value></data>
+  <data name="Settings_General_Sort.Header" xml:space="preserve"><value>Host sort order</value></data>
   <data name="Settings_General_Sort_Name" xml:space="preserve"><value>By name</value></data>
   <data name="Settings_General_Sort_Recent" xml:space="preserve"><value>By recent connection</value></data>
-  <data name="Settings_General_QuickConnect_Header" xml:space="preserve"><value>Show quick connect card</value></data>
-  <data name="Settings_General_Haptics_Header" xml:space="preserve"><value>Haptic feedback</value></data>
-  <data name="Settings_General_Language_Header" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_General_QuickConnect.Header" xml:space="preserve"><value>Show quick connect card</value></data>
+  <data name="Settings_General_Haptics.Header" xml:space="preserve"><value>Haptic feedback</value></data>
+  <data name="Settings_General_Language.Header" xml:space="preserve"><value>Language</value></data>
   <data name="Settings_General_Language_System" xml:space="preserve"><value>System</value></data>
   <data name="Settings_General_Language_Zh" xml:space="preserve"><value>Simplified Chinese</value></data>
   <data name="Settings_General_Language_En" xml:space="preserve"><value>English</value></data>
@@ -570,13 +570,13 @@
   <data name="Settings_Terminal_AltScroll_Header" xml:space="preserve"><value>Alt-screen scroll</value></data>
   <data name="Settings_Terminal_AltScroll_Arrows" xml:space="preserve"><value>Arrow keys</value></data>
   <data name="Settings_Terminal_AltScroll_Wheel" xml:space="preserve"><value>Scroll wheel</value></data>
-  <data name="Settings_Terminal_PasteConfirm_Header" xml:space="preserve"><value>Confirm before pasting multiple lines</value></data>
+  <data name="Settings_Terminal_PasteConfirm.Header" xml:space="preserve"><value>Confirm before pasting multiple lines</value></data>
   <data name="Settings_Terminal_CursorBlink_Header" xml:space="preserve"><value>Cursor blink follows appearance</value></data>
   <data name="Settings_Terminal_CursorBlink_Note" xml:space="preserve"><value>Change in appearance page</value></data>
   <data name="Settings_Terminal_CursorBlink_Link" xml:space="preserve"><value>Go to appearance</value></data>
 
   <!-- V04a: Keyboard Pivot -->
-  <data name="Settings_Keyboard_KeyBar_Header" xml:space="preserve"><value>Show key bar</value></data>
+  <data name="Settings_Keyboard_KeyBar.Header" xml:space="preserve"><value>Show key bar</value></data>
   <data name="Settings_Keyboard_KeyBarLayout_Header" xml:space="preserve"><value>Key bar layout</value></data>
   <data name="Settings_Keyboard_KeyBarLayout_Edit" xml:space="preserve"><value>Edit key bar layout</value></data>
   <data name="Settings_Keyboard_Backspace_Header" xml:space="preserve"><value>Backspace default</value></data>
@@ -585,13 +585,13 @@
   <data name="Settings_Keyboard_Shortcuts_Edit" xml:space="preserve"><value>Edit shortcuts</value></data>
 
   <!-- V04a: Connection Pivot -->
-  <data name="Settings_Connection_KeepScreen_Header" xml:space="preserve"><value>Keep screen on</value></data>
+  <data name="Settings_Connection_KeepScreen.Header" xml:space="preserve"><value>Keep screen on</value></data>
   <data name="Settings_Connection_KeepScreen_Never" xml:space="preserve"><value>Never</value></data>
   <data name="Settings_Connection_KeepScreen_Session" xml:space="preserve"><value>When connected</value></data>
   <data name="Settings_Connection_KeepScreen_Always" xml:space="preserve"><value>Always</value></data>
-  <data name="Settings_Connection_KeepAlive_Header" xml:space="preserve"><value>Keep alive in background</value></data>
+  <data name="Settings_Connection_KeepAlive.Header" xml:space="preserve"><value>Keep alive in background</value></data>
   <data name="Settings_Connection_KeepAlive_Note" xml:space="preserve"><value>Disconnect immediately when app goes to background, auto-reconnect on return</value></data>
-  <data name="Settings_Connection_BgDisc_Header" xml:space="preserve"><value>Disconnect after N minutes in background</value></data>
+  <data name="Settings_Connection_BgDisc.Header" xml:space="preserve"><value>Disconnect after N minutes in background</value></data>
   <data name="Settings_Connection_BgDisc_Off" xml:space="preserve"><value>Off</value></data>
   <data name="Settings_Connection_BgDisc_5" xml:space="preserve"><value>5 min</value></data>
   <data name="Settings_Connection_BgDisc_15" xml:space="preserve"><value>15 min</value></data>
@@ -612,7 +612,7 @@
   <!-- V04a: About Pivot -->
   <data name="Settings_About_Version_Header" xml:space="preserve"><value>Version</value></data>
   <data name="Settings_About_Licenses" xml:space="preserve"><value>Open source licenses</value></data>
-  <data name="Settings_About_LogLevel_Header" xml:space="preserve"><value>Log level</value></data>
+  <data name="Settings_About_LogLevel.Header" xml:space="preserve"><value>Log level</value></data>
   <data name="Settings_About_LogLevel_Debug" xml:space="preserve"><value>Debug</value></data>
   <data name="Settings_About_LogLevel_Info" xml:space="preserve"><value>Info</value></data>
   <data name="Settings_About_LogLevel_Warn" xml:space="preserve"><value>Warning</value></data>

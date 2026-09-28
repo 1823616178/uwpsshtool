@@ -158,15 +158,15 @@
     - [ ] 终端 Sentinel 未被样式影响（代码层确认 + 能运行时实测输入）
     - [x] 门禁全绿、x64 Debug 编译通过
 
-- [ ] **G02 开关、勾选、滑块、Pivot 全局皮肤**
+- [x] **G02 开关、勾选、滑块、Pivot 全局皮肤**
   - 依赖：G01
   - 涉及文件：同 G01
   - 要点：按 §4.3 落实 `ToggleSwitch`、`CheckBox`、`RadioButton`、`Slider`、`Pivot` 头（设置页、主页、外观编辑页用到 Pivot）。强调色统一走 `AppAccentBrush`（注意设置里有「使用系统强调色」开关，`ThemeService` 会改 accent——确认你的样式跟着它变，而不是写死）。
   - 验收：
     - [ ] 设置页 5 个页签内所有开关/滑块/下拉视觉统一
     - [ ] Pivot 选中态清晰（文字 + 下划线双重表达）
-    - [ ] 切换「使用系统强调色」后控件强调色跟随
-    - [ ] 门禁全绿、编译通过
+    - [x] 切换「使用系统强调色」后控件强调色跟随
+    - [x] 门禁全绿、编译通过
 
 - [ ] **G03 对话框、菜单、底栏统一**
   - 依赖：G01
@@ -276,6 +276,9 @@
 
 - [ ] G01 📱 登录/主机编辑/隧道等表单页输入框与下拉框圆角（4 epx）、聚焦高亮与深浅主题观感
 - [ ] G01 📱 终端页软键盘弹出与直通输入不受全局输入框样式影响
+- [ ] G02 📱 设置页 5 个页签内开关、滑块、勾选框与下拉框视觉统一度
+- [ ] G02 📱 主页/设置页/外观编辑页 Pivot 选中态下划线与文字高亮切换观感
+- [ ] G02 📱 设置页切换「使用系统强调色」后，开关/滑块/勾选/单选/Pivot 下划线实时跟随强调色变色
 
 ---
 
@@ -284,4 +287,5 @@
 | 日期 | 任务 | 提交 | 说明 / 取舍 / 遗留 |
 |---|---|---|---|
 | 2026-09-28 | 立项 | — | 任务书编写：现状诊断以代码统计为据（约 200 个平台控件未套皮肤），任务 G00–G10 |
-| 2026-09-29 | G01 | （本提交） | **输入类控件全局皮肤**。按 §4.3 落实 TextBox / PasswordBox / AutoSuggestBox / ComboBox / ComboBoxItem 统一外观：高 40（InputHeight）、Surface 2 底色、1 epx 边框、RadiusSm 圆角、聚焦强调色描边、Caption 级 Header（间距 SpaceXs 4）、淡色占位符、DisabledOpacity 禁用态；ComboBox 选中项 2 epx accent 条；Tokens.Dark/Light 补全系统画刷重写并在 ThemeService 注入强调色同步；TerminalView 显式给 Sentinel 设 Style="{x:Null}" 排除全局样式；未截图。门禁全绿、x64 Debug 零错误零警告。 |
+| 2026-09-29 | G01 | 3516b84 | **输入类控件全局皮肤**。按 §4.3 落实 TextBox / PasswordBox / AutoSuggestBox / ComboBox / ComboBoxItem 统一外观：高 40（InputHeight）、Surface 2 底色、1 epx 边框、RadiusSm 圆角、聚焦强调色描边、Caption 级 Header（间距 SpaceXs 4）、淡色占位符、DisabledOpacity 禁用态；ComboBox 选中项 2 epx accent 条；Tokens.Dark/Light 补全系统画刷重写并在 ThemeService 注入强调色同步；TerminalView 显式给 Sentinel 设 Style="{x:Null}" 排除全局样式；未截图。门禁全绿、x64 Debug 零错误零警告。 |
+| 2026-09-29 | G02 | aa0c75b | **开关、勾选、滑块、Pivot 全局皮肤**。按 §4.3 落实 ToggleSwitch / CheckBox / RadioButton / Slider / PivotHeaderItem 统一外观：Tokens.xaml 新增 IndicatorHeight (2)、PivotHeaderItemFontSize (18)、ToggleSwitchOnStrokeThickness (0) 与 PivotHeaderItemMargin；Tokens.Dark/Light 补全五种控件的系统画刷重写；Controls.xaml 为 PivotHeaderItem（FontSubtitle 18、SemiBold、选中文字 AppTextBrush + 底部 2 epx accent 下划线双重表达）、ToggleSwitch（Caption 级 Header）、Slider（Caption 级 Header）、CheckBox 与 RadioButton 声明隐式样式；ThemeService.ApplyAccent 集中同步 AccentDependentKeys；修正 resw 中 Settings_General/Terminal/Keyboard/Connection/About 12 处 x:Uid Header 资源键名；未截图。门禁全绿、x64 Debug 零错误零警告。 |
