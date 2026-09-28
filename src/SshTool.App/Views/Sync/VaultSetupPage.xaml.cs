@@ -16,6 +16,16 @@ namespace SshTool.App.Views.Sync
     // 重弹并警告）→ FinishSetupAsync 自动首次同步 → GoAfterAuth 去状态页（U17 后为 AccountSyncPage）。
     public sealed partial class VaultSetupPage : Page
     {
+        // W06：页头返回按钮（与硬件返回键同一条处理链）。
+        private void OnHeaderBackRequested(object sender, System.EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+            }
+        }
+
         // O04（C-02）：导航世代。恢复密钥对话框可能开着很久，
         // 期间用户返回时不得再导航或刷新本页。
         private readonly SshTool.Core.Common.NavigationLifetime _lifetime =

@@ -36,6 +36,16 @@ namespace SshTool.App.Views
     // 每次改动同步重建预览（36×8 格，远 < 100 ms）。
     public sealed partial class AppearanceEditPage : Page, IBackHandler
     {
+        // W06：页头返回按钮（与硬件返回键同一条处理链）。
+        private void OnHeaderBackRequested(object sender, System.EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+            }
+        }
+
         private readonly StaticTerminalScreen _screen = new StaticTerminalScreen();
         // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
         private readonly NavigationLifetime _lifetime = new NavigationLifetime();
@@ -143,7 +153,7 @@ namespace SshTool.App.Views
                 return;
             }
             _suppress = true;
-            TitleText.Text = ViewModel.Title;
+            TitleText.Title = ViewModel.Title;
             NameBox.Text = draft.Name ?? string.Empty;
             FontSizeSlider.Value = draft.FontSize;
             LineHeightSlider.Value = draft.LineHeight;

@@ -94,7 +94,7 @@
   <data name="Api_RESPONSE_INVALID" xml:space="preserve"><value>The server returned invalid data.</value></data>
   <data name="Api_SYNC_REVISION_INVALID" xml:space="preserve"><value>The server returned an invalid sync revision.</value></data>
   <data name="Api_SYNC_METADATA_INVALID" xml:space="preserve"><value>The server returned invalid sync metadata.</value></data>
-  <data name="Login_Title.Text" xml:space="preserve"><value>Account &amp; Sync</value></data>
+  <data name="Login_Title.Title" xml:space="preserve"><value>Account &amp; Sync</value></data>
   <data name="Login_LoginTab.Content" xml:space="preserve"><value>Sign in</value></data>
   <data name="Login_RegisterTab.Content" xml:space="preserve"><value>Sign up</value></data>
   <data name="Login_EmailBox.Header" xml:space="preserve"><value>Email</value></data>
@@ -236,7 +236,7 @@
   <data name="ExitDialog.SecondaryButtonText" xml:space="preserve"><value>Cancel</value></data>
   <data name="ExitDialog_Message" xml:space="preserve"><value>{0} session(s) are still active. Exiting will disconnect them all.</value></data>
 
-  <data name="VaultSetup_Title.Text" xml:space="preserve"><value>Create sync vault</value></data>
+  <data name="VaultSetup_Title.Title" xml:space="preserve"><value>Create sync vault</value></data>
   <data name="VaultSetup_Explanation.Text" xml:space="preserve"><value>The sync password encrypts your data. The server cannot decrypt it and it may differ from your login password.</value></data>
   <data name="VaultSetup_PasswordBox.Header" xml:space="preserve"><value>Sync password</value></data>
   <data name="VaultSetup_PasswordBox.PlaceholderText" xml:space="preserve"><value>Set a sync password (at least 8 characters)</value></data>
@@ -244,7 +244,7 @@
   <data name="VaultSetup_PasswordHint.Text" xml:space="preserve"><value>Sync password must be at least 8 characters.</value></data>
   <data name="VaultSetup_LocalNote.Text" xml:space="preserve"><value>Once unlocked, the vault key is stored encrypted on this device, so you will not need to type it again after a restart.</value></data>
   <data name="VaultSetup_SubmitButton.Content" xml:space="preserve"><value>Create</value></data>
-  <data name="VaultUnlock_Title.Text" xml:space="preserve"><value>Unlock vault</value></data>
+  <data name="VaultUnlock_Title.Title" xml:space="preserve"><value>Unlock vault</value></data>
   <data name="VaultUnlock_PasswordTab.Content" xml:space="preserve"><value>Sync password</value></data>
   <data name="VaultUnlock_RecoveryTab.Content" xml:space="preserve"><value>Recovery key</value></data>
   <data name="VaultUnlock_PasswordBox.Header" xml:space="preserve"><value>Sync password</value></data>
@@ -370,7 +370,7 @@
   <data name="KeyGen_TypeRsa4096.Content" xml:space="preserve"><value>RSA 4096</value></data>
 
   <!-- V06 (C-06): KeyDetailPage hardcoded Chinese cleanup -->
-  <data name="KeyDetail_Title.Text" xml:space="preserve"><value>Key Details</value></data>
+  <data name="KeyDetail_Title.Title" xml:space="preserve"><value>Key Details</value></data>
   <data name="KeyDetail_NameBox.Header" xml:space="preserve"><value>Name</value></data>
   <data name="KeyDetail_Rename.Content" xml:space="preserve"><value>Save Name</value></data>
   <data name="KeyDetail_TypeLabel.Text" xml:space="preserve"><value>Type</value></data>
@@ -421,7 +421,7 @@
   <!-- V06 (C-06): AppearanceListPage hardcoded Chinese cleanup -->
   <data name="AppearanceList_NewButton.Label" xml:space="preserve"><value>New</value></data>
   <data name="AppearanceList_ImportButton.Label" xml:space="preserve"><value>Import</value></data>
-  <data name="AppearanceList_Title.Text" xml:space="preserve"><value>Appearance</value></data>
+  <data name="AppearanceList_Title.Title" xml:space="preserve"><value>Appearance</value></data>
   <data name="AppearanceList_SetDefault.Content" xml:space="preserve"><value>Set as Default</value></data>
   <data name="AppearanceList_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>More</value></data>
   <data name="AppearanceList_MenuEdit.Text" xml:space="preserve"><value>Edit</value></data>
@@ -429,13 +429,13 @@
   <data name="AppearanceList_MenuDelete.Text" xml:space="preserve"><value>Delete</value></data>
 
   <!-- V06 (C-06): ShortcutEditorPage hardcoded Chinese cleanup -->
-  <data name="Shortcut_Title.Text" xml:space="preserve"><value>Shortcuts</value></data>
+  <data name="Shortcut_Title.Title" xml:space="preserve"><value>Shortcuts</value></data>
   <data name="Shortcut_Subtitle.Text" xml:space="preserve"><value>Tap Record, then press a new key combination. Defaults include Shift to avoid clobbering terminal keys.</value></data>
   <data name="Shortcut_Record.Content" xml:space="preserve"><value>Record</value></data>
   <data name="Shortcut_Reset.Content" xml:space="preserve"><value>Reset to Default</value></data>
 
   <!-- V06 (C-06): KeyBarLayoutEditorPage hardcoded Chinese cleanup -->
-  <data name="KeyBarEditor_Title.Text" xml:space="preserve"><value>Key Bar Layout</value></data>
+  <data name="KeyBarEditor_Title.Title" xml:space="preserve"><value>Key Bar Layout</value></data>
   <data name="KeyBarEditor_Subtitle.Text" xml:space="preserve"><value>Changes take effect immediately; the new layout is used next time you open a terminal.</value></data>
   <data name="KeyBarEditor_AvailableHeader.Text" xml:space="preserve"><value>Available Keys</value></data>
   <data name="KeyBarEditor_SelectedHeader.Text" xml:space="preserve"><value>Selected Keys</value></data>
@@ -447,7 +447,7 @@
 
   <!-- V06 (C-06): GroupManagePage hardcoded Chinese cleanup -->
   <data name="GroupManage_AddButton.Label" xml:space="preserve"><value>New</value></data>
-  <data name="GroupManage_Title.Text" xml:space="preserve"><value>Groups</value></data>
+  <data name="GroupManage_Title.Title" xml:space="preserve"><value>Groups</value></data>
   <data name="GroupManage_NameBox.Header" xml:space="preserve"><value>Name</value></data>
   <data name="GroupManage_MoveUp.Content" xml:space="preserve"><value>Move Up</value></data>
   <data name="GroupManage_MoveDown.Content" xml:space="preserve"><value>Move Down</value></data>
@@ -700,7 +700,7 @@
   <data name="Keys_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>More Actions</value></data>
 
   <!-- V04b (C-06 + §6.4): SnippetsPage send button + group headers + all text via resw -->
-  <data name="Snippets_Title.Text" xml:space="preserve"><value>Snippets</value></data>
+  <data name="Snippets_Title.Title" xml:space="preserve"><value>Snippets</value></data>
   <data name="Snippets_Empty_Title" xml:space="preserve"><value>No Snippets Yet</value></data>
   <data name="Snippets_Empty_Description" xml:space="preserve"><value>Save frequently used commands as snippets, send to terminal with one tap.</value></data>
   <data name="Snippets_Empty_Primary" xml:space="preserve"><value>New Snippet</value></data>
@@ -959,7 +959,7 @@
   <data name="SelectionLayer_ShareButton.Content" xml:space="preserve"><value>Share</value></data>
 
   <!-- O13 批次 2：KnownHosts / SessionsPivot -->
-  <data name="KnownHostsPage_TextBlock2.Text" xml:space="preserve"><value>Known hosts</value></data>
+  <data name="KnownHosts_Header.Title" xml:space="preserve"><value>Known hosts</value></data>
   <data name="KnownHostsPage_SearchBox.PlaceholderText" xml:space="preserve"><value>Search host, type or fingerprint</value></data>
   <data name="KnownHostsPage_Button1.Content" xml:space="preserve"><value>Delete</value></data>
   <data name="SessionsPivot_Button1.Content" xml:space="preserve"><value>Restore all</value></data>

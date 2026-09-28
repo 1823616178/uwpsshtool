@@ -9,6 +9,16 @@ namespace SshTool.App.Views
 {
     public sealed partial class KnownHostsPage : Page
     {
+        // W06：页头返回按钮（与硬件返回键同一条处理链）。
+        private void OnHeaderBackRequested(object sender, System.EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+            }
+        }
+
         public KnownHostsPage()
         {
             ViewModel = new KnownHostsViewModel(AppServices.Current);

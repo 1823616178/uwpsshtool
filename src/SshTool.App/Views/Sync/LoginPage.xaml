@@ -9,10 +9,15 @@
          避免两套表单重复 x:Uid）；明文 HTTP Banner；注册 ≥10 位 + 确认 + 可选邀请码；三端共用说明。
          本页只用 15063 基线控件（Pivot 未用；PasswordBox 不开 reveal 按钮，避免越契约）。 -->
     <Grid>
-        <ScrollViewer>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <controls:AppPageHeader x:Uid="Login_Title"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
+        <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
-                <TextBlock x:Uid="Login_Title" Text="账号与同步"
-                           Style="{StaticResource PageTitleTextStyle}" />
                 <controls:Banner x:Name="HttpBanner" x:Uid="Login_HttpBanner"
                                  Severity="Warning"
                                  Margin="{StaticResource GapSmTop}"
@@ -74,6 +79,6 @@
                            Margin="{StaticResource GapSmTop}" />
             </StackPanel>
         </ScrollViewer>
-        <controls:LoadingOverlay x:Name="Working" />
+        <controls:LoadingOverlay x:Name="Working" Grid.RowSpan="2" />
     </Grid>
 </Page>

@@ -22,6 +22,16 @@ namespace SshTool.App.Views.Keys
 
     public sealed partial class KeyDetailPage : Page
     {
+        // W06：页头返回按钮（与硬件返回键同一条处理链）。
+        private void OnHeaderBackRequested(object sender, System.EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+            }
+        }
+
         // R01 (C-02)：导航世代，离开后加载链不再触碰 UI / Frame。
         private readonly NavigationLifetime _lifetime = new NavigationLifetime();
         // R01：已订阅 DataRequested 的 DataTransferManager（视图级长寿对象），离开时解除。

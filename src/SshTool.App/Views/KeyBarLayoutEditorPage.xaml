@@ -23,8 +23,9 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock x:Uid="KeyBarEditor_Title" Style="{StaticResource PageTitleTextStyle}"
-                   Margin="{StaticResource PagePadding}" />
+        <controls:AppPageHeader x:Uid="KeyBarEditor_Title"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
         <TextBlock x:Uid="KeyBarEditor_Subtitle" Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
                    Margin="{StaticResource PagePadding}" />
         <Grid Grid.Row="2">

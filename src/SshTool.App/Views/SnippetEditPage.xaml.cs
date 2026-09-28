@@ -28,6 +28,16 @@ namespace SshTool.App.Views
 
     public sealed partial class SnippetEditPage : Page, IBackHandler
     {
+        // W06：页头返回按钮（与硬件返回键同一条处理链）。
+        private void OnHeaderBackRequested(object sender, System.EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+            }
+        }
+
         private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
         // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
         private readonly NavigationLifetime _lifetime = new NavigationLifetime();
@@ -96,7 +106,7 @@ namespace SshTool.App.Views
 
         private void BindLoaded()
         {
-            TitleText.Text = ViewModel.Title;
+            TitleText.Title = ViewModel.Title;
             _suppress = true;
             NameBox.Text = ViewModel.Name;
             GroupBox.Text = ViewModel.GroupName;

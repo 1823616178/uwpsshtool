@@ -33,8 +33,9 @@
             <RowDefinition Height="2*" />
             <RowDefinition Height="3*" />
         </Grid.RowDefinitions>
-        <TextBlock x:Name="TitleText" Style="{StaticResource PageTitleTextStyle}"
-                   Margin="{StaticResource PagePadding}" />
+        <controls:AppPageHeader x:Name="TitleText"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
         <term:TerminalView x:Name="Preview" Grid.Row="1" Margin="{StaticResource PagePadding}" />
         <Pivot x:Name="EditPivot" Grid.Row="2">
             <PivotItem x:Uid="AppearanceEdit_PivotFont">

@@ -12,20 +12,20 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock x:Uid="KnownHostsPage_TextBlock2" Style="{StaticResource PageTitleTextStyle}"
-                   Margin="{StaticResource PagePadding}" />
+        <controls:AppPageHeader x:Uid="KnownHosts_Header"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
         <AutoSuggestBox x:Uid="KnownHostsPage_SearchBox" x:Name="SearchBox" Grid.Row="1"
                         QueryIcon="Find" TextChanged="OnSearchChanged"
                         Margin="{StaticResource PagePadding}" />
         <ListView x:Name="HostList" Grid.Row="2" SelectionMode="Single"
+                  ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
                   SelectionChanged="OnSelectionChanged">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Padding="{StaticResource PagePadding}"
-                                MinHeight="{StaticResource ListRowCompactHeight}">
-                        <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}" />
-                        <TextBlock Text="{Binding Subtitle}" Style="{StaticResource CaptionTextStyle}" />
-                    </StackPanel>
+                    <!-- W06：统一 V2 列表行。 -->
+                    <controls:AppListRow Title="{Binding Title}" Subtitle="{Binding Subtitle}"
+                                         IconGlyph="{StaticResource IconLock}" IsCompact="True" />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

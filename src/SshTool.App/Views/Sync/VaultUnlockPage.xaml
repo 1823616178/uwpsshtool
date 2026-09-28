@@ -9,10 +9,15 @@
          恢复密钥等宽输入，规范化去空白 + 前缀/校验段大写，格式通过才可提交；
          [解锁] → 进度「正在解锁…」→ 成功回状态页并同步。 -->
     <Grid>
-        <ScrollViewer>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <controls:AppPageHeader x:Uid="VaultUnlock_Title"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
+        <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
-                <TextBlock x:Uid="VaultUnlock_Title" Text="解锁保险库"
-                           Style="{StaticResource PageTitleTextStyle}" />
                 <Grid Margin="{StaticResource GapSmTop}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -54,6 +59,6 @@
                         Click="OnSubmitClick" />
             </StackPanel>
         </ScrollViewer>
-        <controls:LoadingOverlay x:Name="Working" />
+        <controls:LoadingOverlay x:Name="Working" Grid.RowSpan="2" />
     </Grid>
 </Page>

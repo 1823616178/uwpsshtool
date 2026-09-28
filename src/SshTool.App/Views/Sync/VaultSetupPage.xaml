@@ -9,10 +9,15 @@
          + [创建] → 进度「正在生成密钥（约数秒）」→ RecoveryKeyDialog（必须勾选已保存）
          → 自动首次同步。解锁后的密钥由 VaultCache（DPAPI）持久化，故无「记住同步密码」。 -->
     <Grid>
-        <ScrollViewer>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <controls:AppPageHeader x:Uid="VaultSetup_Title"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
+        <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
-                <TextBlock x:Uid="VaultSetup_Title" Text="创建同步保险库"
-                           Style="{StaticResource PageTitleTextStyle}" />
                 <TextBlock x:Uid="VaultSetup_Explanation"
                            Text="同步密码用于加密你的配置，服务器无法解密；与登录密码可以不同。"
                            Style="{StaticResource BodyTextStyle}"
@@ -47,6 +52,6 @@
                         Click="OnSubmitClick" />
             </StackPanel>
         </ScrollViewer>
-        <controls:LoadingOverlay x:Name="Working" />
+        <controls:LoadingOverlay x:Name="Working" Grid.RowSpan="2" />
     </Grid>
 </Page>

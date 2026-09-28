@@ -72,6 +72,12 @@
          防点击抢哨兵焦点、SIP 收起；触控宽 ≥TouchTargetMin。行高受限的使用点
          （InfoBar 32 / TabStrip 36）各自显式 Height，样式不强求 40 高。
          无障碍名走 resw（XAML 用 x:Uid，C# 用 ResourceLoader），不进样式。 -->
+    <!-- W06：列表项里放 AppListRow 时用——内容横向拉伸、去掉默认内边距（行自带 PagePadding）。 -->
+    <Style x:Key="StretchListViewItemStyle" TargetType="ListViewItem">
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="Padding" Value="{StaticResource PadNone}" />
+    </Style>
+
     <Style x:Key="TerminalIconButtonStyle" TargetType="Button">
         <Setter Property="AllowFocusOnInteraction" Value="False" />
         <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />

@@ -13,8 +13,9 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock x:Uid="KeyDetail_Title" Style="{StaticResource PageTitleTextStyle}"
-                   Margin="{StaticResource PagePadding}" />
+        <controls:AppPageHeader x:Uid="KeyDetail_Title"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
                 <TextBox x:Name="NameBox" x:Uid="KeyDetail_NameBox" TextChanged="OnNameChanged" />
@@ -57,13 +58,14 @@
                 <TextBlock x:Name="NoHostsText" x:Uid="KeyDetail_NoHosts"
                            Style="{StaticResource BodyTextStyle}" />
                 <ListView x:Name="HostList" SelectionMode="None"
+                  ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
                           IsItemClickEnabled="True" ItemClick="OnHostClick">
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Padding="{StaticResource PagePadding}">
-                                <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}" />
-                                <TextBlock Text="{Binding Subtitle}" Style="{StaticResource CaptionTextStyle}" />
-                            </StackPanel>
+                            <!-- W06：统一 V2 列表行。 -->
+                            <controls:AppListRow Title="{Binding Name}" Subtitle="{Binding Subtitle}"
+                                                 IconGlyph="{StaticResource IconTerminal}"
+                                                 IsCompact="True" ShowChevron="True" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>

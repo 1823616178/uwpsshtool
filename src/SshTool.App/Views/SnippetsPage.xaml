@@ -46,8 +46,9 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock x:Uid="Snippets_Title" Style="{StaticResource PageTitleTextStyle}"
-                   Margin="{StaticResource PagePadding}" />
+        <controls:AppPageHeader x:Uid="Snippets_Title"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
         <AutoSuggestBox x:Name="SearchBox" x:Uid="Snippets_SearchBox" Grid.Row="1"
                         QueryIcon="Find" TextChanged="OnSearchChanged"
                         Margin="{StaticResource PagePadding}" />

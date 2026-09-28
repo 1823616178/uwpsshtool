@@ -16,6 +16,16 @@ namespace SshTool.App.Views.Sync
     // 成功后经 SyncNavigation（U16）按保险库状态去建库/解锁/状态占位页。
     public sealed partial class LoginPage : Page
     {
+        // W06：页头返回按钮（与硬件返回键同一条处理链）。
+        private void OnHeaderBackRequested(object sender, System.EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+            }
+        }
+
         private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
 
         public LoginPage()

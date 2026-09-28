@@ -33,8 +33,9 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock x:Uid="Shortcut_Title" Style="{StaticResource PageTitleTextStyle}"
-                   Margin="{StaticResource PagePadding}" />
+        <controls:AppPageHeader x:Uid="Shortcut_Title"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
         <TextBlock x:Uid="Shortcut_Subtitle" Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
                    Margin="{StaticResource PagePadding}" TextWrapping="Wrap" />
         <TextBlock x:Name="ConflictWarning" Grid.Row="2"

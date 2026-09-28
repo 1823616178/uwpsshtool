@@ -57,23 +57,33 @@ namespace SshTool.App.Infrastructure
             _backHandlers.Remove(handler);
         }
 
+        // W06：页头返回按钮与硬件返回键走同一条链——弹层、未保存确认等处理器优先，最后才退页。
+        // 返回 false 表示没有可退的页（交给系统）。
+        public bool RequestBack()
+        {
+            for (int i = _backHandlers.Count - 1; i >= 0; i--)
+            {
+                if (_backHandlers[i].HandleBack())
+                {
+                    return true;
+                }
+            }
+            if (CanGoBack)
+            {
+                _frame.GoBack();
+                return true;
+            }
+            return false;
+        }
+
         private void OnBackRequested(object sender, BackRequestedEventArgs e)
         {
             if (e.Handled)
             {
                 return;
             }
-            for (int i = _backHandlers.Count - 1; i >= 0; i--)
+            if (RequestBack())
             {
-                if (_backHandlers[i].HandleBack())
-                {
-                    e.Handled = true;
-                    return;
-                }
-            }
-            if (CanGoBack)
-            {
-                _frame.GoBack();
                 e.Handled = true;
             }
             // 否则 e.Handled 保持 false，交给系统（退出应用；§4-7 的退出确认由 MainPage 的处理器负责）

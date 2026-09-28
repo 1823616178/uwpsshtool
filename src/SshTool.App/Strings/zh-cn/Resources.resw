@@ -94,7 +94,7 @@
   <data name="Api_RESPONSE_INVALID" xml:space="preserve"><value>服务器返回了无效数据</value></data>
   <data name="Api_SYNC_REVISION_INVALID" xml:space="preserve"><value>服务器返回了无效的同步版本</value></data>
   <data name="Api_SYNC_METADATA_INVALID" xml:space="preserve"><value>服务器返回了无效的同步元数据</value></data>
-  <data name="Login_Title.Text" xml:space="preserve"><value>账号与同步</value></data>
+  <data name="Login_Title.Title" xml:space="preserve"><value>账号与同步</value></data>
   <data name="Login_LoginTab.Content" xml:space="preserve"><value>登录</value></data>
   <data name="Login_RegisterTab.Content" xml:space="preserve"><value>注册</value></data>
   <data name="Login_EmailBox.Header" xml:space="preserve"><value>邮箱</value></data>
@@ -236,7 +236,7 @@
   <data name="ExitDialog.SecondaryButtonText" xml:space="preserve"><value>取消</value></data>
   <data name="ExitDialog_Message" xml:space="preserve"><value>有 {0} 个会话正在连接，退出将全部断开。</value></data>
 
-  <data name="VaultSetup_Title.Text" xml:space="preserve"><value>创建同步保险库</value></data>
+  <data name="VaultSetup_Title.Title" xml:space="preserve"><value>创建同步保险库</value></data>
   <data name="VaultSetup_Explanation.Text" xml:space="preserve"><value>同步密码用于加密你的配置，服务器无法解密；与登录密码可以不同。</value></data>
   <data name="VaultSetup_PasswordBox.Header" xml:space="preserve"><value>同步密码</value></data>
   <data name="VaultSetup_PasswordBox.PlaceholderText" xml:space="preserve"><value>设置同步密码（至少 8 位）</value></data>
@@ -244,7 +244,7 @@
   <data name="VaultSetup_PasswordHint.Text" xml:space="preserve"><value>同步密码至少 8 位</value></data>
   <data name="VaultSetup_LocalNote.Text" xml:space="preserve"><value>解锁后的保险库密钥加密保存在本机，重启无需再次输入。</value></data>
   <data name="VaultSetup_SubmitButton.Content" xml:space="preserve"><value>创建</value></data>
-  <data name="VaultUnlock_Title.Text" xml:space="preserve"><value>解锁保险库</value></data>
+  <data name="VaultUnlock_Title.Title" xml:space="preserve"><value>解锁保险库</value></data>
   <data name="VaultUnlock_PasswordTab.Content" xml:space="preserve"><value>同步密码</value></data>
   <data name="VaultUnlock_RecoveryTab.Content" xml:space="preserve"><value>恢复密钥</value></data>
   <data name="VaultUnlock_PasswordBox.Header" xml:space="preserve"><value>同步密码</value></data>
@@ -371,7 +371,7 @@
   <data name="KeyGen_TypeRsa4096.Content" xml:space="preserve"><value>RSA 4096</value></data>
 
   <!-- V06（C-06）：KeyDetailPage 硬编码中文清理 -->
-  <data name="KeyDetail_Title.Text" xml:space="preserve"><value>密钥详情</value></data>
+  <data name="KeyDetail_Title.Title" xml:space="preserve"><value>密钥详情</value></data>
   <data name="KeyDetail_NameBox.Header" xml:space="preserve"><value>名称</value></data>
   <data name="KeyDetail_Rename.Content" xml:space="preserve"><value>保存名称</value></data>
   <data name="KeyDetail_TypeLabel.Text" xml:space="preserve"><value>类型</value></data>
@@ -422,7 +422,7 @@
   <!-- V06（C-06）：AppearanceListPage 硬编码中文清理 -->
   <data name="AppearanceList_NewButton.Label" xml:space="preserve"><value>新建</value></data>
   <data name="AppearanceList_ImportButton.Label" xml:space="preserve"><value>导入</value></data>
-  <data name="AppearanceList_Title.Text" xml:space="preserve"><value>外观</value></data>
+  <data name="AppearanceList_Title.Title" xml:space="preserve"><value>外观</value></data>
   <data name="AppearanceList_SetDefault.Content" xml:space="preserve"><value>设为默认</value></data>
   <data name="AppearanceList_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多</value></data>
   <data name="AppearanceList_MenuEdit.Text" xml:space="preserve"><value>编辑</value></data>
@@ -430,13 +430,13 @@
   <data name="AppearanceList_MenuDelete.Text" xml:space="preserve"><value>删除</value></data>
 
   <!-- V06（C-06）：ShortcutEditorPage 硬编码中文清理 -->
-  <data name="Shortcut_Title.Text" xml:space="preserve"><value>快捷键</value></data>
+  <data name="Shortcut_Title.Title" xml:space="preserve"><value>快捷键</value></data>
   <data name="Shortcut_Subtitle.Text" xml:space="preserve"><value>点击录制后按下新组合；默认组合都带 Shift，避免抢占终端按键</value></data>
   <data name="Shortcut_Record.Content" xml:space="preserve"><value>录制</value></data>
   <data name="Shortcut_Reset.Content" xml:space="preserve"><value>恢复默认</value></data>
 
   <!-- V06（C-06）：KeyBarLayoutEditorPage 硬编码中文清理 -->
-  <data name="KeyBarEditor_Title.Text" xml:space="preserve"><value>键条布局</value></data>
+  <data name="KeyBarEditor_Title.Title" xml:space="preserve"><value>键条布局</value></data>
   <data name="KeyBarEditor_Subtitle.Text" xml:space="preserve"><value>更改立即生效，下次打开终端时使用新布局</value></data>
   <data name="KeyBarEditor_AvailableHeader.Text" xml:space="preserve"><value>可用键</value></data>
   <data name="KeyBarEditor_SelectedHeader.Text" xml:space="preserve"><value>已选键</value></data>
@@ -448,7 +448,7 @@
 
   <!-- V06（C-06）：GroupManagePage 硬编码中文清理 -->
   <data name="GroupManage_AddButton.Label" xml:space="preserve"><value>新建</value></data>
-  <data name="GroupManage_Title.Text" xml:space="preserve"><value>分组管理</value></data>
+  <data name="GroupManage_Title.Title" xml:space="preserve"><value>分组管理</value></data>
   <data name="GroupManage_NameBox.Header" xml:space="preserve"><value>名称</value></data>
   <data name="GroupManage_MoveUp.Content" xml:space="preserve"><value>上移</value></data>
   <data name="GroupManage_MoveDown.Content" xml:space="preserve"><value>下移</value></data>
@@ -701,7 +701,7 @@
   <data name="Keys_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>更多操作</value></data>
 
   <!-- V04b（C-06 + §6.4）：SnippetsPage 发送按钮 + 分组行 + 全量文案走 resw -->
-  <data name="Snippets_Title.Text" xml:space="preserve"><value>片段</value></data>
+  <data name="Snippets_Title.Title" xml:space="preserve"><value>片段</value></data>
   <data name="Snippets_Empty_Title" xml:space="preserve"><value>还没有片段</value></data>
   <data name="Snippets_Empty_Description" xml:space="preserve"><value>把常用命令存成片段，一键发送到终端。</value></data>
   <data name="Snippets_Empty_Primary" xml:space="preserve"><value>新建片段</value></data>
@@ -960,7 +960,7 @@
   <data name="SelectionLayer_ShareButton.Content" xml:space="preserve"><value>分享</value></data>
 
   <!-- O13 批次 2：KnownHosts / SessionsPivot -->
-  <data name="KnownHostsPage_TextBlock2.Text" xml:space="preserve"><value>已知主机</value></data>
+  <data name="KnownHosts_Header.Title" xml:space="preserve"><value>已知主机</value></data>
   <data name="KnownHostsPage_SearchBox.PlaceholderText" xml:space="preserve"><value>搜索主机、类型、指纹</value></data>
   <data name="KnownHostsPage_Button1.Content" xml:space="preserve"><value>删除</value></data>
   <data name="SessionsPivot_Button1.Content" xml:space="preserve"><value>全部恢复</value></data>

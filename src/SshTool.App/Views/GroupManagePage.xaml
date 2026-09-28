@@ -21,15 +21,17 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock x:Uid="GroupManage_Title" Style="{StaticResource PageTitleTextStyle}"
-                   Margin="{StaticResource PagePadding}" />
+        <controls:AppPageHeader x:Uid="GroupManage_Title"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
         <ListView x:Name="GroupList" Grid.Row="1" SelectionMode="Single"
+                  ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
                   SelectionChanged="OnSelectionChanged">
             <ListView.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}"
-                               MinHeight="{StaticResource ListRowCompactHeight}"
-                               Padding="{StaticResource PagePadding}" VerticalAlignment="Center" />
+                    <!-- W06：统一 V2 列表行。 -->
+                    <controls:AppListRow Title="{Binding Name}" IconGlyph="{StaticResource IconFolder}"
+                                         IsCompact="True" />
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>

@@ -14,6 +14,16 @@ namespace SshTool.App.Views.Sync
     // 提交与 CanSubmit 时经 RecoveryKeyInput 规范化。成功回状态页并同步。
     public sealed partial class VaultUnlockPage : Page
     {
+        // W06：页头返回按钮（与硬件返回键同一条处理链）。
+        private void OnHeaderBackRequested(object sender, System.EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+            }
+        }
+
         public VaultUnlockPage()
         {
             ViewModel = CreateViewModel();
