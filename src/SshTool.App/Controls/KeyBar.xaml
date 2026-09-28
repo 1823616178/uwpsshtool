@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="SshTool.App.Controls.KeyBar"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -12,12 +12,19 @@
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
+        <!-- §7.5：键条上任何能获焦的元素都会在点击时把焦点从哨兵抢走、SIP 随即收起。
+             键本身是 Border（不可获焦），但包着它们的 ScrollViewer 是 Control，
+             AllowFocusOnInteraction 默认为真——点 Ctrl/Esc/Tab 就会收键盘
+             （键条此前被压在软键盘背后、点不到，所以一直没暴露）。 -->
         <ScrollViewer x:Name="KeysScroller"
+                      AllowFocusOnInteraction="False"
+                      IsTabStop="False"
                       HorizontalScrollBarVisibility="Hidden"
                       VerticalScrollBarVisibility="Disabled"
                       HorizontalScrollMode="Enabled"
                       VerticalScrollMode="Disabled">
-            <StackPanel x:Name="KeysPanel" Orientation="Horizontal" />
+            <StackPanel x:Name="KeysPanel" Orientation="Horizontal"
+                        AllowFocusOnInteraction="False" />
         </ScrollViewer>
         <!-- V01a：⌨ 换 MDL2 KeyboardClassic（IconKeyboard），无障碍名走 resw（x:Uid）；
              Rebuild 不再覆盖 Content（图标固定在 XAML）。评审回补：Core 目录 hidekb 的

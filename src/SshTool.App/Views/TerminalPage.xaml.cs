@@ -11,9 +11,11 @@ using SshTool.Core.Common;
 using SshTool.Core.Models;
 using SshTool.Core.Sessions;
 using Windows.ApplicationModel.Resources;
+using Windows.Foundation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace SshTool.App.Views
@@ -28,6 +30,8 @@ namespace SshTool.App.Views
         private SessionInfo _boundSession;
         // R01 (C-02)：当前世代号缓存（OnNavigatedTo 写入），供事件路径上的异步守护使用。
         private int _generation;
+        // 真机修复（2026-09-29）：软键盘弹出时把键条抬到 SIP 上沿的位移（Y 为负）。
+        private readonly TranslateTransform _keyBarLift = new TranslateTransform();
 
         public TerminalPage()
         {
@@ -69,6 +73,11 @@ namespace SshTool.App.Views
                     Term.Session.Write(e.Data);
                 }
             };
+            // 真机反馈（2026-09-29）：「打开键盘时点 Ctrl/Esc/Tab 不要关闭键盘」。
+            // 预防在 KeyBar 侧（ScrollViewer 不再抢焦点）；这里是兜底修复——万一焦点还是
+            // 被抢走，趁 InputPane 尚未收完把焦点还给哨兵。只在 SIP 本来弹着时做，
+            // 否则点一下键条就会把收起的软键盘硬拉出来。
+            Keys.Interacted += OnKeyBarInteracted;
             // U13：键条 snippets 键打开片段选择器（发送经 ISshSession.Write）。
             Keys.Action += OnKeyBarAction;
             Term.SnippetRequested += (s, e) => OpenSnippetPicker(Term);
@@ -81,6 +90,12 @@ namespace SshTool.App.Views
             {
                 SessionsPane.Attach(paneVm);
             }
+            // 真机修复（2026-09-29，「弹出键盘时键条应该在键盘上方而不是消失」）：
+            // 键条在页面底行，SIP 一弹出就整条被压在软键盘背后。这里订的是本页自己的子控件
+            // （同生同死，无需解除），键条高度变化（布局重建）也要重算一次抬升量。
+            Keys.RenderTransform = _keyBarLift;
+            Term.InputPaneOcclusionChanged += OnInputPaneOcclusionChanged;
+            Keys.SizeChanged += OnKeyBarSizeChanged;
         }
 
         public TerminalViewModel ViewModel { get; private set; }
@@ -109,6 +124,7 @@ namespace SshTool.App.Views
             Keys.Visibility = keyBarWanted && !InteractionModeHelper.IsMouseMode
                 ? Visibility.Visible
                 : Visibility.Collapsed;
+            UpdateKeyBarLift();
             // R01 (C-02) + R03 (C-05)：加载/绑定共享世代；fire-and-forget 经 Forget 统一观察。
             LoadAndBindAsync(generation, e.Parameter as TerminalArgs).Forget("TerminalPage.LoadAndBind", AppLog.Logger);
         }
@@ -469,6 +485,15 @@ namespace SshTool.App.Views
             };
         }
 
+        private void OnKeyBarInteracted(object sender, EventArgs e)
+        {
+            if (Term.IsInputPaneVisible)
+            {
+                // RestoreInputFocus 自带「已有焦点就不动」「物理键盘在场不抢」两道守卫。
+                Term.RestoreInputFocus();
+            }
+        }
+
         private void OnKeyBarAction(object sender, SshTool.Core.Terminal.KeyBarActionEventArgs e)
         {
             if (e == null)
@@ -523,6 +548,62 @@ namespace SshTool.App.Views
             Keys.Visibility = Keys.Visibility == Visibility.Visible
                 ? Visibility.Collapsed
                 : Visibility.Visible;
+            UpdateKeyBarLift();
+        }
+
+        private void OnInputPaneOcclusionChanged(object sender, EventArgs e)
+        {
+            UpdateKeyBarLift();
+        }
+
+        private void OnKeyBarSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateKeyBarLift();
+        }
+
+        // 真机修复（2026-09-29）：把键条抬到软键盘上沿，并告诉终端「键条现在是覆盖式的」——
+        // 终端已按遮挡高度缩了画布，抬上来的键条会压住它最底下那条，故行数再扣一个键条高度
+        // （GridSizeCalculator 的 keyBarOverlays/keyBarHeight）。SIP 收起后两者一起归零。
+        // 遮挡矩形随输入法而变（§7.5），只能每次事件重新读，不能写死高度。
+        private void UpdateKeyBarLift()
+        {
+            double lift = 0;
+            Rect occluded = Term.InputPaneOccludedRect;
+            if (Keys.Visibility == Visibility.Visible && occluded.Height > 0)
+            {
+                lift = occluded.Height;
+                try
+                {
+                    UIElement root = Window.Current != null ? Window.Current.Content : null;
+                    if (root != null)
+                    {
+                        GeneralTransform transform = Keys.TransformToVisual(root);
+                        Point origin = transform.TransformPoint(new Point(0, 0));
+                        // origin 已含当前抬升量（_keyBarLift.Y 为负），减掉它才是未抬升时的底边。
+                        double bottom = origin.Y - _keyBarLift.Y + Keys.ActualHeight;
+                        lift = bottom - occluded.Y;
+                    }
+                }
+                catch (Exception)
+                {
+                    // TransformToVisual 在未上树/离场时会抛；按整段遮挡高度抬，宁可多抬不要被盖住。
+                }
+                if (lift < 0)
+                {
+                    lift = 0;
+                }
+                if (lift > occluded.Height)
+                {
+                    lift = occluded.Height;
+                }
+            }
+            _keyBarLift.Y = -lift;
+            Term.KeyBarOverlays = lift > 0;
+            Term.KeyBarHeight = lift > 0 ? Keys.ActualHeight : 0;
+            // 真机诊断（Debug 级，设置→关于→日志级别=调试 才落盘）：抬升量是否算对。
+            AppLog.Diag("KeyBar", "lift=" + (int)lift + " occluded=" + (int)occluded.Height
+                + " barh=" + (int)Keys.ActualHeight
+                + " vis=" + (Keys.Visibility == Visibility.Visible ? 1 : 0));
         }
 
         private void OnTermShortcut(object sender, SshTool.Core.Terminal.ShortcutActionEventArgs e)

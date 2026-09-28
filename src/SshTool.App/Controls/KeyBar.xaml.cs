@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using SshTool.App.Platform;
 using SshTool.Core.Terminal;
@@ -33,6 +33,12 @@ namespace SshTool.App.Controls
         public event EventHandler<TerminalInputEventArgs> Input;
 
         public event EventHandler<KeyBarActionEventArgs> Action;
+
+        // §7.5：每次按下键条上的键都通知宿主，让它把焦点还给哨兵、别让 SIP 收起。
+        // 必须独立于 Input：修饰键（Ctrl/Alt/Shift）只改粘滞状态、压根不产生 Input，
+        // 而用户报的正是「点 Ctrl 键盘就关了」。Action 类（片段/收起键盘）不在此列——
+        // 它们本就要开浮出层或主动收键盘。
+        public event EventHandler Interacted;
 
         public StickyModifiers Sticky
         {
@@ -173,6 +179,9 @@ namespace SshTool.App.Controls
             }
             chrome.Tag = key;
             chrome.IsHitTestVisible = true;
+            // Border 本身不可获焦，这里显式置否是为了「将来改成 Button 也不会破」——
+            // §7.5 的规则是键条上所有可点元素一律 AllowFocusOnInteraction=False。
+            chrome.AllowFocusOnInteraction = false;
             // Q05：键条按键设置可读名称；label 设为 Raw 避免重复朗读
             Windows.UI.Xaml.Automation.AutomationProperties.SetName(chrome, AccessibleNameOfKey(key));
             Windows.UI.Xaml.Automation.AutomationProperties.SetAccessibilityView(label,
@@ -265,6 +274,14 @@ namespace SshTool.App.Controls
             }
             chrome.CapturePointer(e.Pointer);
             Haptics.VibrateLight(HapticsEnabled);
+            if (key.Kind != KeyBarKeyKind.Action)
+            {
+                EventHandler interacted = Interacted;
+                if (interacted != null)
+                {
+                    interacted(this, EventArgs.Empty);
+                }
+            }
             if (key.Kind == KeyBarKeyKind.Modifier)
             {
                 _heldModifier = key;
@@ -298,6 +315,17 @@ namespace SshTool.App.Controls
                 }
                 catch (Exception)
                 {
+                }
+            }
+            // 按下与抬起各通知一次：框架把焦点挪走的时机（按下前 / 抬起后）无从预设，
+            // 两头都补一次；宿主那边「已有焦点就不动」，多余的一次是空操作。
+            KeyBarKey released = chrome != null ? chrome.Tag as KeyBarKey : null;
+            if (released == null || released.Kind != KeyBarKeyKind.Action)
+            {
+                EventHandler interacted = Interacted;
+                if (interacted != null)
+                {
+                    interacted(this, EventArgs.Empty);
                 }
             }
             if (_heldModifier != null && !_modifierLocked)

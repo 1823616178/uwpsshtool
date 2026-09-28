@@ -1,4 +1,4 @@
-# Lumia SSH 总体设计
+﻿# Lumia SSH 总体设计
 
 > 项目：`G:\code\uwpsshtool`（应用显示名暂定 **Lumia SSH**）
 > 目标设备：Lumia 950（Windows 10 Mobile），兼顾 Continuum 大屏 + 键鼠
@@ -469,7 +469,7 @@ public ref class KeyTool sealed {
    规则：非组合态由 `KeyDown(Back)` 发 `0x7F`（可配 `0x08`）并 `Handled=true`；组合态交给 IME，由第 3 条收尾。
    （即便如此仍建议哨兵留 2 字符：它是「文本被改动」的探针，不承担计数职责。）
 
-**真机修复（2026-09-28，Lumia 反馈「只有回车有效」）**：
+**真机修复（2026-09-28，Lumia 反馈「只有回车有效」）**（第一条已被 9-29 真机证伪，见下一段）：
 - 哨兵默认 `InputScope=Password`：键盘固定拉丁布局、无联想、无组合、不学习输入（顺带避免把服务器密码记进词库），
   逐键走第 2 条直通。中文 IME 模式下连英文字母都进组合态，憋到组合结束才发送，且组合结束时 IME 的上屏文本未必已写入哨兵——
   字母丢失而走 KeyDown 路的回车照常到达，正是现场症状。需要中文时从终端菜单切「中文输入」（`InputScope=Default`，走第 3 条），
@@ -478,6 +478,47 @@ public ref class KeyTool sealed {
   防止一次未配对的 `CompositionStarted` 让之后所有 `TextChanged` 被丢弃。
 - 终端页的键条必须与 TerminalView 共用 `StickyModifiers` 与 `TerminalModes`（调试页一直这样接，生产终端页漏接导致键条 Ctrl 对软键盘无效、方向键不跟随 DECCKM）；
   键条布局/显隐/触感取设置，主机「退格发送 Ctrl+H」应用到终端与键条。
+
+**真机修复（2026-09-29，Lumia 回报「字母仍然无效、回车退格有效；弹出键盘时键条消失」）**
+（本段对病因的猜测已被同日的埋点日志修正，见下一段「真机定论」；结构性结论——两条互斥子通路——保持有效）：
+- 第 2/3 条的差分在直通模式下拿不到任何东西，而第 4/5 条的回车退格走 `KeyDown` 照常到达——症状一字未变。
+  改为**两条互斥子通路**，直通模式不再以哨兵文本为准：
+
+  | | 可打印字符 | 回车 / 退格 | 组合态 |
+  |---|---|---|---|
+  | **直通模式**（默认） | `CoreWindow.CharacterReceived` 逐键直通（第 1 条实测：每次软键盘按键必来一发，与输入法是否组合无关） | 哨兵 `TextBox.KeyDown`（第 4/5 条） | **不跟**：`CompositionStarted` 不置位 |
+  | **输入法模式**（菜单切换） | 哨兵差分 + 第 3 条组合态规则 | 同上 | 跟 |
+
+  - 直通模式下哨兵仍不可去：它负责把 SIP 拉起来、承接回车/退格的 `KeyDown`；其**文本降级为兜底**——
+    本轮按键有直通字符时哨兵新增一律丢弃（里面可能夹着输入法的拼音分隔符 `l's`），一个直通字符都没来过时才整串补发
+    （联想词、短语、emoji，以及 `CharacterReceived` 不触发的机型）。记账 `_direct` 每轮按键排一次 Low 优先级清理，
+    避免哨兵压根收不到文本时记账无人清理、把之后真正该补发的一串误判成「已发过」。
+  - `CharacterReceived` 只收 ≥ 0x20 且 ≠ 0x7F：回车 0x0D / 退格 0x08 / Tab 0x09 归 `KeyDown` 路，否则与第 4/5 条重复发送。
+  - **直通模式必须不跟组合态**：一次没有配对 `CompositionEnded` 的 `CompositionStarted` 会让 `_composing` 永久为真，
+    而第 3/4/5 条在组合中一律让给输入法——`TextChanged` 连回车退格一起被憋死，那就是「键盘全废」。
+  - 物理键盘（`HardwareKeyboardInput`）在哨兵持有焦点时让开 `CharacterReceived`（既有的 `SentinelOwnsPrintable` 早退），
+    两条通路不会重复发送。
+- **键条必须抬到软键盘上沿**：W10M 弹 SIP 不缩窗口、只报遮挡矩形，页面底行的键条整条被压在软键盘背后（现场即「键条消失」）。
+  `TerminalView` 暴露 `InputPaneOccludedRect` / `InputPaneOcclusionChanged`，终端页据此给键条设 `TranslateTransform.Y = -遮挡重叠高度`，
+  并把 `KeyBarOverlays=true` / `KeyBarHeight` 交给 `GridSizeCalculator`——终端已按遮挡缩了画布，抬上来的键条会压住最底一行，行数需再扣一个键条高度。
+  遮挡矩形随输入法而变，每次事件重新读，不写死。
+
+**真机定论（2026-09-29，`[SoftInput]` 逐事件日志，55 次按键）** —— 前两轮都猜错了，这里是实测结果：
+
+每个字母键的事件序列固定为 `TextBox.KeyDown` → `CoreWindow.CharacterReceived(Handled=true)`，**没有 `TextChanged`、没有任何组合事件**；
+回车/退格照走 `KeyDown` 并正常发送（`emit bytes=1 sink=1`）。由此两条硬事实：
+
+1. **`InputScope=Password` 下 `TextBox` 只「消费」字符、不写进 `Text`**。它确实消掉了组合态（零 `CompositionStarted`，9-28 想要的那一半达成了），
+   但哨兵文本永远是空的——**第 2/3 条的差分在直通模式下结构性失效**，这才是三轮「字母无效」的真身，与键盘语言无关。
+2. **`CharacterReceived` 每次按键必到，且进入应用处理器时 `Handled` 已为真**：焦点在哨兵时 XAML 的文本输入处理排在应用的 `CoreWindow`
+   处理器之前并置位。**直通路绝不能按 `Handled` 早退**——`HardwareKeyboardInput` 那边早退是对的（避免重复发送焦点控件已消费的字符），
+   直通路的职责正相反：它就是那个「消费者」的替代品。去重交给 `_direct` 记账（哨兵真收到文本时那一份在 `EmitDiff` 里丢弃）。
+
+因此最终分工：**直通模式的字符只来自 `CharacterReceived`**，哨兵只负责拉起 SIP 与承接回车/退格的 `KeyDown`；
+`_direct` 的 Low 优先级清理在这个模式下是必需的（`TextChanged` 永不到来，否则记账无人清空）。
+联想词、emoji、中文一律走 IME 模式（`Default` 输入范围，哨兵文本与组合态才恢复作用）。
+
+键条抬升同轮实测通过：SIP 弹出 `lift=200 occluded=200 barh=40`，收起回 `lift=0`。
 
 **兜底不启用**：Word Flow 的 `TextCompositionStarted/Changed/Ended` 在 W10M 上确实成对触发且状态可靠，
 原方案里「延迟 300 ms 未再变化才发送」的降级路径**不需要**（SP05 实测，2026-09-18）。
@@ -494,6 +535,16 @@ public ref class KeyTool sealed {
   终端可视高度需减去遮挡与键条高度，并 `EnsuredFocusedElementInView = true` 阻止页面整体上推。
 - **页面上所有可点控件必须 `AllowFocusOnInteraction="False"`**（contract 3.0，15063 可用），否则点一下按钮就把
   焦点从哨兵抢走、软键盘随即收起（SP05 踩坑）。
+
+**真机反馈（2026-09-29）：软键盘弹出时点键条不得收起键盘**。键本身是 `Border`（不可获焦），
+但包住它们的 `KeysScroller`（`ScrollViewer`，是 `Control`）`AllowFocusOnInteraction` 默认为真——
+点 Ctrl/Esc/Tab 就把焦点从哨兵抢走、SIP 随即收起。此前键条一直被压在软键盘背后、点不到，
+所以这条一直没暴露；把键条抬到键盘上沿之后才显形。两道处理：
+- 预防：`KeysScroller`/`KeysPanel`/生成的键 `Border` 一律 `AllowFocusOnInteraction="False"`（`ScrollViewer` 另加 `IsTabStop="False"`）。
+  注意**不能**在 `PointerPressed` 上置 `Handled`——那会连带废掉键条的横向滑动。
+- 兜底：`KeyBar.Interacted`（非 `Action` 类键的按下与抬起各发一次，含只改粘滞状态、压根不产生 `Input` 的修饰键）
+  → 终端页在 SIP 本来弹着时调 `RestoreInputFocus()`。框架挪焦点的时机（按下前/抬起后）无从预设，两头各补一次；
+  已有焦点时是空操作。仅在 SIP 弹着时做，否则点一下键条会把收起的软键盘硬拉出来。
 
 **键条（KeyBar）**：见 UI §5.6；按键产生 `KeyChord`（键 + 修饰），经 `StickyModifiers`：单击 Ctrl → 下一个键带 Ctrl 后自动释放；双击或长按 → 锁定直到再次点击。
 - **键条与终端页上所有可点控件必须设 `AllowFocusOnInteraction="False"`**（contract 3.0，15063 可用）：

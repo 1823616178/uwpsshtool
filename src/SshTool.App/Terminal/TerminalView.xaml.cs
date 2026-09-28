@@ -383,6 +383,17 @@ namespace SshTool.App.Terminal
             get { return _softKeyboard.IsInputPaneVisible; }
         }
 
+        // 真机修复（2026-09-29，Lumia 反馈「弹出键盘时键条应该在键盘上方而不是消失」）：
+        // W10M 弹 SIP 不缩窗口、只报遮挡矩形，页面底行的键条因此整条被压在软键盘背后。
+        // 本视图只管自己的行数扣减（OcclusionOverlapHeight），键条归宿主页面摆——
+        // 故把遮挡矩形与变化信号一并暴露出去（窗口坐标系，每次事件重新读，不可写死）。
+        public Rect InputPaneOccludedRect
+        {
+            get { return _softKeyboard.OccludedRect; }
+        }
+
+        public event EventHandler InputPaneOcclusionChanged;
+
         // C-03（§7.5）：浮出层关闭后把焦点还给输入哨兵（SIP 随之重新弹出）。
         // 调用方须先确认浮出层打开前 SIP 是弹出的，否则会把已收起的软键盘反复拉起。
         // 物理键盘在场时不抢：硬件输入走 CoreWindow 与焦点无关，抢焦点反而唤起 SIP。
@@ -1252,6 +1263,11 @@ namespace SshTool.App.Terminal
         private void OnOcclusionChanged(object sender, EventArgs e)
         {
             ScheduleResize();
+            EventHandler handler = InputPaneOcclusionChanged;
+            if (handler != null)
+            {
+                handler(this, EventArgs.Empty);
+            }
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)

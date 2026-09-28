@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using SshTool.Core.Common;
 
 namespace SshTool.App.Infrastructure
@@ -15,6 +15,43 @@ namespace SshTool.App.Infrastructure
             {
                 ILogger log;
                 return ServiceRegistry.TryGet(out log) ? log : null;
+            }
+        }
+
+        // 真机诊断用（X04 §12.2）：Debug 级默认被 FileLogger.MinLevel 挡掉，
+        // 设置→关于→日志级别=调试 才落盘。调用方只准传事件名与计数，不准传内容。
+        public static void Debug(string tag, string message)
+        {
+            ILogger log;
+            if (!ServiceRegistry.TryGet(out log))
+            {
+                return;
+            }
+            try
+            {
+                log.Log(LogLevel.Debug, tag, message);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+        // 临时真机诊断（2026-09-29，定位软键盘三条通路；定位完成后连同调用点一并删除）。
+        // 走 Info 级而不是 Debug：真机 logLevel 默认 info，放 Debug 等于要求用户先去改设置——
+        // 上一轮就是这么白跑一趟的。调用方只准传事件名与计数，不准传内容（§12.2 脱敏）。
+        public static void Diag(string tag, string message)
+        {
+            ILogger log;
+            if (!ServiceRegistry.TryGet(out log))
+            {
+                return;
+            }
+            try
+            {
+                log.Log(LogLevel.Info, tag, message);
+            }
+            catch (Exception)
+            {
             }
         }
 

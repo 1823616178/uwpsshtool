@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -101,6 +101,10 @@ namespace SshTool.App.Infrastructure
             var total = Stopwatch.StartNew();
             await TimeAsync("AppConfig", () => AppConfig.LoadAsync()).ConfigureAwait(true);
             Time("Settings", () => Settings.EnsureDefaults());
+            // 修（2026-09-29 排查真机输入问题时发现）：AppConfig.LoadAsync 刚把 MinLevel 设成
+            // 打包默认值（info），而用户在设置页选的日志级别只在当场生效、重启即被上面这行盖掉——
+            // 「调成调试、重启、日志里还是什么都没有」。设置是用户的显式选择，启动时必须复原。
+            ApplyLogLevelFromSettings();
             await TimeAsync("Hosts", () => Hosts.LoadAsync()).ConfigureAwait(true);
             await TimeAsync("Groups", () => Groups.LoadAsync()).ConfigureAwait(true);
             await TimeAsync("Tunnels", () => Tunnels.LoadAsync()).ConfigureAwait(true);
@@ -333,6 +337,23 @@ namespace SshTool.App.Infrastructure
             }
             catch (Exception)
             {
+            }
+        }
+
+        private void ApplyLogLevelFromSettings()
+        {
+            try
+            {
+                Platform.FileLogger.Instance.MinLevel =
+                    ViewModels.SettingsViewModel.ParseLogLevel(Settings.LogLevel);
+                // 这行同时充当构建标记：日志里有它，就说明跑的是带输入诊断的这一版
+                // （inputDiag 随诊断埋点一起删）。
+                Logger.Log(LogLevel.Info, "App", "日志级别 effective="
+                    + Platform.FileLogger.Instance.MinLevel + " inputDiag=1");
+            }
+            catch (Exception)
+            {
+                // 取不到就沿用 AppConfig 的值：日志级别不值得拖垮启动。
             }
         }
 
