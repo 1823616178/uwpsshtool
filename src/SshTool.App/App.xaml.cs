@@ -80,8 +80,14 @@ namespace SshTool.App
                 SshTool.Core.Common.ILogger logger;
                 if (Infrastructure.ServiceRegistry.TryGet(out logger))
                 {
-                    logger.Log(SshTool.Core.Common.LogLevel.Error, "App",
-                        "未处理异常 " + e.Exception.GetType().Name);
+                    // 脱敏惯例同 AppLog：不记 ex.Message（可能含主机名/路径）；
+                    // HResult 与调用栈只含方法名，是真机上定位崩溃的唯一线索。
+                    Exception ex = e.Exception;
+                    string detail = ex == null
+                        ? string.Empty
+                        : ex.GetType().Name + " hr=0x" + ex.HResult.ToString("X8")
+                          + (ex.StackTrace != null ? "\n" + ex.StackTrace : string.Empty);
+                    logger.Log(SshTool.Core.Common.LogLevel.Error, "App", "未处理异常 " + detail);
                 }
             }
             catch

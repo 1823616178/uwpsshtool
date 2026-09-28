@@ -5,7 +5,6 @@ using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
 using SshTool.Core.Common;
-using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -30,7 +29,6 @@ namespace SshTool.App.Views
 
     public sealed partial class TunnelEditPage : Page, IBackHandler
     {
-        private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
         private readonly NavigationLifetime _lifetime = new NavigationLifetime();
         private bool _abandonConfirmed;
         private bool _suppress;
@@ -79,10 +77,10 @@ namespace SshTool.App.Views
 
         private async Task ConfirmAbandonAsync()
         {
-            string title = _loader.GetString("TunnelEdit_UnsavedChanges_Title") ?? "放弃修改？";
-            string msg = _loader.GetString("TunnelEdit_UnsavedChanges_Message") ?? "未保存的修改将丢失。";
-            string discard = _loader.GetString("TunnelEdit_Discard") ?? "放弃";
-            string cancel = _loader.GetString("TunnelEdit_Cancel") ?? (_loader.GetString("Dialog_Cancel") ?? "取消");
+            string title = Localized.Get("TunnelEdit_UnsavedChanges_Title", "放弃修改？");
+            string msg = Localized.Get("TunnelEdit_UnsavedChanges_Message", "未保存的修改将丢失。");
+            string discard = Localized.Get("TunnelEdit_Discard", "放弃");
+            string cancel = Localized.Get("TunnelEdit_Cancel", Localized.Get("Dialog_Cancel", "取消"));
 
             var result = await ConfirmDialog.ShowAsync(title, msg, discard, cancel, isDanger: true);
             if (result.Confirmed)
@@ -156,14 +154,14 @@ namespace SshTool.App.Views
             UpdateRoutePreview();
             _suppress = false;
 
-            BottomBar.PrimaryText = _loader.GetString("TunnelEdit_Save") ?? "保存";
+            BottomBar.PrimaryText = Localized.Get("TunnelEdit_Save", "保存");
             BottomBar.ShowOverflow = !ViewModel.IsNew;
             if (!ViewModel.IsNew)
             {
                 var flyout = new MenuFlyout();
                 var deleteItem = new MenuFlyoutItem
                 {
-                    Text = _loader.GetString("TunnelEdit_Delete") ?? "删除隧道"
+                    Text = Localized.Get("TunnelEdit_Delete", "删除隧道")
                 };
                 deleteItem.Click += (s, e) => OnDeleteClick(s, EventArgs.Empty);
                 flyout.Items.Add(deleteItem);
@@ -299,44 +297,58 @@ namespace SshTool.App.Views
             }
             else
             {
-                textBlock.Text = _loader.GetString(errorKey) ?? errorKey;
+                textBlock.Text = Localized.Get(errorKey, errorKey);
                 textBlock.Visibility = Visibility.Visible;
             }
         }
 
         private async void OnSaveClick(object sender, EventArgs e)
         {
-            bool ok = await ViewModel.SaveAsync();
-            if (ok)
+            try
             {
-                NavigationService nav;
-                if (ServiceRegistry.TryGet(out nav))
+                bool ok = await ViewModel.SaveAsync();
+                if (ok)
                 {
-                    nav.GoBack();
+                    NavigationService nav;
+                    if (ServiceRegistry.TryGet(out nav))
+                    {
+                        nav.GoBack();
+                    }
+                }
+                else
+                {
+                    ShowErrors();
                 }
             }
-            else
+            catch (Exception ex)
             {
-                ShowErrors();
+                AppLog.Error("TunnelEditPage", "OnSaveClick failed", ex);
             }
         }
 
         private async void OnDeleteClick(object sender, EventArgs e)
         {
-            string title = _loader.GetString("Tunnels_DeleteConfirmTitle") ?? "删除隧道";
-            string msg = _loader.GetString("TunnelEdit_DeleteConfirmMessage") ?? "确定要删除该隧道吗？";
-            string deleteText = _loader.GetString("Tunnels_Delete") ?? "删除";
-            string cancelText = _loader.GetString("Tunnels_Cancel") ?? "取消";
-
-            var result = await ConfirmDialog.ShowAsync(title, msg, deleteText, cancelText, isDanger: true);
-            if (result.Confirmed)
+            try
             {
-                await ViewModel.DeleteAsync();
-                NavigationService nav;
-                if (ServiceRegistry.TryGet(out nav))
+                string title = Localized.Get("Tunnels_DeleteConfirmTitle", "删除隧道");
+                string msg = Localized.Get("TunnelEdit_DeleteConfirmMessage", "确定要删除该隧道吗？");
+                string deleteText = Localized.Get("Tunnels_Delete", "删除");
+                string cancelText = Localized.Get("Tunnels_Cancel", "取消");
+
+                var result = await ConfirmDialog.ShowAsync(title, msg, deleteText, cancelText, isDanger: true);
+                if (result.Confirmed)
                 {
-                    nav.GoBack();
+                    await ViewModel.DeleteAsync();
+                    NavigationService nav;
+                    if (ServiceRegistry.TryGet(out nav))
+                    {
+                        nav.GoBack();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("TunnelEditPage", "OnDeleteClick failed", ex);
             }
         }
     }

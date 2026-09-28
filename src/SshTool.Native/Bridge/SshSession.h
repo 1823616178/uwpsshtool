@@ -189,9 +189,13 @@ namespace SshTool
                 //
                 // 所有权与寿命：core SftpSession 对象 + 远端文件句柄表由本对象
                 // 持有（PIMPL，见 cpp），与 core SshSession 同寿命；所有调用在
-                // sessionMutex_ 下串行执行（core 调用是阻塞式的，绝不在 I/O
-                // 线程上调用）；Shutdown 在同一锁内先关 SFTP 再释会话，保证
-                // core 引用不悬空。返回值一律为 N08 统一错误码（0 = 成功）。
+                // 专用的 sftpMutex_ 下串行执行（core 调用是阻塞式的，绝不在 I/O
+                // 线程上调用）。阻塞期间**不持 sessionMutex_**：否则 UI 线程的
+                // Write/Resize/Close 会排在单块传输（最长 15 s）之后卡住界面，
+                // 且 I/O 线程的状态回调（OnCoreStateChanged 要取 sessionMutex_）
+                // 会与等它的 SFTP 调用互锁到超时。锁序固定 sftpMutex_ →
+                // sessionMutex_。Shutdown 先 TeardownSftp（取 sftpMutex_）再释
+                // 会话，保证 core 引用不悬空。返回值一律为 N08 统一错误码（0 = 成功）。
                 // 取消：SftpCancel 置位原子标志，飞行中的块调用按 100 ms 切片
                 // 中断（报 606）；consume-once——入口若已置位直接报 606 并清位，
                 // 出口清掉中途到达的杂散置位。
@@ -240,10 +244,12 @@ namespace SshTool
 
             private:
                 void Shutdown(); // 幂等：Close + 停线程(join) + 释放 core 对象
-                // F02 SFTP 拆除与准入（定义在 cpp；调用方持有 sessionMutex_）。
+                // F02 SFTP 拆除与准入（定义在 cpp；*Locked/SftpAdmitted/SftpReady
+                // 的调用方持有 sftpMutex_，且不得持有 sessionMutex_）。
                 void TeardownSftp();
                 void TeardownSftpLocked();
                 bool SftpAdmitted();
+                bool SftpReady();
                 // F05：转发挂载拆除（Shutdown 调用；停监听 + 有界等待收尾）。
                 void TeardownForward();
                 void OnCoreStateChanged(sshclient::ssh::SshSessionState from,
@@ -274,6 +280,8 @@ namespace SshTool
                 // sessionMutex_ 保护 session_/shell_ 生命周期（创建/析构 vs
                 // 任意线程访问）；锁内只做快操作（ExecAsync 例外，见其实现注释）。
                 std::mutex sessionMutex_;
+                // F02：串行化 SFTP 调用并保护 sftpMount_ 内容；阻塞调用只持本锁。
+                std::mutex sftpMutex_;
                 std::unique_ptr<sshclient::ssh::SshSession> session_; // ConnectAsync 时才构造
                 std::unique_ptr<sshclient::ssh::SshChannel> shell_;
                 std::string termType_ = "xterm-256color";

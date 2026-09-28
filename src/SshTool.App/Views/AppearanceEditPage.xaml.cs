@@ -325,23 +325,30 @@ namespace SshTool.App.Views
 
         private async void OnSaveClick(object sender, RoutedEventArgs e)
         {
-            bool ok = await ViewModel.SaveAsync();
-            if (ok)
+            try
             {
-                NavigationService nav;
-                if (ServiceRegistry.TryGet(out nav))
+                bool ok = await ViewModel.SaveAsync();
+                if (ok)
                 {
-                    nav.GoBack();
+                    NavigationService nav;
+                    if (ServiceRegistry.TryGet(out nav))
+                    {
+                        nav.GoBack();
+                    }
+                    return;
                 }
-                return;
+                ShowErrors();
+                if (ViewModel.Errors != null && ViewModel.Errors.ContainsKey("save"))
+                {
+                    // 「save」里是 VM 兜到的原始异常（细节已入日志），不一句红字糊到用户脸上；
+                    // 这里只给一句能照着做的中文。
+                    await ConfirmDialog.ShowAsync(
+                        "保存失败", "这份配色没能保存，请检查名称与颜色设置后重试。", "确定", "关闭");
+                }
             }
-            ShowErrors();
-            if (ViewModel.Errors != null && ViewModel.Errors.ContainsKey("save"))
+            catch (Exception ex)
             {
-                // 「save」里是 VM 兜到的原始异常（细节已入日志），不一句红字糊到用户脸上；
-                // 这里只给一句能照着做的中文。
-                await ConfirmDialog.ShowAsync(
-                    "保存失败", "这份配色没能保存，请检查名称与颜色设置后重试。", "确定", "关闭");
+                AppLog.Error("AppearanceEditPage", "OnSaveClick failed", ex);
             }
         }
 
@@ -353,14 +360,21 @@ namespace SshTool.App.Views
 
         private async void OnDuplicateClick(object sender, RoutedEventArgs e)
         {
-            string id = await ViewModel.DuplicateCurrentAsync();
-            if (string.IsNullOrEmpty(id))
+            try
             {
-                ShowErrors();
-                return;
+                string id = await ViewModel.DuplicateCurrentAsync();
+                if (string.IsNullOrEmpty(id))
+                {
+                    ShowErrors();
+                    return;
+                }
+                await ViewModel.LoadAsync(id);
+                BindLoaded();
             }
-            await ViewModel.LoadAsync(id);
-            BindLoaded();
+            catch (Exception ex)
+            {
+                AppLog.Error("AppearanceEditPage", "OnDuplicateClick failed", ex);
+            }
         }
 
         private void OnNameChanged(object sender, TextChangedEventArgs e)

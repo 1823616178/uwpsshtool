@@ -229,16 +229,30 @@ namespace SshTool.App.Views
         // V04b：OverflowClick 触发器复用同一测试流程。
         private async void OnTestClick(object sender, EventArgs e)
         {
-            await RunTestAsync();
+            try
+            {
+                await RunTestAsync();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("HostEditPage", "OnTestClick failed", ex);
+            }
         }
 
         private async void OnSaveClick(object sender, EventArgs e)
         {
-            await ViewModel.SaveCoreAsync();
-            if (ViewModel.LastSaveHadErrors)
+            try
             {
-                ShowErrors();
-                FocusField(ViewModel.FirstErrorField());
+                await ViewModel.SaveCoreAsync();
+                if (ViewModel.LastSaveHadErrors)
+                {
+                    ShowErrors();
+                    FocusField(ViewModel.FirstErrorField());
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("HostEditPage", "OnSaveClick failed", ex);
             }
         }
 
@@ -384,17 +398,38 @@ namespace SshTool.App.Views
 
         private async void OnAuthPasswordChecked(object sender, RoutedEventArgs e)
         {
-            await SwitchAuthAsync(AuthType.Password);
+            try
+            {
+                await SwitchAuthAsync(AuthType.Password);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("HostEditPage", "OnAuthPasswordChecked failed", ex);
+            }
         }
 
         private async void OnAuthKeyChecked(object sender, RoutedEventArgs e)
         {
-            await SwitchAuthAsync(AuthType.Key);
+            try
+            {
+                await SwitchAuthAsync(AuthType.Key);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("HostEditPage", "OnAuthKeyChecked failed", ex);
+            }
         }
 
         private async void OnAuthAgentChecked(object sender, RoutedEventArgs e)
         {
-            await SwitchAuthAsync(AuthType.Agent);
+            try
+            {
+                await SwitchAuthAsync(AuthType.Agent);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("HostEditPage", "OnAuthAgentChecked failed", ex);
+            }
         }
 
         private async System.Threading.Tasks.Task SwitchAuthAsync(AuthType next)
@@ -482,44 +517,58 @@ namespace SshTool.App.Views
 
         private async void OnImportKey(object sender, RoutedEventArgs e)
         {
-            // K02：导入对话框；新建或去重命中都选中该密钥。
-            KeyImportDialogResult result = await KeyImportDialog.ShowAsync();
-            if (result == null || result.Cancelled)
+            try
             {
-                return;
+                // K02：导入对话框；新建或去重命中都选中该密钥。
+                KeyImportDialogResult result = await KeyImportDialog.ShowAsync();
+                if (result == null || result.Cancelled)
+                {
+                    return;
+                }
+                string selectId = result.Created == null ? result.ExistingKeyId : result.Created.Id;
+                if (string.IsNullOrEmpty(selectId))
+                {
+                    return;
+                }
+                await ViewModel.ReloadKeysAsync();
+                _suppressCombo = true;
+                KeyBox.ItemsSource = ViewModel.Keys;
+                SelectById(KeyBox, selectId);
+                _suppressCombo = false;
+                if (ViewModel.Credentials != null)
+                {
+                    ViewModel.Credentials.KeyId = selectId;
+                }
             }
-            string selectId = result.Created == null ? result.ExistingKeyId : result.Created.Id;
-            if (string.IsNullOrEmpty(selectId))
+            catch (Exception ex)
             {
-                return;
-            }
-            await ViewModel.ReloadKeysAsync();
-            _suppressCombo = true;
-            KeyBox.ItemsSource = ViewModel.Keys;
-            SelectById(KeyBox, selectId);
-            _suppressCombo = false;
-            if (ViewModel.Credentials != null)
-            {
-                ViewModel.Credentials.KeyId = selectId;
+                AppLog.Error("HostEditPage", "OnImportKey failed", ex);
             }
         }
 
         private async void OnGenerateKey(object sender, RoutedEventArgs e)
         {
-            // K02：生成对话框；成功后选中新密钥。
-            KeyGenerateDialogResult result = await KeyGenerateDialog.ShowAsync();
-            if (result == null || result.Cancelled || result.Created == null)
+            try
             {
-                return;
+                // K02：生成对话框；成功后选中新密钥。
+                KeyGenerateDialogResult result = await KeyGenerateDialog.ShowAsync();
+                if (result == null || result.Cancelled || result.Created == null)
+                {
+                    return;
+                }
+                await ViewModel.ReloadKeysAsync();
+                _suppressCombo = true;
+                KeyBox.ItemsSource = ViewModel.Keys;
+                SelectById(KeyBox, result.Created.Id);
+                _suppressCombo = false;
+                if (ViewModel.Credentials != null)
+                {
+                    ViewModel.Credentials.KeyId = result.Created.Id;
+                }
             }
-            await ViewModel.ReloadKeysAsync();
-            _suppressCombo = true;
-            KeyBox.ItemsSource = ViewModel.Keys;
-            SelectById(KeyBox, result.Created.Id);
-            _suppressCombo = false;
-            if (ViewModel.Credentials != null)
+            catch (Exception ex)
             {
-                ViewModel.Credentials.KeyId = result.Created.Id;
+                AppLog.Error("HostEditPage", "OnGenerateKey failed", ex);
             }
         }
 

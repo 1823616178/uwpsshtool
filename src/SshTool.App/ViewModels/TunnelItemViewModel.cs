@@ -100,20 +100,20 @@ namespace SshTool.App.ViewModels
             {
                 if (_tunnel.Type == TunnelType.Relay)
                 {
-                    return AppServices.Current?.GetString("TunnelState_DesktopOnly") ?? "仅桌面端运行";
+                    return Localized.Get("TunnelState_DesktopOnly", "仅桌面端运行");
                 }
                 switch (_state)
                 {
                     case TunnelStateKind.Running:
-                        return AppServices.Current?.GetString("TunnelState_Running") ?? "运行中";
+                        return Localized.Get("TunnelState_Running", "运行中");
                     case TunnelStateKind.Connecting:
-                        return AppServices.Current?.GetString("TunnelState_Connecting") ?? "连接中";
+                        return Localized.Get("TunnelState_Connecting", "连接中");
                     case TunnelStateKind.Reconnecting:
-                        return AppServices.Current?.GetString("TunnelState_Reconnecting") ?? "重连中";
+                        return Localized.Get("TunnelState_Reconnecting", "重连中");
                     case TunnelStateKind.Error:
-                        return string.IsNullOrEmpty(_statusMessage) ? (AppServices.Current?.GetString("TunnelState_Error") ?? "错误") : _statusMessage;
+                        return string.IsNullOrEmpty(_statusMessage) ? (Localized.Get("TunnelState_Error", "错误")) : _statusMessage;
                     default:
-                        return AppServices.Current?.GetString("TunnelState_Idle") ?? "已停止";
+                        return Localized.Get("TunnelState_Idle", "已停止");
                 }
             }
         }
@@ -126,18 +126,18 @@ namespace SshTool.App.ViewModels
                 switch (_tunnel.Type)
                 {
                     case TunnelType.Local:
-                        string localPrefix = AppServices.Current?.GetString("Tunnel_Default_Local") ?? "本地";
+                        string localPrefix = Localized.Get("Tunnel_Default_Local", "本地");
                         return string.Format(CultureInfo.InvariantCulture, "{0} {1}:{2} → {3}:{4}", localPrefix, listenHost, _tunnel.ListenPort, _tunnel.DestHost, _tunnel.DestPort);
                     case TunnelType.Remote:
-                        string remotePrefix = AppServices.Current?.GetString("Tunnel_Default_Remote") ?? "远程";
+                        string remotePrefix = Localized.Get("Tunnel_Default_Remote", "远程");
                         return string.Format(CultureInfo.InvariantCulture, "{0} :{1} → {2}:{3}", remotePrefix, _tunnel.ListenPort, _tunnel.DestHost, _tunnel.DestPort);
                     case TunnelType.Dynamic:
                         return string.Format(CultureInfo.InvariantCulture, "SOCKS5 {0}:{1}", listenHost, _tunnel.ListenPort);
                     case TunnelType.Relay:
-                        string relayPrefix = AppServices.Current?.GetString("Tunnel_Default_Relay") ?? "中转";
+                        string relayPrefix = Localized.Get("Tunnel_Default_Relay", "中转");
                         return string.Format(CultureInfo.InvariantCulture, "{0} :{1} → {2}:{3}", relayPrefix, _tunnel.ListenPort, _tunnel.DestHost, _tunnel.DestPort);
                     default:
-                        return AppServices.Current?.GetString("Tunnel_Default_Forward") ?? "转发";
+                        return Localized.Get("Tunnel_Default_Forward", "转发");
                 }
             }
         }
@@ -148,7 +148,7 @@ namespace SshTool.App.ViewModels
             {
                 if (_tunnel.Type == TunnelType.Relay)
                 {
-                    return AppServices.Current?.GetString("TunnelState_DesktopOnly") ?? "仅桌面端运行";
+                    return Localized.Get("TunnelState_DesktopOnly", "仅桌面端运行");
                 }
                 string via = string.IsNullOrEmpty(_serverName) ? string.Empty : "via " + _serverName + " · ";
                 if (_state == TunnelStateKind.Running)
@@ -156,11 +156,11 @@ namespace SshTool.App.ViewModels
                     string stats = string.Empty;
                     if (_activeConnections > 0 || _rateIn > 0 || _rateOut > 0)
                     {
-                        string connFmt = AppServices.Current?.GetString("TunnelState_Connections") ?? "{0} 连接";
+                        string connFmt = Localized.Get("TunnelState_Connections", "{0} 连接");
                         stats = string.Format(CultureInfo.InvariantCulture, " · " + connFmt + " · ↓{1} ↑{2}",
                             _activeConnections, FormatRate(_rateIn), FormatRate(_rateOut));
                     }
-                    string running = AppServices.Current?.GetString("TunnelState_Running") ?? "运行中";
+                    string running = Localized.Get("TunnelState_Running", "运行中");
                     return via + running + stats;
                 }
                 return via + StateText;

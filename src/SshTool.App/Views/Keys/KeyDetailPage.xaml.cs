@@ -98,9 +98,16 @@ namespace SshTool.App.Views.Keys
 
         private async void OnRenameClick(object sender, RoutedEventArgs e)
         {
-            string error = await ViewModel.RenameAsync();
-            StatusText.Text = error ?? Localized.Get("Key_Saved", "已保存");
-            RenameButton.IsEnabled = ViewModel.CanRename;
+            try
+            {
+                string error = await ViewModel.RenameAsync();
+                StatusText.Text = error ?? Localized.Get("Key_Saved", "已保存");
+                RenameButton.IsEnabled = ViewModel.CanRename;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("KeyDetailPage", "OnRenameClick failed", ex);
+            }
         }
 
         private void OnCopyClick(object sender, RoutedEventArgs e)
@@ -182,20 +189,34 @@ namespace SshTool.App.Views.Keys
 
         private async void OnExportClick(object sender, RoutedEventArgs e)
         {
-            StatusText.Text = await ViewModel.ExportPrivateAsync();
+            try
+            {
+                StatusText.Text = await ViewModel.ExportPrivateAsync();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("KeyDetailPage", "OnExportClick failed", ex);
+            }
         }
 
         private async void OnDeleteClick(object sender, RoutedEventArgs e)
         {
-            bool deleted = await ViewModel.DeleteAsync();
-            if (deleted && Frame.CanGoBack)
+            try
             {
-                Frame.GoBack();
+                bool deleted = await ViewModel.DeleteAsync();
+                if (deleted && Frame.CanGoBack)
+                {
+                    Frame.GoBack();
+                }
+                else
+                {
+                    NoHostsText.Visibility = ViewModel.HasHosts ? Visibility.Collapsed : Visibility.Visible;
+                    HostList.Visibility = ViewModel.HasHosts ? Visibility.Visible : Visibility.Collapsed;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                NoHostsText.Visibility = ViewModel.HasHosts ? Visibility.Collapsed : Visibility.Visible;
-                HostList.Visibility = ViewModel.HasHosts ? Visibility.Visible : Visibility.Collapsed;
+                AppLog.Error("KeyDetailPage", "OnDeleteClick failed", ex);
             }
         }
     }

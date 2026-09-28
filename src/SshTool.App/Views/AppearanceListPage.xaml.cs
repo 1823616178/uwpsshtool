@@ -69,8 +69,15 @@ namespace SshTool.App.Views
 
         private async void OnSetDefaultClick(object sender, RoutedEventArgs e)
         {
-            var row = ((FrameworkElement)sender).DataContext as AppearanceRow;
-            await ViewModel.SetDefaultAsync(row);
+            try
+            {
+                var row = ((FrameworkElement)sender).DataContext as AppearanceRow;
+                await ViewModel.SetDefaultAsync(row);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("AppearanceListPage", "OnSetDefaultClick failed", ex);
+            }
         }
 
         private void OnEditClick(object sender, RoutedEventArgs e)
@@ -81,40 +88,54 @@ namespace SshTool.App.Views
 
         private async void OnDuplicateClick(object sender, RoutedEventArgs e)
         {
-            var row = ((FrameworkElement)sender).DataContext as AppearanceRow;
-            await ViewModel.DuplicateAsync(row);
+            try
+            {
+                var row = ((FrameworkElement)sender).DataContext as AppearanceRow;
+                await ViewModel.DuplicateAsync(row);
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("AppearanceListPage", "OnDuplicateClick failed", ex);
+            }
         }
 
         private async void OnDeleteClick(object sender, RoutedEventArgs e)
         {
-            var row = ((FrameworkElement)sender).DataContext as AppearanceRow;
-            if (row == null)
+            try
             {
-                return;
+                var row = ((FrameworkElement)sender).DataContext as AppearanceRow;
+                if (row == null)
+                {
+                    return;
+                }
+                if (row.IsBuiltIn)
+                {
+                    await ConfirmDialog.ShowAsync("无法删除", "内置主题不能删除，可以「复制为新主题」后再改。", "确定", "关闭");
+                    return;
+                }
+                IReadOnlyList<Host> refs = await ViewModel.GetReferencingHostsAsync(row);
+                int count = refs == null ? 0 : refs.Count;
+                string message = "删除外观「" + (row.Name ?? string.Empty) + "」？";
+                if (count > 0)
+                {
+                    message += "引用它的 " + count.ToString() + " 台主机将改回跟随默认。";
+                }
+                if (row.IsDefault)
+                {
+                    message += "它还是全局默认，删除后默认回到内置主题。";
+                }
+                ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
+                    "删除外观", message, "删除", "取消", true);
+                if (!confirm.Confirmed)
+                {
+                    return;
+                }
+                await ViewModel.DeleteConfirmedAsync(row);
             }
-            if (row.IsBuiltIn)
+            catch (Exception ex)
             {
-                await ConfirmDialog.ShowAsync("无法删除", "内置主题不能删除，可以「复制为新主题」后再改。", "确定", "关闭");
-                return;
+                AppLog.Error("AppearanceListPage", "OnDeleteClick failed", ex);
             }
-            IReadOnlyList<Host> refs = await ViewModel.GetReferencingHostsAsync(row);
-            int count = refs == null ? 0 : refs.Count;
-            string message = "删除外观「" + (row.Name ?? string.Empty) + "」？";
-            if (count > 0)
-            {
-                message += "引用它的 " + count.ToString() + " 台主机将改回跟随默认。";
-            }
-            if (row.IsDefault)
-            {
-                message += "它还是全局默认，删除后默认回到内置主题。";
-            }
-            ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
-                "删除外观", message, "删除", "取消", true);
-            if (!confirm.Confirmed)
-            {
-                return;
-            }
-            await ViewModel.DeleteConfirmedAsync(row);
         }
 
         private void OnNewClick(object sender, RoutedEventArgs e)
@@ -124,7 +145,14 @@ namespace SshTool.App.Views
 
         private async void OnImportClick(object sender, RoutedEventArgs e)
         {
-            await ImportAsync();
+            try
+            {
+                await ImportAsync();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("AppearanceListPage", "OnImportClick failed", ex);
+            }
         }
 
         // A04：配色导入（02-UI-DESIGN.md §5.12）。FileOpenPicker 选 .itermcolors /

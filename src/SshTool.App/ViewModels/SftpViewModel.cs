@@ -611,7 +611,7 @@ namespace SshTool.App.ViewModels
 
         // 重连（断线自动重连 / 换 native 句柄）后：SFTP 挂到新连接上并重载当前目录。
         // 传输中的项目此刻会失败，可「重试」续传。
-        private async void OnSessionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void OnSessionPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (!string.IsNullOrEmpty(e.PropertyName) && e.PropertyName != "NativeSession"
                 && e.PropertyName != "State")

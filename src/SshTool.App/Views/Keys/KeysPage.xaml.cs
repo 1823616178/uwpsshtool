@@ -91,20 +91,41 @@ namespace SshTool.App.Views.Keys
 
         private async void OnDeleteClick(object sender, RoutedEventArgs e)
         {
-            await ViewModel.DeleteAsync(((FrameworkElement)sender).DataContext as KeyRow);
-            UpdateChrome();
+            try
+            {
+                await ViewModel.DeleteAsync(((FrameworkElement)sender).DataContext as KeyRow);
+                UpdateChrome();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("KeysPage", "OnDeleteClick failed", ex);
+            }
         }
 
         private async void OnImportClick(object sender, EventArgs e)
         {
-            await ViewModel.ImportAsync();
-            UpdateChrome();
+            try
+            {
+                await ViewModel.ImportAsync();
+                UpdateChrome();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("KeysPage", "OnImportClick failed", ex);
+            }
         }
 
         private async void OnGenerateClick(object sender, EventArgs e)
         {
-            await ViewModel.GenerateAsync();
-            UpdateChrome();
+            try
+            {
+                await ViewModel.GenerateAsync();
+                UpdateChrome();
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("KeysPage", "OnGenerateClick failed", ex);
+            }
         }
     }
 }

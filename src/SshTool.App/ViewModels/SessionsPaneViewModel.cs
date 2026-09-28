@@ -133,7 +133,7 @@ namespace SshTool.App.ViewModels
             return true;
         }
 
-        private async void RestoreAll()
+        private void RestoreAll()
         {
             if (!HasRestore || _services == null || _services.Sessions == null)
             {

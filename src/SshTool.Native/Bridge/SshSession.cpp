@@ -825,7 +825,7 @@ namespace SshTool
 
             // 拆除（TeardownSftp 与 Shutdown 共用）：逐个关文件（失败的留在表
             // 里由子系统 close 代关并标孤儿），再关子系统、清空表、释放对象。
-            // 调用方持有 sessionMutex_。
+            // 调用方持有 sftpMutex_。
             void SshSession::TeardownSftpLocked()
             {
                 if (sftpMount_ == nullptr || sftpMount_->sftp == nullptr)
@@ -854,48 +854,95 @@ namespace SshTool
 
             void SshSession::TeardownSftp()
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
+                if (sftpMount_ != nullptr)
+                {
+                    // 先置取消位：飞行中的块调用按 100 ms 切片退出，拆除不必等满超时。
+                    sftpMount_->cancel.store(true, std::memory_order_release);
+                }
+                std::lock_guard<std::mutex> lock(sftpMutex_);
                 TeardownSftpLocked();
+                if (sftpMount_ != nullptr)
+                {
+                    // 子系统从未打开时 TeardownSftpLocked 提前返回，这里补清取消位。
+                    sftpMount_->cancel.store(false, std::memory_order_release);
+                }
             }
 
             // 准入：会话对象存活。Established 门由 core runBlocking 把守
             // （未握手完成时报 601/500，见 F01 admission 单测）。
+            // 调用方持有 sftpMutex_；这里只短暂取 sessionMutex_ 读 session_（锁序
+            // sftpMutex_ → sessionMutex_，任何路径都不得反向嵌套）。
             bool SshSession::SftpAdmitted()
             {
-                return !closed_.load() && session_ != nullptr && sftpMount_ != nullptr;
+                if (closed_.load() || sftpMount_ == nullptr)
+                {
+                    return false;
+                }
+                std::lock_guard<std::mutex> lock(sessionMutex_);
+                return session_ != nullptr;
+            }
+
+            // 已准入且子系统已打开。调用方持有 sftpMutex_。
+            bool SshSession::SftpReady()
+            {
+                return SftpAdmitted() && sftpMount_->sftp != nullptr && sftpMount_->sftp->isOpen();
+            }
+
+            namespace
+            {
+                // 单次 SFTP 调用的公共外壳（consume-once 取消语义见头文件）：
+                // 入口已置位 → 报 606 并清位；出口清掉中途到达的杂散置位。
+                // 调用方持有 sftpMutex_、且已通过准入检查。
+                template <typename Call>
+                int RunSftpCall(SshSessionSftpMount& mount, unsigned timeoutMs, Call&& call)
+                {
+                    if (mount.cancel.exchange(false, std::memory_order_acq_rel))
+                    {
+                        return sshclient::ssh::kSshErrorCodeSftpCancelled;
+                    }
+                    const sshclient::sftp::SftpResult result = call(SftpOptions(mount, timeoutMs));
+                    mount.cancel.exchange(false, std::memory_order_release);
+                    return SftpCodeOf(result);
+                }
             }
 
             int SshSession::SftpOpen(unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
+                std::lock_guard<std::mutex> lock(sftpMutex_);
                 if (!SftpAdmitted())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
                 if (sftpMount_->sftp == nullptr)
                 {
-                    sftpMount_->sftp =
-                        std::make_unique<sshclient::sftp::SftpSession>(*session_);
+                    ssh::SshSession* core = nullptr;
+                    {
+                        std::lock_guard<std::mutex> sessionLock(sessionMutex_);
+                        core = session_.get();
+                    }
+                    if (core == nullptr)
+                    {
+                        return ssh::kSshErrorCodeInternalError;
+                    }
+                    // session_ 只在 Shutdown（析构路径，先 TeardownSftp）里释放，
+                    // 此处出锁后持有裸指针是安全的。
+                    sftpMount_->sftp = std::make_unique<sshclient::sftp::SftpSession>(*core);
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result =
-                    sftpMount_->sftp->open(SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                SshSessionSftpMount& mount = *sftpMount_;
+                return RunSftpCall(mount, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return mount.sftp->open(options);
+                });
             }
 
             void SshSession::SftpClose()
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
+                std::lock_guard<std::mutex> lock(sftpMutex_);
                 TeardownSftpLocked();
             }
 
             bool SshSession::SftpIsOpen()
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
+                std::lock_guard<std::mutex> lock(sftpMutex_);
                 return sftpMount_ != nullptr && sftpMount_->sftp != nullptr &&
                        sftpMount_->sftp->isOpen();
             }
@@ -904,180 +951,136 @@ namespace SshTool
                                         std::vector<sshclient::sftp::SftpEntry>& entries,
                                         unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result =
-                    sftpMount_->sftp->listDir(path, entries, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                SshSessionSftpMount& mount = *sftpMount_;
+                return RunSftpCall(mount, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return mount.sftp->listDir(path, entries, options);
+                });
             }
 
             int SshSession::SftpStat(const std::string& path, bool followSymlink,
                                      sshclient::sftp::SftpAttrs& attrs, unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result = sftpMount_->sftp->stat(
-                    path, followSymlink, attrs, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                SshSessionSftpMount& mount = *sftpMount_;
+                return RunSftpCall(mount, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return mount.sftp->stat(path, followSymlink, attrs, options);
+                });
             }
 
             int SshSession::SftpReadLink(const std::string& path, std::string& target,
                                          unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result = sftpMount_->sftp->readLink(
-                    path, target, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                SshSessionSftpMount& mount = *sftpMount_;
+                return RunSftpCall(mount, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return mount.sftp->readLink(path, target, options);
+                });
             }
 
             int SshSession::SftpMakeDir(const std::string& path, unsigned mode,
                                         unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result = sftpMount_->sftp->makeDir(
-                    path, static_cast<std::uint32_t>(mode), SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                SshSessionSftpMount& mount = *sftpMount_;
+                return RunSftpCall(mount, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return mount.sftp->makeDir(path, static_cast<std::uint32_t>(mode), options);
+                });
             }
 
             int SshSession::SftpRename(const std::string& oldPath, const std::string& newPath,
                                        unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result = sftpMount_->sftp->rename(
-                    oldPath, newPath, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                SshSessionSftpMount& mount = *sftpMount_;
+                return RunSftpCall(mount, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return mount.sftp->rename(oldPath, newPath, options);
+                });
             }
 
             int SshSession::SftpRemoveFile(const std::string& path, unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result = sftpMount_->sftp->removeFile(
-                    path, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                SshSessionSftpMount& mount = *sftpMount_;
+                return RunSftpCall(mount, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return mount.sftp->removeFile(path, options);
+                });
             }
 
             int SshSession::SftpRemoveDir(const std::string& path, unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result = sftpMount_->sftp->removeDir(
-                    path, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                SshSessionSftpMount& mount = *sftpMount_;
+                return RunSftpCall(mount, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return mount.sftp->removeDir(path, options);
+                });
             }
 
             int SshSession::SftpSetPermissions(const std::string& path, unsigned mode,
                                                unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
-                }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
                 }
                 sshclient::sftp::SftpAttrs attrs;
                 attrs.hasPermissions = true;
                 attrs.permissions = static_cast<std::uint32_t>(mode);
-                const sshclient::sftp::SftpResult result = sftpMount_->sftp->setStat(
-                    path, attrs, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                SshSessionSftpMount& mount = *sftpMount_;
+                return RunSftpCall(mount, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return mount.sftp->setStat(path, attrs, options);
+                });
             }
 
             int SshSession::SftpOpenFile(const std::string& path, unsigned long flags, long mode,
                                          int& fileIdOut, unsigned timeoutMs)
             {
                 fileIdOut = -1;
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
+                SshSessionSftpMount& mount = *sftpMount_;
                 std::unique_ptr<sshclient::sftp::SftpSession::File> file;
-                const sshclient::sftp::SftpResult result = sftpMount_->sftp->openFile(
-                    path, flags, mode, file, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                if (!result.ok)
+                const int code = RunSftpCall(mount, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return mount.sftp->openFile(path, flags, mode, file, options);
+                });
+                if (code != ssh::kSshErrorCodeNone)
                 {
-                    return result.code;
+                    return code;
                 }
-                const int fileId = sftpMount_->nextFileId++;
-                sftpMount_->files[fileId] = std::move(file);
+                const int fileId = mount.nextFileId++;
+                mount.files[fileId] = std::move(file);
                 fileIdOut = fileId;
                 return ssh::kSshErrorCodeNone;
             }
@@ -1086,9 +1089,8 @@ namespace SshTool
                                          size_t& bytesReadOut, unsigned timeoutMs)
             {
                 bytesReadOut = 0;
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
@@ -1097,22 +1099,16 @@ namespace SshTool
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result =
-                    file->readSome(buffer, maxLen, bytesReadOut, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                return RunSftpCall(*sftpMount_, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return file->readSome(buffer, maxLen, bytesReadOut, options);
+                });
             }
 
             int SshSession::SftpWriteFile(int fileId, const char* data, size_t len,
                                           unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
@@ -1121,21 +1117,15 @@ namespace SshTool
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result =
-                    file->writeAll(data, len, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                return RunSftpCall(*sftpMount_, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return file->writeAll(data, len, options);
+                });
             }
 
             int SshSession::SftpSeekFile(int fileId, uint64_t offset, unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
-                if (!SftpAdmitted() || sftpMount_->sftp == nullptr ||
-                    !sftpMount_->sftp->isOpen())
+                std::lock_guard<std::mutex> lock(sftpMutex_);
+                if (!SftpReady())
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
@@ -1144,19 +1134,14 @@ namespace SshTool
                 {
                     return ssh::kSshErrorCodeInternalError;
                 }
-                if (sftpMount_->cancel.exchange(false, std::memory_order_acq_rel))
-                {
-                    return ssh::kSshErrorCodeSftpCancelled;
-                }
-                const sshclient::sftp::SftpResult result =
-                    file->seek(offset, SftpOptions(*sftpMount_, timeoutMs));
-                sftpMount_->cancel.exchange(false, std::memory_order_release);
-                return SftpCodeOf(result);
+                return RunSftpCall(*sftpMount_, timeoutMs, [&](const sshclient::sftp::SftpCallOptions& options) {
+                    return file->seek(offset, options);
+                });
             }
 
             int SshSession::SftpCloseFile(int fileId, unsigned timeoutMs)
             {
-                std::lock_guard<std::mutex> lock(sessionMutex_);
+                std::lock_guard<std::mutex> lock(sftpMutex_);
                 if (sftpMount_ == nullptr)
                 {
                     return ssh::kSshErrorCodeInternalError;
@@ -1178,6 +1163,8 @@ namespace SshTool
                 return SftpCodeOf(result);
             }
 
+            // 不取 sftpMutex_：取消的对象正是持锁中的飞行调用。sftpMount_ 只在析构
+            // 路径（Shutdown）释放，而调用方持有本对象的强引用，读指针安全。
             void SshSession::SftpCancel()
             {
                 if (sftpMount_ != nullptr)

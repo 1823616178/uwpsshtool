@@ -2,6 +2,7 @@
 using System.Globalization;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Common;
+using SshTool.Core.Storage;
 using SshTool.App.ViewModels;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.ApplicationModel.Resources;
@@ -57,6 +58,14 @@ namespace SshTool.App.Views
         {
             ViewModel = new SettingsViewModel(AppServices.Current);
             this.InitializeComponent();
+            // 设范围会把 Value 钳进区间并触发 ValueChanged，不能当成用户输入提交。
+            _suppress = true;
+            ApplyRange(FontSlider, "terminalFontSize");
+            ApplyRange(ScrollbackSlider, "scrollbackLines");
+            ApplyRange(ReconnectSlider, "reconnectMaxAttempts");
+            ApplyRange(TimeoutSlider, "connectTimeoutSeconds");
+            ApplyRange(AgentTimeoutSlider, "agentKeyTimeoutMinutes");
+            _suppress = false;
             _debounceTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(150) };
             _debounceTimer.Tick += OnDebounceTick;
             ProbeList.ItemsSource = ViewModel.Probes;
@@ -64,6 +73,15 @@ namespace SshTool.App.Views
         }
 
         public SettingsViewModel ViewModel { get; private set; }
+
+        // Slider 范围取自 SettingDefinitions（与仓库校验、ViewModel 钳制同源）。
+        // 先设 Maximum：各范围下限都不小于 Slider 默认的 0，这样不会触发区间强制修正。
+        private static void ApplyRange(Slider slider, string key)
+        {
+            SettingDefinition def = SettingDefinitions.Require(key);
+            slider.Maximum = def.MaxValue.Value;
+            slider.Minimum = def.MinValue.Value;
+        }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
@@ -597,33 +615,47 @@ namespace SshTool.App.Views
 
         private async void OnExportLogsClick(object sender, RoutedEventArgs e)
         {
-            int generation = _lifetime.Current;
-            string result = await ViewModel.ExportLogsAsync();
-            if (!_lifetime.IsCurrent(generation))
+            try
             {
-                return; // 导出期间用户返回了：Toast 属于旧页面
+                int generation = _lifetime.Current;
+                string result = await ViewModel.ExportLogsAsync();
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return; // 导出期间用户返回了：Toast 属于旧页面
+                }
+                Toast.Show(result);
             }
-            Toast.Show(result);
+            catch (Exception ex)
+            {
+                AppLog.Error("SettingsPage", "OnExportLogsClick failed", ex);
+            }
         }
 
         private async void OnClearLogsClick(object sender, RoutedEventArgs e)
         {
-            int generation = _lifetime.Current;
-            var confirm = await Dialogs.ConfirmDialog.ShowAsync(
-                Load("Settings_About_ClearLogs"),
-                Load("Settings_Confirm_ClearLogs"),
-                Load("Settings_About_ClearLogs"),
-                Load("Dialog_Cancel"), true);
-            if (!confirm.Confirmed)
+            try
             {
-                return;
+                int generation = _lifetime.Current;
+                var confirm = await Dialogs.ConfirmDialog.ShowAsync(
+                    Load("Settings_About_ClearLogs"),
+                    Load("Settings_Confirm_ClearLogs"),
+                    Load("Settings_About_ClearLogs"),
+                    Load("Dialog_Cancel"), true);
+                if (!confirm.Confirmed)
+                {
+                    return;
+                }
+                string result = await ViewModel.ClearLogsAsync();
+                if (!_lifetime.IsCurrent(generation))
+                {
+                    return;
+                }
+                Toast.Show(result);
             }
-            string result = await ViewModel.ClearLogsAsync();
-            if (!_lifetime.IsCurrent(generation))
+            catch (Exception ex)
             {
-                return;
+                AppLog.Error("SettingsPage", "OnClearLogsClick failed", ex);
             }
-            Toast.Show(result);
         }
 
         private void OnRefreshDiagClick(object sender, RoutedEventArgs e)

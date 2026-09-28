@@ -90,29 +90,36 @@ namespace SshTool.App.Controls
 
         private async void OnItemClick(object sender, ItemClickEventArgs e)
         {
-            var row = e.ClickedItem as SnippetRowVm;
-            if (row == null || row.Source == null)
+            try
             {
-                return;
-            }
-            Snippet snippet = row.Source;
-            SessionInfo session = _session;
-            if (session == null || session.NativeSession == null)
-            {
-                return;
-            }
-            bool sent = await SnippetSendHelper.SendWithPromptsAsync(
-                snippet, session, AppServices.Current.Logger).ConfigureAwait(true);
-            if (sent)
-            {
-                EventHandler handler = DismissRequested;
-                if (handler != null)
+                var row = e.ClickedItem as SnippetRowVm;
+                if (row == null || row.Source == null)
                 {
-                    handler(this, EventArgs.Empty);
+                    return;
                 }
+                Snippet snippet = row.Source;
+                SessionInfo session = _session;
+                if (session == null || session.NativeSession == null)
+                {
+                    return;
+                }
+                bool sent = await SnippetSendHelper.SendWithPromptsAsync(
+                    snippet, session, AppServices.Current.Logger).ConfigureAwait(true);
+                if (sent)
+                {
+                    EventHandler handler = DismissRequested;
+                    if (handler != null)
+                    {
+                        handler(this, EventArgs.Empty);
+                    }
+                }
+                await ViewModel.RefreshAsync().ConfigureAwait(true);
+                UpdateEmpty();
             }
-            await ViewModel.RefreshAsync().ConfigureAwait(true);
-            UpdateEmpty();
+            catch (Exception ex)
+            {
+                AppLog.Error("SnippetPickerFlyout", "OnItemClick failed", ex);
+            }
         }
 
         private void UpdateEmpty()

@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel;
+using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
-using Windows.ApplicationModel.Resources;
 using Windows.UI.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -12,7 +12,6 @@ namespace SshTool.App.Controls
 {
     public sealed partial class TunnelRow : UserControl
     {
-        private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
         private TunnelItemViewModel _vm;
         private bool _suppressToggle;
         private bool _ignoreNextTap;
@@ -99,8 +98,8 @@ namespace SshTool.App.Controls
             {
                 MenuToggleItem.IsEnabled = vm.CanToggle;
                 MenuToggleItem.Text = vm.IsRunning
-                    ? (_loader.GetString("Tunnels_MenuStop") ?? "停止")
-                    : (_loader.GetString("Tunnels_MenuStart") ?? "启动");
+                    ? (Localized.Get("Tunnels_MenuStop", "停止"))
+                    : (Localized.Get("Tunnels_MenuStart", "启动"));
             }
         }
 

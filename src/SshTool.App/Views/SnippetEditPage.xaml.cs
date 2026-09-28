@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Snippets;
@@ -123,27 +124,41 @@ namespace SshTool.App.Views
 
         private async void OnSaveClick(object sender, RoutedEventArgs e)
         {
-            bool ok = await ViewModel.SaveAsync();
-            if (!ok)
+            try
             {
-                SyncFromViewModel();
-                ShowErrors();
-                FocusField(ViewModel.FirstErrorField());
+                bool ok = await ViewModel.SaveAsync();
+                if (!ok)
+                {
+                    SyncFromViewModel();
+                    ShowErrors();
+                    FocusField(ViewModel.FirstErrorField());
+                }
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("SnippetEditPage", "OnSaveClick failed", ex);
             }
         }
 
         private async void OnDeleteClick(object sender, RoutedEventArgs e)
         {
-            if (ViewModel.IsNew)
+            try
             {
-                NavigationService nav;
-                if (ServiceRegistry.TryGet(out nav))
+                if (ViewModel.IsNew)
                 {
-                    nav.GoBack();
+                    NavigationService nav;
+                    if (ServiceRegistry.TryGet(out nav))
+                    {
+                        nav.GoBack();
+                    }
+                    return;
                 }
-                return;
+                await ViewModel.DeleteAsync();
             }
-            await ViewModel.DeleteAsync();
+            catch (Exception ex)
+            {
+                AppLog.Error("SnippetEditPage", "OnDeleteClick failed", ex);
+            }
         }
 
         private void OnCancelClick(object sender, RoutedEventArgs e)

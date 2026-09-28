@@ -71,22 +71,6 @@ namespace SshTool.App.Infrastructure
         public AuthService AuthService { get; private set; }
         public List<string> LoadWarnings { get; private set; }
 
-        public string GetString(string key)
-        {
-            if (string.IsNullOrEmpty(key))
-            {
-                return string.Empty;
-            }
-            try
-            {
-                return Windows.ApplicationModel.Resources.ResourceLoader.GetForCurrentView()?.GetString(key);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
         public static AppServices Initialize()
         {
             if (Current != null)

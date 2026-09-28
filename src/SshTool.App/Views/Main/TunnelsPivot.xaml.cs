@@ -6,7 +6,6 @@ using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
 using SshTool.Core.Common;
-using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -14,7 +13,6 @@ namespace SshTool.App.Views.Main
 {
     public sealed partial class TunnelsPivot : UserControl
     {
-        private readonly ResourceLoader _loader = ResourceLoader.GetForCurrentView();
         private readonly TunnelsViewModel _viewModel;
 
         public TunnelsPivot()
@@ -97,21 +95,28 @@ namespace SshTool.App.Views.Main
 
         private async void OnRowDelete(object sender, EventArgs e)
         {
-            var row = sender as TunnelRow;
-            if (row?.ViewModel == null)
+            try
             {
-                return;
-            }
-            string title = _loader.GetString("Tunnels_DeleteConfirmTitle") ?? "删除隧道";
-            string msgFmt = _loader.GetString("Tunnels_DeleteConfirmMessage") ?? "确定要删除隧道「{0}」吗？";
-            string message = string.Format(msgFmt, row.ViewModel.Name);
-            string deleteText = _loader.GetString("Tunnels_Delete") ?? "删除";
-            string cancelText = _loader.GetString("Tunnels_Cancel") ?? "取消";
+                var row = sender as TunnelRow;
+                if (row?.ViewModel == null)
+                {
+                    return;
+                }
+                string title = Localized.Get("Tunnels_DeleteConfirmTitle", "删除隧道");
+                string msgFmt = Localized.Get("Tunnels_DeleteConfirmMessage", "确定要删除隧道「{0}」吗？");
+                string message = string.Format(msgFmt, row.ViewModel.Name);
+                string deleteText = Localized.Get("Tunnels_Delete", "删除");
+                string cancelText = Localized.Get("Tunnels_Cancel", "取消");
 
-            var result = await ConfirmDialog.ShowAsync(title, message, deleteText, cancelText, isDanger: true);
-            if (result.Confirmed)
+                var result = await ConfirmDialog.ShowAsync(title, message, deleteText, cancelText, isDanger: true);
+                if (result.Confirmed)
+                {
+                    await _viewModel.DeleteTunnelAsync(row.ViewModel.Id);
+                }
+            }
+            catch (Exception ex)
             {
-                await _viewModel.DeleteTunnelAsync(row.ViewModel.Id);
+                AppLog.Error("TunnelsPivot", "OnRowDelete failed", ex);
             }
         }
     }

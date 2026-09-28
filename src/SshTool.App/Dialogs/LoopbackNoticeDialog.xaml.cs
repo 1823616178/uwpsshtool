@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
-using Windows.ApplicationModel.Resources;
 using Windows.Storage;
 using Windows.UI.Xaml.Controls;
 
@@ -32,13 +31,11 @@ namespace SshTool.App.Dialogs
                 return true;
             }
 
-            var loader = ResourceLoader.GetForCurrentView();
             var dialog = new LoopbackNoticeDialog();
-            dialog.Title = loader.GetString("Tunnels_LoopbackNoticeTitle") ?? "回环隔离限制";
-            dialog.MessageText.Text = loader.GetString("Tunnels_LoopbackNoticeMessage") ??
-                "UWP 应用具有网络隔离机制：本机其他应用可能无法直接访问 127.0.0.1 上的转发端口。";
-            dialog.PrimaryButtonText = loader.GetString("Tunnels_Continue") ?? "继续开启";
-            dialog.SecondaryButtonText = loader.GetString("Tunnels_Cancel") ?? "取消";
+            dialog.Title = Localized.Get("Tunnels_LoopbackNoticeTitle", "回环隔离限制");
+            dialog.MessageText.Text = Localized.Get("Tunnels_LoopbackNoticeMessage", "UWP 应用具有网络隔离机制：本机其他应用可能无法直接访问 127.0.0.1 上的转发端口。");
+            dialog.PrimaryButtonText = Localized.Get("Tunnels_Continue", "继续开启");
+            dialog.SecondaryButtonText = Localized.Get("Tunnels_Cancel", "取消");
 
             DialogService dialogService;
             if (ServiceRegistry.TryGet(out dialogService))

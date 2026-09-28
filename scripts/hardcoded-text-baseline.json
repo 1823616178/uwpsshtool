@@ -1,7 +1,6 @@
 {
   "src\\SshTool.App\\Dialogs\\AgentUnlockDialog.xaml.cs": 2,
   "src\\SshTool.App\\Dialogs\\CredentialDialog.xaml.cs": 1,
-  "src\\SshTool.App\\Dialogs\\LoopbackNoticeDialog.xaml.cs": 1,
   "src\\SshTool.App\\Dialogs\\SnippetVariableDialog.xaml.cs": 1,
   "src\\SshTool.App\\Infrastructure\\DispatcherHelper.cs": 1,
   "src\\SshTool.App\\Infrastructure\\ServiceRegistry.cs": 1,

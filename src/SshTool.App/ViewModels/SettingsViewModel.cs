@@ -32,24 +32,13 @@ namespace SshTool.App.ViewModels
     // ComboBox 索引映射集中在此（XAML 不做转换器，页码后置代码只调这组静态方法）。
     public sealed class SettingsViewModel : ViewModelBase
     {
-        public const int MinFontSize = 8;
-        public const int MaxFontSize = 28;
-        public const int MinScrollback = 1000;
-        public const int MaxScrollback = 50000;
-        public const int MinConnectTimeout = 5;
-        public const int MaxConnectTimeout = 60;
-        public const int MinReconnectAttempts = 0;
-        public const int MaxReconnectAttempts = 10;
-        // K03：Agent 密钥保留时间（分钟，0 = 永不超时；上限 120 即 2 小时）。
-        public const int MinAgentKeyTimeout = 0;
-        public const int MaxAgentKeyTimeout = 120;
-
-        // V04a：各 Slider 恢复默认值（与 SafeGetInt 的 fallback 同源）。
-        public const int DefaultFontSize = 12;
-        public const int DefaultScrollback = 5000;
-        public const int DefaultReconnectAttempts = 6;
-        public const int DefaultConnectTimeout = 15;
-        public const int DefaultAgentKeyTimeout = 15;
+        // V04a：各 Slider 的「恢复默认」值。默认值与取值范围只在 SettingDefinitions
+        // 定义一次，这里和设置页都从那里取。
+        public static int DefaultFontSize { get { return DefaultInt("terminalFontSize"); } }
+        public static int DefaultScrollback { get { return DefaultInt("scrollbackLines"); } }
+        public static int DefaultReconnectAttempts { get { return DefaultInt("reconnectMaxAttempts"); } }
+        public static int DefaultConnectTimeout { get { return DefaultInt("connectTimeoutSeconds"); } }
+        public static int DefaultAgentKeyTimeout { get { return DefaultInt("agentKeyTimeoutMinutes"); } }
 
         private static readonly int[] BackgroundDisconnectOptions = { 0, 5, 15, 30, 60 };
         private static readonly int[] SyncPollOptions = { 0, 60, 300, 900 };
@@ -97,66 +86,66 @@ namespace SshTool.App.ViewModels
 
         public string ThemeMode
         {
-            get { return SafeGetString("themeMode", "dark"); }
+            get { return _settings.GetString("themeMode"); }
             set
             {
-                string normalized = NormalizeEnum(value, new[] { "system", "dark", "light" }, "dark");
+                string normalized = SettingDefinitions.Require("themeMode").NormalizeString(value);
                 _settings.Set("themeMode", normalized);
                 ApplyThemeNow();
-                RaisePropertyChanged("ThemeMode");
+                RaisePropertyChanged(nameof(ThemeMode));
             }
         }
 
         public bool UseSystemAccent
         {
-            get { return SafeGetBool("useSystemAccent", true); }
+            get { return _settings.GetBool("useSystemAccent"); }
             set
             {
                 _settings.Set("useSystemAccent", value);
                 ApplyAccentNow(value);
-                RaisePropertyChanged("UseSystemAccent");
+                RaisePropertyChanged(nameof(UseSystemAccent));
             }
         }
 
         public string HostSortMode
         {
-            get { return SafeGetString("hostSortMode", "name"); }
+            get { return _settings.GetString("hostSortMode"); }
             set
             {
-                string normalized = NormalizeEnum(value, new[] { "name", "recent" }, "name");
+                string normalized = SettingDefinitions.Require("hostSortMode").NormalizeString(value);
                 _settings.Set("hostSortMode", normalized);
-                RaisePropertyChanged("HostSortMode");
+                RaisePropertyChanged(nameof(HostSortMode));
             }
         }
 
         public bool ShowQuickConnect
         {
-            get { return SafeGetBool("showQuickConnect", true); }
+            get { return _settings.GetBool("showQuickConnect"); }
             set
             {
                 _settings.Set("showQuickConnect", value);
-                RaisePropertyChanged("ShowQuickConnect");
+                RaisePropertyChanged(nameof(ShowQuickConnect));
             }
         }
 
         public bool HapticsEnabled
         {
-            get { return SafeGetBool("hapticsEnabled", true); }
+            get { return _settings.GetBool("hapticsEnabled"); }
             set
             {
                 _settings.Set("hapticsEnabled", value);
-                RaisePropertyChanged("HapticsEnabled");
+                RaisePropertyChanged(nameof(HapticsEnabled));
             }
         }
 
         public string Language
         {
-            get { return SafeGetString("language", "system"); }
+            get { return _settings.GetString("language"); }
             set
             {
-                string normalized = NormalizeEnum(value, new[] { "system", "zh-CN", "en-US" }, "system");
+                string normalized = SettingDefinitions.Require("language").NormalizeString(value);
                 _settings.Set("language", normalized);
-                RaisePropertyChanged("Language");
+                RaisePropertyChanged(nameof(Language));
             }
         }
 
@@ -164,54 +153,54 @@ namespace SshTool.App.ViewModels
 
         public string DefaultAppearanceId
         {
-            get { return SafeGetString("defaultAppearanceId", "builtin-harmony-dark"); }
+            get { return _settings.GetString("defaultAppearanceId"); }
             set
             {
                 _settings.Set("defaultAppearanceId", value ?? string.Empty);
-                RaisePropertyChanged("DefaultAppearanceId");
+                RaisePropertyChanged(nameof(DefaultAppearanceId));
             }
         }
 
         public int TerminalFontSize
         {
-            get { return SafeGetInt("terminalFontSize", DefaultFontSize); }
+            get { return _settings.GetInt("terminalFontSize"); }
             set
             {
-                int clamped = Clamp(value, MinFontSize, MaxFontSize);
+                int clamped = SettingDefinitions.Require("terminalFontSize").Clamp(value);
                 _settings.Set("terminalFontSize", clamped);
-                RaisePropertyChanged("TerminalFontSize");
+                RaisePropertyChanged(nameof(TerminalFontSize));
             }
         }
 
         public int ScrollbackLines
         {
-            get { return SafeGetInt("scrollbackLines", DefaultScrollback); }
+            get { return _settings.GetInt("scrollbackLines"); }
             set
             {
-                int clamped = Clamp(value, MinScrollback, MaxScrollback);
+                int clamped = SettingDefinitions.Require("scrollbackLines").Clamp(value);
                 _settings.Set("scrollbackLines", clamped);
-                RaisePropertyChanged("ScrollbackLines");
+                RaisePropertyChanged(nameof(ScrollbackLines));
             }
         }
 
         public string AltScreenScroll
         {
-            get { return SafeGetString("altScreenScroll", "arrows"); }
+            get { return _settings.GetString("altScreenScroll"); }
             set
             {
-                string normalized = NormalizeEnum(value, new[] { "arrows", "wheel" }, "arrows");
+                string normalized = SettingDefinitions.Require("altScreenScroll").NormalizeString(value);
                 _settings.Set("altScreenScroll", normalized);
-                RaisePropertyChanged("AltScreenScroll");
+                RaisePropertyChanged(nameof(AltScreenScroll));
             }
         }
 
         public bool PasteConfirmMultiline
         {
-            get { return SafeGetBool("pasteConfirmMultiline", true); }
+            get { return _settings.GetBool("pasteConfirmMultiline"); }
             set
             {
                 _settings.Set("pasteConfirmMultiline", value);
-                RaisePropertyChanged("PasteConfirmMultiline");
+                RaisePropertyChanged(nameof(PasteConfirmMultiline));
             }
         }
 
@@ -219,24 +208,24 @@ namespace SshTool.App.ViewModels
 
         public bool KeyBarVisible
         {
-            get { return SafeGetBool("keyBarVisible", true); }
+            get { return _settings.GetBool("keyBarVisible"); }
             set
             {
                 _settings.Set("keyBarVisible", value);
-                RaisePropertyChanged("KeyBarVisible");
+                RaisePropertyChanged(nameof(KeyBarVisible));
             }
         }
 
         public string KeyBarLayout
         {
-            get { return SafeGetString("keyBarLayout", SshTool.Core.Terminal.KeyBarLayout.DefaultString); }
+            get { return _settings.GetString("keyBarLayout"); }
             set
             {
                 string layout = string.IsNullOrWhiteSpace(value)
                     ? SshTool.Core.Terminal.KeyBarLayout.DefaultString : value;
                 _settings.Set("keyBarLayout", layout);
-                RaisePropertyChanged("KeyBarLayout");
-                RaisePropertyChanged("KeyBarSummary");
+                RaisePropertyChanged(nameof(KeyBarLayout));
+                RaisePropertyChanged(nameof(KeyBarSummary));
             }
         }
 
@@ -252,12 +241,12 @@ namespace SshTool.App.ViewModels
 
         public string ShortcutsJson
         {
-            get { return SafeGetString("shortcuts", "{}"); }
+            get { return _settings.GetString("shortcuts"); }
             set
             {
                 _settings.Set("shortcuts", string.IsNullOrEmpty(value) ? "{}" : value);
-                RaisePropertyChanged("ShortcutsJson");
-                RaisePropertyChanged("ShortcutSummary");
+                RaisePropertyChanged(nameof(ShortcutsJson));
+                RaisePropertyChanged(nameof(ShortcutSummary));
             }
         }
 
@@ -295,79 +284,79 @@ namespace SshTool.App.ViewModels
 
         public string KeepScreenOn
         {
-            get { return SafeGetString("keepScreenOn", "session"); }
+            get { return _settings.GetString("keepScreenOn"); }
             set
             {
-                string normalized = NormalizeEnum(value, new[] { "never", "session", "always" }, "session");
+                string normalized = SettingDefinitions.Require("keepScreenOn").NormalizeString(value);
                 _settings.Set("keepScreenOn", normalized);
                 RefreshKeepAwake();
-                RaisePropertyChanged("KeepScreenOn");
+                RaisePropertyChanged(nameof(KeepScreenOn));
             }
         }
 
         public bool KeepAliveInBackground
         {
-            get { return SafeGetBool("keepAliveInBackground", true); }
+            get { return _settings.GetBool("keepAliveInBackground"); }
             set
             {
                 _settings.Set("keepAliveInBackground", value);
-                RaisePropertyChanged("KeepAliveInBackground");
+                RaisePropertyChanged(nameof(KeepAliveInBackground));
             }
         }
 
         public int BackgroundDisconnectMinutes
         {
-            get { return SafeGetInt("backgroundDisconnectMinutes", 0); }
+            get { return _settings.GetInt("backgroundDisconnectMinutes"); }
             set
             {
                 int clamped = value < 0 ? 0 : value;
                 _settings.Set("backgroundDisconnectMinutes", clamped);
-                RaisePropertyChanged("BackgroundDisconnectMinutes");
+                RaisePropertyChanged(nameof(BackgroundDisconnectMinutes));
             }
         }
 
         public int ReconnectMaxAttempts
         {
-            get { return SafeGetInt("reconnectMaxAttempts", DefaultReconnectAttempts); }
+            get { return _settings.GetInt("reconnectMaxAttempts"); }
             set
             {
-                int clamped = Clamp(value, MinReconnectAttempts, MaxReconnectAttempts);
+                int clamped = SettingDefinitions.Require("reconnectMaxAttempts").Clamp(value);
                 _settings.Set("reconnectMaxAttempts", clamped);
-                RaisePropertyChanged("ReconnectMaxAttempts");
+                RaisePropertyChanged(nameof(ReconnectMaxAttempts));
             }
         }
 
         public int ConnectTimeoutSeconds
         {
-            get { return SafeGetInt("connectTimeoutSeconds", DefaultConnectTimeout); }
+            get { return _settings.GetInt("connectTimeoutSeconds"); }
             set
             {
-                int clamped = Clamp(value, MinConnectTimeout, MaxConnectTimeout);
+                int clamped = SettingDefinitions.Require("connectTimeoutSeconds").Clamp(value);
                 _settings.Set("connectTimeoutSeconds", clamped);
-                RaisePropertyChanged("ConnectTimeoutSeconds");
+                RaisePropertyChanged(nameof(ConnectTimeoutSeconds));
             }
         }
 
         // K03：Agent 密钥保留时间（分钟）。0 = 永不超时（native 惰性语义）。
         public int AgentKeyTimeoutMinutes
         {
-            get { return SafeGetInt("agentKeyTimeoutMinutes", DefaultAgentKeyTimeout); }
+            get { return _settings.GetInt("agentKeyTimeoutMinutes"); }
             set
             {
-                int clamped = Clamp(value, MinAgentKeyTimeout, MaxAgentKeyTimeout);
+                int clamped = SettingDefinitions.Require("agentKeyTimeoutMinutes").Clamp(value);
                 _settings.Set("agentKeyTimeoutMinutes", clamped);
-                RaisePropertyChanged("AgentKeyTimeoutMinutes");
+                RaisePropertyChanged(nameof(AgentKeyTimeoutMinutes));
             }
         }
 
         public int SyncPollForegroundSeconds
         {
-            get { return SafeGetInt("syncPollForegroundSeconds", 60); }
+            get { return _settings.GetInt("syncPollForegroundSeconds"); }
             set
             {
                 int clamped = value < 0 ? 0 : value;
                 _settings.Set("syncPollForegroundSeconds", clamped);
-                RaisePropertyChanged("SyncPollForegroundSeconds");
+                RaisePropertyChanged(nameof(SyncPollForegroundSeconds));
             }
         }
 
@@ -375,13 +364,13 @@ namespace SshTool.App.ViewModels
 
         public string LogLevel
         {
-            get { return SafeGetString("logLevel", "info"); }
+            get { return _settings.GetString("logLevel"); }
             set
             {
-                string normalized = NormalizeEnum(value, new[] { "debug", "info", "warn", "error" }, "info");
+                string normalized = SettingDefinitions.Require("logLevel").NormalizeString(value);
                 _settings.Set("logLevel", normalized);
                 ApplyLogLevelNow(normalized);
-                RaisePropertyChanged("LogLevel");
+                RaisePropertyChanged(nameof(LogLevel));
             }
         }
 
@@ -742,89 +731,35 @@ namespace SshTool.App.ViewModels
         private void OnSettingsChanged(object sender, SettingChangedEventArgs e)
         {
             // 外部写入（如键条编辑页）后刷新绑定；本类 setter 已逐个 Raise，无需映射 key。
-            RaisePropertyChanged("ThemeMode");
-            RaisePropertyChanged("UseSystemAccent");
-            RaisePropertyChanged("HostSortMode");
-            RaisePropertyChanged("ShowQuickConnect");
-            RaisePropertyChanged("HapticsEnabled");
-            RaisePropertyChanged("Language");
-            RaisePropertyChanged("DefaultAppearanceId");
-            RaisePropertyChanged("TerminalFontSize");
-            RaisePropertyChanged("ScrollbackLines");
-            RaisePropertyChanged("AltScreenScroll");
-            RaisePropertyChanged("PasteConfirmMultiline");
-            RaisePropertyChanged("KeyBarVisible");
-            RaisePropertyChanged("KeyBarLayout");
-            RaisePropertyChanged("KeyBarSummary");
-            RaisePropertyChanged("ShortcutsJson");
-            RaisePropertyChanged("ShortcutSummary");
-            RaisePropertyChanged("KeepScreenOn");
-            RaisePropertyChanged("KeepAliveInBackground");
-            RaisePropertyChanged("BackgroundDisconnectMinutes");
-            RaisePropertyChanged("ReconnectMaxAttempts");
-            RaisePropertyChanged("ConnectTimeoutSeconds");
-            RaisePropertyChanged("AgentKeyTimeoutMinutes");
-            RaisePropertyChanged("SyncPollForegroundSeconds");
-            RaisePropertyChanged("LogLevel");
+            RaisePropertyChanged(nameof(ThemeMode));
+            RaisePropertyChanged(nameof(UseSystemAccent));
+            RaisePropertyChanged(nameof(HostSortMode));
+            RaisePropertyChanged(nameof(ShowQuickConnect));
+            RaisePropertyChanged(nameof(HapticsEnabled));
+            RaisePropertyChanged(nameof(Language));
+            RaisePropertyChanged(nameof(DefaultAppearanceId));
+            RaisePropertyChanged(nameof(TerminalFontSize));
+            RaisePropertyChanged(nameof(ScrollbackLines));
+            RaisePropertyChanged(nameof(AltScreenScroll));
+            RaisePropertyChanged(nameof(PasteConfirmMultiline));
+            RaisePropertyChanged(nameof(KeyBarVisible));
+            RaisePropertyChanged(nameof(KeyBarLayout));
+            RaisePropertyChanged(nameof(KeyBarSummary));
+            RaisePropertyChanged(nameof(ShortcutsJson));
+            RaisePropertyChanged(nameof(ShortcutSummary));
+            RaisePropertyChanged(nameof(KeepScreenOn));
+            RaisePropertyChanged(nameof(KeepAliveInBackground));
+            RaisePropertyChanged(nameof(BackgroundDisconnectMinutes));
+            RaisePropertyChanged(nameof(ReconnectMaxAttempts));
+            RaisePropertyChanged(nameof(ConnectTimeoutSeconds));
+            RaisePropertyChanged(nameof(AgentKeyTimeoutMinutes));
+            RaisePropertyChanged(nameof(SyncPollForegroundSeconds));
+            RaisePropertyChanged(nameof(LogLevel));
         }
 
-        private string SafeGetString(string key, string fallback)
+        private static int DefaultInt(string key)
         {
-            try
-            {
-                return _settings.GetString(key);
-            }
-            catch (Exception)
-            {
-                return fallback;
-            }
-        }
-
-        private int SafeGetInt(string key, int fallback)
-        {
-            try
-            {
-                return _settings.GetInt(key);
-            }
-            catch (Exception)
-            {
-                return fallback;
-            }
-        }
-
-        private bool SafeGetBool(string key, bool fallback)
-        {
-            try
-            {
-                return _settings.GetBool(key);
-            }
-            catch (Exception)
-            {
-                return fallback;
-            }
-        }
-
-        private static string NormalizeEnum(string value, string[] allowed, string fallback)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return fallback;
-            }
-            for (int i = 0; i < allowed.Length; i++)
-            {
-                if (string.Equals(value, allowed[i], StringComparison.Ordinal))
-                {
-                    return value;
-                }
-            }
-            return fallback;
-        }
-
-        private static int Clamp(int value, int min, int max)
-        {
-            if (value < min) { return min; }
-            if (value > max) { return max; }
-            return value;
+            return (int)SettingDefinitions.Require(key).DefaultValue;
         }
 
         private void ApplyThemeNow()

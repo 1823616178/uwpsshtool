@@ -64,8 +64,7 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <Slider x:Name="FontSlider" Grid.Column="0"
-                                                Minimum="8" Maximum="28" StepFrequency="1"
+                                        <Slider x:Name="FontSlider" Grid.Column="0" StepFrequency="1"
                                                 ManipulationMode="All"
                                                 ValueChanged="OnFontChanged"
                                                 ManipulationStarted="OnSliderManipulationStarted"
@@ -85,8 +84,7 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <Slider x:Name="ScrollbackSlider" Grid.Column="0"
-                                                Minimum="1000" Maximum="50000" StepFrequency="1000"
+                                        <Slider x:Name="ScrollbackSlider" Grid.Column="0" StepFrequency="1000"
                                                 ManipulationMode="All"
                                                 ValueChanged="OnScrollbackChanged"
                                                 ManipulationStarted="OnSliderManipulationStarted"
@@ -172,8 +170,7 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <Slider x:Name="ReconnectSlider" Grid.Column="0"
-                                                Minimum="0" Maximum="10" StepFrequency="1"
+                                        <Slider x:Name="ReconnectSlider" Grid.Column="0" StepFrequency="1"
                                                 ManipulationMode="All"
                                                 ValueChanged="OnReconnectChanged"
                                                 ManipulationStarted="OnSliderManipulationStarted"
@@ -195,8 +192,7 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <Slider x:Name="TimeoutSlider" Grid.Column="0"
-                                                Minimum="5" Maximum="60" StepFrequency="1"
+                                        <Slider x:Name="TimeoutSlider" Grid.Column="0" StepFrequency="1"
                                                 ManipulationMode="All"
                                                 ValueChanged="OnTimeoutChanged"
                                                 ManipulationStarted="OnSliderManipulationStarted"
@@ -216,8 +212,7 @@
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <Slider x:Name="AgentTimeoutSlider" Grid.Column="0"
-                                                Minimum="0" Maximum="120" StepFrequency="5"
+                                        <Slider x:Name="AgentTimeoutSlider" Grid.Column="0" StepFrequency="5"
                                                 ManipulationMode="All"
                                                 ValueChanged="OnAgentTimeoutChanged"
                                                 ManipulationStarted="OnSliderManipulationStarted"

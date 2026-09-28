@@ -39,10 +39,10 @@ namespace SshTool.App.ViewModels
             _services = services ?? AppServices.Current;
             Hosts = new ObservableCollection<IdNameOption>();
             Groups = new ObservableCollection<IdNameOption>();
-            string localName = _services?.GetString("TunnelType_Local") ?? "本地转发 (Local)";
-            string remoteName = _services?.GetString("TunnelType_Remote") ?? "远程转发 (Remote)";
-            string dynamicName = _services?.GetString("TunnelType_Dynamic") ?? "动态 SOCKS5 (Dynamic)";
-            string relayName = _services?.GetString("TunnelType_Relay") ?? "中转转发 (Relay)";
+            string localName = Localized.Get("TunnelType_Local", "本地转发 (Local)");
+            string remoteName = Localized.Get("TunnelType_Remote", "远程转发 (Remote)");
+            string dynamicName = Localized.Get("TunnelType_Dynamic", "动态 SOCKS5 (Dynamic)");
+            string relayName = Localized.Get("TunnelType_Relay", "中转转发 (Relay)");
             Types = new List<TunnelTypeOption>
             {
                 new TunnelTypeOption(TunnelType.Local, localName),
@@ -57,7 +57,7 @@ namespace SshTool.App.ViewModels
         public ObservableCollection<IdNameOption> Groups { get; }
         public IReadOnlyList<TunnelTypeOption> Types { get; }
 
-        public string Title => _isNew ? (_services?.GetString("TunnelEdit_Title_New") ?? "新建隧道") : (_services?.GetString("TunnelEdit_Title_Edit") ?? "编辑隧道");
+        public string Title => _isNew ? (Localized.Get("TunnelEdit_Title_New", "新建隧道")) : (Localized.Get("TunnelEdit_Title_Edit", "编辑隧道"));
 
         public string Name
         {
@@ -269,7 +269,7 @@ namespace SshTool.App.ViewModels
 
             // 加载分组列表
             Groups.Clear();
-            string noGroup = _services?.GetString("TunnelEdit_NoGroup") ?? "未分组";
+            string noGroup = Localized.Get("TunnelEdit_NoGroup", "未分组");
             Groups.Add(new IdNameOption(string.Empty, noGroup));
             if (_services?.Groups != null)
             {
