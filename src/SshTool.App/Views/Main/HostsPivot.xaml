@@ -13,6 +13,8 @@
                               EditRequested="OnEditRequested"
                               DuplicateRequested="OnDuplicateRequested"
                               SftpRequested="OnSftpRequested"
+                              FavoriteRequested="OnFavoriteRequested"
+                              PinRequested="OnPinRequested"
                               DeleteRequested="OnDeleteRequested" />
         </DataTemplate>
         <DataTemplate x:Key="GroupHeaderTemplate">

@@ -1189,5 +1189,11 @@
   <data name="Terminal_FindClose.AutomationProperties.Name" xml:space="preserve"><value>关闭查找</value></data>
   <data name="Terminal_FindNone" xml:space="preserve"><value>无结果</value></data>
   <data name="Terminal_FindCount" xml:space="preserve"><value>{0}/{1}</value></data>
+  <data name="Hosts_SectionFavorites" xml:space="preserve"><value>收藏</value></data>
+  <data name="Hosts_SectionRecent" xml:space="preserve"><value>最近</value></data>
+  <data name="HostRow_MenuFavorite.Text" xml:space="preserve"><value>收藏</value></data>
+  <data name="HostRow_MenuFavoriteText" xml:space="preserve"><value>收藏</value></data>
+  <data name="HostRow_MenuUnfavorite" xml:space="preserve"><value>取消收藏</value></data>
+  <data name="HostRow_MenuPin.Text" xml:space="preserve"><value>固定到开始屏幕</value></data>
 </root>
 

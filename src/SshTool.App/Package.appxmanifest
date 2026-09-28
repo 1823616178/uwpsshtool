@@ -25,6 +25,14 @@
           <uap:Rotation Preference="landscapeFlipped" />
         </uap:InitialRotationPreference>
       </uap:VisualElements>
+      <Extensions>
+        <!-- W03（01-DESIGN §16.3）：ssh://[user@]host[:port] 只预填快速连接，不自动连接。 -->
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="ssh">
+            <uap:DisplayName>Lumia SSH</uap:DisplayName>
+          </uap:Protocol>
+        </uap:Extension>
+      </Extensions>
     </Application>
   </Applications>
   <Capabilities>

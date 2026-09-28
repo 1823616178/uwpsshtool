@@ -215,6 +215,7 @@ namespace SshTool.Core.Tests.Sync
             h.BackspaceSendsCtrlH = true;
             h.SortOrder = 5;
             h.LastConnectedAt = "2026-09-18T00:00:00.000Z";
+            h.Favorite = true; // W03：本机专有
             h.Extra = new JObject { ["future"] = "keep" };
             await f.Hosts.AddAsync(h);
             var t = NewTunnel("t1", "h1");
@@ -228,6 +229,8 @@ namespace SshTool.Core.Tests.Sync
             f.Tunnels.Changed += (s, e) => origins.Add(e.Origin);
 
             var doc = await f.Adapter.BuildLocalDocumentAsync(Prefs(false, false));
+            // W03：收藏标记绝不上云（桌面端 strictObject 多一个键整份拒绝）。
+            Assert.DoesNotContain("favorite", SyncDocumentWriter.Write(doc), System.StringComparison.OrdinalIgnoreCase);
             var server = doc.Servers.Single(s => s.Profile.Id == "h1");
             server.Profile.Name = "web-改名";
             server.Profile.Host = "new.example.com";
@@ -259,6 +262,7 @@ namespace SshTool.Core.Tests.Sync
             Assert.True(after.BackspaceSendsCtrlH);
             Assert.Equal(5, after.SortOrder);
             Assert.Equal("2026-09-18T00:00:00.000Z", after.LastConnectedAt);
+            Assert.True(after.Favorite);
             Assert.Equal("keep", (string)after.Extra["future"]);
 
             var afterGroup = await f.Groups.GetByIdAsync("g1");

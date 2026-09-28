@@ -9,6 +9,9 @@ namespace SshTool.Core.Hosts
 {
     public static class HostListBuilder
     {
+        // W03（01-DESIGN §16.3）：「最近」段最多展示的主机数。
+        public const int RecentLimit = 5;
+
         public static HostListSnapshot Build(
             IReadOnlyList<Host> hosts,
             IReadOnlyList<HostGroup> groups,
@@ -38,6 +41,10 @@ namespace SshTool.Core.Hosts
             }
 
             var resultGroups = new List<HostListGroup>();
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                AddViewSections(matched, resultGroups, collapsed, status, tunnelHosts);
+            }
             for (int i = 0; i < orderedGroups.Count; i++)
             {
                 HostGroup group = orderedGroups[i];
@@ -65,6 +72,45 @@ namespace SshTool.Core.Hosts
                 IsEmpty = hosts.Count == 0,
                 HasNoMatches = hosts.Count > 0 && matched.Count == 0
             };
+        }
+
+        // 收藏段（按名称）与最近段（最近连接的 RecentLimit 个）。名称是 Core 兜底文案，
+        // App 按段 id 换成本地化标题。
+        private static void AddViewSections(
+            List<Host> hosts,
+            List<HostListGroup> target,
+            HashSet<string> collapsed,
+            IHostStatusProvider status,
+            HashSet<string> tunnelHosts)
+        {
+            var favorites = new List<Host>();
+            var recent = new List<Host>();
+            for (int i = 0; i < hosts.Count; i++)
+            {
+                if (hosts[i].Favorite)
+                {
+                    favorites.Add(hosts[i]);
+                }
+                if (!string.IsNullOrEmpty(hosts[i].LastConnectedAt))
+                {
+                    recent.Add(hosts[i]);
+                }
+            }
+            if (favorites.Count > 0)
+            {
+                target.Add(ToGroup(HostListGroup.FavoritesId, "收藏", string.Empty, int.MinValue,
+                    favorites, collapsed, false, status, tunnelHosts));
+            }
+            if (recent.Count > 0)
+            {
+                recent.Sort(CompareRecent);
+                if (recent.Count > RecentLimit)
+                {
+                    recent.RemoveRange(RecentLimit, recent.Count - RecentLimit);
+                }
+                target.Add(ToGroup(HostListGroup.RecentId, "最近", string.Empty, int.MinValue + 1,
+                    recent, collapsed, true, status, tunnelHosts));
+            }
         }
 
         public static HashSet<string> DecodeCollapsed(string json)
@@ -277,7 +323,8 @@ namespace SshTool.Core.Hosts
                 ShowKey = host.AuthType == AuthType.Key,
                 ShowTmux = host.TmuxAutoAttach,
                 ShowJump = !string.IsNullOrWhiteSpace(host.JumpHostId),
-                ShowTunnel = tunnelHosts.Contains(host.Id)
+                ShowTunnel = tunnelHosts.Contains(host.Id),
+                IsFavorite = host.Favorite
             };
         }
 

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.App.Views;
 using SshTool.Core.Common;
 using SshTool.Core.Hosts;
@@ -220,6 +221,59 @@ namespace SshTool.App.ViewModels
             Navigation.Navigate<SftpPage>(new SftpArgs { HostId = row.HostId });
         }
 
+        // W03：收藏是本机专有字段（不进同步文档），切换后列表经 Changed 自动刷新。
+        public async Task ToggleFavoriteAsync(HostListRow row)
+        {
+            Host host = row == null ? null : await _hosts.GetByIdAsync(row.HostId).ConfigureAwait(true);
+            if (host == null)
+            {
+                return;
+            }
+            Host next = host.Clone();
+            next.Favorite = !host.Favorite;
+            await _hosts.UpdateAsync(next).ConfigureAwait(true);
+        }
+
+        // W03：固定到开始屏幕（系统弹确认）。
+        public async Task PinAsync(HostListRow row)
+        {
+            Host host = row == null ? null : await _hosts.GetByIdAsync(row.HostId).ConfigureAwait(true);
+            if (host != null)
+            {
+                await HostTileService.PinAsync(host).ConfigureAwait(true);
+            }
+        }
+
+        // W03：磁贴 / ssh:// 激活交接。主机存在则直接连接；ssh:// 只预填快速连接并展开。
+        public async Task ApplyLaunchRequestAsync(string hostId, string quickConnectText)
+        {
+            if (!string.IsNullOrEmpty(hostId))
+            {
+                Host host = await _hosts.GetByIdAsync(hostId).ConfigureAwait(true);
+                if (host != null)
+                {
+                    Navigation.Navigate<TerminalPage>(new TerminalArgs { HostId = hostId });
+                }
+                else
+                {
+                    Logger.Log(LogLevel.Warning, "HostList", "磁贴指向的主机已不存在");
+                }
+                return;
+            }
+            if (!string.IsNullOrEmpty(quickConnectText))
+            {
+                QuickConnectText = quickConnectText;
+                if (!_settings.ShowQuickConnect)
+                {
+                    _settings.ShowQuickConnect = true;
+                }
+                if (!_settings.HostQuickConnectExpanded)
+                {
+                    ToggleQuickConnect();
+                }
+            }
+        }
+
         public async Task DeleteAsync(HostListRow row)
         {
             if (row == null)
@@ -282,7 +336,17 @@ namespace SshTool.App.ViewModels
             {
                 for (int i = 0; i < snap.Groups.Count; i++)
                 {
-                    Groups.Add(snap.Groups[i]);
+                    HostListGroup group = snap.Groups[i];
+                    // W03：视图段的标题由 Core 给兜底文案，这里换成本地化标题。
+                    if (group.GroupId == HostListGroup.FavoritesId)
+                    {
+                        group.Name = Localized.Get("Hosts_SectionFavorites", group.Name);
+                    }
+                    else if (group.GroupId == HostListGroup.RecentId)
+                    {
+                        group.Name = Localized.Get("Hosts_SectionRecent", group.Name);
+                    }
+                    Groups.Add(group);
                 }
             }
             IsEmpty = snap.IsEmpty;

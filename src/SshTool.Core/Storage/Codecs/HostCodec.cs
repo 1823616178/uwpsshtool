@@ -12,7 +12,7 @@ namespace SshTool.Core.Storage.Codecs
         {
             "id", "name", "host", "port", "username", "authType", "hostFingerprint", "keepalive",
             "groupId", "keyId", "appearanceId", "jumpHostId", "initCommands", "envVars", "termType",
-            "tmuxAutoAttach", "tmuxSessionName", "backspaceSendsCtrlH", "sortOrder", "lastConnectedAt"
+            "tmuxAutoAttach", "tmuxSessionName", "backspaceSendsCtrlH", "sortOrder", "lastConnectedAt", "favorite"
         };
 
         public string GetId(Host item)
@@ -43,6 +43,7 @@ namespace SshTool.Core.Storage.Codecs
             o.Set("backspaceSendsCtrlH", item.BackspaceSendsCtrlH);
             o.Set("sortOrder", item.SortOrder);
             o.Set("lastConnectedAt", item.LastConnectedAt);
+            o.Set("favorite", item.Favorite);
             o.MergeExtra(item.Extra);
             return o;
         }
@@ -70,6 +71,7 @@ namespace SshTool.Core.Storage.Codecs
             item.BackspaceSendsCtrlH = json.GetBool("backspaceSendsCtrlH");
             item.SortOrder = json.GetInt("sortOrder");
             item.LastConnectedAt = json.GetString("lastConnectedAt");
+            item.Favorite = json.GetBool("favorite");
             item.Extra = json.ExtractExtra(KnownKeys);
             return item;
         }

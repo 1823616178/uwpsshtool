@@ -29,6 +29,8 @@ namespace SshTool.Core.Models
         public bool BackspaceSendsCtrlH { get; set; }
         public int SortOrder { get; set; }
         public string LastConnectedAt { get; set; }
+        // W03：本机专有（🏠），主机列表「收藏」段；不进同步文档。
+        public bool Favorite { get; set; }
 
         // 编解码未知字段（D02 往返保留，未来兼容）
         public JObject Extra { get; set; }
@@ -57,6 +59,7 @@ namespace SshTool.Core.Models
                 BackspaceSendsCtrlH = BackspaceSendsCtrlH,
                 SortOrder = SortOrder,
                 LastConnectedAt = LastConnectedAt,
+                Favorite = Favorite,
                 Extra = Extra == null ? null : (JObject)Extra.DeepClone()
             };
         }

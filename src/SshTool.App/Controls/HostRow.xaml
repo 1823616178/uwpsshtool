@@ -13,6 +13,8 @@
             <MenuFlyoutItem x:Uid="HostRow_MenuEdit" Click="OnEditClick" />
             <MenuFlyoutItem x:Uid="HostRow_MenuDuplicate" Click="OnDuplicateClick" />
             <MenuFlyoutItem x:Uid="HostRow_MenuSftp" Click="OnSftpClick" />
+            <MenuFlyoutItem x:Name="FavoriteItem" x:Uid="HostRow_MenuFavorite" Click="OnFavoriteClick" />
+            <MenuFlyoutItem x:Uid="HostRow_MenuPin" Click="OnPinClick" />
             <MenuFlyoutSeparator />
             <!-- UI 走查：破坏性项红字，与 ConfirmDialog(isDanger) 呼应 -->
             <MenuFlyoutItem x:Uid="HostRow_MenuDelete" Click="OnDeleteClick"

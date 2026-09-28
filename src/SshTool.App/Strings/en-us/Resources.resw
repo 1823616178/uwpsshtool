@@ -1188,5 +1188,11 @@
   <data name="Terminal_FindClose.AutomationProperties.Name" xml:space="preserve"><value>Close find</value></data>
   <data name="Terminal_FindNone" xml:space="preserve"><value>No matches</value></data>
   <data name="Terminal_FindCount" xml:space="preserve"><value>{0}/{1}</value></data>
+  <data name="Hosts_SectionFavorites" xml:space="preserve"><value>Favorites</value></data>
+  <data name="Hosts_SectionRecent" xml:space="preserve"><value>Recent</value></data>
+  <data name="HostRow_MenuFavorite.Text" xml:space="preserve"><value>Add to favorites</value></data>
+  <data name="HostRow_MenuFavoriteText" xml:space="preserve"><value>Add to favorites</value></data>
+  <data name="HostRow_MenuUnfavorite" xml:space="preserve"><value>Remove from favorites</value></data>
+  <data name="HostRow_MenuPin.Text" xml:space="preserve"><value>Pin to Start</value></data>
 </root>
 

@@ -1,4 +1,5 @@
 using System;
+using SshTool.App.Infrastructure;
 using SshTool.Core.Hosts;
 using Windows.UI.Input;
 using Windows.UI.Xaml;
@@ -45,6 +46,9 @@ namespace SshTool.App.Controls
         public event EventHandler DuplicateRequested;
         public event EventHandler SftpRequested;
         public event EventHandler DeleteRequested;
+        // W03：收藏切换 / 固定到开始屏幕。
+        public event EventHandler FavoriteRequested;
+        public event EventHandler PinRequested;
 
         private void OnDataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
         {
@@ -67,6 +71,9 @@ namespace SshTool.App.Controls
             TmuxBadge.Visibility = row.ShowTmux ? Visibility.Visible : Visibility.Collapsed;
             JumpBadge.Visibility = row.ShowJump ? Visibility.Visible : Visibility.Collapsed;
             TunnelBadge.Visibility = row.ShowTunnel ? Visibility.Visible : Visibility.Collapsed;
+            FavoriteItem.Text = row.IsFavorite
+                ? Localized.Get("HostRow_MenuUnfavorite", "取消收藏")
+                : Localized.Get("HostRow_MenuFavoriteText", "收藏");
         }
 
         private static StatusDotState ToDot(HostListStatus status)
@@ -152,6 +159,16 @@ namespace SshTool.App.Controls
         private void OnSftpClick(object sender, RoutedEventArgs e)
         {
             Raise(SftpRequested);
+        }
+
+        private void OnFavoriteClick(object sender, RoutedEventArgs e)
+        {
+            Raise(FavoriteRequested);
+        }
+
+        private void OnPinClick(object sender, RoutedEventArgs e)
+        {
+            Raise(PinRequested);
         }
 
         private void OnDeleteClick(object sender, RoutedEventArgs e)

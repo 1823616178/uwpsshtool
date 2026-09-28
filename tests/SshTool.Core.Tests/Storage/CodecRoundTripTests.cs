@@ -32,6 +32,7 @@ namespace SshTool.Core.Tests.Storage
             original.BackspaceSendsCtrlH = true;
             original.SortOrder = 7;
             original.LastConnectedAt = "2026-09-17T10:00:00.000Z";
+            original.Favorite = true;
             original.Extra = new JObject
             {
                 ["futureField"] = new JValue(42),
@@ -60,6 +61,7 @@ namespace SshTool.Core.Tests.Storage
                 Assert.Equal(a.BackspaceSendsCtrlH, b.BackspaceSendsCtrlH);
                 Assert.Equal(a.SortOrder, b.SortOrder);
                 Assert.Equal(a.LastConnectedAt, b.LastConnectedAt);
+                Assert.Equal(a.Favorite, b.Favorite);
                 AssertExtraEqual(a, b);
             });
         }

@@ -81,6 +81,23 @@ namespace SshTool.App.Views
             {
                 nav.RegisterBackHandler(this);
             }
+            ConsumeLaunchRequest();
+        }
+
+        // W03：磁贴 / ssh:// 激活交接（App 写入，这里取走一次）。
+        public void ConsumeLaunchRequest()
+        {
+            string launchHostId;
+            string launchQuick;
+            if (ViewModel.Hosts != null && LaunchRequests.TryTake(out launchHostId, out launchQuick))
+            {
+                if (launchQuick != null)
+                {
+                    MainPivot.SelectedIndex = 0; // 快速连接在主机页签
+                }
+                ViewModel.Hosts.ApplyLaunchRequestAsync(launchHostId, launchQuick)
+                    .Forget("MainPage.ApplyLaunchRequest", AppLog.Logger);
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)

@@ -817,7 +817,8 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
 - `HostListBuilder` 在非搜索态、且有内容时，在分组前插入「收藏」段（favorite=true，按名称）与「最近」段
   （lastConnectedAt 最新的 5 个）；两段是视图，不改变主机归属，同一主机可同时出现在段与分组中。
 - 磁贴：`SecondaryTile`（10240 起可用），tileId `host-<id>`，Arguments `host:<id>`；
-  启动/激活时 `App.OnLaunched` 解析 Arguments，主机存在则直接进终端，不存在则回主页并提示。删除主机时顺带移除磁贴。
+  启动/激活时 `App.OnLaunched` 解析 Arguments，主机存在则直接进终端，不存在则停在主页并记日志。
+  删除主机**不**自动移除磁贴：`SecondaryTile.RequestDeleteAsync` 必弹系统确认，夹在删除确认之后体验更差；失效磁贴点开只回主页。
 - 协议：`ssh://[user@]host[:port]`（清单声明 `ssh` 协议），解析后打开快速连接并预填，不自动连接（避免被网页一键触发）。
 
 ### 16.4 应用锁、断线通知、响铃（W04）

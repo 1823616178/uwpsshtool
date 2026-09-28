@@ -13,11 +13,16 @@ namespace SshTool.Core.Hosts
         public bool ShowTmux { get; set; }
         public bool ShowJump { get; set; }
         public bool ShowTunnel { get; set; }
+        // W03：行菜单据此显示「收藏 / 取消收藏」。
+        public bool IsFavorite { get; set; }
     }
 
     public sealed class HostListGroup
     {
         public const string UngroupedId = "";
+        // W03：非搜索态置顶的两个视图段（不是真实分组，主机归属不变）。
+        public const string FavoritesId = "__favorites";
+        public const string RecentId = "__recent";
 
         public string GroupId { get; set; }
         public string Name { get; set; }

@@ -1,6 +1,7 @@
 ﻿using System;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Common;
+using SshTool.Core.Hosts;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
@@ -24,6 +25,42 @@ namespace SshTool.App
         }
 
         protected override async void OnLaunched(LaunchActivatedEventArgs e)
+        {
+            // W03：从主机磁贴启动时 Arguments = "host:<id>"。
+            string hostId;
+            if (HostLaunchLinks.TryParseTileArguments(e.Arguments, out hostId))
+            {
+                Infrastructure.LaunchRequests.RequestHost(hostId);
+            }
+            Frame rootFrame = await EnsureStartedAsync();
+
+            if (e.PrelaunchActivated == false)
+            {
+                ShowMainPage(rootFrame, hostId != null);
+                Window.Current.Activate();
+            }
+
+            var ignoreAutoTest = Views.Debug.SshAutoTest.RunIfSeedPresentAsync();
+        }
+
+        // W03：ssh:// 协议激活（冷启动或运行中都会走这里）。
+        protected override async void OnActivated(IActivatedEventArgs args)
+        {
+            var protocol = args as ProtocolActivatedEventArgs;
+            string quick;
+            bool handled = protocol != null && protocol.Uri != null
+                && HostLaunchLinks.TryParseSshUri(protocol.Uri.OriginalString, out quick);
+            if (handled)
+            {
+                Infrastructure.LaunchRequests.RequestQuickConnect(quick);
+            }
+            Frame rootFrame = await EnsureStartedAsync();
+            ShowMainPage(rootFrame, handled);
+            Window.Current.Activate();
+        }
+
+        // 首次激活时建 Frame、注册服务并启动；后续激活直接返回已有 Frame。
+        private async Task<Frame> EnsureStartedAsync()
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
@@ -60,17 +97,21 @@ namespace SshTool.App
                 }
             }
             navigation.Initialize(rootFrame);
+            return rootFrame;
+        }
 
-            if (e.PrelaunchActivated == false)
+        // 冷启动进主页；已在运行且有待办激活请求时重新进入主页，由 MainPage.OnNavigatedTo 取走请求。
+        private static void ShowMainPage(Frame rootFrame, bool hasLaunchRequest)
+        {
+            if (rootFrame.Content == null || (hasLaunchRequest && !(rootFrame.Content is Views.MainPage)))
             {
-                if (rootFrame.Content == null)
-                {
-                    rootFrame.Navigate(typeof(Views.MainPage), e.Arguments);
-                }
-                Window.Current.Activate();
+                rootFrame.Navigate(typeof(Views.MainPage));
             }
-
-            var ignoreAutoTest = Views.Debug.SshAutoTest.RunIfSeedPresentAsync();
+            else if (hasLaunchRequest)
+            {
+                // 已在主页：直接交给当前主页处理。
+                ((Views.MainPage)rootFrame.Content).ConsumeLaunchRequest();
+            }
         }
 
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)

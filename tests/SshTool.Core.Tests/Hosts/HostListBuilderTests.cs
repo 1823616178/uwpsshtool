@@ -102,7 +102,68 @@ namespace SshTool.Core.Tests.Hosts
             b.LastConnectedAt = "2026-01-01T00:00:00Z";
             Host c = H("c", "never", "g");
             HostListSnapshot snap = Build(new[] { a, b, c }, new[] { G("g", "组", 0) }, sort: "recent");
-            Assert.Equal(new[] { "new", "old", "never" }, snap.Groups[0].Rows.Select(r => r.Name).ToArray());
+            // W03：非搜索态先有「最近」视图段，真实分组在其后。
+            HostListGroup group = snap.Groups.Single(g => g.GroupId == "g");
+            Assert.Equal(new[] { "new", "old", "never" }, group.Rows.Select(r => r.Name).ToArray());
+        }
+
+        [Fact]
+        public void ViewSections_FavoritesThenRecent_BeforeRealGroups()
+        {
+            Host a = H("a", "beta", "g");
+            a.Favorite = true;
+            Host b = H("b", "alpha", "g");
+            b.Favorite = true;
+            b.LastConnectedAt = "2026-01-01T00:00:00Z";
+            Host c = H("c", "gamma", "g");
+            HostListSnapshot snap = Build(new[] { a, b, c }, new[] { G("g", "组", 0) });
+            Assert.Equal(new[] { HostListGroup.FavoritesId, HostListGroup.RecentId, "g" },
+                snap.Groups.Select(g => g.GroupId).ToArray());
+            Assert.Equal(new[] { "alpha", "beta" }, snap.Groups[0].Rows.Select(r => r.Name).ToArray());
+            Assert.True(snap.Groups[0].Rows.All(r => r.IsFavorite));
+            Assert.Equal(new[] { "alpha" }, snap.Groups[1].Rows.Select(r => r.Name).ToArray());
+            Assert.Equal(3, snap.Groups[2].HostCount); // 段是视图，不从真实分组里拿走主机
+        }
+
+        [Fact]
+        public void ViewSections_Recent_LimitedAndNewestFirst()
+        {
+            var hosts = new List<Host>();
+            for (int i = 0; i < HostListBuilder.RecentLimit + 3; i++)
+            {
+                Host h = H("h" + i, "n" + i, "g");
+                h.LastConnectedAt = "2026-01-0" + (i + 1) + "T00:00:00Z";
+                hosts.Add(h);
+            }
+            HostListGroup recent = Build(hosts, new[] { G("g", "组", 0) }).Groups
+                .Single(g => g.GroupId == HostListGroup.RecentId);
+            Assert.Equal(HostListBuilder.RecentLimit, recent.Rows.Count);
+            Assert.Equal("h7", recent.Rows[0].HostId);
+        }
+
+        [Fact]
+        public void ViewSections_HiddenWhileSearching_AndWhenEmpty()
+        {
+            Host a = H("a", "web", "g");
+            a.Favorite = true;
+            a.LastConnectedAt = "2026-01-01T00:00:00Z";
+            var groups = new[] { G("g", "组", 0) };
+            Assert.DoesNotContain(Build(new[] { a }, groups, search: "web").Groups,
+                g => g.GroupId == HostListGroup.FavoritesId || g.GroupId == HostListGroup.RecentId);
+            Assert.Equal(new[] { "g" }, Build(new[] { H("b", "plain", "g") }, groups).Groups.Select(g => g.GroupId).ToArray());
+        }
+
+        [Fact]
+        public void ViewSections_Collapsible()
+        {
+            Host a = H("a", "web", "g");
+            a.Favorite = true;
+            HostListSnapshot snap = Build(new[] { a }, new[] { G("g", "组", 0) },
+                collapsed: "{\"__favorites\":true}");
+            HostListGroup fav = snap.Groups.Single(g => g.GroupId == HostListGroup.FavoritesId);
+            Assert.True(fav.IsCollapsed);
+            Assert.Empty(fav.Rows);
+            Assert.Equal(1, fav.HostCount);
         }
 
         [Fact]

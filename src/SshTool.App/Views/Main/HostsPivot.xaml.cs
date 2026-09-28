@@ -222,6 +222,22 @@ namespace SshTool.App.Views.Main
             }
         }
 
+        private void OnFavoriteRequested(object sender, EventArgs e)
+        {
+            if (ViewModel != null)
+            {
+                ViewModel.ToggleFavoriteAsync(RowOf(sender)).Forget("HostsPivot.ToggleFavorite", AppLog.Logger);
+            }
+        }
+
+        private void OnPinRequested(object sender, EventArgs e)
+        {
+            if (ViewModel != null)
+            {
+                ViewModel.PinAsync(RowOf(sender)).Forget("HostsPivot.Pin", AppLog.Logger);
+            }
+        }
+
         private void OnDeleteRequested(object sender, EventArgs e)
         {
             if (ViewModel != null)
