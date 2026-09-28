@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Graphics.Canvas;
 using Microsoft.Graphics.Canvas.UI;
@@ -7,6 +8,7 @@ using SshTool.App.Controls;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
+using SshTool.Core.Common;
 using SshTool.Core.Models;
 using SshTool.Core.Sessions;
 using SshTool.Core.Terminal;
@@ -37,6 +39,9 @@ namespace SshTool.App.Terminal
         private readonly SelectionModel _selection = new SelectionModel();
         private readonly PointerInput _pointer = new PointerInput();
         private bool _draggingSelection;
+        // W02：查找命中（逻辑行坐标）与当前定位下标。
+        private List<TextMatch> _matches = new List<TextMatch>();
+        private int _matchIndex = -1;
         private int _pulledOffset = int.MinValue;
         private bool _ignoreNextTap;
         private CoreCursor _savedCursor;
@@ -176,6 +181,104 @@ namespace SshTool.App.Terminal
         }
 
         // U12：不可见窗格不绘制/退订 FrameScheduler（TerminalWorkspace 调用）。
+        // ---------- W02 回滚查找（01-DESIGN §16.2） ----------
+
+        public int MatchCount
+        {
+            get { return _matches.Count; }
+        }
+
+        public int MatchIndex
+        {
+            get { return _matchIndex; }
+        }
+
+        // 在回滚 + 屏幕全文里查找，返回命中数；不移动视口。
+        public int FindAll(string query)
+        {
+            _matches = _screen == null
+                ? new List<TextMatch>()
+                : ScrollbackSearch.Find(ScrollbackSearch.ReadAllLines(_screen), query);
+            _matchIndex = -1;
+            return _matches.Count;
+        }
+
+        // 跳到第 index 个命中（循环）：滚入视口中部并以选区高亮。
+        public bool ShowMatch(int index)
+        {
+            if (_screen == null || _matches.Count == 0)
+            {
+                return false;
+            }
+            int count = _matches.Count;
+            _matchIndex = ((index % count) + count) % count;
+            TextMatch match = _matches[_matchIndex];
+            int scrollback = _screen.ScrollbackCount;
+            int rows = _screen.Rows;
+            // ScrollTo 触发 OnScrollChanged → Pull，_cells 随之换成新视口。
+            _pointer.Scroll.ScrollTo(ScrollbackSearch.OffsetToReveal(match.Line, scrollback, rows));
+            int row = ScrollbackSearch.ViewportRow(match.Line, scrollback, rows, _pointer.Scroll.Offset);
+            ISelectionGrid grid = CurrentGrid();
+            if (row < 0 || grid == null)
+            {
+                return false;
+            }
+            _selection.BeginCell(row, match.Col, grid);
+            _selection.Extend(row, match.Col + Math.Max(1, match.CellLength) - 1, grid);
+            RefreshSelectionOverlay();
+            FrameScheduler.Instance.Wake();
+            return true;
+        }
+
+        public void ClearFind()
+        {
+            _matches = new List<TextMatch>();
+            _matchIndex = -1;
+            if (_selection.IsActive)
+            {
+                _selection.Cancel();
+                RefreshSelectionOverlay();
+            }
+        }
+
+        // W02：视口格 (row, col) 上的链接；没有返回 null。只识别单行内的链接。
+        private string LinkAt(int row, int col)
+        {
+            ISelectionGrid grid = CurrentGrid();
+            if (grid == null)
+            {
+                return null;
+            }
+            TerminalLineText line = TerminalLineText.FromGrid(grid, row);
+            int index = line.CharIndexAt(col);
+            return index < 0 ? null : LinkDetector.UrlAt(line.Text, index);
+        }
+
+        private void ShowLinkMenu(string url, Point point)
+        {
+            var loader = ResourceLoader.GetForCurrentView();
+            var flyout = new MenuFlyout();
+            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuOpenLink"), (s, a) => OpenLink(url)));
+            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuCopyLink"), (s, a) => ClipboardService.SetText(url)));
+            try
+            {
+                flyout.ShowAt(this, point);
+            }
+            catch (Exception)
+            {
+                flyout.ShowAt(this);
+            }
+        }
+
+        private static void OpenLink(string url)
+        {
+            Uri uri;
+            if (Uri.TryCreate(url, UriKind.Absolute, out uri))
+            {
+                Windows.System.Launcher.LaunchUriAsync(uri).AsTask().Forget("TerminalView.OpenLink", AppLog.Logger);
+            }
+        }
+
         public void SetRenderingActive(bool active)
         {
             if (!DispatcherHelper.HasThreadAccess)
@@ -632,6 +735,15 @@ namespace SshTool.App.Terminal
             {
                 return;
             }
+            // W02：长按落在链接上 → 打开/复制链接菜单，不进入选词。
+            string url = LinkAt(row, col);
+            if (url != null)
+            {
+                _ignoreNextTap = true;
+                ShowLinkMenu(url, e.GetPosition(this));
+                e.Handled = true;
+                return;
+            }
             ISelectionGrid grid = CurrentGrid();
             if (grid == null)
             {
@@ -980,6 +1092,14 @@ namespace SshTool.App.Terminal
             // C-06：可见文案走 resw 双语（代码构造，走 ResourceLoader）。
             var loader = ResourceLoader.GetForCurrentView();
             var flyout = new MenuFlyout();
+            // W02：右键落在链接上时首项为「打开链接」。
+            int linkRow;
+            int linkCol;
+            string url = TryHitCell(point, out linkRow, out linkCol) ? LinkAt(linkRow, linkCol) : null;
+            if (url != null)
+            {
+                flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuOpenLink"), (s, a) => OpenLink(url)));
+            }
             flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuCopy"), (s, a) => CopySelection()));
             flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuPaste"), (s, a) => PasteFromClipboard()));
             flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuSelectAll"), (s, a) =>

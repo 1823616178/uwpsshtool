@@ -59,6 +59,36 @@
             </Button>
         </Grid>
 
+        <!-- W02（01-DESIGN §16.2）：回滚查找条，打开时替换信息条所在行。 -->
+        <Grid x:Name="FindBar" Grid.Row="1" Background="{ThemeResource AppSurfaceBrush}"
+              Height="{StaticResource TerminalCompactBarHeight}" Visibility="Collapsed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="FindBox" x:Uid="Terminal_FindBox" VerticalAlignment="Center"
+                     Margin="{StaticResource PagePadding}" IsSpellCheckEnabled="False"
+                     IsTextPredictionEnabled="False" InputScope="Default"
+                     TextChanged="OnFindTextChanged" KeyDown="OnFindKeyDown" />
+            <TextBlock x:Name="FindCount" Grid.Column="1" VerticalAlignment="Center"
+                       Style="{StaticResource CaptionTextStyle}" />
+            <Button x:Uid="Terminal_FindPrev" Grid.Column="2" Click="OnFindPrevClick"
+                    Style="{StaticResource TerminalIconButtonStyle}">
+                <FontIcon Glyph="{StaticResource IconChevronUp}" />
+            </Button>
+            <Button x:Uid="Terminal_FindNext" Grid.Column="3" Click="OnFindNextClick"
+                    Style="{StaticResource TerminalIconButtonStyle}">
+                <FontIcon Glyph="{StaticResource IconChevronDown}" />
+            </Button>
+            <Button x:Uid="Terminal_FindClose" Grid.Column="4" Click="OnFindCloseClick"
+                    Style="{StaticResource TerminalIconButtonStyle}">
+                <FontIcon Glyph="{StaticResource IconClose}" />
+            </Button>
+        </Grid>
+
         <term:TerminalView x:Name="Term" Grid.Row="2" />
         <controls:KeyBar x:Name="Keys" Grid.Row="3" />
         <controls:SessionOverlay x:Name="Overlay" Grid.RowSpan="4" />

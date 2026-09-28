@@ -1178,5 +1178,15 @@
   <data name="Tools_RowKnownHosts.Subtitle" xml:space="preserve"><value>Trusted host fingerprints</value></data>
   <data name="Tools_RowGroups.Title" xml:space="preserve"><value>Host groups</value></data>
   <data name="Tools_RowGroups.Subtitle" xml:space="preserve"><value>Create, rename and reorder groups</value></data>
+  <data name="Terminal_MenuFind" xml:space="preserve"><value>Find</value></data>
+  <data name="Terminal_MenuOpenLink" xml:space="preserve"><value>Open link</value></data>
+  <data name="Terminal_MenuCopyLink" xml:space="preserve"><value>Copy link</value></data>
+  <data name="Terminal_FindBox.PlaceholderText" xml:space="preserve"><value>Find in output</value></data>
+  <data name="Terminal_FindBox.AutomationProperties.Name" xml:space="preserve"><value>Find in output</value></data>
+  <data name="Terminal_FindPrev.AutomationProperties.Name" xml:space="preserve"><value>Previous (older)</value></data>
+  <data name="Terminal_FindNext.AutomationProperties.Name" xml:space="preserve"><value>Next (newer)</value></data>
+  <data name="Terminal_FindClose.AutomationProperties.Name" xml:space="preserve"><value>Close find</value></data>
+  <data name="Terminal_FindNone" xml:space="preserve"><value>No matches</value></data>
+  <data name="Terminal_FindCount" xml:space="preserve"><value>{0}/{1}</value></data>
 </root>
 

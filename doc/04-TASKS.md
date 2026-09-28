@@ -47,8 +47,8 @@
 | M7 | 密钥、SFTP、转发、跳板 | 11 | 11 | 密钥管理、传文件、开隧道、跳板连接、私钥同步 |
 | M8 | 打磨与发布 | 11 | 11 | 性能/安全报告、可侧载安装包 v1.0.0 |
 | M9 | 优化与债务清理 | 16 | 15 | 泄漏归零、热路径提速、文案门禁生效（依据 `06-OPT-AUDIT.md`） |
-| M10 | UI 收尾与功能补齐 | 6 | 1 | 回滚搜索、链接、收藏/磁贴、应用锁、断线通知、SFTP 增强；全页统一 V2 组件（依据 `01-DESIGN.md §16`） |
-| **合计** | | **134** | **128** | |
+| M10 | UI 收尾与功能补齐 | 6 | 2 | 回滚搜索、链接、收藏/磁贴、应用锁、断线通知、SFTP 增强；全页统一 V2 组件（依据 `01-DESIGN.md §16`） |
+| **合计** | | **134** | **129** | |
 
 ### 1.1 关键路径
 
@@ -1589,7 +1589,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     - [ ] `pwsh scripts/verify.ps1` 全绿
     - [ ] 📱 工具页入口与各子页往返正常
 
-- [ ] **W02 终端回滚搜索与链接识别** `M`
+- [x] **W02 终端回滚搜索与链接识别** `M`
   - 依赖：—
   - 参考：`01-DESIGN.md §16.2`
   - 产出：`Core/Terminal/ScrollbackSearch.cs`、`Core/Terminal/LinkDetector.cs`、`App/Terminal/TerminalView.xaml(.cs)`、`Views/TerminalPage.xaml(.cs)`、resw
@@ -1598,7 +1598,7 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
     2. 链接：`http(s)://` 与 `www.` 开头的 URL，去掉结尾标点；长按/双击命中链接时弹「打开链接/复制」。
     3. 终端菜单加「查找」：输入框 + 上一个/下一个 + 命中计数；命中行滚入视口并高亮。
   - 验收：
-    - [ ] Core 单测覆盖：跨回滚、多命中、宽字符列、空查询、URL 边界标点
+    - [x] Core 单测覆盖：跨回滚、多命中、宽字符列、空查询、URL 边界标点
     - [ ] `pwsh scripts/verify.ps1` 全绿
     - [ ] 📱 查找与点开链接可用，不抢 SIP 焦点
 
@@ -1748,6 +1748,8 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 - [ ] 质量审查修复 📱 SFTP 大文件下载中持续在同一会话终端打字、旋转屏幕不卡顿；传输中断网能及时报错、断开会话不挂死
 - [ ] W01 👤 Windows 上 `pwsh scripts/verify.ps1` 全量通过（W01 App 改动未在 Linux 编译）
 - [ ] W01 📱 工具页入口与各子页往返正常
+- [ ] W02 👤 Windows 上 verify 全量（W02 App 改动未在 Linux 编译）
+- [ ] W02 📱 查找与点开链接可用，不抢 SIP 焦点
 
 ---
 
@@ -1912,3 +1914,4 @@ X01 → X02 → SP02 → SP03 → N01 → N02 → N03 → N04 → N05 → N06 �
 | 2026-09-27 | C06 | 7f5d57f | **完成**（C-06 收尾第一批：return 形态 + 门禁补口，关闭 V04b 遗留「DescribeCredentialState 中文待 V06」）。门禁 O13 只扫 `.属性 = "中文"` 赋值形态，getter/方法里 `return "中文"` 全部漏网——HostEdit 凭据三态（登记遗留）、SessionsPivot 会话状态名、Settings 快捷键动作名 16 条与日志导出/清空提示、Keys 三 VM 校验与导出提示、SnippetEdit 变量提示、KeyBarLayoutEditor 类别名、TunnelEdit 路由预览等共 10 文件 73 处，全部改走 Localized.Get/Format；resw 双语 +59 组键（复用 StatusDot_*/Workspace_Split* 6 组；Validation_NameTooLong 复用既有键，初版重复添加已被 ResourceParityTests 拦下）。门禁补 return 规则：剥行尾注释防误报、排除 Localized./GetString( 兜底家族（TunnelItemViewModel/AccountSyncPage 等 11 处既定写法）；探针双向验证（加违例 EXIT=1、清空 EXIT=0）；基线登记 3 处非 UI 豁免（SettingsViewModel.Describe 仅入日志、NativeForwarder 路由描述无 UI 消费者）。verify 任务条目守卫 127→128。顺带查实：resw 行尾自 O13 起在仓库内即为多 CR 序列（每笔 resw 提交都是整文件行尾重写），本次按先例以 LF 统一。verify 8 步全绿（Core 1496）。**剩余形态立为 O16**：ConfirmDialog 参数、BuildDiagnosticsText、FileTypeChoices、KeyBarKeyNames 字典（约 45 键）等 App 侧参数/字典形态，以及 Core 侧 SyncCoordinator/SyncStatePresenter 注入式本地化（netstandard 无 ResourceLoader，需先改设计）。 |
 | 2026-09-28 | 质量审查修复 | （本提交） | **代码质量审查后的四项修复**（不属任何编号任务，未改任务计数）。①**SFTP 持会话锁阻塞终端**：`Bridge/SshSession` 的 13 个 `Sftp*` 在 `sessionMutex_` 下做阻塞调用（单次最长 15 s），UI 线程的 `Write`/`Resize`/`Close` 要排在传输块之后，且 I/O 线程的 `OnCoreStateChanged` 也取该锁，断线时会与等它的 SFTP 调用互锁到超时（与头文件「锁内只做快操作」自相矛盾）。改为专用 `sftpMutex_` 串行化 SFTP、阻塞期间只持该锁，锁序 sftpMutex_→sessionMutex_；13 份重复的准入/取消/错误码外壳抽成 `RunSftpCall`；`TeardownSftp` 先置取消位再等锁。②**按钮处理器异常致进程退出**：27 个无保护的 `async void` 处理器（HostEdit/TunnelEdit/SnippetEdit/Keys/KeyDetail/AppearanceList/AppearanceEdit/Settings/TunnelsPivot/SnippetPickerFlyout）包 try/catch 走 `AppLog.Error`；两处无 await 的 `async void` 去掉 async；`App.OnUnhandledException` 补 HResult 与调用栈（仍不记 ex.Message，脱敏惯例不变）。③**38 处 `GetString(...) ?? "兜底"` 永不生效**：`ResourceLoader` 缺键返回空串而非 null，全部改走 `Localized.Get`（6 文件），删除同病的 `AppServices.GetString`；硬编码文案基线去掉已清零的 LoopbackNoticeDialog。④**设置默认值/合法值/范围三处重复**：`SettingDefinition` 新增整型闭区间（MinValue/MaxValue/Clamp）与 `NormalizeString`，五个整型设置在定义表声明范围，仓库写入越界即拒、读到越界回退默认；`SettingsViewModel` 删掉手写的默认值、枚举表、Min/Max 常量与吞异常的 SafeGet*，改用定义表；设置页 Slider 范围改由代码从定义表设置（XAML 去掉 5 组 Minimum/Maximum 字面量）；属性通知改 `nameof`。另将 22 个 XAML/C# 文件行尾按 .gitattributes 归一（单独提交 8db6909，内容零变化）。验证：Linux 上 `dotnet test tests/SshTool.Core.Tests` 1507 全过（+11 条 SettingDefinitionRangeTests）；④c 订阅门禁通过；④b 文案门禁与改前逐文件对比只减不增（Linux 下路径分隔符与基线不符，需 Windows 复跑）；Native 改动仅用 g++ 桩代码验证了 `RunSftpCall` 模板与取消语义。⏳ 👤 Windows 上 `pwsh scripts/verify.ps1` 全量（含 v141 Native 构建与 App 编译）；📱 SFTP 下载中持续打字/旋转不卡、传输中断网能及时报错。 |
 | 2026-09-28 | W01 | （本提交） | **代码完成**。设置页「开源许可」改导航 `LicensesPage`（原误入占位页）；主页溢出菜单 7→3 项，新增 `ToolsPage`（AppListRow 六项：设置/密钥/片段/外观/已知主机/分组管理，后者原只能从主机编辑页进入）；删除 V02 遗留死契约 `SearchCommand`/`ToggleSearchCommand`/`IsSearchOpen`/`ToggleSearch` 与未用的 `HostListViewModel.OpenPlaceholder`；退化路径占位标题走资源。resw 双语 -5 +16 键。App 未能在 Linux 编译，⏳ 👤 verify 全量；📱 工具页往返。 |
+| 2026-09-28 | W02 | （本提交） | **代码完成**。Core：`TerminalLineText`（格→文本 + 字符→格列映射，宽字符续格/代理对正确）、`ScrollbackSearch`（按视口整窗读回滚+屏幕全文，行内大小写不敏感查找，上限 1000 命中，`OffsetToReveal`/`ViewportRow` 定位）、`LinkDetector`（http(s)/www.，词首判定，去结尾标点与不成对右括号）、`ScrollController.ScrollTo`；+23 单测，Core 1530 全过。App：`TerminalView` 暴露 `FindAll/ShowMatch/ClearFind`，命中滚入视口中部并用选区高亮；长按/右键落在链接上弹「打开链接/复制链接」（`Launcher.LaunchUriAsync`）。`TerminalPage` 菜单加「查找」，查找条替换信息条（250 ms 去抖、上/下一个、计数、Esc/返回键关闭，经 IBackHandler）。已知限制：不跨软换行匹配；宽屏工作区（TerminalWorkspace）暂无查找入口。文案门禁基线去掉已清零的 MainViewModel（W01）。 |

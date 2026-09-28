@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using SshTool.App.Controls;
@@ -18,7 +18,7 @@ using Windows.UI.Xaml.Navigation;
 
 namespace SshTool.App.Views
 {
-    public sealed partial class TerminalPage : Page
+    public sealed partial class TerminalPage : Page, IBackHandler
     {
         // P02：省电模式 Banner 数据源（01-DESIGN.md §10；ApiInformation 守卫在内）。
         private readonly Platform.EnergySaverWatcher _energySaver = new Platform.EnergySaverWatcher();
@@ -145,6 +145,7 @@ namespace SshTool.App.Views
             // R01 (C-01/C-02)：End 取消世代（进行中的 LoadAndBindAsync 失效），并按订阅
             // 反序执行 Track 的拆除：省电 → 外观 → ViewModel.Detach → SessionInfo。幂等。
             _lifetime.End();
+            CloseFind(false);
             StatusBarService.ShowThemed();
             // P01：离开终端页即释放常亮（DisplayRequest 成对，见 KeepAwakeService）。
             Platform.KeepAwakeService keepAwake;
@@ -385,6 +386,12 @@ namespace SshTool.App.Views
                 suppressRestore = true;
                 OpenSnippetPicker(anchor ?? Term, restoreSip);
             }));
+            // W02：查找会把 SIP 交给查找框，菜单关闭时不再把焦点还给哨兵。
+            flyout.Items.Add(Item(resw.GetString("Terminal_MenuFind"), () =>
+            {
+                suppressRestore = true;
+                OpenFind();
+            }));
             // F03：本会话的 SFTP（复用该会话已认证连接挂 SFTP 子系统）。
             flyout.Items.Add(Item(resw.GetString("Terminal_MenuSftp"), OpenSftp));
             flyout.Items.Add(Item(resw.GetString("Terminal_MenuAppearance"), () => Frame.Navigate(typeof(AppearanceListPage))));
@@ -507,6 +514,148 @@ namespace SshTool.App.Views
                     break;
                 default:
                     break;
+            }
+        }
+
+        // ---------- W02 回滚查找（01-DESIGN §16.2） ----------
+
+        private DispatcherTimer _findTimer;
+
+        private void OpenFind()
+        {
+            InfoBar.Visibility = Visibility.Collapsed;
+            FindBar.Visibility = Visibility.Visible;
+            FindCount.Text = string.Empty;
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RegisterBackHandler(this);
+            }
+            FindBox.Focus(FocusState.Programmatic);
+            FindBox.SelectAll();
+        }
+
+        private void CloseFind(bool restoreFocus)
+        {
+            if (_findTimer != null)
+            {
+                _findTimer.Stop();
+            }
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.UnregisterBackHandler(this);
+            }
+            if (FindBar.Visibility != Visibility.Visible)
+            {
+                return;
+            }
+            Term.ClearFind();
+            FindBar.Visibility = Visibility.Collapsed;
+            InfoBar.Visibility = Visibility.Visible;
+            if (restoreFocus)
+            {
+                Term.RestoreInputFocus();
+            }
+        }
+
+        public bool HandleBack()
+        {
+            if (FindBar.Visibility != Visibility.Visible)
+            {
+                return false;
+            }
+            CloseFind(true);
+            return true;
+        }
+
+        // 250 ms 去抖：全文读取在 5 万行回滚上不便宜，不在每次击键都跑。
+        private void OnFindTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_findTimer == null)
+            {
+                _findTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
+                _findTimer.Tick += OnFindTimerTick;
+            }
+            _findTimer.Stop();
+            _findTimer.Start();
+        }
+
+        private void OnFindTimerTick(object sender, object e)
+        {
+            _findTimer.Stop();
+            if (FindBar.Visibility != Visibility.Visible)
+            {
+                return;
+            }
+            int count = Term.FindAll(FindBox.Text);
+            if (count > 0)
+            {
+                // 从最新（最靠下）的命中开始，与桌面终端的反向查找习惯一致。
+                Term.ShowMatch(count - 1);
+            }
+            else
+            {
+                Term.ClearFind();
+            }
+            UpdateFindCount();
+        }
+
+        private void OnFindKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == Windows.System.VirtualKey.Enter)
+            {
+                Step(-1);
+                e.Handled = true;
+            }
+            else if (e.Key == Windows.System.VirtualKey.Escape)
+            {
+                CloseFind(true);
+                e.Handled = true;
+            }
+        }
+
+        private void OnFindPrevClick(object sender, RoutedEventArgs e)
+        {
+            Step(-1);
+        }
+
+        private void OnFindNextClick(object sender, RoutedEventArgs e)
+        {
+            Step(1);
+        }
+
+        private void OnFindCloseClick(object sender, RoutedEventArgs e)
+        {
+            CloseFind(true);
+        }
+
+        // -1 = 更旧（向上），+1 = 更新（向下）。
+        private void Step(int direction)
+        {
+            if (Term.MatchCount == 0)
+            {
+                return;
+            }
+            Term.ShowMatch(Term.MatchIndex + direction);
+            UpdateFindCount();
+        }
+
+        private void UpdateFindCount()
+        {
+            int count = Term.MatchCount;
+            if (FindBox.Text.Trim().Length == 0)
+            {
+                FindCount.Text = string.Empty;
+            }
+            else if (count == 0)
+            {
+                FindCount.Text = Localized.Get("Terminal_FindNone", "无结果");
+            }
+            else
+            {
+                FindCount.Text = Localized.Format("Terminal_FindCount", "{0}/{1}",
+                    Term.MatchIndex + 1, count);
             }
         }
 

@@ -114,6 +114,12 @@ namespace SshTool.Core.Terminal
             return SetOffset(_offset + lines);
         }
 
+        // W02：跳到指定偏移（查找命中定位）；越界夹取。
+        public void ScrollTo(int offset)
+        {
+            SetOffset(offset);
+        }
+
         public void SnapToBottom()
         {
             SetOffset(0);

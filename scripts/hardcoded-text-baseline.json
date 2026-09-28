@@ -15,7 +15,6 @@
   "src\\SshTool.App\\ViewModels\\HostListViewModel.cs": 5,
   "src\\SshTool.App\\ViewModels\\Keys\\KeyImportViewModel.cs": 1,
   "src\\SshTool.App\\ViewModels\\KnownHostsViewModel.cs": 3,
-  "src\\SshTool.App\\ViewModels\\MainViewModel.cs": 3,
   "src\\SshTool.App\\ViewModels\\SettingsViewModel.cs": 1,
   "src\\SshTool.App\\ViewModels\\Snippets\\SnippetEditViewModel.cs": 3,
   "src\\SshTool.App\\ViewModels\\Snippets\\SnippetGroupVm.cs": 1,
