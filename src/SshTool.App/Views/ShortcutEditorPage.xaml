@@ -29,7 +29,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -38,18 +37,30 @@
                                 BackRequested="OnHeaderBackRequested" />
         <TextBlock x:Uid="Shortcut_Subtitle" Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
                    Margin="{StaticResource PagePadding}" TextWrapping="Wrap" />
-        <TextBlock x:Name="ConflictWarning" Grid.Row="2"
-                   Style="{StaticResource CaptionTextStyle}"
-                   Foreground="{ThemeResource AppDangerBrush}"
-                   Margin="{StaticResource PagePadding}"
-                   Visibility="Collapsed" TextWrapping="Wrap" />
-        <ListView x:Name="ShortcutList" Grid.Row="3"
-                  ItemTemplate="{StaticResource ShortcutItemTemplate}"
-                  SelectionMode="None" />
-        <StackPanel Grid.Row="4" Orientation="Horizontal"
-                    Margin="{StaticResource PagePadding}">
-            <Button x:Uid="Shortcut_Reset" Click="OnResetClick" />
-        </StackPanel>
-        <controls:TransientToast x:Name="Toast" Grid.Row="4" />
+        <controls:FormSection x:Uid="Shortcut_Section_List" Grid.Row="2"
+                              MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch"
+                              Margin="{StaticResource PagePadding}">
+            <controls:FormSection.SectionContent>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock x:Name="ConflictWarning"
+                               Style="{StaticResource CaptionTextStyle}"
+                               Foreground="{ThemeResource AppDangerBrush}"
+                               Margin="{StaticResource GapSmBottom}"
+                               Visibility="Collapsed" TextWrapping="Wrap" />
+                    <ListView x:Name="ShortcutList" Grid.Row="1"
+                              ItemTemplate="{StaticResource ShortcutItemTemplate}"
+                              SelectionMode="None" />
+                </Grid>
+            </controls:FormSection.SectionContent>
+        </controls:FormSection>
+        <!-- 底部固定操作条：主操作=恢复默认 -->
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="3"
+                                  PrimaryClick="OnResetClick"
+                                  PrimaryButtonStyle="{StaticResource SecondaryButtonStyle}" />
+        <controls:TransientToast x:Name="Toast" Grid.Row="3" />
     </Grid>
 </Page>

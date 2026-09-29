@@ -174,6 +174,7 @@ namespace SshTool.App.Views
             AvailableList.ItemsSource = Available;
             SelectedList.ItemsSource = Selected;
             Reload();
+            BottomBar.PrimaryText = Localized.Get("KeyBarEditor_Reset", "恢复默认");
         }
 
         public ObservableCollection<KeyBarKeyItem> Available { get; private set; }
@@ -308,7 +309,7 @@ namespace SshTool.App.Views
             Save();
         }
 
-        private void OnResetClick(object sender, RoutedEventArgs e)
+        private void OnResetClick(object sender, EventArgs e)
         {
             try
             {

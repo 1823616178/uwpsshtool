@@ -60,6 +60,8 @@
     <!-- G03: 底部栏统一高度（48 epx，与系统 CommandBar Compact 对齐）与内边距 -->
     <x:Double x:Key="BottomBarHeight">48</x:Double>
     <Thickness x:Key="PadActionBar">12,4,12,4</Thickness>
+    <!-- G04: 宽屏表单最大宽度（560 epx） -->
+    <x:Double x:Key="FormMaxWidth">560</x:Double>
     <CornerRadius x:Key="RadiusSm">4</CornerRadius>
     <CornerRadius x:Key="RadiusMd">8</CornerRadius>
     <!-- StatusPill 外圈全圆角（≈ 胶囊高度一半），只用于短状态标签。 -->

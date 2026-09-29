@@ -19,7 +19,7 @@
                                 BackRequested="OnBackRequested" />
 
         <ScrollViewer Grid.Row="1">
-            <StackPanel Padding="{StaticResource PagePadding}">
+            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <!-- ========== 基础配置 ========== -->
                 <controls:FormSection x:Uid="TunnelEdit_Section_Basic">
                     <controls:FormSection.SectionContent>

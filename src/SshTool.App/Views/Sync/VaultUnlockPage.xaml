@@ -12,12 +12,13 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <controls:AppPageHeader x:Uid="VaultUnlock_Title"
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
         <ScrollViewer Grid.Row="1">
-            <StackPanel Padding="{StaticResource PagePadding}">
+            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <Grid Margin="{StaticResource GapSmTop}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -29,36 +30,37 @@
                             Grid.Column="1" HorizontalAlignment="Stretch"
                             Margin="{StaticResource GapSmLeft}" Click="OnRecoveryTabClick" />
                 </Grid>
-                <PasswordBox x:Name="SyncPasswordBox" x:Uid="VaultUnlock_PasswordBox"
-                             Header="同步密码" PlaceholderText="输入同步密码"
-                             Margin="{StaticResource GapSmTop}"
-                             PasswordChanged="OnPasswordChanged" />
-                <StackPanel x:Name="RecoveryPanel" Visibility="Collapsed">
-                    <TextBox x:Name="RecoveryBox" x:Uid="VaultUnlock_RecoveryBox"
-                             Header="恢复密钥" PlaceholderText="SPM1-…-XXXXXXXXXXXX"
-                             FontFamily="{StaticResource AppMonoFontFamily}"
-                             IsSpellCheckEnabled="False"
-                             Margin="{StaticResource GapSmTop}"
-                             TextChanged="OnRecoveryChanged" />
-                    <TextBlock x:Uid="VaultUnlock_RecoveryHint"
-                               Text="可直接粘贴；前缀与校验段大小写随意，将自动规范化"
-                               Style="{StaticResource CaptionTextStyle}"
-                               TextWrapping="Wrap"
-                               Margin="{StaticResource GapXsTop}" />
-                </StackPanel>
-                <TextBlock x:Name="ErrorText"
-                           Foreground="{ThemeResource AppDangerBrush}"
-                           Style="{StaticResource BodyTextStyle}"
-                           TextWrapping="Wrap"
-                           Margin="{StaticResource GapSmTop}"
-                           Visibility="Collapsed" />
-                <Button x:Name="SubmitButton" x:Uid="VaultUnlock_SubmitButton" Content="解锁"
-                        Style="{StaticResource PrimaryButtonStyle}"
-                        HorizontalAlignment="Stretch"
-                        Margin="{StaticResource GapSmTop}"
-                        Click="OnSubmitClick" />
+                <controls:FormSection x:Uid="VaultUnlock_Section_Unlock" Margin="{StaticResource GapSmTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <PasswordBox x:Name="SyncPasswordBox" x:Uid="VaultUnlock_PasswordBox"
+                                         Header="同步密码" PlaceholderText="输入同步密码"
+                                         PasswordChanged="OnPasswordChanged" />
+                            <StackPanel x:Name="RecoveryPanel" Visibility="Collapsed">
+                                <TextBox x:Name="RecoveryBox" x:Uid="VaultUnlock_RecoveryBox"
+                                         Header="恢复密钥" PlaceholderText="SPM1-…-XXXXXXXXXXXX"
+                                         FontFamily="{StaticResource AppMonoFontFamily}"
+                                         IsSpellCheckEnabled="False"
+                                         TextChanged="OnRecoveryChanged" />
+                                <TextBlock x:Uid="VaultUnlock_RecoveryHint"
+                                           Text="可直接粘贴；前缀与校验段大小写随意，将自动规范化"
+                                           Style="{StaticResource CaptionTextStyle}"
+                                           TextWrapping="Wrap"
+                                           Margin="{StaticResource GapXsTop}" />
+                            </StackPanel>
+                            <TextBlock x:Name="ErrorText"
+                                       Foreground="{ThemeResource AppDangerBrush}"
+                                       Style="{StaticResource BodyTextStyle}"
+                                       TextWrapping="Wrap"
+                                       Margin="{StaticResource GapSmTop}"
+                                       Visibility="Collapsed" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
             </StackPanel>
         </ScrollViewer>
-        <controls:LoadingOverlay x:Name="Working" Grid.RowSpan="2" />
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"
+                                  PrimaryClick="OnSubmitClick" />
+        <controls:LoadingOverlay x:Name="Working" Grid.RowSpan="3" />
     </Grid>
 </Page>

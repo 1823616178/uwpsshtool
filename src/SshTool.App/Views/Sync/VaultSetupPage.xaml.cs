@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
@@ -35,6 +35,7 @@ namespace SshTool.App.Views.Sync
         {
             ViewModel = CreateViewModel();
             this.InitializeComponent();
+            BottomBar.PrimaryText = Localized.Get("VaultSetup_Submit", "创建");
             ViewModel.SubmitCommand.CanExecuteChanged += OnCanExecuteChanged;
             ViewModel.PropertyChanged += OnViewModelChanged;
             RefreshBusy();
@@ -93,7 +94,7 @@ namespace SshTool.App.Views.Sync
             ViewModel.ConfirmPassword = ConfirmBox.Password;
         }
 
-        private void OnSubmitClick(object sender, RoutedEventArgs e)
+        private void OnSubmitClick(object sender, EventArgs e)
         {
             if (ViewModel.SubmitCommand.CanExecute(null))
             {
@@ -180,7 +181,7 @@ namespace SshTool.App.Views.Sync
             bool busy = ViewModel.IsBusy;
             Working.IsActive = busy;
             Working.Message = busy ? ViewModel.BusyMessage : string.Empty;
-            SubmitButton.IsEnabled = !busy && ViewModel.SubmitCommand.CanExecute(null);
+            BottomBar.IsPrimaryEnabled = !busy && ViewModel.SubmitCommand.CanExecute(null);
         }
     }
 }

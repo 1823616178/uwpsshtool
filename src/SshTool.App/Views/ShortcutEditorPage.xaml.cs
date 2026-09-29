@@ -64,6 +64,7 @@ namespace SshTool.App.Views
             this.InitializeComponent();
             ShortcutList.ItemsSource = Rows;
             Reload();
+            BottomBar.PrimaryText = Localized.Get("Shortcut_Reset", "恢复默认");
         }
 
         public ObservableCollection<ShortcutRow> Rows { get; private set; }
@@ -159,7 +160,7 @@ namespace SshTool.App.Views
             AttachCapture();
         }
 
-        private void OnResetClick(object sender, RoutedEventArgs e)
+        private void OnResetClick(object sender, EventArgs e)
         {
             try
             {

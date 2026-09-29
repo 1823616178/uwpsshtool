@@ -5,20 +5,11 @@
     xmlns:controls="using:SshTool.App.Controls"
     Background="{ThemeResource AppBgBrush}">
 
-    <Page.BottomAppBar>
-        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton x:Uid="GroupManage_AddButton" Click="OnAddClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconAdd}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-        </CommandBar>
-    </Page.BottomAppBar>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <controls:AppPageHeader x:Uid="GroupManage_Title"
@@ -37,16 +28,28 @@
         </ListView>
         <StackPanel x:Name="Editor" Grid.Row="2" Padding="{StaticResource PagePadding}" Visibility="Collapsed"
                     Background="{ThemeResource AppSurfaceBrush}">
-            <TextBox x:Name="NameBox" x:Uid="GroupManage_NameBox" LostFocus="OnNameLostFocus" />
-            <controls:ColorSwatchPicker x:Name="Picker" Margin="{StaticResource GapSmTop}"
-                                        ColorChanged="OnColorChanged" />
-            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
-                <Button x:Uid="GroupManage_MoveUp" Click="OnMoveUp" Style="{StaticResource SecondaryButtonStyle}" />
-                <Button x:Uid="GroupManage_MoveDown" Click="OnMoveDown" Margin="{StaticResource GapSmLeft}"
-                        Style="{StaticResource SecondaryButtonStyle}" />
-                <Button x:Uid="GroupManage_Delete" Click="OnDelete" Margin="{StaticResource GapSmLeft}"
-                        Style="{StaticResource DangerButtonStyle}" />
+            <StackPanel MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                <controls:FormSection x:Uid="GroupManage_Section_Edit">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBox x:Name="NameBox" x:Uid="GroupManage_NameBox" LostFocus="OnNameLostFocus" />
+                            <controls:ColorSwatchPicker x:Name="Picker" Margin="{StaticResource GapSmTop}"
+                                                        ColorChanged="OnColorChanged" />
+                            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                                <Button x:Uid="GroupManage_MoveUp" Click="OnMoveUp" Style="{StaticResource SecondaryButtonStyle}" />
+                                <Button x:Uid="GroupManage_MoveDown" Click="OnMoveDown" Margin="{StaticResource GapSmLeft}"
+                                        Style="{StaticResource SecondaryButtonStyle}" />
+                                <Button x:Uid="GroupManage_Delete" Click="OnDelete" Margin="{StaticResource GapSmLeft}"
+                                        Style="{StaticResource DangerButtonStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
             </StackPanel>
         </StackPanel>
+
+        <!-- 底部固定操作条：主操作=新建分组 -->
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="3"
+                                  PrimaryClick="OnAddClick" />
     </Grid>
 </Page>

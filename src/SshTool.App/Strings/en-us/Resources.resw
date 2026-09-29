@@ -95,6 +95,7 @@
   <data name="Api_SYNC_REVISION_INVALID" xml:space="preserve"><value>The server returned an invalid sync revision.</value></data>
   <data name="Api_SYNC_METADATA_INVALID" xml:space="preserve"><value>The server returned invalid sync metadata.</value></data>
   <data name="Login_Title.Title" xml:space="preserve"><value>Account &amp; Sync</value></data>
+  <data name="Login_Section_Credentials.Header" xml:space="preserve"><value>Account</value></data>
   <data name="Login_LoginTab.Content" xml:space="preserve"><value>Sign in</value></data>
   <data name="Login_RegisterTab.Content" xml:space="preserve"><value>Sign up</value></data>
   <data name="Login_EmailBox.Header" xml:space="preserve"><value>Email</value></data>
@@ -236,6 +237,8 @@
   <data name="ExitDialog_Message" xml:space="preserve"><value>{0} session(s) are still active. Exiting will disconnect them all.</value></data>
 
   <data name="VaultSetup_Title.Title" xml:space="preserve"><value>Create sync vault</value></data>
+  <data name="VaultSetup_Section_Setup.Header" xml:space="preserve"><value>Create Vault</value></data>
+  <data name="VaultSetup_Submit" xml:space="preserve"><value>Create</value></data>
   <data name="VaultSetup_Explanation.Text" xml:space="preserve"><value>The sync password encrypts your data. The server cannot decrypt it and it may differ from your login password.</value></data>
   <data name="VaultSetup_PasswordBox.Header" xml:space="preserve"><value>Sync password</value></data>
   <data name="VaultSetup_PasswordBox.PlaceholderText" xml:space="preserve"><value>Set a sync password (at least 8 characters)</value></data>
@@ -244,6 +247,8 @@
   <data name="VaultSetup_LocalNote.Text" xml:space="preserve"><value>Once unlocked, the vault key is stored encrypted on this device, so you will not need to type it again after a restart.</value></data>
   <data name="VaultSetup_SubmitButton.Content" xml:space="preserve"><value>Create</value></data>
   <data name="VaultUnlock_Title.Title" xml:space="preserve"><value>Unlock vault</value></data>
+  <data name="VaultUnlock_Section_Unlock.Header" xml:space="preserve"><value>Unlock Vault</value></data>
+  <data name="VaultUnlock_Submit" xml:space="preserve"><value>Unlock</value></data>
   <data name="VaultUnlock_PasswordTab.Content" xml:space="preserve"><value>Sync password</value></data>
   <data name="VaultUnlock_RecoveryTab.Content" xml:space="preserve"><value>Recovery key</value></data>
   <data name="VaultUnlock_PasswordBox.Header" xml:space="preserve"><value>Sync password</value></data>
@@ -390,6 +395,10 @@
   <data name="SnippetEdit_SaveButton.Label" xml:space="preserve"><value>Save</value></data>
   <data name="SnippetEdit_DeleteButton.Label" xml:space="preserve"><value>Delete</value></data>
   <data name="SnippetEdit_CancelButton.Label" xml:space="preserve"><value>Cancel</value></data>
+  <data name="SnippetEdit_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="SnippetEdit_Delete" xml:space="preserve"><value>Delete Snippet</value></data>
+  <data name="SnippetEdit_Section_Basic.Header" xml:space="preserve"><value>Basic Info</value></data>
+  <data name="SnippetEdit_Section_Content.Header" xml:space="preserve"><value>Content</value></data>
   <data name="SnippetEdit_NameBox.Header" xml:space="preserve"><value>Name *</value></data>
   <data name="SnippetEdit_GroupBox.Header" xml:space="preserve"><value>Group</value></data>
   <data name="SnippetEdit_GroupBox.PlaceholderText" xml:space="preserve"><value>Type to create a new group</value></data>
@@ -400,6 +409,13 @@
   <data name="AppearanceEdit_SaveButton.Label" xml:space="preserve"><value>Save</value></data>
   <data name="AppearanceEdit_ResetButton.Label" xml:space="preserve"><value>Revert</value></data>
   <data name="AppearanceEdit_DuplicateButton.Label" xml:space="preserve"><value>Duplicate as New Theme</value></data>
+  <data name="AppearanceEdit_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="AppearanceEdit_Reset" xml:space="preserve"><value>Reset</value></data>
+  <data name="AppearanceEdit_Duplicate" xml:space="preserve"><value>Duplicate as New Theme</value></data>
+  <data name="AppearanceEdit_Section_Font.Header" xml:space="preserve"><value>Font &amp; Layout</value></data>
+  <data name="AppearanceEdit_Section_BaseColors.Header" xml:space="preserve"><value>Base Colors</value></data>
+  <data name="AppearanceEdit_Section_AnsiColors.Header" xml:space="preserve"><value>ANSI Colors</value></data>
+  <data name="AppearanceEdit_Section_Cursor.Header" xml:space="preserve"><value>Cursor Appearance</value></data>
   <data name="AppearanceEdit_PivotFont.Header" xml:space="preserve"><value>Font</value></data>
   <data name="AppearanceEdit_NameBox.Header" xml:space="preserve"><value>Name</value></data>
   <data name="AppearanceEdit_BoldWeight.Header" xml:space="preserve"><value>Bold Uses Heavy Weight</value></data>
@@ -431,21 +447,26 @@
   <data name="Shortcut_Title.Title" xml:space="preserve"><value>Shortcuts</value></data>
   <data name="Shortcut_Subtitle.Text" xml:space="preserve"><value>Tap Record, then press a new key combination. Defaults include Shift to avoid clobbering terminal keys.</value></data>
   <data name="Shortcut_Record.Content" xml:space="preserve"><value>Record</value></data>
-  <data name="Shortcut_Reset.Content" xml:space="preserve"><value>Reset to Default</value></data>
+  <data name="Shortcut_Reset" xml:space="preserve"><value>Reset to Default</value></data>
+  <data name="Shortcut_Section_List.Header" xml:space="preserve"><value>Shortcuts List</value></data>
 
   <!-- V06 (C-06): KeyBarLayoutEditorPage hardcoded Chinese cleanup -->
   <data name="KeyBarEditor_Title.Title" xml:space="preserve"><value>Key Bar Layout</value></data>
   <data name="KeyBarEditor_Subtitle.Text" xml:space="preserve"><value>Changes take effect immediately; the new layout is used next time you open a terminal.</value></data>
   <data name="KeyBarEditor_AvailableHeader.Text" xml:space="preserve"><value>Available Keys</value></data>
+  <data name="KeyBarEditor_Reset" xml:space="preserve"><value>Reset to Default</value></data>
+  <data name="KeyBarEditor_Section_Available.Header" xml:space="preserve"><value>Available Keys</value></data>
+  <data name="KeyBarEditor_Section_Selected.Header" xml:space="preserve"><value>Selected Keys</value></data>
   <data name="KeyBarEditor_SelectedHeader.Text" xml:space="preserve"><value>Selected Keys</value></data>
   <data name="KeyBarEditor_Add.Content" xml:space="preserve"><value>Add →</value></data>
   <data name="KeyBarEditor_Remove.Content" xml:space="preserve"><value>← Remove</value></data>
   <data name="KeyBarEditor_MoveUp.Content" xml:space="preserve"><value>Move Up</value></data>
   <data name="KeyBarEditor_MoveDown.Content" xml:space="preserve"><value>Move Down</value></data>
-  <data name="KeyBarEditor_Reset.Content" xml:space="preserve"><value>Reset to Default</value></data>
 
   <!-- V06 (C-06): GroupManagePage hardcoded Chinese cleanup -->
   <data name="GroupManage_AddButton.Label" xml:space="preserve"><value>New</value></data>
+  <data name="GroupManage_AddGroup" xml:space="preserve"><value>New Group</value></data>
+  <data name="GroupManage_Section_Edit.Header" xml:space="preserve"><value>Edit Group</value></data>
   <data name="GroupManage_Title.Title" xml:space="preserve"><value>Groups</value></data>
   <data name="GroupManage_NameBox.Header" xml:space="preserve"><value>Name</value></data>
   <data name="GroupManage_MoveUp.Content" xml:space="preserve"><value>Move Up</value></data>
@@ -802,6 +823,7 @@
 
   <!-- ChangeLoginPasswordPage (U20) -->
   <data name="ChangeLogin_Header.Title" xml:space="preserve"><value>Change Login Password</value></data>
+  <data name="ChangeLogin_Section_Password.Header" xml:space="preserve"><value>Change Password</value></data>
   <data name="ChangeLogin_CurrentLabel" xml:space="preserve"><value>Current password</value></data>
   <data name="ChangeLogin_NewLabel" xml:space="preserve"><value>New password</value></data>
   <data name="ChangeLogin_NewHint" xml:space="preserve"><value>New password must be at least 10 characters.</value></data>
@@ -812,6 +834,7 @@
 
   <!-- DeleteAccountPage (U20) -->
   <data name="DeleteAccount_Header.Title" xml:space="preserve"><value>Delete Account</value></data>
+  <data name="DeleteAccount_Section_Confirm.Header" xml:space="preserve"><value>Confirm Deletion</value></data>
   <data name="DeleteAccount_Warning" xml:space="preserve"><value>This permanently deletes your account and cloud vault. This cannot be undone.</value></data>
   <data name="DeleteAccount_PasswordLabel" xml:space="preserve"><value>Login password</value></data>
   <data name="DeleteAccount_ConfirmLabel" xml:space="preserve"><value>Type DELETE to confirm</value></data>
@@ -821,6 +844,7 @@
 
   <!-- DeleteVaultPage (U20) -->
   <data name="DeleteVault_Header.Title" xml:space="preserve"><value>Delete Cloud Vault</value></data>
+  <data name="DeleteVault_Section_Confirm.Header" xml:space="preserve"><value>Confirm Deletion</value></data>
   <data name="DeleteVault_Explanation" xml:space="preserve"><value>The cloud vault and history will be deleted; local settings are kept.</value></data>
   <data name="DeleteVault_PasswordLabel" xml:space="preserve"><value>Login password</value></data>
   <data name="DeleteVault_Submit" xml:space="preserve"><value>Delete cloud vault</value></data>

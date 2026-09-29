@@ -115,6 +115,25 @@ namespace SshTool.App.Views
             VariableHint.Text = ViewModel.VariableHint;
             _suppress = false;
             ShowErrors();
+            SetupBottomBar();
+        }
+
+        private void SetupBottomBar()
+        {
+            BottomBar.PrimaryText = Localized.Get("SnippetEdit_Save", "保存");
+            BottomBar.ShowOverflow = !ViewModel.IsNew;
+            if (!ViewModel.IsNew)
+            {
+                var flyout = new MenuFlyout();
+                var deleteItem = new MenuFlyoutItem
+                {
+                    Text = Localized.Get("SnippetEdit_Delete", "删除片段"),
+                    Style = (Style)Application.Current.Resources["DangerMenuItemStyle"]
+                };
+                deleteItem.Click += (s, args) => OnDeleteClick(s, EventArgs.Empty);
+                flyout.Items.Add(deleteItem);
+                BottomBar.OverflowFlyout = flyout;
+            }
         }
 
         private async System.Threading.Tasks.Task ConfirmAbandonAsync()
@@ -132,7 +151,7 @@ namespace SshTool.App.Views
             }
         }
 
-        private async void OnSaveClick(object sender, RoutedEventArgs e)
+        private async void OnSaveClick(object sender, EventArgs e)
         {
             try
             {
@@ -150,7 +169,7 @@ namespace SshTool.App.Views
             }
         }
 
-        private async void OnDeleteClick(object sender, RoutedEventArgs e)
+        private async void OnDeleteClick(object sender, EventArgs e)
         {
             try
             {
@@ -171,7 +190,7 @@ namespace SshTool.App.Views
             }
         }
 
-        private void OnCancelClick(object sender, RoutedEventArgs e)
+        private void OnCancelClick(object sender, EventArgs e)
         {
             if (!HandleBack())
             {

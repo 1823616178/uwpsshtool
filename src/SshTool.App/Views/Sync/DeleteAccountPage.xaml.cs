@@ -26,6 +26,7 @@ namespace SshTool.App.Views.Sync
             ViewModel.SubmitCommand.CanExecuteChanged += OnCanExecuteChanged;
             ViewModel.PropertyChanged += OnViewModelChanged;
             ViewModel.AccountDeleted += OnAccountDeleted;
+            BottomBar.PrimaryText = Localized.Get("DeleteAccount_Submit", "注销账号");
             RefreshError();
             RefreshBusy();
         }
@@ -58,7 +59,7 @@ namespace SshTool.App.Views.Sync
             ViewModel.ConfirmText = ConfirmBox.Text;
         }
 
-        private void OnSubmitClick(object sender, RoutedEventArgs e)
+        private void OnSubmitClick(object sender, EventArgs e)
         {
             if (ViewModel.SubmitCommand.CanExecute(null))
             {
@@ -110,7 +111,7 @@ namespace SshTool.App.Views.Sync
         {
             bool busy = ViewModel != null && ViewModel.IsBusy;
             BusyOverlay.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
-            SubmitButton.IsEnabled = ViewModel != null && ViewModel.SubmitCommand.CanExecute(null);
+            BottomBar.IsPrimaryEnabled = ViewModel != null && !busy && ViewModel.SubmitCommand.CanExecute(null);
         }
 
         private void OnBackRequested(object sender, EventArgs e)

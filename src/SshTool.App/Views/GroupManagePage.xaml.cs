@@ -1,4 +1,5 @@
-﻿using SshTool.App.Controls;
+using System;
+using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Common;
 using SshTool.App.ViewModels;
@@ -29,6 +30,7 @@ namespace SshTool.App.Views
             ViewModel = new GroupManageViewModel(AppServices.Current);
             this.InitializeComponent();
             GroupList.ItemsSource = ViewModel.Groups;
+            BottomBar.PrimaryText = Localized.Get("GroupManage_AddGroup", "新建分组");
         }
 
         public GroupManageViewModel ViewModel { get; private set; }
@@ -39,7 +41,7 @@ namespace SshTool.App.Views
             ViewModel.RefreshAsync().Forget("GroupManagePage.Refresh", AppLog.Logger);
         }
 
-        private void OnAddClick(object sender, RoutedEventArgs e)
+        private void OnAddClick(object sender, EventArgs e)
         {
             ViewModel.AddCommand.Execute(null);
         }

@@ -130,7 +130,7 @@ namespace SshTool.App.Views.Sync
             ViewModel.DeviceName = DeviceBox.Text;
         }
 
-        private void OnSubmitClick(object sender, RoutedEventArgs e)
+        private void OnSubmitClick(object sender, EventArgs e)
         {
             if (ViewModel.SubmitCommand.CanExecute(null))
             {
@@ -192,7 +192,7 @@ namespace SshTool.App.Views.Sync
             PasswordHint.Visibility = register ? Visibility.Visible : Visibility.Collapsed;
             LoginTabButton.IsEnabled = !register;
             RegisterTabButton.IsEnabled = register;
-            SubmitButton.Content = GetString(register ? "Login_SubmitRegister" : "Login_SubmitLogin",
+            BottomBar.PrimaryText = GetString(register ? "Login_SubmitRegister" : "Login_SubmitLogin",
                 register ? "注册" : "登录");
             RefreshError();
             RefreshBusy();
@@ -213,7 +213,7 @@ namespace SshTool.App.Views.Sync
                 ? GetString(ViewModel.IsRegisterMode ? "Login_WorkingRegister" : "Login_WorkingLogin",
                     ViewModel.IsRegisterMode ? "正在注册…" : "正在登录…")
                 : string.Empty;
-            SubmitButton.IsEnabled = !busy && ViewModel.SubmitCommand.CanExecute(null);
+            BottomBar.IsPrimaryEnabled = !busy && ViewModel.SubmitCommand.CanExecute(null);
         }
 
         private void RefreshHttpBanner()

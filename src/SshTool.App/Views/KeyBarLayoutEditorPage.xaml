@@ -28,53 +28,46 @@
                                 BackRequested="OnHeaderBackRequested" />
         <TextBlock x:Uid="KeyBarEditor_Subtitle" Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
                    Margin="{StaticResource PagePadding}" />
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock x:Uid="KeyBarEditor_AvailableHeader" Style="{StaticResource BodyTextStyle}"
-                           Margin="{StaticResource PagePadding}" />
-                <ListView x:Name="AvailableList" Grid.Row="1"
-                          ItemTemplate="{StaticResource KeyItemTemplate}"
-                          SelectionMode="Single" />
-            </Grid>
-            <Grid Grid.Column="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <TextBlock x:Uid="KeyBarEditor_SelectedHeader" Style="{StaticResource BodyTextStyle}"
-                           Margin="{StaticResource PagePadding}" />
-                <ListView x:Name="SelectedList" Grid.Row="1"
-                          ItemTemplate="{StaticResource KeyItemTemplate}"
-                          SelectionMode="Single" />
-            </Grid>
+            <controls:FormSection x:Uid="KeyBarEditor_Section_Available" Margin="{StaticResource PagePadding}">
+                <controls:FormSection.SectionContent>
+                    <ListView x:Name="AvailableList"
+                              ItemTemplate="{StaticResource KeyItemTemplate}"
+                              SelectionMode="Single" />
+                </controls:FormSection.SectionContent>
+            </controls:FormSection>
+            <controls:FormSection x:Uid="KeyBarEditor_Section_Selected" Grid.Column="1" Margin="{StaticResource PagePadding}">
+                <controls:FormSection.SectionContent>
+                    <ListView x:Name="SelectedList"
+                              ItemTemplate="{StaticResource KeyItemTemplate}"
+                              SelectionMode="Single" />
+                </controls:FormSection.SectionContent>
+            </controls:FormSection>
         </Grid>
-        <StackPanel Grid.Row="3" Orientation="Horizontal"
-                    Margin="{StaticResource PagePadding}">
-            <Button x:Uid="KeyBarEditor_Add" Click="OnAddClick"
-                    Style="{StaticResource PrimaryButtonStyle}" />
-            <Button x:Uid="KeyBarEditor_Remove" Click="OnRemoveClick"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Margin="{StaticResource GapSmLeft}" />
+        <StackPanel Grid.Row="3" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+            <StackPanel Orientation="Horizontal" Margin="{StaticResource PagePadding}">
+                <Button x:Uid="KeyBarEditor_Add" Click="OnAddClick"
+                        Style="{StaticResource PrimaryButtonStyle}" />
+                <Button x:Uid="KeyBarEditor_Remove" Click="OnRemoveClick"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="{StaticResource GapSmLeft}" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Margin="{StaticResource PagePadding}">
+                <Button x:Uid="KeyBarEditor_MoveUp" Click="OnMoveUpClick"
+                        Style="{StaticResource SecondaryButtonStyle}" />
+                <Button x:Uid="KeyBarEditor_MoveDown" Click="OnMoveDownClick"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Margin="{StaticResource GapSmLeft}" />
+            </StackPanel>
         </StackPanel>
-        <StackPanel Grid.Row="4" Orientation="Horizontal"
-                    Margin="{StaticResource PagePadding}">
-            <Button x:Uid="KeyBarEditor_MoveUp" Click="OnMoveUpClick"
-                    Style="{StaticResource SecondaryButtonStyle}" />
-            <Button x:Uid="KeyBarEditor_MoveDown" Click="OnMoveDownClick"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Margin="{StaticResource GapSmLeft}" />
-            <Button x:Uid="KeyBarEditor_Reset" Click="OnResetClick"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Margin="{StaticResource GapSmLeft}" />
-        </StackPanel>
+        <!-- 底部固定操作条：主操作=恢复默认 -->
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="4"
+                                  PrimaryClick="OnResetClick"
+                                  PrimaryButtonStyle="{StaticResource SecondaryButtonStyle}" />
         <controls:TransientToast x:Name="Toast" Grid.Row="4" />
     </Grid>
 </Page>

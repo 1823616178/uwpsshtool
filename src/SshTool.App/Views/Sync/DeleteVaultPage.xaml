@@ -7,43 +7,52 @@
 
     <!-- U20 删除云端保险库页（02-UI-DESIGN.md §5.13）：登录密码确认 → 删除。 -->
     <Grid>
-        <ScrollViewer>
-            <StackPanel Padding="{StaticResource PagePadding}">
-                <controls:AppPageHeader x:Name="Header" x:Uid="DeleteVault_Header"
-                                        Title="删除云端保险库"
-                                        ShowBackButton="True"
-                                        BackRequested="OnBackRequested" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <controls:AppPageHeader x:Name="Header" x:Uid="DeleteVault_Header"
+                                Title="删除云端保险库"
+                                ShowBackButton="True"
+                                BackRequested="OnBackRequested" />
 
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <TextBlock x:Uid="DeleteVault_Explanation"
                            Text="云端保险库和历史版本将被删除，本机配置仍保留。"
                            Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
                            Margin="{StaticResource GapSmTop}" />
 
-                <TextBlock x:Uid="DeleteVault_PasswordLabel" Text="登录密码"
-                           Style="{StaticResource BodyTextStyle}"
-                           Margin="{StaticResource GapMdTop}" />
-                <PasswordBox x:Name="PasswordBox" x:Uid="DeleteVault_PasswordBox"
-                             PlaceholderText="请输入登录密码"
-                             Margin="{StaticResource GapSmTop}"
-                             PasswordChanged="OnPasswordChanged" />
+                <controls:FormSection x:Uid="DeleteVault_Section_Confirm" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBlock x:Uid="DeleteVault_PasswordLabel" Text="登录密码"
+                                       Style="{StaticResource BodyTextStyle}" />
+                            <PasswordBox x:Name="PasswordBox" x:Uid="DeleteVault_PasswordBox"
+                                         PlaceholderText="请输入登录密码"
+                                         Margin="{StaticResource GapSmTop}"
+                                         PasswordChanged="OnPasswordChanged" />
 
-                <TextBlock x:Name="ErrorText"
-                           Foreground="{ThemeResource AppDangerBrush}"
-                           Style="{StaticResource BodyTextStyle}"
-                           Margin="{StaticResource GapSmTop}"
-                           TextWrapping="Wrap"
-                           Visibility="Collapsed" />
-
-                <Button x:Name="SubmitButton" x:Uid="DeleteVault_Submit"
-                        Content="删除云端保险库"
-                        Style="{StaticResource DangerButtonStyle}"
-                        Margin="{StaticResource GapMdTop}"
-                        HorizontalAlignment="Stretch"
-                        Click="OnSubmitClick" />
+                            <TextBlock x:Name="ErrorText"
+                                       Foreground="{ThemeResource AppDangerBrush}"
+                                       Style="{StaticResource BodyTextStyle}"
+                                       Margin="{StaticResource GapSmTop}"
+                                       TextWrapping="Wrap"
+                                       Visibility="Collapsed" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
             </StackPanel>
         </ScrollViewer>
 
+        <!-- 底部固定操作条：主操作（删除云端保险库） -->
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"
+                                  PrimaryButtonStyle="{StaticResource DangerButtonStyle}"
+                                  PrimaryClick="OnSubmitClick" />
+
         <Grid x:Name="BusyOverlay"
+              Grid.RowSpan="3"
               Background="{ThemeResource AppBgBrush}"
               Visibility="Collapsed">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
@@ -51,8 +60,7 @@
                               IsActive="True" />
                 <TextBlock x:Uid="DeleteVaultPage_TextBlock1" Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource GapSmTop}"
-                           TextAlignment="Center"
- />
+                           TextAlignment="Center" />
             </StackPanel>
         </Grid>
     </Grid>

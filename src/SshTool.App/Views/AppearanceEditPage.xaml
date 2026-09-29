@@ -6,32 +6,13 @@
     xmlns:term="using:SshTool.App.Terminal"
     Background="{ThemeResource AppBgBrush}">
 
-    <Page.BottomAppBar>
-        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton x:Uid="AppearanceEdit_SaveButton" Click="OnSaveClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconEdit}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton x:Uid="AppearanceEdit_ResetButton" Click="OnResetClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconSync}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton x:Uid="AppearanceEdit_DuplicateButton" Click="OnDuplicateClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconCopy}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-        </CommandBar>
-    </Page.BottomAppBar>
-
     <!-- A03：外观编辑（02-UI-DESIGN.md §5.12）。上预览、下 Pivot；改动实时进预览。 -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="2*" />
             <RowDefinition Height="3*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <controls:AppPageHeader x:Name="TitleText"
                                 Level="Secondary" ShowBackButton="True"
@@ -40,114 +21,141 @@
         <Pivot x:Name="EditPivot" Grid.Row="2">
             <PivotItem x:Uid="AppearanceEdit_PivotFont">
                 <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <TextBox x:Name="NameBox" x:Uid="AppearanceEdit_NameBox" TextChanged="OnNameChanged" />
-                        <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                        <TextBlock x:Name="FontSizeLabel" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <Slider x:Name="FontSizeSlider" ValueChanged="OnFontSizeChanged" />
-                        <TextBlock x:Name="LineHeightLabel" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <Slider x:Name="LineHeightSlider" ValueChanged="OnLineHeightChanged" />
-                        <ToggleSwitch x:Name="BoldWeightSwitch" x:Uid="AppearanceEdit_BoldWeight"
-                                      Margin="{StaticResource GapSmTop}" Toggled="OnBoldWeightToggled" />
-                        <ToggleSwitch x:Name="BoldBrightSwitch" x:Uid="AppearanceEdit_BoldBright"
-                                      Toggled="OnBoldBrightToggled" />
-                        <TextBlock x:Name="PaddingLabel" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <Slider x:Name="PaddingSlider" ValueChanged="OnPaddingChanged" />
-                        <TextBlock x:Name="FontError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                    <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                        <controls:FormSection x:Uid="AppearanceEdit_Section_Font">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <TextBox x:Name="NameBox" x:Uid="AppearanceEdit_NameBox" TextChanged="OnNameChanged" />
+                                    <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
+                                               Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                                    <TextBlock x:Name="FontSizeLabel" Style="{StaticResource BodyTextStyle}"
+                                               Margin="{StaticResource GapSmTop}" />
+                                    <Slider x:Name="FontSizeSlider" ValueChanged="OnFontSizeChanged" />
+                                    <TextBlock x:Name="LineHeightLabel" Style="{StaticResource BodyTextStyle}"
+                                               Margin="{StaticResource GapSmTop}" />
+                                    <Slider x:Name="LineHeightSlider" ValueChanged="OnLineHeightChanged" />
+                                    <ToggleSwitch x:Name="BoldWeightSwitch" x:Uid="AppearanceEdit_BoldWeight"
+                                                  Margin="{StaticResource GapSmTop}" Toggled="OnBoldWeightToggled" />
+                                    <ToggleSwitch x:Name="BoldBrightSwitch" x:Uid="AppearanceEdit_BoldBright"
+                                                  Toggled="OnBoldBrightToggled" />
+                                    <TextBlock x:Name="PaddingLabel" Style="{StaticResource BodyTextStyle}"
+                                               Margin="{StaticResource GapSmTop}" />
+                                    <Slider x:Name="PaddingSlider" ValueChanged="OnPaddingChanged" />
+                                    <TextBlock x:Name="FontError" Style="{StaticResource CaptionTextStyle}"
+                                               Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
                     </StackPanel>
                 </ScrollViewer>
             </PivotItem>
             <PivotItem x:Uid="AppearanceEdit_PivotColor">
                 <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="*" />
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                                <RowDefinition Height="Auto" />
-                            </Grid.RowDefinitions>
-                            <TextBlock x:Uid="AppearanceEdit_FgLabel" Style="{StaticResource BodyTextStyle}"
-                                       VerticalAlignment="Center" />
-                            <Button x:Name="FgButton" Grid.Column="1" Margin="{StaticResource GapSmLeft}"
-                                    Tag="foreground"
-                                    Style="{StaticResource SecondaryButtonStyle}">
-                                <Button.Flyout>
-                                    <Flyout Opening="OnFgFlyoutOpening">
-                                        <controls:ColorSwatchPicker x:Name="FgPicker" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-                            <TextBlock x:Uid="AppearanceEdit_BgLabel" Grid.Row="1" Style="{StaticResource BodyTextStyle}"
-                                       VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
-                            <Button x:Name="BgButton" Grid.Row="1" Grid.Column="1"
-                                    Margin="{StaticResource GapSmLeft}" Tag="background"
-                                    Style="{StaticResource SecondaryButtonStyle}">
-                                <Button.Flyout>
-                                    <Flyout Opening="OnBgFlyoutOpening">
-                                        <controls:ColorSwatchPicker x:Name="BgPicker" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-                            <TextBlock x:Uid="AppearanceEdit_CursorLabel" Grid.Row="2" Style="{StaticResource BodyTextStyle}"
-                                       VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
-                            <Button x:Name="CursorButton" Grid.Row="2" Grid.Column="1"
-                                    Margin="{StaticResource GapSmLeft}" Tag="cursor"
-                                    Style="{StaticResource SecondaryButtonStyle}">
-                                <Button.Flyout>
-                                    <Flyout Opening="OnCursorFlyoutOpening">
-                                        <controls:ColorSwatchPicker x:Name="CursorPicker" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-                            <TextBlock x:Uid="AppearanceEdit_SelectionLabel" Grid.Row="3" Style="{StaticResource BodyTextStyle}"
-                                       VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
-                            <Button x:Name="SelectionButton" Grid.Row="3" Grid.Column="1"
-                                    Margin="{StaticResource GapSmLeft}" Tag="selection"
-                                    Style="{StaticResource SecondaryButtonStyle}">
-                                <Button.Flyout>
-                                    <Flyout Opening="OnSelectionFlyoutOpening">
-                                        <controls:ColorSwatchPicker x:Name="SelectionPicker" />
-                                    </Flyout>
-                                </Button.Flyout>
-                            </Button>
-                        </Grid>
-                        <TextBlock x:Name="ColorError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                        <TextBlock x:Uid="AppearanceEdit_AnsiLabel" Style="{StaticResource BodyTextStyle}"
-                                   Margin="{StaticResource GapSmTop}" />
-                        <VariableSizedWrapGrid x:Name="PaletteGrid" Orientation="Horizontal"
-                                               MaximumRowsOrColumns="8"
-                                               ItemWidth="{StaticResource TouchTargetMin}"
-                                               ItemHeight="{StaticResource TouchTargetMin}" />
-                        <TextBlock x:Name="PaletteError" Style="{StaticResource CaptionTextStyle}"
-                                   Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                    <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                        <controls:FormSection x:Uid="AppearanceEdit_Section_BaseColors">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <TextBlock x:Uid="AppearanceEdit_FgLabel" Style="{StaticResource BodyTextStyle}"
+                                                   VerticalAlignment="Center" />
+                                        <Button x:Name="FgButton" Grid.Column="1" Margin="{StaticResource GapSmLeft}"
+                                                Tag="foreground"
+                                                Style="{StaticResource SecondaryButtonStyle}">
+                                            <Button.Flyout>
+                                                <Flyout Opening="OnFgFlyoutOpening">
+                                                    <controls:ColorSwatchPicker x:Name="FgPicker" />
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                        <TextBlock x:Uid="AppearanceEdit_BgLabel" Grid.Row="1" Style="{StaticResource BodyTextStyle}"
+                                                   VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
+                                        <Button x:Name="BgButton" Grid.Row="1" Grid.Column="1"
+                                                Margin="{StaticResource GapSmLeft}" Tag="background"
+                                                Style="{StaticResource SecondaryButtonStyle}">
+                                            <Button.Flyout>
+                                                <Flyout Opening="OnBgFlyoutOpening">
+                                                    <controls:ColorSwatchPicker x:Name="BgPicker" />
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                        <TextBlock x:Uid="AppearanceEdit_CursorLabel" Grid.Row="2" Style="{StaticResource BodyTextStyle}"
+                                                   VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
+                                        <Button x:Name="CursorButton" Grid.Row="2" Grid.Column="1"
+                                                Margin="{StaticResource GapSmLeft}" Tag="cursor"
+                                                Style="{StaticResource SecondaryButtonStyle}">
+                                            <Button.Flyout>
+                                                <Flyout Opening="OnCursorFlyoutOpening">
+                                                    <controls:ColorSwatchPicker x:Name="CursorPicker" />
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                        <TextBlock x:Uid="AppearanceEdit_SelectionLabel" Grid.Row="3" Style="{StaticResource BodyTextStyle}"
+                                                   VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
+                                        <Button x:Name="SelectionButton" Grid.Row="3" Grid.Column="1"
+                                                Margin="{StaticResource GapSmLeft}" Tag="selection"
+                                                Style="{StaticResource SecondaryButtonStyle}">
+                                            <Button.Flyout>
+                                                <Flyout Opening="OnSelectionFlyoutOpening">
+                                                    <controls:ColorSwatchPicker x:Name="SelectionPicker" />
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </Grid>
+                                    <TextBlock x:Name="ColorError" Style="{StaticResource CaptionTextStyle}"
+                                               Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
+                        <controls:FormSection x:Uid="AppearanceEdit_Section_AnsiColors" Margin="{StaticResource GapMdTop}">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <VariableSizedWrapGrid x:Name="PaletteGrid" Orientation="Horizontal"
+                                                           MaximumRowsOrColumns="8"
+                                                           ItemWidth="{StaticResource TouchTargetMin}"
+                                                           ItemHeight="{StaticResource TouchTargetMin}" />
+                                    <TextBlock x:Name="PaletteError" Style="{StaticResource CaptionTextStyle}"
+                                               Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
                     </StackPanel>
                 </ScrollViewer>
             </PivotItem>
             <PivotItem x:Uid="AppearanceEdit_PivotCursor">
                 <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <ComboBox x:Name="CursorBox" x:Uid="AppearanceEdit_CursorStyle" HorizontalAlignment="Stretch"
-                                  SelectionChanged="OnCursorStyleChanged">
-                            <ComboBoxItem x:Uid="AppearanceEdit_CursorBlock" Tag="block" />
-                            <ComboBoxItem x:Uid="AppearanceEdit_CursorBar" Tag="bar" />
-                            <ComboBoxItem x:Uid="AppearanceEdit_CursorUnderline" Tag="underline" />
-                        </ComboBox>
-                        <ToggleSwitch x:Name="CursorBlinkSwitch" x:Uid="AppearanceEdit_CursorBlink"
-                                      Margin="{StaticResource GapSmTop}" Toggled="OnCursorBlinkToggled" />
+                    <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                        <controls:FormSection x:Uid="AppearanceEdit_Section_Cursor">
+                            <controls:FormSection.SectionContent>
+                                <StackPanel>
+                                    <ComboBox x:Name="CursorBox" x:Uid="AppearanceEdit_CursorStyle" HorizontalAlignment="Stretch"
+                                              SelectionChanged="OnCursorStyleChanged">
+                                        <ComboBoxItem x:Uid="AppearanceEdit_CursorBlock" Tag="block" />
+                                        <ComboBoxItem x:Uid="AppearanceEdit_CursorBar" Tag="bar" />
+                                        <ComboBoxItem x:Uid="AppearanceEdit_CursorUnderline" Tag="underline" />
+                                    </ComboBox>
+                                    <ToggleSwitch x:Name="CursorBlinkSwitch" x:Uid="AppearanceEdit_CursorBlink"
+                                                  Margin="{StaticResource GapSmTop}" Toggled="OnCursorBlinkToggled" />
+                                </StackPanel>
+                            </controls:FormSection.SectionContent>
+                        </controls:FormSection>
                     </StackPanel>
                 </ScrollViewer>
             </PivotItem>
         </Pivot>
+
+        <!-- 底部固定操作条：主操作=保存，溢出=还原/复制为新主题 -->
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="3"
+                                  PrimaryClick="OnSaveClick"
+                                  ShowOverflow="True" />
     </Grid>
 </Page>

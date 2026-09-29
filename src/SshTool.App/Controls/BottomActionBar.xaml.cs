@@ -15,6 +15,12 @@ namespace SshTool.App.Controls
         public static readonly DependencyProperty PrimaryCommandProperty = DependencyProperty.Register(
             nameof(PrimaryCommand), typeof(ICommand), typeof(BottomActionBar),
             new PropertyMetadata(null));
+        public static readonly DependencyProperty IsPrimaryEnabledProperty = DependencyProperty.Register(
+            nameof(IsPrimaryEnabled), typeof(bool), typeof(BottomActionBar),
+            new PropertyMetadata(true, OnChanged));
+        public static readonly DependencyProperty PrimaryButtonStyleProperty = DependencyProperty.Register(
+            nameof(PrimaryButtonStyle), typeof(Style), typeof(BottomActionBar),
+            new PropertyMetadata(null, OnChanged));
         public static readonly DependencyProperty ShowOverflowProperty = DependencyProperty.Register(
             nameof(ShowOverflow), typeof(bool), typeof(BottomActionBar),
             new PropertyMetadata(false, OnChanged));
@@ -47,6 +53,18 @@ namespace SshTool.App.Controls
         {
             get { return (ICommand)GetValue(PrimaryCommandProperty); }
             set { SetValue(PrimaryCommandProperty, value); }
+        }
+
+        public bool IsPrimaryEnabled
+        {
+            get { return (bool)GetValue(IsPrimaryEnabledProperty); }
+            set { SetValue(IsPrimaryEnabledProperty, value); }
+        }
+
+        public Style PrimaryButtonStyle
+        {
+            get { return (Style)GetValue(PrimaryButtonStyleProperty); }
+            set { SetValue(PrimaryButtonStyleProperty, value); }
         }
 
         public bool ShowOverflow
@@ -137,6 +155,11 @@ namespace SshTool.App.Controls
             bool hasPrimary = !string.IsNullOrEmpty(PrimaryText);
             PrimaryButton.Content = PrimaryText ?? string.Empty;
             PrimaryButton.Visibility = hasPrimary ? Visibility.Visible : Visibility.Collapsed;
+            PrimaryButton.IsEnabled = IsPrimaryEnabled;
+            if (PrimaryButtonStyle != null)
+            {
+                PrimaryButton.Style = PrimaryButtonStyle;
+            }
 
             OverflowButton.Visibility = ShowOverflow ? Visibility.Visible : Visibility.Collapsed;
             OverflowButton.Flyout = OverflowFlyout;
@@ -147,6 +170,11 @@ namespace SshTool.App.Controls
 
         private void OnPrimaryClick(object sender, RoutedEventArgs e)
         {
+            if (!IsPrimaryEnabled)
+            {
+                return;
+            }
+
             // 事件先于 command 触发；消费方只接其一，避免双执行（同 Banner.ActionClick）。
             EventHandler handler = PrimaryClick;
             if (handler != null)

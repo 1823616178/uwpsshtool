@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Sync;
@@ -28,6 +28,7 @@ namespace SshTool.App.Views.Sync
         {
             ViewModel = CreateViewModel();
             this.InitializeComponent();
+            BottomBar.PrimaryText = Localized.Get("VaultUnlock_Submit", "解锁");
             ViewModel.SubmitCommand.CanExecuteChanged += OnCanExecuteChanged;
             ViewModel.PropertyChanged += OnViewModelChanged;
             RefreshMode();
@@ -95,7 +96,7 @@ namespace SshTool.App.Views.Sync
             ViewModel.RecoveryInput = RecoveryBox.Text;
         }
 
-        private void OnSubmitClick(object sender, RoutedEventArgs e)
+        private void OnSubmitClick(object sender, EventArgs e)
         {
             if (ViewModel.SubmitCommand.CanExecute(null))
             {
@@ -167,7 +168,7 @@ namespace SshTool.App.Views.Sync
             bool busy = ViewModel.IsBusy;
             Working.IsActive = busy;
             Working.Message = busy ? ViewModel.BusyMessage : string.Empty;
-            SubmitButton.IsEnabled = !busy && ViewModel.SubmitCommand.CanExecute(null);
+            BottomBar.IsPrimaryEnabled = !busy && ViewModel.SubmitCommand.CanExecute(null);
         }
     }
 }

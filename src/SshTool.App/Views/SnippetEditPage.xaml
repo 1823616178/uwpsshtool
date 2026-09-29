@@ -7,57 +7,57 @@
 
     <!-- U13：片段编辑页（02-UI-DESIGN.md §5.9）。名称 / 分组（可输入新分组）/
          内容（多行等宽）/ 发送后回车 / 变量说明。 -->
-    <Page.BottomAppBar>
-        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton x:Uid="SnippetEdit_SaveButton" Click="OnSaveClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconEdit}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton x:Uid="SnippetEdit_DeleteButton" Click="OnDeleteClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconDelete}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton x:Uid="SnippetEdit_CancelButton" Click="OnCancelClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconDisconnect}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-        </CommandBar>
-    </Page.BottomAppBar>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <controls:AppPageHeader x:Name="TitleText"
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
         <ScrollViewer Grid.Row="1">
-            <StackPanel Padding="{StaticResource PagePadding}">
-                <TextBox x:Name="NameBox" x:Uid="SnippetEdit_NameBox" TextChanged="OnNameChanged" />
-                <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
-                           Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                <AutoSuggestBox x:Name="GroupBox" x:Uid="SnippetEdit_GroupBox"
-                                Margin="{StaticResource GapSmTop}"
-                                TextChanged="OnGroupTextChanged"
-                                SuggestionChosen="OnGroupSuggestionChosen" />
-                <TextBox x:Name="ContentBox" x:Uid="SnippetEdit_ContentBox" AcceptsReturn="True"
-                         TextWrapping="Wrap"
-                         FontFamily="{StaticResource AppMonoFontFamily}"
-                         MinHeight="{StaticResource ListRowHeight}"
-                         Margin="{StaticResource GapSmTop}"
-                         TextChanged="OnContentChanged" />
-                <TextBlock x:Name="ContentError" Style="{StaticResource CaptionTextStyle}"
-                           Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
-                <CheckBox x:Name="SendEnterBox" x:Uid="SnippetEdit_SendEnter"
-                          Margin="{StaticResource GapSmTop}"
-                          Checked="OnSendEnterChanged" Unchecked="OnSendEnterChanged" />
-                <TextBlock x:Name="VariableHint" Style="{StaticResource CaptionTextStyle}"
-                           TextWrapping="Wrap" Margin="{StaticResource GapSmTop}" />
+            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                <!-- 基本信息 -->
+                <controls:FormSection x:Uid="SnippetEdit_Section_Basic">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBox x:Name="NameBox" x:Uid="SnippetEdit_NameBox" TextChanged="OnNameChanged" />
+                            <TextBlock x:Name="NameError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                            <AutoSuggestBox x:Name="GroupBox" x:Uid="SnippetEdit_GroupBox"
+                                            Margin="{StaticResource GapSmTop}"
+                                            TextChanged="OnGroupTextChanged"
+                                            SuggestionChosen="OnGroupSuggestionChosen" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 内容 -->
+                <controls:FormSection x:Uid="SnippetEdit_Section_Content" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBox x:Name="ContentBox" x:Uid="SnippetEdit_ContentBox" AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     FontFamily="{StaticResource AppMonoFontFamily}"
+                                     MinHeight="{StaticResource ListRowHeight}"
+                                     TextChanged="OnContentChanged" />
+                            <TextBlock x:Name="ContentError" Style="{StaticResource CaptionTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}" Visibility="Collapsed" />
+                            <CheckBox x:Name="SendEnterBox" x:Uid="SnippetEdit_SendEnter"
+                                      Margin="{StaticResource GapSmTop}"
+                                      Checked="OnSendEnterChanged" Unchecked="OnSendEnterChanged" />
+                            <TextBlock x:Name="VariableHint" Style="{StaticResource CaptionTextStyle}"
+                                       TextWrapping="Wrap" Margin="{StaticResource GapSmTop}" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
             </StackPanel>
         </ScrollViewer>
+
+        <!-- 底部固定操作条：主操作=保存，溢出=删除 -->
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"
+                                  PrimaryClick="OnSaveClick"
+                                  OverflowClick="OnDeleteClick" />
     </Grid>
 </Page>

@@ -181,7 +181,7 @@
     - [x] 两种底栏视觉无差别
     - [x] 门禁全绿、编译通过
 
-- [ ] **G04 表单页统一 FormSection 结构**
+- [x] **G04 表单页统一 FormSection 结构**
   - 依赖：G01、G02
   - 涉及文件：`Views/SnippetEditPage.xaml`、`Views/AppearanceEditPage.xaml`、`Views/GroupManagePage.xaml`、`Views/KeyBarLayoutEditorPage.xaml`、`Views/ShortcutEditorPage.xaml`、`Views/Sync/LoginPage.xaml`、`Views/Sync/VaultSetupPage.xaml`、`Views/Sync/VaultUnlockPage.xaml`、`Views/Sync/ChangeLoginPasswordPage.xaml`、`Views/Sync/DeleteAccountPage.xaml`、`Views/Sync/DeleteVaultPage.xaml`；范式参考 `Views/HostEditPage.xaml`（五个 FormSection + 高级折叠 + BottomActionBar）
   - 要点：
@@ -190,9 +190,9 @@
     3. 宽屏（≥720 epx）时表单限制最大宽度并居中（新增 token `FormMaxWidth`，建议 560）。
     4. 只换视觉容器：**不改 `x:Name`、不改事件处理器名、不改 ViewModel 绑定**。
   - 验收：
-    - [ ] 列出的页面都使用 FormSection 分组，主操作固定底部
-    - [ ] 宽屏表单不再拉满整行
-    - [ ] 门禁全绿、编译通过
+    - [x] 列出的页面都使用 FormSection 分组，主操作固定底部
+    - [x] 宽屏表单不再拉满整行
+    - [x] 门禁全绿、编译通过
 
 - [ ] **G05 设置页改为「首页 + 二级页」**
   - 依赖：G02
@@ -281,6 +281,8 @@
 - [ ] G02 📱 设置页切换「使用系统强调色」后，开关/滑块/勾选/单选/Pivot 下划线实时跟随强调色变色
 - [ ] G03 📱 对话框、长按菜单在深浅两主题下的背景层级与危险红色按钮视觉
 - [ ] G03 📱 CommandBar 与 BottomActionBar 底部发丝线与 48 epx 高度视觉一致性
+- [ ] G04 📱 11 个表单页在手机竖屏与宽屏下 FormSection 分组视觉层级与 FormMaxWidth (560) 居中观感
+- [ ] G04 📱 表单底部固定 BottomActionBar 与软键盘弹出时的避让与点击体验
 
 ---
 
@@ -292,3 +294,4 @@
 | 2026-09-29 | G01 | 3516b84 | **输入类控件全局皮肤**。按 §4.3 落实 TextBox / PasswordBox / AutoSuggestBox / ComboBox / ComboBoxItem 统一外观：高 40（InputHeight）、Surface 2 底色、1 epx 边框、RadiusSm 圆角、聚焦强调色描边、Caption 级 Header（间距 SpaceXs 4）、淡色占位符、DisabledOpacity 禁用态；ComboBox 选中项 2 epx accent 条；Tokens.Dark/Light 补全系统画刷重写并在 ThemeService 注入强调色同步；TerminalView 显式给 Sentinel 设 Style="{x:Null}" 排除全局样式；未截图。门禁全绿、x64 Debug 零错误零警告。 |
 | 2026-09-29 | G02 | aa0c75b | **开关、勾选、滑块、Pivot 全局皮肤**。按 §4.3 落实 ToggleSwitch / CheckBox / RadioButton / Slider / PivotHeaderItem 统一外观：Tokens.xaml 新增 IndicatorHeight (2)、PivotHeaderItemFontSize (18)、ToggleSwitchOnStrokeThickness (0) 与 PivotHeaderItemMargin；Tokens.Dark/Light 补全五种控件的系统画刷重写；Controls.xaml 为 PivotHeaderItem（FontSubtitle 18、SemiBold、选中文字 AppTextBrush + 底部 2 epx accent 下划线双重表达）、ToggleSwitch（Caption 级 Header）、Slider（Caption 级 Header）、CheckBox 与 RadioButton 声明隐式样式；ThemeService.ApplyAccent 集中同步 AccentDependentKeys；修正 resw 中 Settings_General/Terminal/Keyboard/Connection/About 12 处 x:Uid Header 资源键名；未截图。门禁全绿、x64 Debug 零错误零警告。 |
 | 2026-09-29 | G03 | 0ece941 | **对话框、菜单、底栏统一**。按 §4.3 落实 ContentDialog / MenuFlyout / CommandBar / BottomActionBar 统一外观：Tokens.xaml 新增 BottomBarHeight (48) 并将 PadActionBar 收敛至 12,4,12,4；Tokens.Dark/Light 补全 ContentDialog、MenuFlyout 与 CommandBar/AppBar 系统画刷重写；Controls.xaml 为 ContentDialog（Surface 1 底、BorderThin 边框、PadCard 内边距、默认 Primary/Secondary 按钮样式）、MenuFlyoutPresenter（Surface 2 底、1 epx 边框）、MenuFlyoutItem / ToggleMenuFlyoutItem（触控高 ≥40、FontBody 字号）、CommandBar（Surface 1 底、BorderThinTop 顶部细线）及 AppBarButton/AppBarToggleButton 声明隐式样式；BottomActionBar 底色统一为 Surface 1、MinHeight 48；全面审查并修正 ConfirmDialog.ShowAsync 危险操作调用点（HostEditPage/AppearanceEditPage/SnippetEditPage 放弃修改、HostEditPage 切换认证、SftpViewModel 文件与文件夹删除、AccountSyncPage 恢复历史版本均传 isDanger: true）；ExitWithSessionsDialog 与 HostKeyMismatchDialog 关联 DangerDialogButtonStyle；TunnelEditPage 溢出删除菜单项关联 DangerMenuItemStyle；未截图。门禁全绿、x64 Debug 零错误零警告。 |
+| 2026-09-29 | G04 | 91bf2a2 | **表单页统一 FormSection 结构**。在 Tokens.xaml 增加 FormMaxWidth (560)；升级 BottomActionBar 支持 IsPrimaryEnabled 与 PrimaryButtonStyle 属性；将 11 个表单页（SnippetEditPage、AppearanceEditPage、GroupManagePage、KeyBarLayoutEditorPage、ShortcutEditorPage、LoginPage、VaultSetupPage、VaultUnlockPage、ChangeLoginPasswordPage、DeleteAccountPage、DeleteVaultPage）及参考页（HostEditPage、TunnelEditPage）全部统一为 FormSection 结构与 FormMaxWidth 约束；危险操作表单（DeleteAccount、DeleteVault）与次要操作（KeyBar/Shortcut 恢复默认）按规范配置 PrimaryButtonStyle；主操作移至底部固定 BottomActionBar，滚动不脱落；清理 resw 前缀重叠冲突并保持中英文完全对称。门禁全绿、x64 Debug 零错误。 |

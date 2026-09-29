@@ -171,6 +171,29 @@ namespace SshTool.App.Views
             _suppress = false;
             ShowErrors();
             RefreshPreview();
+            SetupBottomBar();
+        }
+
+        private void SetupBottomBar()
+        {
+            BottomBar.PrimaryText = Localized.Get("AppearanceEdit_Save", "保存");
+            BottomBar.ShowOverflow = true;
+            var flyout = new MenuFlyout();
+            var resetItem = new MenuFlyoutItem
+            {
+                Text = Localized.Get("AppearanceEdit_Reset", "还原")
+            };
+            resetItem.Click += (s, e) => OnResetClick(s, EventArgs.Empty);
+            flyout.Items.Add(resetItem);
+
+            var duplicateItem = new MenuFlyoutItem
+            {
+                Text = Localized.Get("AppearanceEdit_Duplicate", "复制为新主题")
+            };
+            duplicateItem.Click += (s, e) => OnDuplicateClick(s, EventArgs.Empty);
+            flyout.Items.Add(duplicateItem);
+
+            BottomBar.OverflowFlyout = flyout;
         }
 
         private void UpdateLabels(AppearanceProfile draft)
@@ -333,7 +356,7 @@ namespace SshTool.App.Views
             CursorBox.SelectedIndex = 0;
         }
 
-        private async void OnSaveClick(object sender, RoutedEventArgs e)
+        private async void OnSaveClick(object sender, EventArgs e)
         {
             try
             {
@@ -362,13 +385,13 @@ namespace SshTool.App.Views
             }
         }
 
-        private void OnResetClick(object sender, RoutedEventArgs e)
+        private void OnResetClick(object sender, EventArgs e)
         {
             ViewModel.ResetToBaseline();
             BindLoaded();
         }
 
-        private async void OnDuplicateClick(object sender, RoutedEventArgs e)
+        private async void OnDuplicateClick(object sender, EventArgs e)
         {
             try
             {
