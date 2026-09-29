@@ -19,73 +19,84 @@
 
         <!-- §6.5：文件行用 AppListRow 重做——类型图标 / 名称 / 大小·时间（副标题）/ 更多操作（尾槽）。
              行点按由 ListView.ItemClick 处理；长按/右键保留行菜单；尾槽按钮触发更多 flyout。
-             IsCompact 走 ListRowCompactHeight（48），与旧模板一致。 -->
+             IsCompact 走 ListRowCompactHeight（48），与旧模板一致。
+             G08：副标题使用等宽数字（MonoCaptionTextStyle）右对齐。 -->
         <DataTemplate x:Key="EntryRowTemplate">
             <!-- SFTP 重设计：去掉每行的「更多」按钮（与 V02 HostRow 一致，操作走长按/右键菜单），
                  目录行显示 Chevron 提示可进入。 -->
             <controls:AppListRow IconGlyph="{Binding Glyph}"
                                  Title="{Binding Name}"
                                  Subtitle="{Binding SubtitleText}"
+                                 SubtitleStyle="{StaticResource MonoCaptionTextStyle}"
+                                 SubtitleHorizontalAlignment="{Binding SubtitleAlignment}"
                                  ShowChevron="{Binding IsDirectory}"
                                  IsCompact="True"
                                  RightTapped="OnRowRightTapped"
                                  Holding="OnRowHolding" />
         </DataTemplate>
 
-        <!-- 传输行：方向图标 / 名称 / 状态 / 进度条 / 速率 / [取消][重试] -->
+        <!-- G08：传输行统一 Card 风格、细进度条（ProgressThickness 2 epx）、失败红字与重试按钮 -->
         <DataTemplate x:Key="TransferRowTemplate">
-            <Grid MinHeight="{StaticResource ListRowCompactHeight}"
-                  Padding="{StaticResource PagePadding}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <FontIcon Glyph="{Binding Glyph}" FontSize="{StaticResource FontBody}"
-                          Foreground="{ThemeResource AppTextDimBrush}"
-                          VerticalAlignment="Center" />
-                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}"
-                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                        <TextBlock Grid.Column="1" Text="{Binding StateText}"
-                                   Style="{StaticResource CaptionTextStyle}"
-                                   VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
-                        <TextBlock Grid.Column="2" Text="{Binding RateText}"
-                                   Style="{StaticResource MonoCaptionTextStyle}"
-                                   VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}"
-                                   Visibility="{Binding RateText, Converter={StaticResource NonEmptyToVisibility}}" />
-                    </Grid>
-                    <ProgressBar Maximum="100" Value="{Binding Percent, Mode=OneWay}"
-                                 Visibility="{Binding Percent, Converter={StaticResource PercentToVisibility}}"
-                                 Margin="{StaticResource GapXsTop}"
-                                 Background="{ThemeResource AppBorderBrush}"
-                                 Foreground="{ThemeResource AppAccentBrush}" />
-                    <TextBlock Text="{Binding ErrorText}" Style="{StaticResource CaptionTextStyle}"
-                               Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
-                               Visibility="{Binding ErrorText, Converter={StaticResource NonEmptyToVisibility}}"
-                               Margin="{StaticResource GapXsTop}" />
-                </StackPanel>
-                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
-                            Margin="{StaticResource GapSmLeft}">
-                    <Button Click="OnCancelTransferClick" Style="{StaticResource IconButtonStyle}"
-                            AutomationProperties.Name="{Binding CancelText}"
-                            Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}">
-                        <FontIcon Glyph="{StaticResource IconClose}" FontSize="{StaticResource FontBody}" />
-                    </Button>
-                    <Button x:Uid="Sftp_RetryTransferButton" Click="OnRetryTransferClick"
-                            Style="{StaticResource IconButtonStyle}"
-                            Visibility="{Binding CanRetry, Converter={StaticResource BoolToVisibility}}">
-                        <FontIcon Glyph="{StaticResource IconSync}" FontSize="{StaticResource FontBody}" />
-                    </Button>
-
-                </StackPanel>
-            </Grid>
+            <Border Background="{ThemeResource AppSurfaceAltBrush}"
+                    BorderBrush="{ThemeResource AppBorderBrush}"
+                    BorderThickness="{StaticResource BorderThin}"
+                    CornerRadius="{StaticResource RadiusSm}"
+                    Margin="{StaticResource GapXsBottom}"
+                    Padding="{StaticResource PadCard}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="{Binding Glyph}" FontSize="{StaticResource FontSubtitle}"
+                              Foreground="{ThemeResource AppTextDimBrush}"
+                              VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}"
+                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="1" Text="{Binding StateText}"
+                                       Style="{StaticResource CaptionTextStyle}"
+                                       VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
+                            <TextBlock Grid.Column="2" Text="{Binding RateText}"
+                                       Style="{StaticResource MonoCaptionTextStyle}"
+                                       VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}"
+                                       Visibility="{Binding RateText, Converter={StaticResource NonEmptyToVisibility}}" />
+                        </Grid>
+                        <ProgressBar Maximum="100" Value="{Binding Percent, Mode=OneWay}"
+                                     Height="{StaticResource ProgressThickness}"
+                                     MinHeight="{StaticResource ProgressThickness}"
+                                     Visibility="{Binding Percent, Converter={StaticResource PercentToVisibility}}"
+                                     Margin="{StaticResource GapXsTop}"
+                                     Background="{ThemeResource AppBorderBrush}"
+                                     Foreground="{ThemeResource AppAccentBrush}" />
+                        <TextBlock Text="{Binding ErrorText}" Style="{StaticResource CaptionTextStyle}"
+                                   Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
+                                   Visibility="{Binding ErrorText, Converter={StaticResource NonEmptyToVisibility}}"
+                                   Margin="{StaticResource GapXsTop}" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                                Margin="{StaticResource GapSmLeft}">
+                        <Button Click="OnCancelTransferClick" Style="{StaticResource IconButtonStyle}"
+                                AutomationProperties.Name="{Binding CancelText}"
+                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}">
+                            <FontIcon Glyph="{StaticResource IconClose}" FontSize="{StaticResource FontBody}" />
+                        </Button>
+                        <Button x:Uid="Sftp_RetryTransferButton" Click="OnRetryTransferClick"
+                                Style="{StaticResource IconButtonStyle}"
+                                Foreground="{ThemeResource AppAccentBrush}"
+                                Visibility="{Binding CanRetry, Converter={StaticResource BoolToVisibility}}">
+                            <FontIcon Glyph="{StaticResource IconSync}" FontSize="{StaticResource FontBody}" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
         </DataTemplate>
     </Page.Resources>
 
@@ -157,7 +168,7 @@
                 BorderBrush="{ThemeResource AppBorderBrush}"
                 BorderThickness="{StaticResource BorderThinTop}">
             <StackPanel>
-                <Grid>
+                <Grid Padding="{StaticResource PagePadding}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
@@ -165,7 +176,8 @@
                     <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
                             Click="OnToggleTransfersClick"
                             BorderThickness="{StaticResource BorderNone}"
-                            Background="Transparent">
+                            Background="Transparent"
+                            Padding="{StaticResource PadNone}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
@@ -182,7 +194,7 @@
                     </Button>
                     <Button x:Name="ClearFinishedButton" Grid.Column="1" Click="OnClearFinishedClick"
                             Style="{StaticResource BreadcrumbButtonStyle}"
-                            Margin="{StaticResource GapSmRight}" />
+                            Margin="{StaticResource GapSmLeft}" />
                 </Grid>
                 <!-- 传输面板空状态：面板可见但列表暂无行时给一行说明（文案由 code-behind
                      取 resw 的 Sftp_TransfersEmpty）。整条面板的显隐仍由 ShowTransferBar 决定，
@@ -192,6 +204,7 @@
                            Visibility="Collapsed" />
                 <ItemsControl x:Name="TransferList" ItemTemplate="{StaticResource TransferRowTemplate}"
                               MaxHeight="{StaticResource SftpTransferPanelMaxHeight}"
+                              Margin="{StaticResource PagePadding}"
                               Visibility="Collapsed">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>

@@ -169,5 +169,52 @@ namespace SshTool.Core.Tests.Sftp
             Assert.Equal(0, SftpListing.MinutesAgo(now.AddSeconds(-30), now));
             Assert.Equal(-1, SftpListing.MinutesAgo(now.AddMinutes(-61), now));
         }
+
+        [Fact]
+        public void ResolveIconToken_ClassifiesFileExtensionsCorrectly()
+        {
+            // 目录与符号链接
+            Assert.Equal("IconFolder", SftpListing.ResolveIconToken("my_folder", true, false));
+            Assert.Equal("IconFileSymlink", SftpListing.ResolveIconToken("my_link", false, true));
+            Assert.Equal("IconFileSymlink", SftpListing.ResolveIconToken("dir_link", true, true));
+
+            // 代码与脚本
+            Assert.Equal("IconFileCode", SftpListing.ResolveIconToken("deploy.sh", false, false));
+            Assert.Equal("IconFileCode", SftpListing.ResolveIconToken("main.py", false, false));
+            Assert.Equal("IconFileCode", SftpListing.ResolveIconToken("app.ts", false, false));
+            Assert.Equal("IconFileCode", SftpListing.ResolveIconToken("Program.cs", false, false));
+            Assert.Equal("IconFileCode", SftpListing.ResolveIconToken("build.ps1", false, false));
+
+            // 压缩包（含复合后缀）
+            Assert.Equal("IconFileArchive", SftpListing.ResolveIconToken("archive.tar.gz", false, false));
+            Assert.Equal("IconFileArchive", SftpListing.ResolveIconToken("backup.tar.bz2", false, false));
+            Assert.Equal("IconFileArchive", SftpListing.ResolveIconToken("bundle.zip", false, false));
+            Assert.Equal("IconFileArchive", SftpListing.ResolveIconToken("data.7z", false, false));
+
+            // 图片
+            Assert.Equal("IconFileImage", SftpListing.ResolveIconToken("screenshot.png", false, false));
+            Assert.Equal("IconFileImage", SftpListing.ResolveIconToken("photo.jpg", false, false));
+            Assert.Equal("IconFileImage", SftpListing.ResolveIconToken("vector.svg", false, false));
+
+            // 配置
+            Assert.Equal("IconFileConfig", SftpListing.ResolveIconToken("nginx.conf", false, false));
+            Assert.Equal("IconFileConfig", SftpListing.ResolveIconToken("config.json", false, false));
+            Assert.Equal("IconFileConfig", SftpListing.ResolveIconToken("settings.yaml", false, false));
+            Assert.Equal("IconFileConfig", SftpListing.ResolveIconToken(".env", false, false));
+
+            // 日志
+            Assert.Equal("IconFileLog", SftpListing.ResolveIconToken("access.log", false, false));
+            Assert.Equal("IconFileLog", SftpListing.ResolveIconToken("error.err", false, false));
+
+            // 二进制 / 可执行
+            Assert.Equal("IconFileBinary", SftpListing.ResolveIconToken("service.exe", false, false));
+            Assert.Equal("IconFileBinary", SftpListing.ResolveIconToken("libnative.so", false, false));
+            Assert.Equal("IconFileBinary", SftpListing.ResolveIconToken("app.dll", false, false));
+
+            // 默认文档
+            Assert.Equal("IconDocument", SftpListing.ResolveIconToken("readme.txt", false, false));
+            Assert.Equal("IconDocument", SftpListing.ResolveIconToken("notes.md", false, false));
+            Assert.Equal("IconDocument", SftpListing.ResolveIconToken("LICENSE", false, false));
+        }
     }
 }

@@ -83,16 +83,23 @@ namespace SshTool.App.ViewModels
         {
             get
             {
-                object token = Entry != null && Entry.IsDirectory && !Entry.IsSymlink
-                    ? Application.Current.Resources["IconFolder"]
-                    : Application.Current.Resources["IconDocument"];
-                return token as string ?? string.Empty;
+                string tokenKey = SftpListing.ResolveIconToken(
+                    _name,
+                    Entry != null && Entry.IsDirectory,
+                    Entry != null && Entry.IsSymlink);
+                return TokenString(tokenKey);
             }
         }
 
         public bool IsDirectory
         {
             get { return Entry != null && Entry.IsDirectory && !Entry.IsSymlink; }
+        }
+
+        // G08：符号链接左对齐显示指向路径；常规文件与目录副标题右对齐等宽数字
+        public HorizontalAlignment SubtitleAlignment
+        {
+            get { return Entry != null && Entry.IsSymlink ? HorizontalAlignment.Left : HorizontalAlignment.Right; }
         }
 
         // §6.5：AppListRow 副标题。符号链接显示目标路径；普通条目显示「大小 · 修改时间」。
@@ -132,12 +139,23 @@ namespace SshTool.App.ViewModels
                 RaisePropertyChanged("Entry");
                 RaisePropertyChanged("Glyph");
                 RaisePropertyChanged("IsDirectory");
+                RaisePropertyChanged("SubtitleAlignment");
             }
             SetProperty(ref _name, entry != null ? entry.Name : string.Empty);
             SetProperty(ref _sizeText, sizeText);
             SetProperty(ref _mtimeText, mtimeText);
             SetProperty(ref _linkText, linkText);
             RaisePropertyChanged("SubtitleText");
+        }
+
+        private static string TokenString(string key)
+        {
+            if (Application.Current != null && Application.Current.Resources != null && Application.Current.Resources.ContainsKey(key))
+            {
+                object token = Application.Current.Resources[key];
+                return token as string ?? string.Empty;
+            }
+            return string.Empty;
         }
     }
 

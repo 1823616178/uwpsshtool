@@ -232,7 +232,7 @@
     - [x] 点击键条与菜单后软键盘保持
     - [x] 门禁全绿、编译通过
 
-- [ ] **G08 SFTP 页精修**
+- [x] **G08 SFTP 页精修**
   - 依赖：G01、G03
   - 涉及文件：`Views/SftpPage.xaml(.cs)`、`ViewModels/SftpViewModel.cs`（`SftpRowVm.Glyph` 的取值逻辑，可改）、`Themes/Tokens.xaml`
   - 要点：
@@ -241,9 +241,9 @@
     3. 传输面板：进度条变细（新增 token `ProgressThickness`）、速率与剩余时间同一行、完成项淡出。
     4. 空目录与加载失败用 `EmptyState` 的不同变体（已有逻辑，检查文案与图标）。
   - 验收：
-    - [ ] 常见文件类型图标可区分
-    - [ ] 传输面板信息密度合理，不遮挡列表
-    - [ ] 门禁全绿、编译通过
+    - [x] 常见文件类型图标可区分
+    - [x] 传输面板信息密度合理，不遮挡列表
+    - [x] 门禁全绿、编译通过
 
 - [ ] **G09 空状态、加载、错误态与动效统一**
   - 依赖：G03
@@ -290,6 +290,9 @@
 - [ ] G07 📱 终端页单行信息条（44 epx）与点击展开双行（64 epx，地址 + 连接时长实时刷新）观感
 - [ ] G07 📱 键条修饰键三态（普通/armed 单击高亮/locked 长按高亮+锁图标）视觉与普通键按下态反馈
 - [ ] G07 📱 终端页软键盘弹出后点击键条与展开信息条，软键盘（SIP）不闪退保持常在
+- [ ] G08 📱 SFTP 列表常见文件类型（代码/压缩包/图片/配置/日志/二进制/符号链接/目录）图标区分
+- [ ] G08 📱 SFTP 文件大小与时间 MonoCaption 等宽对齐与符号链接左对齐排版
+- [ ] G08 📱 传输面板卡片圆角、2 epx 细进度条、速率/剩余时间排版与重试交互
 
 ---
 
@@ -304,6 +307,8 @@
 | 2026-09-29 | G04 | 91bf2a2 | **表单页统一 FormSection 结构**。在 Tokens.xaml 增加 FormMaxWidth (560)；升级 BottomActionBar 支持 IsPrimaryEnabled 与 PrimaryButtonStyle 属性；将 11 个表单页（SnippetEditPage、AppearanceEditPage、GroupManagePage、KeyBarLayoutEditorPage、ShortcutEditorPage、LoginPage、VaultSetupPage、VaultUnlockPage、ChangeLoginPasswordPage、DeleteAccountPage、DeleteVaultPage）及参考页（HostEditPage、TunnelEditPage）全部统一为 FormSection 结构与 FormMaxWidth 约束；危险操作表单（DeleteAccount、DeleteVault）与次要操作（KeyBar/Shortcut 恢复默认）按规范配置 PrimaryButtonStyle；主操作移至底部固定 BottomActionBar，滚动不脱落；清理 resw 前缀重叠冲突并保持中英文完全对称。门禁全绿、x64 Debug 零错误。 |
 | 2026-09-29 | G05 | 66293c3 | **设置页改为「首页 + 二级页」**。重构 `SettingsPage` 为导航首页（使用 AppListRow 展现 6 个分组，并在 OnNavigatedTo 动态计算各项关键值副标题摘要），拆分出 6 个二级页面（全部配备 AppPageHeader、BackRequested 处理与 FormMaxWidth 结构）：<br>• 通用 Pivot → `SettingsGeneralPage` (主题、强调色、排序、快捷连接、振动、语言)<br>• 终端 Pivot → `SettingsTerminalPage` (外观入口、字号/回滚滑块、备用屏幕滚动、粘贴确认、响铃模式、光标闪烁)<br>• 键盘 Pivot → `SettingsKeyboardPage` (键条开关/布局入口、退格键、快捷键摘要/编辑入口)<br>• 连接 Pivot (连接/保活/安全) → `SettingsConnectionPage` (常亮、后台保活、通知、应用锁、断连超时、重连/连接超时/Agent 超时滑块)<br>• 连接 Pivot (同步) → `SettingsSyncPage` (前台同步轮询间隔、云端同步入口与说明)<br>• 关于 Pivot → `SettingsAboutPage` (版本信息、开源许可、日志等级、导出与清理日志、诊断探针与复制)<br>完整保留 150 ms 滑块去抖（C-07）与 NavigationLifetime 生命周期守卫（O04）；中英文 resw 补齐所有页面标题、节段及摘要文本。门禁全绿、x64 Debug 零错误。 |
 | 2026-09-29 | G06 | 77b3796 | **主机列表精修**。Tokens.xaml 新增 `AvatarSize` (36)、`RadiusCircle` (999)、`IconFavoriteStar` / `IconFavoriteStarFill` (E735)、`IconHistory` (E81C)；Core `ColorHex` 增加基于感知亮度的 `NeedsDarkText` 纯函数与完整单测，`HostListRow` 新增 `GroupColor` 并由 `HostListBuilder` 穿透传递真实分组色；`AppListRow` 新增 `TitleBadgeGlyph` / `TitleBadgeBrush` 属性（使用 TextBlock Inlines 内联渲染星星徽标，字符超长自然省略，零额外布局开销）；`HostRow` 头像使用 36 epx 圆形 Border + 首字母（StringInfo 国际化安全提取），底色取所属分组色或 AppSurfaceAltBrush，文字黑白对比度自适应，右下角叠置 StatusDot；`GroupHeader` 增加 `RepositionThemeTransition`，重构为小圆点 + 名称 + 计数，对「收藏」「最近」视图段分别展现专属金色星标与蓝色历史图标；`HostsPivot` 内容区添加 `EntranceThemeTransition`，resw 补齐 `Hosts_SectionUngrouped`。门禁全绿、x64 Debug 零错误。 |
-| 2026-09-29 | G07 | d8f28d4 | **终端页信息条与键条精修**。Tokens.xaml 新增 `GapXsLeft` (4)；StickyModifiers.StateOf 开放为 public；KeyBar 引入 `_lockIcons` 与 `_modifierLabels` 字典，实现修饰键（Ctrl/Alt/Shift）三态视觉强化（普通态：暗色背景 + 无锁标；单击 armed 态：高亮蓝色背景 + 无锁标；锁定 locked 态：高亮琥珀色背景 + 锁图标 `IconLock`，颜色与形状双重表达），按键按下时提供 `AppPressedBrush` 背景切换触控反馈；HideKeyboardButton 套用 `IconButtonStyle` 实现 `RadiusSm` 圆角与按下反馈（严格避开 15063 契约限制与 WMC0151 警告）；TerminalPage 紧凑信息条（44 epx）增加 `BorderThinBottom` 与 `AppBorderBrush` 描边，标题升级为 `SubtitleTextStyle`，点击展开为双行（64 epx）并在第二行左侧展示 `user@host:port · duration` 已连接时长；仅在展开且连接时启动 1 秒 DispatcherTimer（随 NavigationLifetime 拆除，零冗余开销）；严格保持硬约束 4（信息条及内部 Grid、键条各元素 `AllowFocusOnInteraction="False"`，点按不收起软键盘）。门禁全绿、x64 Debug 零错误零警告。 |
+| 2026-09-29 | G07 | f964a09 | **终端页信息条与键条精修**。Tokens.xaml 新增 `GapXsLeft` (4)；StickyModifiers.StateOf 开放为 public；KeyBar 引入 `_lockIcons` 与 `_modifierLabels` 字典，实现修饰键（Ctrl/Alt/Shift）三态视觉强化（普通态：暗色背景 + 无锁标；单击 armed 态：高亮蓝色背景 + 无锁标；锁定 locked 态：高亮琥珀色背景 + 锁图标 `IconLock`，颜色与形状双重表达），按键按下时提供 `AppPressedBrush` 背景切换触控反馈；HideKeyboardButton 套用 `IconButtonStyle` 实现 `RadiusSm` 圆角与按下反馈（严格避开 15063 契约限制与 WMC0151 警告）；TerminalPage 紧凑信息条（44 epx）增加 `BorderThinBottom` 与 `AppBorderBrush` 描边，标题升级为 `SubtitleTextStyle`，点击展开为双行（64 epx）并在第二行左侧展示 `user@host:port · duration` 已连接时长；仅在展开且连接时启动 1 秒 DispatcherTimer（随 NavigationLifetime 拆除，零冗余开销）；严格保持硬约束 4（信息条及内部 Grid、键条各元素 `AllowFocusOnInteraction="False"`，点按不收起软键盘）。门禁全绿、x64 Debug 零错误零警告。 |
+| 2026-09-29 | G08 | 760d9b6 | **SFTP 页精修**。Tokens.xaml 新增 `ProgressThickness` (2) 及 7 类 MDL2 文件扩展图标（`IconFileCode`、`IconFileArchive`、`IconFileImage`、`IconFileConfig`、`IconFileLog`、`IconFileBinary`、`IconFileSymlink`，确认 15063 全部内建）；Core 层 `SftpListing.ResolveIconToken` 与 `ResolveFileIconToken` 实现常见扩展名分类与多重后缀（.tar.gz 等）识别并补充单测；`AppListRow` 新增 `SubtitleStyle` 与 `SubtitleHorizontalAlignment` 依赖属性；SFTP 列表文件项副标题切换为 `MonoCaptionTextStyle` 右对齐（符号链接左对齐），解决数字抖动；传输面板项重构为卡片容器（SurfaceAlt 底色、圆角、内边距与底边距），进度条收敛至 2 epx，速率与剩余时间同排，失败项提供红色提示与重试按钮；门禁全绿、x64 Debug 零错误零警告。 |
+
 
 

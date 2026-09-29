@@ -235,5 +235,145 @@ namespace SshTool.Core.Sftp
         {
             return e != null && e.IsDirectory && !e.IsSymlink ? 0 : 1;
         }
+
+        // G08：根据文件名后缀与条目属性分类图标资源键（Tokens.xaml 中的 Icon* 键）。
+        public static string ResolveIconToken(string fileName, bool isDirectory, bool isSymlink)
+        {
+            if (isSymlink)
+            {
+                return "IconFileSymlink";
+            }
+            if (isDirectory)
+            {
+                return "IconFolder";
+            }
+            return ResolveFileIconToken(fileName);
+        }
+
+        public static string ResolveFileIconToken(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return "IconDocument";
+            }
+            string lower = fileName.ToLowerInvariant();
+            if (lower.EndsWith(".tar.gz") || lower.EndsWith(".tar.bz2") || lower.EndsWith(".tar.xz") || lower.EndsWith(".tar.zst"))
+            {
+                return "IconFileArchive";
+            }
+
+            int dotIndex = lower.LastIndexOf('.');
+            if (dotIndex < 0 || dotIndex == lower.Length - 1)
+            {
+                return "IconDocument";
+            }
+
+            string ext = lower.Substring(dotIndex + 1);
+            switch (ext)
+            {
+                // 图片
+                case "png":
+                case "jpg":
+                case "jpeg":
+                case "gif":
+                case "bmp":
+                case "webp":
+                case "svg":
+                case "ico":
+                case "tif":
+                case "tiff":
+                    return "IconFileImage";
+
+                // 压缩包
+                case "zip":
+                case "tar":
+                case "gz":
+                case "tgz":
+                case "bz2":
+                case "xz":
+                case "7z":
+                case "rar":
+                case "zst":
+                case "iso":
+                    return "IconFileArchive";
+
+                // 代码与脚本
+                case "sh":
+                case "bash":
+                case "zsh":
+                case "py":
+                case "js":
+                case "ts":
+                case "jsx":
+                case "tsx":
+                case "c":
+                case "cpp":
+                case "cc":
+                case "cxx":
+                case "h":
+                case "hpp":
+                case "cs":
+                case "go":
+                case "rs":
+                case "java":
+                case "kt":
+                case "rb":
+                case "php":
+                case "pl":
+                case "lua":
+                case "sql":
+                case "html":
+                case "htm":
+                case "css":
+                case "scss":
+                case "less":
+                case "ps1":
+                case "bat":
+                case "cmd":
+                case "asm":
+                    return "IconFileCode";
+
+                // 配置
+                case "conf":
+                case "cfg":
+                case "config":
+                case "ini":
+                case "json":
+                case "yaml":
+                case "yml":
+                case "toml":
+                case "xml":
+                case "env":
+                case "properties":
+                case "plist":
+                    return "IconFileConfig";
+
+                // 日志
+                case "log":
+                case "out":
+                case "err":
+                    return "IconFileLog";
+
+                // 可执行与二进制
+                case "exe":
+                case "bin":
+                case "dll":
+                case "so":
+                case "dylib":
+                case "deb":
+                case "rpm":
+                case "apk":
+                case "jar":
+                case "appx":
+                case "msi":
+                case "o":
+                case "a":
+                    return "IconFileBinary";
+
+                // 默认普通文本与文档
+                default:
+                    return "IconDocument";
+            }
+        }
     }
 }

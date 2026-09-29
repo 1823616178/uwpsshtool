@@ -38,6 +38,12 @@ namespace SshTool.App.Controls
         public static readonly DependencyProperty SubtitleProperty = DependencyProperty.Register(
             nameof(Subtitle), typeof(string), typeof(AppListRow),
             new PropertyMetadata(string.Empty, OnChanged));
+        public static readonly DependencyProperty SubtitleStyleProperty = DependencyProperty.Register(
+            nameof(SubtitleStyle), typeof(Style), typeof(AppListRow),
+            new PropertyMetadata(null, OnChanged));
+        public static readonly DependencyProperty SubtitleHorizontalAlignmentProperty = DependencyProperty.Register(
+            nameof(SubtitleHorizontalAlignment), typeof(HorizontalAlignment), typeof(AppListRow),
+            new PropertyMetadata(HorizontalAlignment.Left, OnChanged));
         public static readonly DependencyProperty StatusContentProperty = DependencyProperty.Register(
             nameof(StatusContent), typeof(object), typeof(AppListRow),
             new PropertyMetadata(null, OnChanged));
@@ -104,6 +110,18 @@ namespace SshTool.App.Controls
         {
             get { return (string)GetValue(SubtitleProperty); }
             set { SetValue(SubtitleProperty, value); }
+        }
+
+        public Style SubtitleStyle
+        {
+            get { return (Style)GetValue(SubtitleStyleProperty); }
+            set { SetValue(SubtitleStyleProperty, value); }
+        }
+
+        public HorizontalAlignment SubtitleHorizontalAlignment
+        {
+            get { return (HorizontalAlignment)GetValue(SubtitleHorizontalAlignmentProperty); }
+            set { SetValue(SubtitleHorizontalAlignmentProperty, value); }
         }
 
         // 状态槽：放 StatusPill 或 StatusDot。
@@ -187,6 +205,8 @@ namespace SshTool.App.Controls
                 TitleText.Inlines.Clear();
                 TitleText.Text = Title ?? string.Empty;
             }
+            SubtitleText.Style = SubtitleStyle ?? (Style)Application.Current.Resources["CaptionTextStyle"];
+            SubtitleText.HorizontalAlignment = SubtitleHorizontalAlignment;
             SubtitleText.Text = Subtitle ?? string.Empty;
             SubtitleText.Visibility = string.IsNullOrEmpty(Subtitle) ? Visibility.Collapsed : Visibility.Visible;
 
