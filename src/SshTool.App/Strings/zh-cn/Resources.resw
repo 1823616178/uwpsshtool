@@ -532,6 +532,37 @@
   <data name="Settings_Pivot_Keyboard.Header" xml:space="preserve"><value>键盘</value></data>
   <data name="Settings_Pivot_Connection.Header" xml:space="preserve"><value>连接</value></data>
   <data name="Settings_Pivot_About.Header" xml:space="preserve"><value>关于</value></data>
+  <data name="Settings_PageHeader.Title" xml:space="preserve"><value>设置</value></data>
+  <data name="Settings_Row_General.Title" xml:space="preserve"><value>通用</value></data>
+  <data name="Settings_Row_Terminal.Title" xml:space="preserve"><value>终端</value></data>
+  <data name="Settings_Row_Keyboard.Title" xml:space="preserve"><value>键盘</value></data>
+  <data name="Settings_Row_Connection.Title" xml:space="preserve"><value>连接与安全</value></data>
+  <data name="Settings_Row_Sync.Title" xml:space="preserve"><value>同步</value></data>
+  <data name="Settings_Row_About.Title" xml:space="preserve"><value>关于</value></data>
+  <data name="SettingsGeneral_Header.Title" xml:space="preserve"><value>通用</value></data>
+  <data name="SettingsTerminal_Header.Title" xml:space="preserve"><value>终端</value></data>
+  <data name="SettingsKeyboard_Header.Title" xml:space="preserve"><value>键盘</value></data>
+  <data name="SettingsConnection_Header.Title" xml:space="preserve"><value>连接与安全</value></data>
+  <data name="SettingsSync_Header.Title" xml:space="preserve"><value>同步</value></data>
+  <data name="SettingsAbout_Header.Title" xml:space="preserve"><value>关于</value></data>
+  <data name="Settings_General_Section_Appearance.Header" xml:space="preserve"><value>外观</value></data>
+  <data name="Settings_General_Section_Behavior.Header" xml:space="preserve"><value>行为与列表</value></data>
+  <data name="Settings_General_Section_Language.Header" xml:space="preserve"><value>语言</value></data>
+  <data name="Settings_Terminal_Section_Interaction.Header" xml:space="preserve"><value>交互与反馈</value></data>
+  <data name="Settings_Terminal_Section_Cursor.Header" xml:space="preserve"><value>光标外观</value></data>
+  <data name="Settings_Keyboard_Section_KeyBar.Header" xml:space="preserve"><value>软键盘按键栏</value></data>
+  <data name="Settings_Keyboard_Section_Physical.Header" xml:space="preserve"><value>实体键盘与快捷键</value></data>
+  <data name="Settings_Keyboard_KeyBar_On" xml:space="preserve"><value>按键栏开启</value></data>
+  <data name="Settings_Keyboard_KeyBar_Off" xml:space="preserve"><value>按键栏关闭</value></data>
+  <data name="Settings_Connection_Section_Display.Header" xml:space="preserve"><value>屏幕</value></data>
+  <data name="Settings_Connection_Section_KeepAlive.Header" xml:space="preserve"><value>后台与断线</value></data>
+  <data name="Settings_Connection_Section_Security.Header" xml:space="preserve"><value>安全</value></data>
+  <data name="Settings_Connection_Section_Network.Header" xml:space="preserve"><value>重连与超时</value></data>
+  <data name="Settings_Sync_Section_Poll.Header" xml:space="preserve"><value>前台轮询</value></data>
+  <data name="Settings_Sync_Section_Account.Header" xml:space="preserve"><value>账号与云端同步</value></data>
+  <data name="Settings_Sync_Account_Desc.Text" xml:space="preserve"><value>将主机、密钥、外观和代码片段加密同步到云端保险库，在多台设备间保持一致。</value></data>
+  <data name="Settings_Sync_OpenAccountSync.Content" xml:space="preserve"><value>管理账号与同步…</value></data>
+  <data name="Settings_About_Section_Logging.Header" xml:space="preserve"><value>日志</value></data>
   <data name="Settings_ResetDefault" xml:space="preserve"><value>恢复默认</value></data>
   <data name="Settings_Unit_Pt" xml:space="preserve"><value>{0} pt</value></data>
   <data name="Settings_Unit_Lines" xml:space="preserve"><value>{0} 行</value></data>

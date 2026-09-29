@@ -1,0 +1,135 @@
+<Page
+    x:Class="SshTool.App.Views.Settings.SettingsConnectionPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:AppPageHeader x:Name="PageHeader" x:Uid="SettingsConnection_Header"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                <!-- 屏幕 -->
+                <controls:FormSection x:Uid="Settings_Connection_Section_Display">
+                    <controls:FormSection.SectionContent>
+                        <ComboBox x:Name="KeepScreenBox" x:Uid="Settings_Connection_KeepScreen"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="OnKeepScreenChanged" />
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 后台与断线 -->
+                <controls:FormSection x:Uid="Settings_Connection_Section_KeepAlive" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <ToggleSwitch x:Name="KeepAliveSwitch" x:Uid="Settings_Connection_KeepAlive"
+                                          Toggled="OnKeepAliveToggled" />
+                            <TextBlock x:Uid="Settings_Connection_KeepAlive_Note"
+                                       Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                            <ToggleSwitch x:Name="NotifySwitch" x:Uid="Settings_Connection_NotifyDisconnect"
+                                          Margin="{StaticResource GapSmTop}"
+                                          Toggled="OnNotifyToggled" />
+                            <ComboBox x:Name="BgDiscBox" x:Uid="Settings_Connection_BgDisc"
+                                      HorizontalAlignment="Stretch"
+                                      Margin="{StaticResource GapSmTop}"
+                                      SelectionChanged="OnBgDiscChanged" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 安全 -->
+                <controls:FormSection x:Uid="Settings_Connection_Section_Security" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <ToggleSwitch x:Name="AppLockSwitch" x:Uid="Settings_Security_AppLock"
+                                          Toggled="OnAppLockToggled" />
+                            <TextBlock x:Name="AppLockNote" x:Uid="Settings_Security_AppLock_Note"
+                                       Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 重连与超时 -->
+                <controls:FormSection x:Name="ReconnectSection" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="ReconnectSlider" Grid.Column="0" StepFrequency="1"
+                                        ManipulationMode="All"
+                                        ValueChanged="OnReconnectChanged"
+                                        ManipulationStarted="OnSliderManipulationStarted"
+                                        ManipulationCompleted="OnReconnectManipulationCompleted" />
+                                <HyperlinkButton x:Uid="Settings_ResetDefault" Grid.Column="1"
+                                                 Click="OnResetReconnectClick" />
+                            </Grid>
+                            <TextBlock x:Name="ReconnectValue" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock x:Uid="Settings_Connection_Reconnect_Note"
+                                       Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <controls:FormSection x:Name="TimeoutSection" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="TimeoutSlider" Grid.Column="0" StepFrequency="1"
+                                        ManipulationMode="All"
+                                        ValueChanged="OnTimeoutChanged"
+                                        ManipulationStarted="OnSliderManipulationStarted"
+                                        ManipulationCompleted="OnTimeoutManipulationCompleted" />
+                                <HyperlinkButton x:Uid="Settings_ResetDefault" Grid.Column="1"
+                                                 Click="OnResetTimeoutClick" />
+                            </Grid>
+                            <TextBlock x:Name="TimeoutValue" Style="{StaticResource CaptionTextStyle}" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <controls:FormSection x:Name="AgentTimeoutSection" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="AgentTimeoutSlider" Grid.Column="0" StepFrequency="5"
+                                        ManipulationMode="All"
+                                        ValueChanged="OnAgentTimeoutChanged"
+                                        ManipulationStarted="OnSliderManipulationStarted"
+                                        ManipulationCompleted="OnAgentTimeoutManipulationCompleted" />
+                                <HyperlinkButton x:Uid="Settings_ResetDefault" Grid.Column="1"
+                                                 Click="OnResetAgentTimeoutClick" />
+                            </Grid>
+                            <TextBlock x:Name="AgentTimeoutValue" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock x:Uid="Settings_Connection_AgentTimeout_Note"
+                                       Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap"
+                                       Margin="{StaticResource GapXsTop}" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+            </StackPanel>
+        </ScrollViewer>
+
+        <controls:TransientToast x:Name="Toast" Grid.Row="2" />
+    </Grid>
+</Page>

@@ -1,0 +1,73 @@
+<Page
+    x:Class="SshTool.App.Views.Settings.SettingsGeneralPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:AppPageHeader x:Name="PageHeader" x:Uid="SettingsGeneral_Header"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                <!-- 外观 -->
+                <controls:FormSection x:Uid="Settings_General_Section_Appearance">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <ComboBox x:Name="ThemeBox" x:Uid="Settings_General_Theme"
+                                      HorizontalAlignment="Stretch"
+                                      SelectionChanged="OnThemeChanged" />
+                            <TextBlock x:Uid="Settings_General_Theme_Note"
+                                       Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" />
+                            <ToggleSwitch x:Name="AccentSwitch" x:Uid="Settings_General_Accent"
+                                          Margin="{StaticResource GapSmTop}"
+                                          Toggled="OnAccentToggled" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 行为与列表 -->
+                <controls:FormSection x:Uid="Settings_General_Section_Behavior" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <ComboBox x:Name="SortBox" x:Uid="Settings_General_Sort"
+                                      HorizontalAlignment="Stretch"
+                                      SelectionChanged="OnSortChanged" />
+                            <ToggleSwitch x:Name="QuickConnectSwitch" x:Uid="Settings_General_QuickConnect"
+                                          Margin="{StaticResource GapSmTop}"
+                                          Toggled="OnQuickConnectToggled" />
+                            <ToggleSwitch x:Name="HapticsSwitch" x:Uid="Settings_General_Haptics"
+                                          Margin="{StaticResource GapSmTop}"
+                                          Toggled="OnHapticsToggled" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 语言 -->
+                <controls:FormSection x:Uid="Settings_General_Section_Language" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <ComboBox x:Name="LanguageBox" x:Uid="Settings_General_Language"
+                                      HorizontalAlignment="Stretch"
+                                      SelectionChanged="OnLanguageChanged" />
+                            <TextBlock x:Uid="Settings_General_Language_Note"
+                                       Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+            </StackPanel>
+        </ScrollViewer>
+
+        <controls:TransientToast x:Name="Toast" Grid.Row="2" />
+    </Grid>
+</Page>

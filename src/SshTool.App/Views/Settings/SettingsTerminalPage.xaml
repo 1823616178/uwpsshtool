@@ -1,0 +1,111 @@
+<Page
+    x:Class="SshTool.App.Views.Settings.SettingsTerminalPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:AppPageHeader x:Name="PageHeader" x:Uid="SettingsTerminal_Header"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                <!-- 默认外观 -->
+                <controls:FormSection x:Name="AppearanceSection">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBlock x:Name="AppearanceValue" Style="{StaticResource CaptionTextStyle}" />
+                            <HyperlinkButton x:Uid="Settings_Terminal_Appearance_Select" Click="OnAppearanceClick" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 字体字号 -->
+                <controls:FormSection x:Name="FontSection" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="FontSlider" Grid.Column="0" StepFrequency="1"
+                                        ManipulationMode="All"
+                                        ValueChanged="OnFontChanged"
+                                        ManipulationStarted="OnSliderManipulationStarted"
+                                        ManipulationCompleted="OnFontManipulationCompleted" />
+                                <HyperlinkButton x:Uid="Settings_ResetDefault" Grid.Column="1"
+                                                 Click="OnResetFontClick" />
+                            </Grid>
+                            <TextBlock x:Name="FontValue" Style="{StaticResource CaptionTextStyle}" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 回滚行数 -->
+                <controls:FormSection x:Name="ScrollbackSection" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Slider x:Name="ScrollbackSlider" Grid.Column="0" StepFrequency="1000"
+                                        ManipulationMode="All"
+                                        ValueChanged="OnScrollbackChanged"
+                                        ManipulationStarted="OnSliderManipulationStarted"
+                                        ManipulationCompleted="OnScrollbackManipulationCompleted" />
+                                <HyperlinkButton x:Uid="Settings_ResetDefault" Grid.Column="1"
+                                                 Click="OnResetScrollbackClick" />
+                            </Grid>
+                            <TextBlock x:Name="ScrollbackValue" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock x:Uid="Settings_Terminal_Scrollback_Note"
+                                       Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 交互与反馈 -->
+                <controls:FormSection x:Uid="Settings_Terminal_Section_Interaction" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <ComboBox x:Name="AltScrollBox" x:Uid="Settings_Terminal_AltScroll"
+                                      HorizontalAlignment="Stretch"
+                                      SelectionChanged="OnAltScrollChanged" />
+                            <ToggleSwitch x:Name="PasteConfirmSwitch" x:Uid="Settings_Terminal_PasteConfirm"
+                                          Margin="{StaticResource GapSmTop}"
+                                          Toggled="OnPasteConfirmToggled" />
+                            <ComboBox x:Name="BellBox" x:Uid="Settings_Terminal_Bell"
+                                      HorizontalAlignment="Stretch"
+                                      Margin="{StaticResource GapSmTop}"
+                                      SelectionChanged="OnBellChanged" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 光标外观 -->
+                <controls:FormSection x:Uid="Settings_Terminal_Section_Cursor" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBlock x:Uid="Settings_Terminal_CursorBlink_Note"
+                                       Style="{StaticResource CaptionTextStyle}" />
+                            <HyperlinkButton x:Uid="Settings_Terminal_CursorBlink_Link" Click="OnAppearanceClick" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+            </StackPanel>
+        </ScrollViewer>
+
+        <controls:TransientToast x:Name="Toast" Grid.Row="2" />
+    </Grid>
+</Page>

@@ -350,6 +350,24 @@
     <Compile Include="Views\SettingsPage.xaml.cs">
       <DependentUpon>SettingsPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\Settings\SettingsGeneralPage.xaml.cs">
+      <DependentUpon>SettingsGeneralPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Settings\SettingsTerminalPage.xaml.cs">
+      <DependentUpon>SettingsTerminalPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Settings\SettingsKeyboardPage.xaml.cs">
+      <DependentUpon>SettingsKeyboardPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Settings\SettingsConnectionPage.xaml.cs">
+      <DependentUpon>SettingsConnectionPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Settings\SettingsSyncPage.xaml.cs">
+      <DependentUpon>SettingsSyncPage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Settings\SettingsAboutPage.xaml.cs">
+      <DependentUpon>SettingsAboutPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\KeyBarLayoutEditorPage.xaml.cs">
       <DependentUpon>KeyBarLayoutEditorPage.xaml</DependentUpon>
     </Compile>
@@ -533,6 +551,30 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Views\SettingsPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Settings\SettingsGeneralPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Settings\SettingsTerminalPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Settings\SettingsKeyboardPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Settings\SettingsConnectionPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Settings\SettingsSyncPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Settings\SettingsAboutPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

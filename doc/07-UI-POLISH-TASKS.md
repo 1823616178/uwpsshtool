@@ -194,7 +194,7 @@
     - [x] 宽屏表单不再拉满整行
     - [x] 门禁全绿、编译通过
 
-- [ ] **G05 设置页改为「首页 + 二级页」**
+- [x] **G05 设置页改为「首页 + 二级页」**
   - 依赖：G02
   - 涉及文件：`Views/SettingsPage.xaml(.cs)`（现为 5 个 Pivot 项的长表单）、`ViewModels/SettingsViewModel.cs`（只读，不改契约）、新增若干二级页、`SshTool.App.csproj`（登记新页面）、resw 双语
   - 要点：
@@ -202,9 +202,9 @@
     2. 每个分组一个二级页，内容就是现在对应 Pivot 项里的控件，原样搬过去，复用同一个 `SettingsViewModel` 的属性与静态索引映射方法。
     3. **最大风险是把 `SettingsPage.xaml.cs` 里的事件处理与 `_suppress` 去抖逻辑搬丢**。建议：先把现有代码隐藏按分组拆成几个 partial 或 helper，再移动 XAML；滑块 150 ms 去抖（C-07）必须保留。
   - 验收：
-    - [ ] 设置首页 + 6 个二级页，所有原有设置项都能找到且行为不变
-    - [ ] 每个二级页有 AppPageHeader 与返回
-    - [ ] 门禁全绿、编译通过；进度日志列出「原设置项 → 新位置」对照表
+    - [x] 设置首页 + 6 个二级页，所有原有设置项都能找到且行为不变
+    - [x] 每个二级页有 AppPageHeader 与返回
+    - [x] 门禁全绿、编译通过；进度日志列出「原设置项 → 新位置」对照表
 
 - [ ] **G06 主机列表精修**
   - 依赖：G01
@@ -283,6 +283,8 @@
 - [ ] G03 📱 CommandBar 与 BottomActionBar 底部发丝线与 48 epx 高度视觉一致性
 - [ ] G04 📱 11 个表单页在手机竖屏与宽屏下 FormSection 分组视觉层级与 FormMaxWidth (560) 居中观感
 - [ ] G04 📱 表单底部固定 BottomActionBar 与软键盘弹出时的避让与点击体验
+- [ ] G05 📱 设置页「首页 + 6 个二级页」层级跳转、动态副标题摘要刷新与返回流畅度
+- [ ] G05 📱 设置页各二级页内滑块去抖（150ms）手感与系统锁/日志导出等弹窗体验
 
 ---
 
@@ -295,3 +297,5 @@
 | 2026-09-29 | G02 | aa0c75b | **开关、勾选、滑块、Pivot 全局皮肤**。按 §4.3 落实 ToggleSwitch / CheckBox / RadioButton / Slider / PivotHeaderItem 统一外观：Tokens.xaml 新增 IndicatorHeight (2)、PivotHeaderItemFontSize (18)、ToggleSwitchOnStrokeThickness (0) 与 PivotHeaderItemMargin；Tokens.Dark/Light 补全五种控件的系统画刷重写；Controls.xaml 为 PivotHeaderItem（FontSubtitle 18、SemiBold、选中文字 AppTextBrush + 底部 2 epx accent 下划线双重表达）、ToggleSwitch（Caption 级 Header）、Slider（Caption 级 Header）、CheckBox 与 RadioButton 声明隐式样式；ThemeService.ApplyAccent 集中同步 AccentDependentKeys；修正 resw 中 Settings_General/Terminal/Keyboard/Connection/About 12 处 x:Uid Header 资源键名；未截图。门禁全绿、x64 Debug 零错误零警告。 |
 | 2026-09-29 | G03 | 0ece941 | **对话框、菜单、底栏统一**。按 §4.3 落实 ContentDialog / MenuFlyout / CommandBar / BottomActionBar 统一外观：Tokens.xaml 新增 BottomBarHeight (48) 并将 PadActionBar 收敛至 12,4,12,4；Tokens.Dark/Light 补全 ContentDialog、MenuFlyout 与 CommandBar/AppBar 系统画刷重写；Controls.xaml 为 ContentDialog（Surface 1 底、BorderThin 边框、PadCard 内边距、默认 Primary/Secondary 按钮样式）、MenuFlyoutPresenter（Surface 2 底、1 epx 边框）、MenuFlyoutItem / ToggleMenuFlyoutItem（触控高 ≥40、FontBody 字号）、CommandBar（Surface 1 底、BorderThinTop 顶部细线）及 AppBarButton/AppBarToggleButton 声明隐式样式；BottomActionBar 底色统一为 Surface 1、MinHeight 48；全面审查并修正 ConfirmDialog.ShowAsync 危险操作调用点（HostEditPage/AppearanceEditPage/SnippetEditPage 放弃修改、HostEditPage 切换认证、SftpViewModel 文件与文件夹删除、AccountSyncPage 恢复历史版本均传 isDanger: true）；ExitWithSessionsDialog 与 HostKeyMismatchDialog 关联 DangerDialogButtonStyle；TunnelEditPage 溢出删除菜单项关联 DangerMenuItemStyle；未截图。门禁全绿、x64 Debug 零错误零警告。 |
 | 2026-09-29 | G04 | 91bf2a2 | **表单页统一 FormSection 结构**。在 Tokens.xaml 增加 FormMaxWidth (560)；升级 BottomActionBar 支持 IsPrimaryEnabled 与 PrimaryButtonStyle 属性；将 11 个表单页（SnippetEditPage、AppearanceEditPage、GroupManagePage、KeyBarLayoutEditorPage、ShortcutEditorPage、LoginPage、VaultSetupPage、VaultUnlockPage、ChangeLoginPasswordPage、DeleteAccountPage、DeleteVaultPage）及参考页（HostEditPage、TunnelEditPage）全部统一为 FormSection 结构与 FormMaxWidth 约束；危险操作表单（DeleteAccount、DeleteVault）与次要操作（KeyBar/Shortcut 恢复默认）按规范配置 PrimaryButtonStyle；主操作移至底部固定 BottomActionBar，滚动不脱落；清理 resw 前缀重叠冲突并保持中英文完全对称。门禁全绿、x64 Debug 零错误。 |
+| 2026-09-29 | G05 | 5faddf3 | **设置页改为「首页 + 二级页」**。重构 `SettingsPage` 为导航首页（使用 AppListRow 展现 6 个分组，并在 OnNavigatedTo 动态计算各项关键值副标题摘要），拆分出 6 个二级页面（全部配备 AppPageHeader、BackRequested 处理与 FormMaxWidth 结构）：<br>• 通用 Pivot → `SettingsGeneralPage` (主题、强调色、排序、快捷连接、振动、语言)<br>• 终端 Pivot → `SettingsTerminalPage` (外观入口、字号/回滚滑块、备用屏幕滚动、粘贴确认、响铃模式、光标闪烁)<br>• 键盘 Pivot → `SettingsKeyboardPage` (键条开关/布局入口、退格键、快捷键摘要/编辑入口)<br>• 连接 Pivot (连接/保活/安全) → `SettingsConnectionPage` (常亮、后台保活、通知、应用锁、断连超时、重连/连接超时/Agent 超时滑块)<br>• 连接 Pivot (同步) → `SettingsSyncPage` (前台同步轮询间隔、云端同步入口与说明)<br>• 关于 Pivot → `SettingsAboutPage` (版本信息、开源许可、日志等级、导出与清理日志、诊断探针与复制)<br>完整保留 150 ms 滑块去抖（C-07）与 NavigationLifetime 生命周期守卫（O04）；中英文 resw 补齐所有页面标题、节段及摘要文本。门禁全绿、x64 Debug 零错误。 |
+

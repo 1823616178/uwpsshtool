@@ -531,6 +531,37 @@
   <data name="Settings_Pivot_Keyboard.Header" xml:space="preserve"><value>Keyboard</value></data>
   <data name="Settings_Pivot_Connection.Header" xml:space="preserve"><value>Connection</value></data>
   <data name="Settings_Pivot_About.Header" xml:space="preserve"><value>About</value></data>
+  <data name="Settings_PageHeader.Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_Row_General.Title" xml:space="preserve"><value>General</value></data>
+  <data name="Settings_Row_Terminal.Title" xml:space="preserve"><value>Terminal</value></data>
+  <data name="Settings_Row_Keyboard.Title" xml:space="preserve"><value>Keyboard</value></data>
+  <data name="Settings_Row_Connection.Title" xml:space="preserve"><value>Connection &amp; Security</value></data>
+  <data name="Settings_Row_Sync.Title" xml:space="preserve"><value>Sync</value></data>
+  <data name="Settings_Row_About.Title" xml:space="preserve"><value>About</value></data>
+  <data name="SettingsGeneral_Header.Title" xml:space="preserve"><value>General</value></data>
+  <data name="SettingsTerminal_Header.Title" xml:space="preserve"><value>Terminal</value></data>
+  <data name="SettingsKeyboard_Header.Title" xml:space="preserve"><value>Keyboard</value></data>
+  <data name="SettingsConnection_Header.Title" xml:space="preserve"><value>Connection &amp; Security</value></data>
+  <data name="SettingsSync_Header.Title" xml:space="preserve"><value>Sync</value></data>
+  <data name="SettingsAbout_Header.Title" xml:space="preserve"><value>About</value></data>
+  <data name="Settings_General_Section_Appearance.Header" xml:space="preserve"><value>Appearance</value></data>
+  <data name="Settings_General_Section_Behavior.Header" xml:space="preserve"><value>Behavior &amp; Lists</value></data>
+  <data name="Settings_General_Section_Language.Header" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_Terminal_Section_Interaction.Header" xml:space="preserve"><value>Interaction &amp; Feedback</value></data>
+  <data name="Settings_Terminal_Section_Cursor.Header" xml:space="preserve"><value>Cursor Appearance</value></data>
+  <data name="Settings_Keyboard_Section_KeyBar.Header" xml:space="preserve"><value>On-Screen Key Bar</value></data>
+  <data name="Settings_Keyboard_Section_Physical.Header" xml:space="preserve"><value>Hardware Keyboard &amp; Shortcuts</value></data>
+  <data name="Settings_Keyboard_KeyBar_On" xml:space="preserve"><value>Key Bar On</value></data>
+  <data name="Settings_Keyboard_KeyBar_Off" xml:space="preserve"><value>Key Bar Off</value></data>
+  <data name="Settings_Connection_Section_Display.Header" xml:space="preserve"><value>Display</value></data>
+  <data name="Settings_Connection_Section_KeepAlive.Header" xml:space="preserve"><value>Background &amp; Disconnect</value></data>
+  <data name="Settings_Connection_Section_Security.Header" xml:space="preserve"><value>Security</value></data>
+  <data name="Settings_Connection_Section_Network.Header" xml:space="preserve"><value>Reconnect &amp; Timeout</value></data>
+  <data name="Settings_Sync_Section_Poll.Header" xml:space="preserve"><value>Foreground Polling</value></data>
+  <data name="Settings_Sync_Section_Account.Header" xml:space="preserve"><value>Account &amp; Cloud Sync</value></data>
+  <data name="Settings_Sync_Account_Desc.Text" xml:space="preserve"><value>Securely sync hosts, keys, themes, and snippets to your cloud vault across devices.</value></data>
+  <data name="Settings_Sync_OpenAccountSync.Content" xml:space="preserve"><value>Manage Account &amp; Sync…</value></data>
+  <data name="Settings_About_Section_Logging.Header" xml:space="preserve"><value>Logging</value></data>
   <data name="Settings_ResetDefault" xml:space="preserve"><value>Reset to default</value></data>
   <data name="Settings_Unit_Pt" xml:space="preserve"><value>{0} pt</value></data>
   <data name="Settings_Unit_Lines" xml:space="preserve"><value>{0} lines</value></data>

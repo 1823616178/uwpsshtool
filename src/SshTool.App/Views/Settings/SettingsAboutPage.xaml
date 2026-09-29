@@ -1,0 +1,87 @@
+<Page
+    x:Class="SshTool.App.Views.Settings.SettingsAboutPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:SshTool.App.Controls"
+    Background="{ThemeResource AppBgBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <controls:AppPageHeader x:Name="PageHeader" x:Uid="SettingsAbout_Header"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                <!-- 版本与许可 -->
+                <controls:FormSection x:Name="VersionSection">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBlock x:Name="AppVersionValue" Style="{StaticResource MonoCaptionTextStyle}" />
+                            <HyperlinkButton x:Uid="Settings_About_Licenses" Click="OnLicensesClick"
+                                             Margin="{StaticResource GapXsTop}" />
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 日志 -->
+                <controls:FormSection x:Uid="Settings_About_Section_Logging" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <ComboBox x:Name="LogLevelBox" x:Uid="Settings_About_LogLevel"
+                                      HorizontalAlignment="Stretch"
+                                      SelectionChanged="OnLogLevelChanged" />
+                            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                                <Button x:Uid="Settings_About_ExportLogs" Click="OnExportLogsClick" />
+                                <Button x:Uid="Settings_About_ClearLogs" Click="OnClearLogsClick"
+                                        Margin="{StaticResource GapSmLeft}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+
+                <!-- 诊断信息 -->
+                <controls:FormSection x:Name="DiagnosticsSection" Margin="{StaticResource GapMdTop}">
+                    <controls:FormSection.SectionContent>
+                        <StackPanel>
+                            <TextBlock x:Name="OsVersionValue" Style="{StaticResource CaptionTextStyle}" />
+                            <TextBlock x:Name="DeviceFamilyValue" Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" />
+                            <TextBlock x:Name="MemoryValue" Style="{StaticResource CaptionTextStyle}"
+                                       Margin="{StaticResource GapXsTop}" />
+                            <ListView x:Name="ProbeList" SelectionMode="None"
+                                      Margin="{StaticResource GapSmTop}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="{StaticResource PagePadding}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Name}"
+                                                       Style="{StaticResource BodyTextStyle}" />
+                                            <TextBlock Grid.Column="1" Text="{Binding Status}"
+                                                       Style="{StaticResource CaptionTextStyle}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <StackPanel Orientation="Horizontal" Margin="{StaticResource GapSmTop}">
+                                <Button x:Uid="Settings_About_Refresh" Click="OnRefreshDiagClick" />
+                                <Button x:Uid="Settings_About_Copy" Click="OnCopyDiagClick"
+                                        Margin="{StaticResource GapSmLeft}" />
+                            </StackPanel>
+                        </StackPanel>
+                    </controls:FormSection.SectionContent>
+                </controls:FormSection>
+            </StackPanel>
+        </ScrollViewer>
+
+        <controls:TransientToast x:Name="Toast" Grid.Row="2" />
+    </Grid>
+</Page>
