@@ -117,6 +117,7 @@
     <FontFamily x:Key="AppMonoFontFamily">Consolas</FontFamily>
     <Thickness x:Key="GapXsTop">0,4,0,0</Thickness>
     <Thickness x:Key="GapXsBottom">0,0,0,4</Thickness>
+    <Thickness x:Key="GapXsLeft">4,0,0,0</Thickness>
     <Thickness x:Key="GapSmTop">0,8,0,0</Thickness>
 
     <!-- §2.3 图标（Segoe MDL2 Assets 字形） -->

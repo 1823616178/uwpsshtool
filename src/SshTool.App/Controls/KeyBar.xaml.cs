@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using SshTool.App.Platform;
 using SshTool.Core.Terminal;
@@ -15,6 +15,8 @@ namespace SshTool.App.Controls
         private readonly DispatcherTimer _repeatTimer = new DispatcherTimer();
         private readonly Dictionary<string, Border> _modifierChrome = new Dictionary<string, Border>();
         private readonly Dictionary<string, Border> _accentBars = new Dictionary<string, Border>();
+        private readonly Dictionary<string, TextBlock> _modifierLabels = new Dictionary<string, TextBlock>();
+        private readonly Dictionary<string, FontIcon> _lockIcons = new Dictionary<string, FontIcon>();
         private string _layout = KeyBarLayout.DefaultString;
         private StickyModifiers _sticky = new StickyModifiers();
         private KeyBarKey _repeatKey;
@@ -123,6 +125,8 @@ namespace SshTool.App.Controls
             KeysPanel.Children.Clear();
             _modifierChrome.Clear();
             _accentBars.Clear();
+            _modifierLabels.Clear();
+            _lockIcons.Clear();
             // V01a：收起键盘按钮图标固定在 XAML（IconKeyboard 字形），不再从布局表取 ⌨ 文本。
             IReadOnlyList<KeyBarKey> keys = KeyBarLayout.Parse(_layout);
             bool first = true;
@@ -160,7 +164,31 @@ namespace SshTool.App.Controls
                 Visibility = Visibility.Collapsed
             };
             var grid = new Grid();
-            grid.Children.Add(label);
+            FontIcon lockIcon = null;
+            if (key.Kind == KeyBarKeyKind.Modifier)
+            {
+                lockIcon = new FontIcon
+                {
+                    Glyph = (string)Application.Current.Resources["IconLock"],
+                    FontSize = TokenDouble("FontCaption"),
+                    Margin = TokenThickness("GapXsLeft"),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Visibility = Visibility.Collapsed
+                };
+                var contentPanel = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                };
+                contentPanel.Children.Add(label);
+                contentPanel.Children.Add(lockIcon);
+                grid.Children.Add(contentPanel);
+            }
+            else
+            {
+                grid.Children.Add(label);
+            }
             grid.Children.Add(accentBar);
             var chrome = new Border
             {
@@ -194,6 +222,8 @@ namespace SshTool.App.Controls
             {
                 _modifierChrome[key.Id] = chrome;
                 _accentBars[key.Id] = accentBar;
+                _modifierLabels[key.Id] = label;
+                _lockIcons[key.Id] = lockIcon;
             }
             return chrome;
         }
@@ -274,6 +304,7 @@ namespace SshTool.App.Controls
             }
             chrome.CapturePointer(e.Pointer);
             Haptics.VibrateLight(HapticsEnabled);
+            chrome.Background = Brush("AppPressedBrush");
             if (key.Kind != KeyBarKeyKind.Action)
             {
                 EventHandler interacted = Interacted;
@@ -317,9 +348,25 @@ namespace SshTool.App.Controls
                 {
                 }
             }
+            KeyBarKey released = chrome != null ? chrome.Tag as KeyBarKey : null;
+            if (released != null)
+            {
+                if (released.Kind == KeyBarKeyKind.Modifier)
+                {
+                    RefreshModifierVisuals();
+                }
+                else if (chrome != null)
+                {
+                    chrome.Background = Brush("KeyBarKeyBrush");
+                }
+            }
+            else if (chrome != null)
+            {
+                chrome.Background = Brush("KeyBarKeyBrush");
+            }
+
             // 按下与抬起各通知一次：框架把焦点挪走的时机（按下前 / 抬起后）无从预设，
             // 两头都补一次；宿主那边「已有焦点就不动」，多余的一次是空操作。
-            KeyBarKey released = chrome != null ? chrome.Tag as KeyBarKey : null;
             if (released == null || released.Kind != KeyBarKeyKind.Action)
             {
                 EventHandler interacted = Interacted;
@@ -436,23 +483,13 @@ namespace SshTool.App.Controls
             {
                 return;
             }
-            // V03b：键 Border 的 Child 是 Grid（含 TextBlock + accent 条），
-            // 需从 Grid 中取 TextBlock 改前景。
-            TextBlock label = null;
-            var grid = chrome.Child as Grid;
-            if (grid != null)
-            {
-                for (int i = 0; i < grid.Children.Count; i++)
-                {
-                    label = grid.Children[i] as TextBlock;
-                    if (label != null)
-                    {
-                        break;
-                    }
-                }
-            }
+            TextBlock label;
+            _modifierLabels.TryGetValue(id, out label);
             Border accentBar;
             _accentBars.TryGetValue(id, out accentBar);
+            FontIcon lockIcon;
+            _lockIcons.TryGetValue(id, out lockIcon);
+
             if (state == StickyState.Off)
             {
                 chrome.Background = Brush("KeyBarKeyBrush");
@@ -460,6 +497,10 @@ namespace SshTool.App.Controls
                 if (accentBar != null)
                 {
                     accentBar.Visibility = Visibility.Collapsed;
+                }
+                if (lockIcon != null)
+                {
+                    lockIcon.Visibility = Visibility.Collapsed;
                 }
                 if (label != null)
                 {
@@ -470,20 +511,29 @@ namespace SshTool.App.Controls
             if (state == StickyState.Locked)
             {
                 chrome.Background = Brush("KeyBarKeyLockedBrush");
-                // V03b：accent 条替代 KeyBarLockedBorder 描边，作为 Locked 态主视觉区分。
                 chrome.BorderThickness = TokenThickness("BorderNone");
                 if (accentBar != null)
                 {
-                    accentBar.Visibility = Visibility.Visible;
+                    accentBar.Visibility = Visibility.Collapsed;
+                }
+                if (lockIcon != null)
+                {
+                    lockIcon.Visibility = Visibility.Visible;
+                    lockIcon.Foreground = Brush("AppOnAccentBrush");
                 }
             }
             else
             {
+                // OneShot
                 chrome.Background = Brush("KeyBarKeyActiveBrush");
                 chrome.BorderThickness = TokenThickness("BorderNone");
                 if (accentBar != null)
                 {
                     accentBar.Visibility = Visibility.Collapsed;
+                }
+                if (lockIcon != null)
+                {
+                    lockIcon.Visibility = Visibility.Collapsed;
                 }
             }
             if (label != null)

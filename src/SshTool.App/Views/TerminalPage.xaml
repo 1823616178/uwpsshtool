@@ -28,6 +28,8 @@
              点击展开为双行（TerminalExpandedBarHeight=64 epx）；横屏（WideState）隐藏次要地址。
              中列用 2 行 Grid 容纳同行（Normal）与换行（Expanded）两种布局。 -->
         <Grid x:Name="InfoBar" Grid.Row="1" Background="{ThemeResource AppSurfaceBrush}"
+              BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="{StaticResource BorderThinBottom}"
+              AllowFocusOnInteraction="False"
               Height="{StaticResource TerminalCompactBarHeight}" Tapped="OnInfoTapped">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -36,17 +38,19 @@
             </Grid.ColumnDefinitions>
             <controls:StatusDot x:Name="Dot" VerticalAlignment="Center"
                                 Margin="{StaticResource PagePadding}" />
-            <Grid Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource PagePadding}">
+            <Grid Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource PagePadding}"
+                  AllowFocusOnInteraction="False">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition x:Name="AddressRow" Height="0" />
                 </Grid.RowDefinitions>
                 <TextBlock x:Name="TitleText" Grid.Row="0"
-                           Style="{StaticResource BodyTextStyle}"
+                           Style="{StaticResource SubtitleTextStyle}"
                            TextTrimming="CharacterEllipsis" />
                 <!-- Normal：同行右侧（CaptionTextStyle=次要色小字）；Expanded：换行占满。 -->
                 <TextBlock x:Name="AddressText" Grid.Row="0"
                            Style="{StaticResource CaptionTextStyle}"
+                           Foreground="{ThemeResource AppTextDimBrush}"
                            TextTrimming="CharacterEllipsis"
                            HorizontalAlignment="Right"
                            Margin="{StaticResource GapSmLeft}" />

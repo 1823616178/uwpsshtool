@@ -83,7 +83,7 @@ namespace SshTool.Core.Terminal
             }
         }
 
-        private StickyState StateOf(ModifierKey key)
+        public StickyState StateOf(ModifierKey key)
         {
             switch (key)
             {

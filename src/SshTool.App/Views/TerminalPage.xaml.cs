@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using SshTool.App.Controls;
@@ -32,11 +32,15 @@ namespace SshTool.App.Views
         private int _generation;
         // 真机修复（2026-09-29）：软键盘弹出时把键条抬到 SIP 上沿的位移（Y 为负）。
         private readonly TranslateTransform _keyBarLift = new TranslateTransform();
+        // G07：信息条展开态已连接时长计时器（仅展开且 Connected 时激活，1 秒间隔）。
+        private readonly DispatcherTimer _durationTimer = new DispatcherTimer();
 
         public TerminalPage()
         {
             ViewModel = new TerminalViewModel();
             this.InitializeComponent();
+            _durationTimer.Interval = TimeSpan.FromSeconds(1);
+            _durationTimer.Tick += (s, e) => UpdateAddressAndDuration();
             Overlay.Cancel += (s, e) => ViewModel.CloseSessionCommand.Execute(null);
             Overlay.ReconnectNow += (s, e) =>
             {
@@ -217,17 +221,21 @@ namespace SshTool.App.Views
             }
             _boundSession = info;
             TitleText.Text = info.Title ?? string.Empty;
-            AddressText.Text = ViewModel.AddressLine;
             Dot.State = ToDot(info.State);
             Term.Session = info.NativeSession;
             info.PropertyChanged += OnBoundSessionChanged;
             _lifetime.Track(UnbindSession);
             ApplyOverlay(info);
+            RefreshDurationTimer();
         }
 
         // R01 (C-01)：与 BindSession 成对，幂等（_boundSession 为空即无操作）。
         private void UnbindSession()
         {
+            if (_durationTimer.IsEnabled)
+            {
+                _durationTimer.Stop();
+            }
             SessionInfo info = _boundSession;
             if (info == null)
             {
@@ -251,9 +259,9 @@ namespace SshTool.App.Views
                     return;
                 }
                 TitleText.Text = info.Title ?? string.Empty;
-                AddressText.Text = ViewModel.AddressLine;
                 Dot.State = ToDot(info.State);
                 ApplyOverlay(info);
+                RefreshDurationTimer();
             });
         }
 
@@ -395,6 +403,51 @@ namespace SshTool.App.Views
             ViewModel.ToggleInfoCommand.Execute(null);
             string state = ViewModel.InfoExpanded ? "Expanded" : "Normal";
             VisualStateManager.GoToState(this, state, true);
+            RefreshDurationTimer();
+        }
+
+        private void RefreshDurationTimer()
+        {
+            bool shouldRun = ViewModel != null
+                && ViewModel.InfoExpanded
+                && _boundSession != null
+                && _boundSession.State == SessionUiState.Connected
+                && _boundSession.ConnectedAt.HasValue;
+
+            if (shouldRun)
+            {
+                if (!_durationTimer.IsEnabled)
+                {
+                    _durationTimer.Start();
+                }
+            }
+            else
+            {
+                if (_durationTimer.IsEnabled)
+                {
+                    _durationTimer.Stop();
+                }
+            }
+            UpdateAddressAndDuration();
+        }
+
+        private void UpdateAddressAndDuration()
+        {
+            string address = ViewModel != null ? ViewModel.AddressLine ?? string.Empty : string.Empty;
+            if (ViewModel != null && ViewModel.InfoExpanded && _boundSession != null && _boundSession.State == SessionUiState.Connected && _boundSession.ConnectedAt.HasValue)
+            {
+                TimeSpan elapsed = DateTime.UtcNow - _boundSession.ConnectedAt.Value;
+                if (elapsed < TimeSpan.Zero)
+                {
+                    elapsed = TimeSpan.Zero;
+                }
+                string duration = string.Format("{0:D2}:{1:D2}:{2:D2}", (int)elapsed.TotalHours, elapsed.Minutes, elapsed.Seconds);
+                AddressText.Text = string.IsNullOrEmpty(address) ? duration : address + " · " + duration;
+            }
+            else
+            {
+                AddressText.Text = address;
+            }
         }
 
         private void OnMenuClick(object sender, RoutedEventArgs e)

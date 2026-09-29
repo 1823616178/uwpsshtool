@@ -1,4 +1,4 @@
-﻿<UserControl
+<UserControl
     x:Class="SshTool.App.Controls.KeyBar"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -31,6 +31,7 @@
              Label 已置空——此按钮无文本，编辑器行首语义文本由 App 层 resw 提供。 -->
         <Button x:Name="HideKeyboardButton"
                 x:Uid="KeyBar_HideKeyboardButton"
+                Style="{StaticResource IconButtonStyle}"
                 Grid.Column="1"
                 AllowFocusOnInteraction="False"
                 IsTabStop="False"
