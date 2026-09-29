@@ -29,7 +29,19 @@
         <controls:AppPageHeader x:Uid="AppearanceList_Title"
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
-        <ListView x:Name="AppearanceList" Grid.Row="1" SelectionMode="None">
+        <Grid Grid.Row="1">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
+            <controls:EmptyState x:Name="Empty"
+                                 Glyph="{StaticResource IconPalette}"
+                                 Visibility="Collapsed" />
+            <controls:EmptyState x:Name="ErrorState"
+                                 Kind="Offline"
+                                 Visibility="Collapsed" />
+            <ListView x:Name="AppearanceList" SelectionMode="None">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <Grid Padding="{StaticResource PagePadding}" Tapped="OnRowTapped"
@@ -86,5 +98,6 @@
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
+        </Grid>
     </Grid>
 </Page>

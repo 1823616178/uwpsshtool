@@ -18,6 +18,11 @@
 
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
                 <!-- 屏幕 -->
                 <controls:FormSection x:Uid="Settings_Connection_Section_Display">
                     <controls:FormSection.SectionContent>

@@ -34,6 +34,8 @@ namespace SshTool.App.ViewModels
         private bool _showQuickConnect = true;
         private bool _quickConnectExpanded;
         private bool _isListVisible;
+        private bool _hasError;
+        private string _errorMessage = string.Empty;
         private bool _detached;
 
         public HostListViewModel(AppServices services, IHostStatusProvider status = null)
@@ -61,6 +63,8 @@ namespace SshTool.App.ViewModels
             QuickConnectFromSearchCommand = new RelayCommand(QuickConnectFromSearch, () => _canQuickConnectFromSearch);
             ToggleQuickConnectCommand = new RelayCommand(ToggleQuickConnect);
             GenerateTestHostsCommand = new AsyncCommand(GenerateTestHostsAsync, onError: OnError);
+            RefreshCommand = new AsyncCommand(RefreshAsync, onError: OnError);
+            ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
 
             // O03：仓库与设置都是应用级单例，本 VM 随 MainPage 每次导航重建。
             // 不退订的话，每回一次首页就多一个永远活着、仍在响应 Changed 并
@@ -80,6 +84,20 @@ namespace SshTool.App.ViewModels
         public ICommand QuickConnectFromSearchCommand { get; private set; }
         public ICommand ToggleQuickConnectCommand { get; private set; }
         public ICommand GenerateTestHostsCommand { get; private set; }
+        public ICommand RefreshCommand { get; private set; }
+        public ICommand ClearSearchCommand { get; private set; }
+
+        public bool HasError
+        {
+            get { return _hasError; }
+            private set { SetProperty(ref _hasError, value); }
+        }
+
+        public string ErrorMessage
+        {
+            get { return _errorMessage; }
+            private set { SetProperty(ref _errorMessage, value); }
+        }
 
         public string SearchText
         {
@@ -303,19 +321,33 @@ namespace SshTool.App.ViewModels
         public async Task RefreshAsync()
         {
             int generation = Interlocked.Increment(ref _refreshGeneration);
-            IReadOnlyList<Host> hosts = await _hosts.GetAllAsync().ConfigureAwait(true);
-            IReadOnlyList<HostGroup> groups = await _groups.GetAllAsync().ConfigureAwait(true);
-            IReadOnlyList<Tunnel> tunnels = await _tunnels.GetAllAsync().ConfigureAwait(true);
-            int current = Volatile.Read(ref _refreshGeneration);
-            if (current != generation)
+            try
             {
-                // 排队期间已有更新的刷新请求启动：本次结果丢弃，由新请求的最新一次 Apply。
-                return;
+                IReadOnlyList<Host> hosts = await _hosts.GetAllAsync().ConfigureAwait(true);
+                IReadOnlyList<HostGroup> groups = await _groups.GetAllAsync().ConfigureAwait(true);
+                IReadOnlyList<Tunnel> tunnels = await _tunnels.GetAllAsync().ConfigureAwait(true);
+                int current = Volatile.Read(ref _refreshGeneration);
+                if (current != generation)
+                {
+                    // 排队期间已有更新的刷新请求启动：本次结果丢弃，由新请求的最新一次 Apply。
+                    return;
+                }
+                HostListSnapshot snap = HostListBuilder.Build(
+                    hosts, groups, tunnels, _searchText, _settings.HostSortMode,
+                    _settings.HostGroupCollapsed, _status);
+                Apply(snap, hosts);
+                HasError = false;
+                ErrorMessage = string.Empty;
             }
-            HostListSnapshot snap = HostListBuilder.Build(
-                hosts, groups, tunnels, _searchText, _settings.HostSortMode,
-                _settings.HostGroupCollapsed, _status);
-            Apply(snap, hosts);
+            catch (Exception ex)
+            {
+                AppLog.Error("HostList", "Refresh failed", ex);
+                HasError = true;
+                ErrorMessage = ex.Message;
+                IsEmpty = false;
+                HasNoMatches = false;
+                IsListVisible = false;
+            }
         }
 
         private void Apply(HostListSnapshot snap, IReadOnlyList<Host> hosts)

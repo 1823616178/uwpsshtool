@@ -65,18 +65,40 @@ namespace SshTool.App.Views.Main
                 ? Visibility.Visible : Visibility.Collapsed;
             QuickConnectChevron.Glyph = (string)Application.Current.Resources[
                 ViewModel.QuickConnectExpanded ? "IconChevronUp" : "IconChevronDown"];
-            Empty.Visibility = ViewModel.IsEmpty ? Visibility.Visible : Visibility.Collapsed;
-            NoMatches.Visibility = ViewModel.HasNoMatches ? Visibility.Visible : Visibility.Collapsed;
-            HostList.Visibility = ViewModel.IsListVisible ? Visibility.Visible : Visibility.Collapsed;
-            if (ViewModel.HasNoMatches)
+            bool hasError = ViewModel.HasError;
+            ErrorState.Visibility = hasError ? Visibility.Visible : Visibility.Collapsed;
+            Empty.Visibility = (!hasError && ViewModel.IsEmpty) ? Visibility.Visible : Visibility.Collapsed;
+            NoMatches.Visibility = (!hasError && ViewModel.HasNoMatches) ? Visibility.Visible : Visibility.Collapsed;
+            HostList.Visibility = (!hasError && ViewModel.IsListVisible) ? Visibility.Visible : Visibility.Collapsed;
+            if (hasError)
+            {
+                ErrorState.Title = Loader.GetString("Common_LoadFailed");
+                ErrorState.Description = ViewModel.ErrorMessage;
+                ErrorState.PrimaryText = Loader.GetString("Common_Retry");
+                ErrorState.PrimaryCommand = ViewModel.RefreshCommand;
+            }
+            else if (ViewModel.HasNoMatches)
             {
                 NoMatches.Title = string.Format(Loader.GetString("Hosts_NoMatchesTitle"), ViewModel.SearchText);
-                NoMatches.PrimaryText = ViewModel.CanQuickConnectFromSearch
-                    ? Loader.GetString("Hosts_NoMatchesPrimary") : null;
+                if (ViewModel.CanQuickConnectFromSearch)
+                {
+                    NoMatches.PrimaryText = Loader.GetString("Hosts_NoMatchesPrimary");
+                    NoMatches.PrimaryCommand = ViewModel.QuickConnectFromSearchCommand;
+                    NoMatches.SecondaryText = Loader.GetString("Common_ClearSearch");
+                    NoMatches.SecondaryCommand = ViewModel.ClearSearchCommand;
+                }
+                else
+                {
+                    NoMatches.PrimaryText = Loader.GetString("Common_ClearSearch");
+                    NoMatches.PrimaryCommand = ViewModel.ClearSearchCommand;
+                    NoMatches.SecondaryText = null;
+                    NoMatches.SecondaryCommand = null;
+                }
             }
             else
             {
                 NoMatches.PrimaryText = null;
+                NoMatches.SecondaryText = null;
             }
             // VM 侧清空搜索词（如 back）时同步回搜索框；程序赋值不触发 UserInput 分支，不会回环。
             if (!string.Equals(SearchBox.Text, ViewModel.SearchText, StringComparison.Ordinal))

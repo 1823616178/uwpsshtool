@@ -113,8 +113,8 @@
   <data name="Login_HttpBanner.Message" xml:space="preserve"><value>Your login password may be eavesdropped on this network. Use only on networks you trust.</value></data>
   <data name="Login_SubmitLogin" xml:space="preserve"><value>Sign in</value></data>
   <data name="Login_SubmitRegister" xml:space="preserve"><value>Sign up</value></data>
-  <data name="Login_WorkingLogin" xml:space="preserve"><value>Signing in…</value></data>
-  <data name="Login_WorkingRegister" xml:space="preserve"><value>Signing up…</value></data>
+  <data name="Login_WorkingLogin" xml:space="preserve"><value>Connecting to sync server and verifying credentials…</value></data>
+  <data name="Login_WorkingRegister" xml:space="preserve"><value>Connecting to sync server and creating account…</value></data>
   <data name="Login_EmailRequired" xml:space="preserve"><value>Enter your email.</value></data>
   <data name="Login_PasswordRequired" xml:space="preserve"><value>Enter your password.</value></data>
   <data name="Login_PasswordTooShort" xml:space="preserve"><value>Registration password must be at least 10 characters.</value></data>
@@ -125,7 +125,7 @@
   <data name="Login_AlreadySignedIn" xml:space="preserve"><value>Already signed in. Sign out first to continue.</value></data>
 
   <data name="Sftp_Title.Text" xml:space="preserve"><value>SFTP</value></data>
-  <data name="Sftp_Connecting" xml:space="preserve"><value>Connecting to SFTP…</value></data>
+  <data name="Sftp_Connecting" xml:space="preserve"><value>Connecting to SFTP and initializing session…</value></data>
   <data name="Sftp_UpButton.AutomationProperties.Name" xml:space="preserve"><value>Go to parent directory</value></data>
   <data name="Sftp_EmptyTitle.Text" xml:space="preserve"><value>Empty directory</value></data>
   <data name="Sftp_EmptyDescription.Text" xml:space="preserve"><value>Nothing in this directory</value></data>
@@ -271,8 +271,8 @@
   <data name="Vault_RecoveryRequired" xml:space="preserve"><value>Enter your recovery key.</value></data>
   <data name="Vault_RecoveryFormatInvalid" xml:space="preserve"><value>The recovery key format is invalid.</value></data>
   <data name="Vault_RecoveryChecksumFailed" xml:space="preserve"><value>The recovery key failed verification.</value></data>
-  <data name="Vault_WorkingSetup" xml:space="preserve"><value>Generating keys (a few seconds)…</value></data>
-  <data name="Vault_WorkingUnlock" xml:space="preserve"><value>Unlocking…</value></data>
+  <data name="Vault_WorkingSetup" xml:space="preserve"><value>Deriving encryption keys and initializing vault (Argon2id, a few seconds)…</value></data>
+  <data name="Vault_WorkingUnlock" xml:space="preserve"><value>Deriving decryption key and verifying vault (Argon2id, a few seconds)…</value></data>
   <data name="Vault_WorkingSync" xml:space="preserve"><value>Syncing…</value></data>
 
   <!-- V01a: accessibility names for new components (doc/05 §5.3, §7.2) -->
@@ -1286,5 +1286,26 @@
   <data name="Terminal_MenuImeOn" xml:space="preserve"><value>Switch to IME input (Chinese)</value></data>
   <data name="Terminal_MenuImeOff" xml:space="preserve"><value>Switch to direct English input</value></data>
   <data name="Sftp_ViewOptionsButton.Label" xml:space="preserve"><value>Sort &amp; view</value></data>
+
+  <!-- G09: Empty states, loading, and motion polish -->
+  <data name="Common_LoadFailed" xml:space="preserve"><value>Loading failed</value></data>
+  <data name="Common_Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="Common_ClearSearch" xml:space="preserve"><value>Clear search</value></data>
+  <data name="Common_BrowseHosts" xml:space="preserve"><value>Browse hosts</value></data>
+  <data name="Sftp_ReadingDirectory" xml:space="preserve"><value>Reading directory…</value></data>
+  <data name="Sftp_Deleting" xml:space="preserve"><value>Deleting…</value></data>
+  <data name="Sftp_Renaming" xml:space="preserve"><value>Renaming…</value></data>
+  <data name="Sftp_CreatingDirectory" xml:space="preserve"><value>Creating directory…</value></data>
+  <data name="Sftp_ChangingPermissions" xml:space="preserve"><value>Updating permissions…</value></data>
+  <data name="Sftp_EmptyUpload" xml:space="preserve"><value>Upload files</value></data>
+  <data name="Snippets_NoMatches_Description" xml:space="preserve"><value>No command snippets match your search.</value></data>
+  <data name="KnownHosts_EmptyTitle" xml:space="preserve"><value>No known hosts</value></data>
+  <data name="KnownHosts_EmptyDescription" xml:space="preserve"><value>Host key fingerprints will be recorded here after successful SSH connections.</value></data>
+  <data name="KnownHosts_NoMatchesTitle" xml:space="preserve"><value>No matching host fingerprints</value></data>
+  <data name="AppearanceList_EmptyTitle" xml:space="preserve"><value>No appearance schemes</value></data>
+  <data name="AppearanceList_EmptyDescription" xml:space="preserve"><value>Create custom color schemes for your terminal.</value></data>
+  <data name="AppearanceList_EmptyPrimary" xml:space="preserve"><value>New Scheme</value></data>
+  <data name="GroupManage_EmptyTitle" xml:space="preserve"><value>No groups</value></data>
+  <data name="GroupManage_EmptyDescription" xml:space="preserve"><value>Create groups to organize hosts with custom colors.</value></data>
 </root>
 

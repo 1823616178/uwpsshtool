@@ -27,33 +27,39 @@
                         Margin="{StaticResource GapSmTop}" />
             </StackPanel>
         </Border>
-        <ListView x:Name="SessionList" Grid.Row="1" SelectionMode="Single"
-                  IsItemClickEnabled="True" ItemClick="OnItemClick">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <Grid Padding="{StaticResource PagePadding}" MinHeight="{StaticResource ListRowCompactHeight}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel>
-                            <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}" />
-                            <TextBlock Text="{Binding State, Converter={StaticResource SessionStateText}}"
-                                       Style="{StaticResource CaptionTextStyle}" />
-                        </StackPanel>
-                        <!-- UI 走查：✕ 换 IconClose 字形（Segoe MDL2），补触控与无障碍名。 -->
-                        <Button Grid.Column="1" Click="OnCloseClick" Tag="{Binding}"
-                                AutomationProperties.Name="关闭会话"
-                                MinWidth="{StaticResource TouchTargetMin}"
-                                MinHeight="{StaticResource TouchTargetMin}">
-                            <FontIcon Glyph="{StaticResource IconClose}" />
-                        </Button>
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        <controls:EmptyState x:Uid="SessionsPivot_Empty" x:Name="Empty" Grid.Row="1"
-
-                             Glyph="{StaticResource IconConnect}" />
+        <Grid Grid.Row="1">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
+            <ListView x:Name="SessionList" SelectionMode="Single"
+                      IsItemClickEnabled="True" ItemClick="OnItemClick">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Padding="{StaticResource PagePadding}" MinHeight="{StaticResource ListRowCompactHeight}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}" />
+                                <TextBlock Text="{Binding State, Converter={StaticResource SessionStateText}}"
+                                           Style="{StaticResource CaptionTextStyle}" />
+                            </StackPanel>
+                            <!-- UI 走查：✕ 换 IconClose 字形（Segoe MDL2），补触控与无障碍名。 -->
+                            <Button Grid.Column="1" Click="OnCloseClick" Tag="{Binding}"
+                                    AutomationProperties.Name="关闭会话"
+                                    MinWidth="{StaticResource TouchTargetMin}"
+                                    MinHeight="{StaticResource TouchTargetMin}">
+                                <FontIcon Glyph="{StaticResource IconClose}" />
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <controls:EmptyState x:Uid="SessionsPivot_Empty" x:Name="Empty"
+                                 Glyph="{StaticResource IconConnect}" />
+        </Grid>
     </Grid>
 </UserControl>

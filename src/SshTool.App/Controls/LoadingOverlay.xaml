@@ -14,7 +14,8 @@
                           Height="{StaticResource TouchTargetMin}"
                           Foreground="{ThemeResource AppAccentBrush}" />
             <TextBlock x:Name="MessageText" Style="{StaticResource BodyTextStyle}"
-                       TextAlignment="Center" />
+                       TextAlignment="Center"
+                       Margin="{StaticResource GapSmTop}" />
         </StackPanel>
     </Grid>
 </UserControl>

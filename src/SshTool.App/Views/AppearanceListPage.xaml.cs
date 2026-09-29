@@ -1,4 +1,4 @@
-﻿using SshTool.App.Dialogs;
+using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;
@@ -58,11 +58,51 @@ namespace SshTool.App.Views
                 {
                     return;
                 }
+                UpdateChrome();
             }
             catch (Exception ex)
             {
                 AppLog.Error("AppearanceList", "外观列表加载失败", ex);
+                if (_lifetime.IsCurrent(generation))
+                {
+                    ShowErrorState(ex.Message);
+                }
             }
+        }
+
+        private void UpdateChrome()
+        {
+            bool empty = ViewModel.Items.Count == 0;
+            Empty.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
+            ErrorState.Visibility = Visibility.Collapsed;
+            AppearanceList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
+            if (empty)
+            {
+                var loader = Windows.ApplicationModel.Resources.ResourceLoader.GetForCurrentView();
+                Empty.Title = loader.GetString("AppearanceList_EmptyTitle");
+                Empty.Description = loader.GetString("AppearanceList_EmptyDescription");
+                Empty.PrimaryText = loader.GetString("AppearanceList_EmptyPrimary");
+                Empty.PrimaryCommand = ViewModel.NewCommand;
+            }
+        }
+
+        private void ShowErrorState(string error)
+        {
+            var loader = Windows.ApplicationModel.Resources.ResourceLoader.GetForCurrentView();
+            ErrorState.Title = loader.GetString("Common_LoadFailed");
+            ErrorState.Description = error;
+            ErrorState.PrimaryText = loader.GetString("Common_Retry");
+            ErrorState.PrimaryClick -= OnRetryClick;
+            ErrorState.PrimaryClick += OnRetryClick;
+            ErrorState.Visibility = Visibility.Visible;
+            Empty.Visibility = Visibility.Collapsed;
+            AppearanceList.Visibility = Visibility.Collapsed;
+        }
+
+        private void OnRetryClick(object sender, RoutedEventArgs e)
+        {
+            int generation = _lifetime.Begin();
+            RefreshAsync(generation).Forget("AppearanceListPage.Retry", AppLog.Logger);
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)

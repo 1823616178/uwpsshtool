@@ -16,8 +16,16 @@
         <TextBlock x:Uid="Keys_Title" Style="{StaticResource PageTitleTextStyle}"
                    Margin="{StaticResource PagePadding}" />
         <Grid Grid.Row="1">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
             <controls:EmptyState x:Name="Empty"
                                  Glyph="{StaticResource IconKey}"
+                                 Visibility="Collapsed" />
+            <controls:EmptyState x:Name="ErrorState"
+                                 Kind="Offline"
                                  Visibility="Collapsed" />
             <ListView x:Name="KeyList" SelectionMode="None"
                       IsItemClickEnabled="True" ItemClick="OnItemClick">

@@ -105,6 +105,9 @@
             <controls:EmptyState x:Name="NoMatches"
                                  Kind="Filtered"
                                  Visibility="Collapsed" />
+            <controls:EmptyState x:Name="ErrorState"
+                                 Kind="Offline"
+                                 Visibility="Collapsed" />
             <ListView x:Name="HostList"
                       ItemTemplate="{StaticResource HostItemTemplate}"
                       SelectionMode="None"

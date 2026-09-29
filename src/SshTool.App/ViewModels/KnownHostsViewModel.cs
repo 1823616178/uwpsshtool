@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -69,10 +69,50 @@ namespace SshTool.App.ViewModels
             get { return _selected != null; }
         }
 
+        private bool _isEmpty;
+        private bool _hasNoMatches;
+        private bool _hasError;
+        private string _errorMessage = string.Empty;
+
+        public bool IsEmpty
+        {
+            get { return _isEmpty; }
+            private set { SetProperty(ref _isEmpty, value); }
+        }
+
+        public bool HasNoMatches
+        {
+            get { return _hasNoMatches; }
+            private set { SetProperty(ref _hasNoMatches, value); }
+        }
+
+        public bool HasError
+        {
+            get { return _hasError; }
+            private set { SetProperty(ref _hasError, value); }
+        }
+
+        public string ErrorMessage
+        {
+            get { return _errorMessage; }
+            private set { SetProperty(ref _errorMessage, value); }
+        }
+
         public async Task RefreshAsync()
         {
-            _all = await _services.KnownHosts.GetAllAsync().ConfigureAwait(true);
-            ApplyFilter();
+            try
+            {
+                _all = await _services.KnownHosts.GetAllAsync().ConfigureAwait(true);
+                ApplyFilter();
+                HasError = false;
+                ErrorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("KnownHosts", "Refresh failed", ex);
+                HasError = true;
+                ErrorMessage = ex.Message;
+            }
         }
 
         public async Task DeleteSelectedAsync()
@@ -114,6 +154,8 @@ namespace SshTool.App.ViewModels
                 }
                 Rows.Add(ToRow(kh));
             }
+            IsEmpty = _all.Count == 0 && q.Length == 0;
+            HasNoMatches = Rows.Count == 0 && q.Length > 0;
         }
 
         private static KnownHostRow ToRow(KnownHost kh)

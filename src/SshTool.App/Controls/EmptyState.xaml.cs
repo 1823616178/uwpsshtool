@@ -24,6 +24,10 @@ namespace SshTool.App.Controls
         public static readonly DependencyProperty PrimaryCommandProperty = Register(nameof(PrimaryCommand), typeof(ICommand), null, OnChanged);
         public static readonly DependencyProperty SecondaryTextProperty = Register(nameof(SecondaryText), typeof(string), null, OnChanged);
         public static readonly DependencyProperty SecondaryCommandProperty = Register(nameof(SecondaryCommand), typeof(ICommand), null, OnChanged);
+        public static readonly DependencyProperty PrimaryButtonStyleProperty = Register(nameof(PrimaryButtonStyle), typeof(Style), null, OnChanged);
+
+        public event RoutedEventHandler PrimaryClick;
+        public event RoutedEventHandler SecondaryClick;
 
         public EmptyState()
         {
@@ -67,6 +71,12 @@ namespace SshTool.App.Controls
             set { SetValue(PrimaryCommandProperty, value); }
         }
 
+        public Style PrimaryButtonStyle
+        {
+            get { return (Style)GetValue(PrimaryButtonStyleProperty); }
+            set { SetValue(PrimaryButtonStyleProperty, value); }
+        }
+
         public string SecondaryText
         {
             get { return (string)GetValue(SecondaryTextProperty); }
@@ -106,8 +116,14 @@ namespace SshTool.App.Controls
             GlyphIcon.Glyph = glyph ?? string.Empty;
             GlyphIcon.Visibility = string.IsNullOrEmpty(glyph) ? Visibility.Collapsed : Visibility.Visible;
             TitleText.Text = Title ?? string.Empty;
+            TitleText.Visibility = string.IsNullOrEmpty(Title) ? Visibility.Collapsed : Visibility.Visible;
             DescriptionText.Text = Description ?? string.Empty;
             DescriptionText.Visibility = string.IsNullOrEmpty(Description) ? Visibility.Collapsed : Visibility.Visible;
+
+            if (PrimaryButtonStyle != null)
+            {
+                PrimaryButton.Style = PrimaryButtonStyle;
+            }
 
             PrimaryButton.Visibility = string.IsNullOrEmpty(PrimaryText) ? Visibility.Collapsed : Visibility.Visible;
             PrimaryButton.Content = PrimaryText;
@@ -117,6 +133,11 @@ namespace SshTool.App.Controls
 
         private void OnPrimaryClick(object sender, RoutedEventArgs e)
         {
+            var h = PrimaryClick;
+            if (h != null)
+            {
+                h(this, e);
+            }
             if (PrimaryCommand != null && PrimaryCommand.CanExecute(null))
             {
                 PrimaryCommand.Execute(null);
@@ -125,6 +146,11 @@ namespace SshTool.App.Controls
 
         private void OnSecondaryClick(object sender, RoutedEventArgs e)
         {
+            var h = SecondaryClick;
+            if (h != null)
+            {
+                h(this, e);
+            }
             if (SecondaryCommand != null && SecondaryCommand.CanExecute(null))
             {
                 SecondaryCommand.Execute(null);

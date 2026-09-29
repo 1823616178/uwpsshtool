@@ -20,6 +20,11 @@
 
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
                 <!-- ========== 基础配置 ========== -->
                 <controls:FormSection x:Uid="TunnelEdit_Section_Basic">
                     <controls:FormSection.SectionContent>

@@ -21,6 +21,11 @@
 
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
                 <controls:EmptyState x:Name="NoConflictEmpty" Visibility="Collapsed" />
 
                 <Border x:Name="SummaryCard"

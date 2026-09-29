@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
@@ -120,6 +120,8 @@ namespace SshTool.App.Views
             EmptyPanel.Visibility = empty || vm.HasError ? Visibility.Visible : Visibility.Collapsed;
             if (vm.HasError)
             {
+                EmptyPanel.Kind = EmptyStateKind.Offline;
+                EmptyPanel.Glyph = (string)Application.Current.Resources["IconCloudOff"];
                 EmptyPanel.Title = Loader.GetString("Sftp_LoadFailed/Text");
                 EmptyPanel.Description = vm.StatusText;
                 EmptyPanel.PrimaryText = Loader.GetString("Sftp_Retry/Text");
@@ -127,10 +129,12 @@ namespace SshTool.App.Views
             }
             else if (empty)
             {
+                EmptyPanel.Kind = EmptyStateKind.Normal;
+                EmptyPanel.Glyph = (string)Application.Current.Resources["IconFolder"];
                 EmptyPanel.Title = Loader.GetString("Sftp_EmptyTitle/Text");
                 EmptyPanel.Description = Loader.GetString("Sftp_EmptyDescription/Text");
-                EmptyPanel.PrimaryText = null;
-                EmptyPanel.PrimaryCommand = null;
+                EmptyPanel.PrimaryText = Loader.GetString("Sftp_EmptyUpload");
+                EmptyPanel.PrimaryCommand = vm.UploadCommand;
             }
 
             TransferPanel.Visibility = vm.ShowTransferBar ? Visibility.Visible : Visibility.Collapsed;

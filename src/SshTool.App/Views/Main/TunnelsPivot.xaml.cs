@@ -40,7 +40,7 @@ namespace SshTool.App.Views.Main
 
         private void OnViewModelPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(TunnelsViewModel.IsEmpty))
+            if (e.PropertyName == nameof(TunnelsViewModel.IsEmpty) || e.PropertyName == nameof(TunnelsViewModel.HasError))
             {
                 UpdateEmptyVisibility();
             }
@@ -48,8 +48,17 @@ namespace SshTool.App.Views.Main
 
         private void UpdateEmptyVisibility()
         {
-            Empty.Visibility = _viewModel.IsEmpty ? Visibility.Visible : Visibility.Collapsed;
-            TunnelList.Visibility = _viewModel.IsEmpty ? Visibility.Collapsed : Visibility.Visible;
+            bool hasError = _viewModel.HasError;
+            ErrorState.Visibility = hasError ? Visibility.Visible : Visibility.Collapsed;
+            Empty.Visibility = (!hasError && _viewModel.IsEmpty) ? Visibility.Visible : Visibility.Collapsed;
+            TunnelList.Visibility = (!hasError && !_viewModel.IsEmpty) ? Visibility.Visible : Visibility.Collapsed;
+            if (hasError)
+            {
+                ErrorState.Title = Localized.Get("Common_LoadFailed", "加载失败");
+                ErrorState.Description = _viewModel.ErrorMessage;
+                ErrorState.PrimaryText = Localized.Get("Common_Retry", "重试");
+                ErrorState.PrimaryCommand = _viewModel.RefreshCommand;
+            }
         }
 
         private void OnAddClick(object sender, RoutedEventArgs e)

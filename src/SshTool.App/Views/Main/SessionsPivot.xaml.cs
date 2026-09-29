@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
@@ -13,9 +13,13 @@ namespace SshTool.App.Views.Main
 {
     public sealed partial class SessionsPivot : UserControl
     {
+        public event RoutedEventHandler ViewHostsRequested;
+
         public SessionsPivot()
         {
             this.InitializeComponent();
+            Empty.PrimaryText = Localized.Get("Common_BrowseHosts", "查看主机");
+            Empty.PrimaryClick += (s, e) => ViewHostsRequested?.Invoke(this, e);
         }
 
         public SessionsPaneViewModel ViewModel { get; private set; }

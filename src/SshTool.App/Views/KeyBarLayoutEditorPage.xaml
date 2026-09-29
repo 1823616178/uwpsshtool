@@ -29,6 +29,11 @@
         <TextBlock x:Uid="KeyBarEditor_Subtitle" Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
                    Margin="{StaticResource PagePadding}" />
         <Grid Grid.Row="2" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />

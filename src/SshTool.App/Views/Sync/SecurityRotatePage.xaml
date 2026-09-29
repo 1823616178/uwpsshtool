@@ -10,6 +10,11 @@
     <Grid>
         <ScrollViewer>
             <StackPanel Padding="{StaticResource PagePadding}">
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
                 <controls:AppPageHeader x:Name="Header" x:Uid="SecurityRotate_Header"
                                         Title="安全清理"
                                         ShowBackButton="True"

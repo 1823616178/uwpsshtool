@@ -30,6 +30,10 @@ namespace SshTool.App.Views
             ViewModel = new GroupManageViewModel(AppServices.Current);
             this.InitializeComponent();
             GroupList.ItemsSource = ViewModel.Groups;
+            Empty.Title = Localized.Get("GroupManage_EmptyTitle", "暂无分组");
+            Empty.Description = Localized.Get("GroupManage_EmptyDescription", "创建分组整理主机，支持自定义名称和强调色。");
+            Empty.PrimaryText = Localized.Get("GroupManage_AddGroup", "新建分组");
+            Empty.PrimaryClick += (s, e) => OnAddClick(s, EventArgs.Empty);
             BottomBar.PrimaryText = Localized.Get("GroupManage_AddGroup", "新建分组");
         }
 
@@ -38,7 +42,27 @@ namespace SshTool.App.Views
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
+            ViewModel.Groups.CollectionChanged += OnGroupsCollectionChanged;
             ViewModel.RefreshAsync().Forget("GroupManagePage.Refresh", AppLog.Logger);
+            UpdateEmptyVisibility();
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            ViewModel.Groups.CollectionChanged -= OnGroupsCollectionChanged;
+            base.OnNavigatedFrom(e);
+        }
+
+        private void OnGroupsCollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            UpdateEmptyVisibility();
+        }
+
+        private void UpdateEmptyVisibility()
+        {
+            bool empty = ViewModel.Groups.Count == 0;
+            Empty.Visibility = empty ? Visibility.Visible : Visibility.Collapsed;
+            GroupList.Visibility = empty ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private void OnAddClick(object sender, EventArgs e)

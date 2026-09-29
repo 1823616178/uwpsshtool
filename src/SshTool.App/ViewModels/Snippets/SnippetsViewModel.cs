@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -72,10 +72,36 @@ namespace SshTool.App.ViewModels.Snippets
             get { return _session; }
         }
 
+        private bool _hasError;
+        private string _errorMessage = string.Empty;
+
+        public bool HasError
+        {
+            get { return _hasError; }
+            private set { SetProperty(ref _hasError, value); }
+        }
+
+        public string ErrorMessage
+        {
+            get { return _errorMessage; }
+            private set { SetProperty(ref _errorMessage, value); }
+        }
+
         public async Task RefreshAsync()
         {
-            _all = await _services.Snippets.GetAllAsync().ConfigureAwait(true);
-            ApplyFilter();
+            try
+            {
+                _all = await _services.Snippets.GetAllAsync().ConfigureAwait(true);
+                ApplyFilter();
+                HasError = false;
+                ErrorMessage = string.Empty;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("Snippets", "Refresh failed", ex);
+                HasError = true;
+                ErrorMessage = ex.Message;
+            }
         }
 
         // SnippetsPage 导航进入时调用：解析可选的会话上下文。

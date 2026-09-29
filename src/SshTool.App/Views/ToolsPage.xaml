@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="SshTool.App.Views.ToolsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -19,6 +19,11 @@
 
         <ScrollViewer Grid.Row="1">
             <StackPanel>
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
                 <controls:AppListRow x:Uid="Tools_RowSettings"
                                      IconGlyph="{StaticResource IconSettings}"
                                      ShowChevron="True" Click="OnSettingsClick" />

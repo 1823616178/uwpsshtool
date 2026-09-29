@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Keys;
 using SshTool.Core.Common;
@@ -49,13 +49,32 @@ namespace SshTool.App.Views.Keys
                 {
                     return;
                 }
+                ErrorState.Visibility = Visibility.Collapsed;
                 UpdateChrome();
                 ViewModel.PropertyChanged += OnVmPropertyChanged;
             }
             catch (Exception ex)
             {
                 AppLog.Error("Keys", "key list load failed", ex);
+                if (_lifetime.IsCurrent(generation))
+                {
+                    ErrorState.Title = _loader.GetString("Common_LoadFailed");
+                    ErrorState.Description = ex.Message;
+                    ErrorState.PrimaryText = _loader.GetString("Common_Retry");
+                    ErrorState.PrimaryClick -= OnRetryClick;
+                    ErrorState.PrimaryClick += OnRetryClick;
+                    ErrorState.Visibility = Visibility.Visible;
+                    Empty.Visibility = Visibility.Collapsed;
+                    KeyList.Visibility = Visibility.Collapsed;
+                }
             }
+        }
+
+        private void OnRetryClick(object sender, RoutedEventArgs e)
+        {
+            ErrorState.PrimaryClick -= OnRetryClick;
+            int generation = _lifetime.Begin();
+            RefreshAsync(generation).Forget("KeysPage.Retry", AppLog.Logger);
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)

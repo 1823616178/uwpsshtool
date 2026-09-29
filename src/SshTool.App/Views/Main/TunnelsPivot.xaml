@@ -32,20 +32,29 @@
             </Button>
         </Grid>
 
-        <!-- 隧道列表 -->
-        <ListView x:Name="TunnelList" Grid.Row="1" SelectionMode="None">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <controls:TunnelRow EditRequested="OnRowEdit"
-                                        ToggleRequested="OnRowToggle"
-                                        DeleteRequested="OnRowDelete" />
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        <!-- 隧道列表与空状态 -->
+        <Grid Grid.Row="1">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
+            <ListView x:Name="TunnelList" SelectionMode="None">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <controls:TunnelRow EditRequested="OnRowEdit"
+                                            ToggleRequested="OnRowToggle"
+                                            DeleteRequested="OnRowDelete" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
 
-        <!-- 空状态 -->
-        <controls:EmptyState x:Name="Empty" Grid.Row="1"
-                             x:Uid="Tunnels_EmptyState"
-                             Glyph="{StaticResource IconTunnel}" />
+            <controls:EmptyState x:Name="Empty"
+                                 x:Uid="Tunnels_EmptyState"
+                                 Glyph="{StaticResource IconTunnel}" />
+            <controls:EmptyState x:Name="ErrorState"
+                                 Kind="Offline"
+                                 Visibility="Collapsed" />
+        </Grid>
     </Grid>
 </UserControl>

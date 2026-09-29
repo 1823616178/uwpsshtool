@@ -29,6 +29,7 @@ namespace SshTool.App.ViewModels
 
             AddCommand = new RelayCommand(OnAdd);
             StopAllCommand = new RelayCommand(OnStopAll);
+            RefreshCommand = new AsyncCommand(LoadAsync);
 
             if (_services?.TunnelManager != null)
             {
@@ -48,6 +49,21 @@ namespace SshTool.App.ViewModels
             private set => SetProperty(ref _isLoading, value);
         }
 
+        private bool _hasError;
+        private string _errorMessage = string.Empty;
+
+        public bool HasError
+        {
+            get => _hasError;
+            private set => SetProperty(ref _hasError, value);
+        }
+
+        public string ErrorMessage
+        {
+            get => _errorMessage;
+            private set => SetProperty(ref _errorMessage, value);
+        }
+
         public bool IsEmpty
         {
             get => _isEmpty;
@@ -56,6 +72,7 @@ namespace SshTool.App.ViewModels
 
         public ICommand AddCommand { get; }
         public ICommand StopAllCommand { get; }
+        public ICommand RefreshCommand { get; }
 
         public async Task LoadAsync()
         {
@@ -96,10 +113,15 @@ namespace SshTool.App.ViewModels
                 }
 
                 IsEmpty = _tunnels.Count == 0;
+                HasError = false;
+                ErrorMessage = string.Empty;
             }
             catch (Exception ex)
             {
                 AppLog.Error("TunnelsViewModel", "LoadAsync failed", ex);
+                HasError = true;
+                ErrorMessage = ex.Message;
+                IsEmpty = false;
             }
             finally
             {

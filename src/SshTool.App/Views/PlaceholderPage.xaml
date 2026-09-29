@@ -6,6 +6,11 @@
     Background="{ThemeResource AppBgBrush}">
 
     <Grid Padding="{StaticResource PagePadding}">
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <EntranceThemeTransition />
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />

@@ -18,6 +18,11 @@
                                 BackRequested="OnHeaderBackRequested" />
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
                 <TextBox x:Name="NameBox" x:Uid="KeyDetail_NameBox" TextChanged="OnNameChanged" />
                 <Button x:Name="RenameButton" x:Uid="KeyDetail_Rename" Click="OnRenameClick"
                         Style="{StaticResource PrimaryButtonStyle}"

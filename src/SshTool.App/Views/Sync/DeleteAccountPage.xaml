@@ -19,6 +19,11 @@
 
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
                 <Border Background="{ThemeResource AppDangerBrush}"
                         Opacity="0.15"
                         CornerRadius="{StaticResource RadiusMd}"

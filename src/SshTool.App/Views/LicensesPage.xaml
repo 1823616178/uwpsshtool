@@ -15,6 +15,11 @@
                                 BackRequested="OnBackRequested" />
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
                 <controls:SectionHeader x:Uid="Licenses_OssHeader"
                                         Margin="{StaticResource GapSmTop}" />
                 <controls:MonoText x:Name="OssText" Compact="True" />

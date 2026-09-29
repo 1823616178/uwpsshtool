@@ -15,6 +15,11 @@
                                 BackRequested="OnBackRequested" />
         <ScrollViewer Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}">
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
                 <TextBlock x:Uid="About_AppName" Style="{StaticResource PageTitleTextStyle}" />
                 <TextBlock x:Name="VersionText" Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource GapXsTop}" />

@@ -8,12 +8,18 @@
                 Padding="{StaticResource PagePadding}">
         <FontIcon x:Name="GlyphIcon" FontSize="{StaticResource FontHeader}"
                   Foreground="{ThemeResource AppTextFaintBrush}"
-                  HorizontalAlignment="Center" />
+                  HorizontalAlignment="Center"
+                  Margin="{StaticResource GapSmBottom}" />
         <TextBlock x:Name="TitleText" Style="{StaticResource SectionTitleTextStyle}"
-                   TextAlignment="Center" />
+                   TextAlignment="Center"
+                   Margin="{StaticResource GapXsBottom}" />
         <TextBlock x:Name="DescriptionText" Style="{StaticResource CaptionTextStyle}"
-                   TextAlignment="Center" TextWrapping="Wrap" />
-        <Button x:Name="PrimaryButton" HorizontalAlignment="Center" Click="OnPrimaryClick" />
-        <HyperlinkButton x:Name="SecondaryButton" HorizontalAlignment="Center" Click="OnSecondaryClick" />
+                   TextAlignment="Center" TextWrapping="Wrap"
+                   Margin="{StaticResource GapSmBottom}" />
+        <Button x:Name="PrimaryButton" HorizontalAlignment="Center" Click="OnPrimaryClick"
+                Style="{StaticResource PrimaryButtonStyle}"
+                Margin="{StaticResource GapSmTop}" />
+        <HyperlinkButton x:Name="SecondaryButton" HorizontalAlignment="Center" Click="OnSecondaryClick"
+                         Margin="{StaticResource GapXsTop}" />
     </StackPanel>
 </UserControl>

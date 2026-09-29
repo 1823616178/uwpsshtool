@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Collections.Generic;
 using SshTool.App.Controls;
@@ -45,6 +45,7 @@ namespace SshTool.App.Views
             if (ViewModel.Sessions != null)
             {
                 SessionsPivotCtl.Attach(ViewModel.Sessions);
+                SessionsPivotCtl.ViewHostsRequested += (s, e) => MainPivot.SelectedIndex = 0;
             }
             Workspace.Attach(EnsureWorkspace());
             ApplyStatusBar();

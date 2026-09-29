@@ -21,7 +21,13 @@
                                 ShowBackButton="True"
                                 BackRequested="OnBackRequested" />
 
-        <Pivot x:Name="MainPivot" Grid.Row="1">
+        <Grid Grid.Row="1">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
+            <Pivot x:Name="MainPivot">
             <!-- 状态 Pivot -->
             <PivotItem x:Name="StatusTab" x:Uid="AccountSync_TabStatus">
                 <ScrollViewer>
@@ -239,5 +245,6 @@
                 </Grid>
             </PivotItem>
         </Pivot>
+        </Grid>
     </Grid>
 </Page>

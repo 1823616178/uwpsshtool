@@ -18,17 +18,33 @@
         <AutoSuggestBox x:Uid="KnownHostsPage_SearchBox" x:Name="SearchBox" Grid.Row="1"
                         QueryIcon="Find" TextChanged="OnSearchChanged"
                         Margin="{StaticResource PagePadding}" />
-        <ListView x:Name="HostList" Grid.Row="2" SelectionMode="Single"
-                  ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
-                  SelectionChanged="OnSelectionChanged">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <!-- W06：统一 V2 列表行。 -->
-                    <controls:AppListRow Title="{Binding Title}" Subtitle="{Binding Subtitle}"
-                                         IconGlyph="{StaticResource IconLock}" IsCompact="True" />
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        <Grid Grid.Row="2">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
+            <controls:EmptyState x:Name="Empty"
+                                 Glyph="{StaticResource IconLock}"
+                                 Visibility="Collapsed" />
+            <controls:EmptyState x:Name="NoMatches"
+                                 Kind="Filtered"
+                                 Visibility="Collapsed" />
+            <controls:EmptyState x:Name="ErrorState"
+                                 Kind="Offline"
+                                 Visibility="Collapsed" />
+            <ListView x:Name="HostList" SelectionMode="Single"
+                      ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
+                      SelectionChanged="OnSelectionChanged">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <!-- W06：统一 V2 列表行。 -->
+                        <controls:AppListRow Title="{Binding Title}" Subtitle="{Binding Subtitle}"
+                                             IconGlyph="{StaticResource IconLock}" IsCompact="True" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
         <StackPanel x:Name="Detail" Grid.Row="3" Padding="{StaticResource PagePadding}"
                     Background="{ThemeResource AppSurfaceBrush}" Visibility="Collapsed">
             <controls:MonoText x:Name="FingerprintText" Compact="True" />

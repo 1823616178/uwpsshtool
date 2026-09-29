@@ -1,4 +1,4 @@
-﻿using SshTool.App.Infrastructure;
+using SshTool.App.Infrastructure;
 using SshTool.Core.Common;
 using SshTool.App.ViewModels.Snippets;
 using Windows.ApplicationModel.Resources;
@@ -50,6 +50,9 @@ namespace SshTool.App.Views
             Empty.Description = _loader.GetString("Snippets_Empty_Description");
             Empty.PrimaryText = _loader.GetString("Snippets_Empty_Primary");
             NoMatches.Title = _loader.GetString("Snippets_NoMatches_Title");
+            NoMatches.Description = _loader.GetString("Snippets_NoMatches_Description");
+            NoMatches.PrimaryText = _loader.GetString("Common_ClearSearch");
+            NoMatches.PrimaryClick += OnClearSearchClick;
             BottomBar.PrimaryText = _loader.GetString("Snippets_New/Label");
         }
 
@@ -78,10 +81,32 @@ namespace SshTool.App.Views
 
         private void UpdateChrome()
         {
-            Empty.Visibility = ViewModel.IsEmpty ? Visibility.Visible : Visibility.Collapsed;
-            NoMatches.Visibility = ViewModel.HasNoMatches ? Visibility.Visible : Visibility.Collapsed;
+            bool hasError = ViewModel.HasError;
+            ErrorState.Visibility = hasError ? Visibility.Visible : Visibility.Collapsed;
+            Empty.Visibility = (!hasError && ViewModel.IsEmpty) ? Visibility.Visible : Visibility.Collapsed;
+            NoMatches.Visibility = (!hasError && ViewModel.HasNoMatches) ? Visibility.Visible : Visibility.Collapsed;
             SnippetList.Visibility =
-                (ViewModel.IsEmpty || ViewModel.HasNoMatches) ? Visibility.Collapsed : Visibility.Visible;
+                (hasError || ViewModel.IsEmpty || ViewModel.HasNoMatches) ? Visibility.Collapsed : Visibility.Visible;
+            if (hasError)
+            {
+                ErrorState.Title = _loader.GetString("Common_LoadFailed");
+                ErrorState.Description = ViewModel.ErrorMessage;
+                ErrorState.PrimaryText = _loader.GetString("Common_Retry");
+                ErrorState.PrimaryClick -= OnRetryClick;
+                ErrorState.PrimaryClick += OnRetryClick;
+            }
+        }
+
+        private void OnClearSearchClick(object sender, RoutedEventArgs e)
+        {
+            SearchBox.Text = string.Empty;
+            ViewModel.Search = string.Empty;
+            UpdateChrome();
+        }
+
+        private void OnRetryClick(object sender, RoutedEventArgs e)
+        {
+            ViewModel.RefreshAsync().Forget("SnippetsPage.Retry", AppLog.Logger);
         }
 
         private void OnSearchChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)

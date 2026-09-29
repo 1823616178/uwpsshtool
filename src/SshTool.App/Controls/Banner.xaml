@@ -29,7 +29,7 @@
             <HyperlinkButton x:Name="ActionButton" Grid.Column="2"
                              Margin="{StaticResource GapSmLeft}"
                              VerticalAlignment="Center" Click="OnActionClick" />
-            <FontIcon x:Name="CloseButton" Grid.Column="3" Glyph="&#xE894;"
+            <FontIcon x:Name="CloseButton" Grid.Column="3" Glyph="{StaticResource IconClose}"
                       Margin="{StaticResource GapSmLeft}"
                       FontSize="{StaticResource FontCaption}" VerticalAlignment="Center"
                       Foreground="{ThemeResource AppTextDimBrush}" Tapped="OnCloseTapped" />

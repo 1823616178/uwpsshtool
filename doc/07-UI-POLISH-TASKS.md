@@ -245,7 +245,7 @@
     - [x] 传输面板信息密度合理，不遮挡列表
     - [x] 门禁全绿、编译通过
 
-- [ ] **G09 空状态、加载、错误态与动效统一**
+- [x] **G09 空状态、加载、错误态与动效统一**
   - 依赖：G03
   - 涉及文件：所有使用 `EmptyState` / `LoadingOverlay` / `Banner` 的页面（`grep -rln "EmptyState\|LoadingOverlay\|controls:Banner" src/SshTool.App/Views`）
   - 要点：
@@ -253,9 +253,9 @@
     2. 页面内容区统一加 `EntranceThemeTransition`（终端画布除外）。
     3. 长操作（登录、建库 Argon2、SFTP 连接）的 LoadingOverlay 文案具体到在做什么。
   - 验收：
-    - [ ] 列表页三种空状态都有且文案不同
-    - [ ] 页面进入有轻微过渡，终端无过渡
-    - [ ] 门禁全绿、编译通过
+    - [x] 列表页三种空状态都有且文案不同
+    - [x] 页面进入有轻微过渡，终端无过渡
+    - [x] 门禁全绿、编译通过
 
 - [ ] **G10 浅色主题、英文与 200% 字体检查**
   - 依赖：G01–G09 中已完成的全部
@@ -293,6 +293,9 @@
 - [ ] G08 📱 SFTP 列表常见文件类型（代码/压缩包/图片/配置/日志/二进制/符号链接/目录）图标区分
 - [ ] G08 📱 SFTP 文件大小与时间 MonoCaption 等宽对齐与符号链接左对齐排版
 - [ ] G08 📱 传输面板卡片圆角、2 epx 细进度条、速率/剩余时间排版与重试交互
+- [ ] G09 📱 列表页空态/无匹配/加载失败三态切换与重试/清除操作体验
+- [ ] G09 📱 页面切入时 EntranceThemeTransition 动效自然度，终端画布无多余过渡
+- [ ] G09 📱 登录/建库/SFTP 等长耗时操作 LoadingOverlay 文案展示与遮罩效果
 
 ---
 
@@ -309,6 +312,8 @@
 | 2026-09-29 | G06 | 77b3796 | **主机列表精修**。Tokens.xaml 新增 `AvatarSize` (36)、`RadiusCircle` (999)、`IconFavoriteStar` / `IconFavoriteStarFill` (E735)、`IconHistory` (E81C)；Core `ColorHex` 增加基于感知亮度的 `NeedsDarkText` 纯函数与完整单测，`HostListRow` 新增 `GroupColor` 并由 `HostListBuilder` 穿透传递真实分组色；`AppListRow` 新增 `TitleBadgeGlyph` / `TitleBadgeBrush` 属性（使用 TextBlock Inlines 内联渲染星星徽标，字符超长自然省略，零额外布局开销）；`HostRow` 头像使用 36 epx 圆形 Border + 首字母（StringInfo 国际化安全提取），底色取所属分组色或 AppSurfaceAltBrush，文字黑白对比度自适应，右下角叠置 StatusDot；`GroupHeader` 增加 `RepositionThemeTransition`，重构为小圆点 + 名称 + 计数，对「收藏」「最近」视图段分别展现专属金色星标与蓝色历史图标；`HostsPivot` 内容区添加 `EntranceThemeTransition`，resw 补齐 `Hosts_SectionUngrouped`。门禁全绿、x64 Debug 零错误。 |
 | 2026-09-29 | G07 | f964a09 | **终端页信息条与键条精修**。Tokens.xaml 新增 `GapXsLeft` (4)；StickyModifiers.StateOf 开放为 public；KeyBar 引入 `_lockIcons` 与 `_modifierLabels` 字典，实现修饰键（Ctrl/Alt/Shift）三态视觉强化（普通态：暗色背景 + 无锁标；单击 armed 态：高亮蓝色背景 + 无锁标；锁定 locked 态：高亮琥珀色背景 + 锁图标 `IconLock`，颜色与形状双重表达），按键按下时提供 `AppPressedBrush` 背景切换触控反馈；HideKeyboardButton 套用 `IconButtonStyle` 实现 `RadiusSm` 圆角与按下反馈（严格避开 15063 契约限制与 WMC0151 警告）；TerminalPage 紧凑信息条（44 epx）增加 `BorderThinBottom` 与 `AppBorderBrush` 描边，标题升级为 `SubtitleTextStyle`，点击展开为双行（64 epx）并在第二行左侧展示 `user@host:port · duration` 已连接时长；仅在展开且连接时启动 1 秒 DispatcherTimer（随 NavigationLifetime 拆除，零冗余开销）；严格保持硬约束 4（信息条及内部 Grid、键条各元素 `AllowFocusOnInteraction="False"`，点按不收起软键盘）。门禁全绿、x64 Debug 零错误零警告。 |
 | 2026-09-29 | G08 | 760d9b6 | **SFTP 页精修**。Tokens.xaml 新增 `ProgressThickness` (2) 及 7 类 MDL2 文件扩展图标（`IconFileCode`、`IconFileArchive`、`IconFileImage`、`IconFileConfig`、`IconFileLog`、`IconFileBinary`、`IconFileSymlink`，确认 15063 全部内建）；Core 层 `SftpListing.ResolveIconToken` 与 `ResolveFileIconToken` 实现常见扩展名分类与多重后缀（.tar.gz 等）识别并补充单测；`AppListRow` 新增 `SubtitleStyle` 与 `SubtitleHorizontalAlignment` 依赖属性；SFTP 列表文件项副标题切换为 `MonoCaptionTextStyle` 右对齐（符号链接左对齐），解决数字抖动；传输面板项重构为卡片容器（SurfaceAlt 底色、圆角、内边距与底边距），进度条收敛至 2 epx，速率与剩余时间同排，失败项提供红色提示与重试按钮；门禁全绿、x64 Debug 零错误零警告。 |
+| 2026-09-29 | G09 | 1b591d2 | **空状态、加载、错误态与动效统一**。增强 `EmptyState` 支持三种空状态变体（正常空态引导创建、过滤无结果支持一键清除搜索、网络或加载失败提供一键重试），支持 PrimaryButtonStyle 与 PrimaryClick/SecondaryClick 路由事件；统一各列表页（Hosts、Sessions、Tunnels、Keys、Snippets、KnownHosts、Appearance、Groups、SFTP）空态处理与清晰文案区分；除终端画布（`TerminalView`）外，所有页面内容区统一配置 `EntranceThemeTransition`，保留固定 Header 并在导航切入时提供平滑过渡；明确长操作 LoadingOverlay 提示文案（建库 Argon2id 密钥推导、登录认证、SFTP 目录读取/传输/创建/重命名/权限修改等具体阶段）；全量中英文 resw 严格对称补齐 31 条本地化资源；门禁全绿、x64 Debug 零错误零警告。 |
+
 
 
 

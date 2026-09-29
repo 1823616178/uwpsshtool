@@ -153,6 +153,11 @@
         </Border>
 
         <Grid Grid.Row="2">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
             <ListView x:Name="EntryList" SelectionMode="None" IsItemClickEnabled="True"
                       ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
                       ItemClick="OnEntryClick" ItemTemplate="{StaticResource EntryRowTemplate}" />

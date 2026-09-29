@@ -15,17 +15,27 @@
         <controls:AppPageHeader x:Uid="GroupManage_Title"
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
-        <ListView x:Name="GroupList" Grid.Row="1" SelectionMode="Single"
-                  ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
-                  SelectionChanged="OnSelectionChanged">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <!-- W06：统一 V2 列表行。 -->
-                    <controls:AppListRow Title="{Binding Name}" IconGlyph="{StaticResource IconFolder}"
-                                         IsCompact="True" />
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        <Grid Grid.Row="1">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
+            <controls:EmptyState x:Name="Empty"
+                                 Glyph="{StaticResource IconFolder}"
+                                 Visibility="Collapsed" />
+            <ListView x:Name="GroupList" SelectionMode="Single"
+                      ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
+                      SelectionChanged="OnSelectionChanged">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <!-- W06：统一 V2 列表行。 -->
+                        <controls:AppListRow Title="{Binding Name}" IconGlyph="{StaticResource IconFolder}"
+                                             IsCompact="True" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
         <StackPanel x:Name="Editor" Grid.Row="2" Padding="{StaticResource PagePadding}" Visibility="Collapsed"
                     Background="{ThemeResource AppSurfaceBrush}">
             <StackPanel MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">

@@ -18,7 +18,13 @@
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
         <term:TerminalView x:Name="Preview" Grid.Row="1" Margin="{StaticResource PagePadding}" />
-        <Pivot x:Name="EditPivot" Grid.Row="2">
+        <Grid Grid.Row="2">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
+            <Pivot x:Name="EditPivot">
             <PivotItem x:Uid="AppearanceEdit_PivotFont">
                 <ScrollViewer>
                     <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
@@ -152,6 +158,7 @@
                 </ScrollViewer>
             </PivotItem>
         </Pivot>
+        </Grid>
 
         <!-- 底部固定操作条：主操作=保存，溢出=还原/复制为新主题 -->
         <controls:BottomActionBar x:Name="BottomBar" Grid.Row="3"

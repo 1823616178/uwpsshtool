@@ -472,9 +472,12 @@ namespace SshTool.App.ViewModels
             private set { SetProperty(ref _isBusy, value); }
         }
 
+        private string _busyMessage;
+
         public string BusyMessage
         {
-            get { return Loader.GetString("Sftp_Connecting"); }
+            get { return string.IsNullOrEmpty(_busyMessage) ? Loader.GetString("Sftp_Connecting") : _busyMessage; }
+            set { SetProperty(ref _busyMessage, value); }
         }
 
         public bool HasError
@@ -552,6 +555,7 @@ namespace SshTool.App.ViewModels
                 ShowError(ErrorCodeText(SshErrorCode.InternalError));
                 return;
             }
+            BusyMessage = Loader.GetString("Sftp_Connecting");
             IsBusy = true;
             try
             {
@@ -687,6 +691,7 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
+            BusyMessage = Loader.GetString("Sftp_Connecting");
             IsBusy = true;
             try
             {
@@ -983,6 +988,7 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
+            BusyMessage = Loader.GetString("Sftp_CreatingDirectory");
             IsBusy = true;
             try
             {
@@ -1016,6 +1022,7 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
+            BusyMessage = Loader.GetString("Sftp_Renaming");
             IsBusy = true;
             try
             {
@@ -1051,6 +1058,7 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
+            BusyMessage = Loader.GetString("Sftp_ChangingPermissions");
             IsBusy = true;
             try
             {
@@ -1090,6 +1098,7 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
+            BusyMessage = Loader.GetString("Sftp_Deleting");
             IsBusy = true;
             try
             {
