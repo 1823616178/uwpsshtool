@@ -8,6 +8,8 @@ namespace SshTool.Core.Hosts
         public string Name { get; set; }
         public string AddressLine { get; set; }
         public string GroupId { get; set; }
+        // G06：所属分组颜色（#RRGGBB），未分组为空串
+        public string GroupColor { get; set; }
         public HostListStatus Status { get; set; }
         public bool ShowKey { get; set; }
         public bool ShowTmux { get; set; }

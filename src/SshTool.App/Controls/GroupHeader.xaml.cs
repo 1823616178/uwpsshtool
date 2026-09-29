@@ -47,15 +47,34 @@ namespace SshTool.App.Controls
             // V01a：▸/▾ 文本换 MDL2 尖括号（右=E76C 与既有 E70D 下同族）。
             Chevron.Glyph = (string)Application.Current.Resources[group.IsCollapsed ? "IconChevronRight" : "IconChevronDown"];
             TitleText.Text = (group.Name ?? string.Empty) + " (" + group.HostCount.ToString() + ")";
-            Brush brush = TryParseColor(group.Color);
-            if (brush != null)
+
+            if (string.Equals(group.GroupId, HostListGroup.FavoritesId, StringComparison.Ordinal))
             {
-                ColorSwatch.Background = brush;
-                ColorSwatch.Visibility = Visibility.Visible;
+                ColorDot.Visibility = Visibility.Collapsed;
+                SectionIcon.Glyph = (string)Application.Current.Resources["IconFavoriteStarFill"];
+                SectionIcon.Foreground = (Brush)Application.Current.Resources["AppWarningBrush"];
+                SectionIcon.Visibility = Visibility.Visible;
+            }
+            else if (string.Equals(group.GroupId, HostListGroup.RecentId, StringComparison.Ordinal))
+            {
+                ColorDot.Visibility = Visibility.Collapsed;
+                SectionIcon.Glyph = (string)Application.Current.Resources["IconHistory"];
+                SectionIcon.Foreground = (Brush)Application.Current.Resources["AppAccentBrush"];
+                SectionIcon.Visibility = Visibility.Visible;
             }
             else
             {
-                ColorSwatch.Visibility = Visibility.Collapsed;
+                SectionIcon.Visibility = Visibility.Collapsed;
+                Brush brush = TryParseColor(group.Color);
+                if (brush != null)
+                {
+                    ColorDot.Background = brush;
+                    ColorDot.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    ColorDot.Visibility = Visibility.Collapsed;
+                }
             }
         }
 

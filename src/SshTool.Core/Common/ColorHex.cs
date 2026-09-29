@@ -53,5 +53,13 @@ namespace SshTool.Core.Common
             return byte.TryParse(hex.Substring(start, 2), NumberStyles.HexNumber,
                                  CultureInfo.InvariantCulture, out value);
         }
+
+        // 计算感知亮度（ITU-R BT.601：0.299*R + 0.587*G + 0.114*B）。
+        // 阈值 150 区分浅底（黑字）与深底（白字），保证足够的对比度。
+        public static bool NeedsDarkText(byte r, byte g, byte b)
+        {
+            double luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+            return luminance > 150.0;
+        }
     }
 }

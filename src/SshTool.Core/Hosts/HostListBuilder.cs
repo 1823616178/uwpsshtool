@@ -32,18 +32,20 @@ namespace SshTool.Core.Hosts
             List<Host> matched = Filter(hosts, searchText);
             List<HostGroup> orderedGroups = SortGroups(groups);
             HashSet<string> knownGroups = new HashSet<string>(StringComparer.Ordinal);
+            Dictionary<string, string> groupColors = new Dictionary<string, string>(StringComparer.Ordinal);
             for (int i = 0; i < orderedGroups.Count; i++)
             {
                 if (!string.IsNullOrEmpty(orderedGroups[i].Id))
                 {
                     knownGroups.Add(orderedGroups[i].Id);
+                    groupColors[orderedGroups[i].Id] = orderedGroups[i].Color ?? string.Empty;
                 }
             }
 
             var resultGroups = new List<HostListGroup>();
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                AddViewSections(matched, resultGroups, collapsed, status, tunnelHosts);
+                AddViewSections(matched, resultGroups, collapsed, status, tunnelHosts, groupColors);
             }
             for (int i = 0; i < orderedGroups.Count; i++)
             {
@@ -53,7 +55,7 @@ namespace SshTool.Core.Hosts
                 {
                     continue;
                 }
-                resultGroups.Add(ToGroup(group.Id, group.Name, group.Color, group.Order, members, collapsed, recent, status, tunnelHosts));
+                resultGroups.Add(ToGroup(group.Id, group.Name, group.Color, group.Order, members, collapsed, recent, status, tunnelHosts, groupColors));
             }
 
             List<Host> ungrouped = MembersOf(matched, HostListGroup.UngroupedId, knownGroups, grouped: false);
@@ -61,7 +63,7 @@ namespace SshTool.Core.Hosts
             {
                 resultGroups.Add(ToGroup(
                     HostListGroup.UngroupedId, "未分组", string.Empty, int.MaxValue,
-                    ungrouped, collapsed, recent, status, tunnelHosts));
+                    ungrouped, collapsed, recent, status, tunnelHosts, groupColors));
             }
 
             return new HostListSnapshot
@@ -81,7 +83,8 @@ namespace SshTool.Core.Hosts
             List<HostListGroup> target,
             HashSet<string> collapsed,
             IHostStatusProvider status,
-            HashSet<string> tunnelHosts)
+            HashSet<string> tunnelHosts,
+            Dictionary<string, string> groupColors)
         {
             var favorites = new List<Host>();
             var recent = new List<Host>();
@@ -99,7 +102,7 @@ namespace SshTool.Core.Hosts
             if (favorites.Count > 0)
             {
                 target.Add(ToGroup(HostListGroup.FavoritesId, "收藏", string.Empty, int.MinValue,
-                    favorites, collapsed, false, status, tunnelHosts));
+                    favorites, collapsed, false, status, tunnelHosts, groupColors));
             }
             if (recent.Count > 0)
             {
@@ -109,7 +112,7 @@ namespace SshTool.Core.Hosts
                     recent.RemoveRange(RecentLimit, recent.Count - RecentLimit);
                 }
                 target.Add(ToGroup(HostListGroup.RecentId, "最近", string.Empty, int.MinValue + 1,
-                    recent, collapsed, true, status, tunnelHosts));
+                    recent, collapsed, true, status, tunnelHosts, groupColors));
             }
         }
 
@@ -268,7 +271,8 @@ namespace SshTool.Core.Hosts
             HashSet<string> collapsed,
             bool recent,
             IHostStatusProvider status,
-            HashSet<string> tunnelHosts)
+            HashSet<string> tunnelHosts,
+            Dictionary<string, string> groupColors)
         {
             members.Sort(recent ? (Comparison<Host>)CompareRecent : CompareName);
             bool isCollapsed = collapsed.Contains(groupId ?? HostListGroup.UngroupedId);
@@ -277,7 +281,13 @@ namespace SshTool.Core.Hosts
             {
                 for (int i = 0; i < members.Count; i++)
                 {
-                    rows.Add(ToRow(members[i], groupId, status, tunnelHosts));
+                    string hostGroupId = members[i].GroupId;
+                    string groupColor = null;
+                    if (!string.IsNullOrEmpty(hostGroupId) && groupColors != null)
+                    {
+                        groupColors.TryGetValue(hostGroupId, out groupColor);
+                    }
+                    rows.Add(ToRow(members[i], groupId, groupColor, status, tunnelHosts));
                 }
             }
             return new HostListGroup
@@ -300,9 +310,9 @@ namespace SshTool.Core.Hosts
         private static int CompareRecent(Host a, Host b)
         {
             int byTime = string.Compare(
-                b.LastConnectedAt ?? string.Empty,
-                a.LastConnectedAt ?? string.Empty,
-                StringComparison.Ordinal);
+                 b.LastConnectedAt ?? string.Empty,
+                 a.LastConnectedAt ?? string.Empty,
+                 StringComparison.Ordinal);
             if (byTime != 0)
             {
                 return byTime;
@@ -311,7 +321,7 @@ namespace SshTool.Core.Hosts
         }
 
         private static HostListRow ToRow(
-            Host host, string groupId, IHostStatusProvider status, HashSet<string> tunnelHosts)
+            Host host, string groupId, string groupColor, IHostStatusProvider status, HashSet<string> tunnelHosts)
         {
             return new HostListRow
             {
@@ -319,6 +329,7 @@ namespace SshTool.Core.Hosts
                 Name = host.Name ?? string.Empty,
                 AddressLine = FormatAddress(host.Username, host.HostName, host.Port),
                 GroupId = groupId ?? HostListGroup.UngroupedId,
+                GroupColor = groupColor ?? string.Empty,
                 Status = status.GetStatus(host.Id),
                 ShowKey = host.AuthType == AuthType.Key,
                 ShowTmux = host.TmuxAutoAttach,

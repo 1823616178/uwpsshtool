@@ -6,23 +6,34 @@
     <Grid Background="Transparent"
           MinHeight="{StaticResource GroupHeaderHeight}"
           Padding="{StaticResource PagePadding}">
+        <Grid.ChildrenTransitions>
+            <TransitionCollection>
+                <RepositionThemeTransition />
+            </TransitionCollection>
+        </Grid.ChildrenTransitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <!-- V01a：▸/▾ 文本换 MDL2 尖括号（Glyph 由 code-behind 按折叠态赋 IconChevronRight/IconChevronDown）。 -->
         <FontIcon x:Name="Chevron" FontSize="{StaticResource FontCaption}"
                   Foreground="{ThemeResource AppTextDimBrush}"
                   VerticalAlignment="Center" />
-        <TextBlock x:Name="TitleText" Grid.Column="1" Style="{StaticResource CaptionTextStyle}"
-                   VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
-        <Border x:Name="ColorSwatch" Grid.Column="2"
+        <!-- G06：分组色小圆点 + 视图段专属图标（收藏/最近） -->
+        <Border x:Name="ColorDot" Grid.Column="1"
                 Width="{StaticResource StatusDotSize}"
                 Height="{StaticResource StatusDotSize}"
-                CornerRadius="{StaticResource RadiusSm}"
+                CornerRadius="{StaticResource RadiusCircle}"
                 VerticalAlignment="Center"
                 Margin="{StaticResource GapSmLeft}"
                 Visibility="Collapsed" />
+        <FontIcon x:Name="SectionIcon" Grid.Column="1"
+                  FontSize="{StaticResource FontCaption}"
+                  VerticalAlignment="Center"
+                  Margin="{StaticResource GapSmLeft}"
+                  Visibility="Collapsed" />
+        <TextBlock x:Name="TitleText" Grid.Column="2" Style="{StaticResource CaptionTextStyle}"
+                   VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
     </Grid>
 </UserControl>

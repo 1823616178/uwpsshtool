@@ -3,6 +3,7 @@ using System.Windows.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Automation;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using SshTool.App.Infrastructure;
@@ -28,6 +29,12 @@ namespace SshTool.App.Controls
         public static readonly DependencyProperty TitleProperty = DependencyProperty.Register(
             nameof(Title), typeof(string), typeof(AppListRow),
             new PropertyMetadata(string.Empty, OnChanged));
+        public static readonly DependencyProperty TitleBadgeGlyphProperty = DependencyProperty.Register(
+            nameof(TitleBadgeGlyph), typeof(string), typeof(AppListRow),
+            new PropertyMetadata(string.Empty, OnChanged));
+        public static readonly DependencyProperty TitleBadgeBrushProperty = DependencyProperty.Register(
+            nameof(TitleBadgeBrush), typeof(Brush), typeof(AppListRow),
+            new PropertyMetadata(null, OnChanged));
         public static readonly DependencyProperty SubtitleProperty = DependencyProperty.Register(
             nameof(Subtitle), typeof(string), typeof(AppListRow),
             new PropertyMetadata(string.Empty, OnChanged));
@@ -79,6 +86,18 @@ namespace SshTool.App.Controls
         {
             get { return (string)GetValue(TitleProperty); }
             set { SetValue(TitleProperty, value); }
+        }
+
+        public string TitleBadgeGlyph
+        {
+            get { return (string)GetValue(TitleBadgeGlyphProperty); }
+            set { SetValue(TitleBadgeGlyphProperty, value); }
+        }
+
+        public Brush TitleBadgeBrush
+        {
+            get { return (Brush)GetValue(TitleBadgeBrushProperty); }
+            set { SetValue(TitleBadgeBrushProperty, value); }
         }
 
         public string Subtitle
@@ -149,7 +168,25 @@ namespace SshTool.App.Controls
             var noPad = (Thickness)Application.Current.Resources["PadNone"];
             TextPanel.Margin = (hasIconContent || hasGlyph) ? gapLeft : noPad;
 
-            TitleText.Text = Title ?? string.Empty;
+            if (!string.IsNullOrEmpty(TitleBadgeGlyph))
+            {
+                TitleText.Text = string.Empty;
+                TitleText.Inlines.Clear();
+                TitleText.Inlines.Add(new Run { Text = Title ?? string.Empty });
+                TitleText.Inlines.Add(new Run { Text = " " });
+                TitleText.Inlines.Add(new Run
+                {
+                    Text = TitleBadgeGlyph,
+                    FontFamily = (FontFamily)Application.Current.Resources["AppIconFontFamily"],
+                    FontSize = (double)Application.Current.Resources["FontCaption"],
+                    Foreground = TitleBadgeBrush ?? (Brush)Application.Current.Resources["AppWarningBrush"]
+                });
+            }
+            else
+            {
+                TitleText.Inlines.Clear();
+                TitleText.Text = Title ?? string.Empty;
+            }
             SubtitleText.Text = Subtitle ?? string.Empty;
             SubtitleText.Visibility = string.IsNullOrEmpty(Subtitle) ? Visibility.Collapsed : Visibility.Visible;
 

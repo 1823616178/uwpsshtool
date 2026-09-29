@@ -92,6 +92,11 @@
         </Grid>
 
         <Grid Grid.Row="3">
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
             <!-- V02：空结果与真正无主机分 Kind——NoMatches=Filtered（默认 IconSearch）、
                  Empty=Normal（显式 Glyph 优先）。NoMatches 标题/主按钮由 code-behind 按搜索词拼装。 -->
             <controls:EmptyState x:Name="Empty" x:Uid="Hosts_Empty"

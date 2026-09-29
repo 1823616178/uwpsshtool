@@ -66,10 +66,14 @@
     <CornerRadius x:Key="RadiusMd">8</CornerRadius>
     <!-- StatusPill 外圈全圆角（≈ 胶囊高度一半），只用于短状态标签。 -->
     <CornerRadius x:Key="RadiusPill">12</CornerRadius>
+    <!-- G06：正圆圆角（999 保持正圆） -->
+    <CornerRadius x:Key="RadiusCircle">999</CornerRadius>
     <x:Double x:Key="ListRowHeight">64</x:Double>
     <x:Double x:Key="ListRowCompactHeight">48</x:Double>
     <x:Double x:Key="GroupHeaderHeight">36</x:Double>
     <x:Double x:Key="StatusDotSize">10</x:Double>
+    <!-- G06：主机列表首字母头像尺寸（36 epx） -->
+    <x:Double x:Key="AvatarSize">36</x:Double>
     <x:Double x:Key="TouchTargetMin">40</x:Double>
     <!-- SegmentTabs 段高：实际赋给段内填充 Border 的 MinHeight（容器另有 PadXs 内边距与细边，整高更大）；
          触控安全档，与 KeyBarHeight 同刻度。 -->
@@ -145,6 +149,10 @@
     <!-- Forward（E72A 向右箭头）：HostRow 跳板徽章——↪ 的字形直译，
          语义取「连接经跳板机转发到目标主机」，与 Tunnel/Key 徽章形不撞。 -->
     <x:String x:Key="IconForward">&#xE72A;</x:String>
+    <!-- G06：收藏与历史图标（MDL2 E735 FavoriteStarFill / E81C History） -->
+    <x:String x:Key="IconFavoriteStar">&#xE735;</x:String>
+    <x:String x:Key="IconFavoriteStarFill">&#xE735;</x:String>
+    <x:String x:Key="IconHistory">&#xE81C;</x:String>
     <!-- CheckMark（E73E 对勾）：ColorSwatchPicker 选中角标等勾选态。 -->
     <x:String x:Key="IconCheck">&#xE73E;</x:String>
     <!-- ChevronRight（E76C，与既有 E70D/E70E 同族同粗细）：分组/面板折叠展开。

@@ -1245,6 +1245,7 @@
   <data name="Terminal_FindCount" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Hosts_SectionFavorites" xml:space="preserve"><value>收藏</value></data>
   <data name="Hosts_SectionRecent" xml:space="preserve"><value>最近</value></data>
+  <data name="Hosts_SectionUngrouped" xml:space="preserve"><value>未分组</value></data>
   <data name="HostRow_MenuFavorite.Text" xml:space="preserve"><value>收藏</value></data>
   <data name="HostRow_MenuFavoriteText" xml:space="preserve"><value>收藏</value></data>
   <data name="HostRow_MenuUnfavorite" xml:space="preserve"><value>取消收藏</value></data>

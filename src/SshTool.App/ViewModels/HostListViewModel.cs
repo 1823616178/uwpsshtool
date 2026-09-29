@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
@@ -345,6 +345,10 @@ namespace SshTool.App.ViewModels
                     else if (group.GroupId == HostListGroup.RecentId)
                     {
                         group.Name = Localized.Get("Hosts_SectionRecent", group.Name);
+                    }
+                    else if (group.GroupId == HostListGroup.UngroupedId)
+                    {
+                        group.Name = Localized.Get("Hosts_SectionUngrouped", group.Name);
                     }
                     Groups.Add(group);
                 }

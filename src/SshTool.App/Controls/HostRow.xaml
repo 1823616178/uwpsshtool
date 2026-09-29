@@ -28,7 +28,25 @@
          AppListRow 根上的 AutomationProperties.Name（=标题）代表。 -->
     <controls:AppListRow x:Name="RowCtl" Click="OnRowClick">
         <controls:AppListRow.IconContent>
-            <controls:StatusDot x:Name="Dot" VerticalAlignment="Center" />
+            <!-- G06：首字母圆形头像（底色取分组颜色或 AppSurfaceAltBrush）+ 状态点 -->
+            <Grid Width="{StaticResource AvatarSize}" Height="{StaticResource AvatarSize}"
+                  VerticalAlignment="Center">
+                <Border x:Name="AvatarBorder"
+                        Width="{StaticResource AvatarSize}"
+                        Height="{StaticResource AvatarSize}"
+                        CornerRadius="{StaticResource RadiusCircle}"
+                        Background="{ThemeResource AppSurfaceAltBrush}">
+                    <TextBlock x:Name="AvatarText"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               FontSize="{StaticResource FontBody}"
+                               FontWeight="SemiBold"
+                               Foreground="{ThemeResource AppTextBrush}" />
+                </Border>
+                <controls:StatusDot x:Name="Dot"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom" />
+            </Grid>
         </controls:AppListRow.IconContent>
         <controls:AppListRow.StatusContent>
             <StackPanel x:Name="BadgePanel" Orientation="Horizontal" VerticalAlignment="Center">

@@ -1,16 +1,22 @@
 using System;
+using System.Globalization;
 using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using SshTool.Core.Hosts;
+using Windows.UI;
 using Windows.UI.Input;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 
 namespace SshTool.App.Controls
 {
     public sealed partial class HostRow : UserControl
     {
+        private static readonly Brush WhiteBrush = new SolidColorBrush(Colors.White);
+        private static readonly Brush BlackBrush = new SolidColorBrush(Colors.Black);
         private bool _ignoreNextTap;
 
         public HostRow()
@@ -66,7 +72,12 @@ namespace SshTool.App.Controls
             RowCtl.Title = row.Name ?? string.Empty;
             RowCtl.Subtitle = row.AddressLine ?? string.Empty;
             RowCtl.IsCompact = IsCompact;
+            RowCtl.TitleBadgeGlyph = row.IsFavorite
+                ? (string)Application.Current.Resources["IconFavoriteStarFill"]
+                : null;
             Dot.State = ToDot(row.Status);
+            AvatarText.Text = ExtractInitial(row.Name, row.AddressLine);
+            ApplyAvatarColor(row.GroupColor);
             KeyBadge.Visibility = row.ShowKey ? Visibility.Visible : Visibility.Collapsed;
             TmuxBadge.Visibility = row.ShowTmux ? Visibility.Visible : Visibility.Collapsed;
             JumpBadge.Visibility = row.ShowJump ? Visibility.Visible : Visibility.Collapsed;
@@ -74,6 +85,43 @@ namespace SshTool.App.Controls
             FavoriteItem.Text = row.IsFavorite
                 ? Localized.Get("HostRow_MenuUnfavorite", "取消收藏")
                 : Localized.Get("HostRow_MenuFavoriteText", "收藏");
+        }
+
+        private static string ExtractInitial(string name, string addressLine)
+        {
+            string candidate = (name ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(candidate))
+            {
+                candidate = (addressLine ?? string.Empty).Trim();
+            }
+            if (string.IsNullOrEmpty(candidate))
+            {
+                return "?";
+            }
+            TextElementEnumerator enumerator = StringInfo.GetTextElementEnumerator(candidate);
+            if (enumerator.MoveNext())
+            {
+                string element = enumerator.GetTextElement();
+                return element.ToUpperInvariant();
+            }
+            return "?";
+        }
+
+        private void ApplyAvatarColor(string groupColorHex)
+        {
+            byte r;
+            byte g;
+            byte b;
+            if (!string.IsNullOrEmpty(groupColorHex) && ColorHex.TryParse(groupColorHex, out r, out g, out b))
+            {
+                AvatarBorder.Background = new SolidColorBrush(Color.FromArgb(255, r, g, b));
+                AvatarText.Foreground = ColorHex.NeedsDarkText(r, g, b) ? BlackBrush : WhiteBrush;
+            }
+            else
+            {
+                AvatarBorder.Background = (Brush)Application.Current.Resources["AppSurfaceAltBrush"];
+                AvatarText.Foreground = (Brush)Application.Current.Resources["AppTextBrush"];
+            }
         }
 
         private static StatusDotState ToDot(HostListStatus status)

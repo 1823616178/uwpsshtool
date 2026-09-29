@@ -282,6 +282,30 @@ namespace SshTool.Core.Tests.Hosts
             Assert.True(snap.IsEmpty);
         }
 
+        [Fact]
+        public void Rows_CarryGroupColor()
+        {
+            HostGroup g1 = G("g1", "生产", 1);
+            g1.Color = "#FF0000";
+            Host h1 = H("h1", "web", "g1");
+            Host h2 = H("h2", "nas");
+            HostListSnapshot snap = Build(new[] { h1, h2 }, new[] { g1 });
+            Assert.Equal("#FF0000", snap.Groups[0].Rows[0].GroupColor);
+            Assert.Equal(string.Empty, snap.Groups[1].Rows[0].GroupColor);
+        }
+
+        [Fact]
+        public void FavoritesSection_RowsCarryHostGroupColor()
+        {
+            HostGroup g1 = G("g1", "生产", 1);
+            g1.Color = "#FF0000";
+            Host h1 = H("h1", "web", "g1");
+            h1.Favorite = true;
+            HostListSnapshot snap = Build(new[] { h1 }, new[] { g1 });
+            Assert.Equal(HostListGroup.FavoritesId, snap.Groups[0].GroupId);
+            Assert.Equal("#FF0000", snap.Groups[0].Rows[0].GroupColor);
+        }
+
         private sealed class MapStatus : IHostStatusProvider
         {
             public Dictionary<string, HostListStatus> Map = new Dictionary<string, HostListStatus>();

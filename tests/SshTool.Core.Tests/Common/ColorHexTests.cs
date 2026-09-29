@@ -87,5 +87,18 @@ namespace SshTool.Core.Tests.Common
             Assert.Equal(0, g);
             Assert.Equal(0, b);
         }
+
+        [Theory]
+        [InlineData(255, 255, 255, true)]  // 白色 -> 黑字
+        [InlineData(255, 255, 0, true)]    // 黄色 -> 黑字
+        [InlineData(200, 200, 200, true)]  // 浅灰 -> 黑字
+        [InlineData(0, 0, 0, false)]       // 黑色 -> 白字
+        [InlineData(0, 0, 128, false)]     // 深蓝 -> 白字
+        [InlineData(128, 0, 0, false)]     // 深红 -> 白字
+        public void NeedsDarkText_CalculatesLuminance(byte r, byte g, byte b, bool expected)
+        {
+            bool actual = ColorHex.NeedsDarkText(r, g, b);
+            Assert.Equal(expected, actual);
+        }
     }
 }
