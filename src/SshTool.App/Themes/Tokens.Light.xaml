@@ -282,4 +282,47 @@
     <SolidColorBrush x:Key="PivotHeaderItemBackgroundSelected" Color="#00000000" />
     <SolidColorBrush x:Key="PivotHeaderItemBackgroundUnselected" Color="#00000000" />
     <SolidColorBrush x:Key="PivotHeaderItemFocusPipeFill" Color="#2F6FE4" />
+
+    <!-- G03: ContentDialog 系统画刷重写（07-UI-POLISH-TASKS §4.3） -->
+    <SolidColorBrush x:Key="ContentDialogBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ContentDialogForeground" Color="#1A2233" />
+    <SolidColorBrush x:Key="ContentDialogBorderBrush" Color="#D9DFEA" />
+
+    <!-- G03: MenuFlyout 系统画刷重写（07-UI-POLISH-TASKS §4.3） -->
+    <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="#EEF1F7" />
+    <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="#D9DFEA" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackground" Color="#00000000" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="#E2E8F4" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="#E2E8F4" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackgroundDisabled" Color="#00000000" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="#1A2233" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="#1A2233" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="#1A2233" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForegroundDisabled" Color="#8A97AE" />
+    <SolidColorBrush x:Key="MenuFlyoutSeparatorBackground" Color="#D9DFEA" />
+    <SolidColorBrush x:Key="ToggleMenuFlyoutItemBackground" Color="#00000000" />
+    <SolidColorBrush x:Key="ToggleMenuFlyoutItemBackgroundPointerOver" Color="#E2E8F4" />
+    <SolidColorBrush x:Key="ToggleMenuFlyoutItemBackgroundPressed" Color="#E2E8F4" />
+    <SolidColorBrush x:Key="ToggleMenuFlyoutItemBackgroundDisabled" Color="#00000000" />
+    <SolidColorBrush x:Key="ToggleMenuFlyoutItemForeground" Color="#1A2233" />
+    <SolidColorBrush x:Key="ToggleMenuFlyoutItemForegroundPointerOver" Color="#1A2233" />
+    <SolidColorBrush x:Key="ToggleMenuFlyoutItemForegroundPressed" Color="#1A2233" />
+    <SolidColorBrush x:Key="ToggleMenuFlyoutItemForegroundDisabled" Color="#8A97AE" />
+
+    <!-- G03: CommandBar 与 AppBar 系统画刷重写（07-UI-POLISH-TASKS §4.3） -->
+    <SolidColorBrush x:Key="AppBarBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="AppBarForeground" Color="#1A2233" />
+    <SolidColorBrush x:Key="CommandBarBackground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="CommandBarForeground" Color="#1A2233" />
+    <SolidColorBrush x:Key="CommandBarBackgroundOpen" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="CommandBarOverflowPresenterBackground" Color="#EEF1F7" />
+    <SolidColorBrush x:Key="CommandBarOverflowPresenterBorderBrush" Color="#D9DFEA" />
+    <SolidColorBrush x:Key="AppBarButtonForeground" Color="#1A2233" />
+    <SolidColorBrush x:Key="AppBarButtonForegroundPointerOver" Color="#1A2233" />
+    <SolidColorBrush x:Key="AppBarButtonForegroundPressed" Color="#1A2233" />
+    <SolidColorBrush x:Key="AppBarButtonForegroundDisabled" Color="#8A97AE" />
+    <SolidColorBrush x:Key="AppBarToggleButtonForeground" Color="#1A2233" />
+    <SolidColorBrush x:Key="AppBarToggleButtonForegroundPointerOver" Color="#1A2233" />
+    <SolidColorBrush x:Key="AppBarToggleButtonForegroundPressed" Color="#1A2233" />
+    <SolidColorBrush x:Key="AppBarToggleButtonForegroundDisabled" Color="#8A97AE" />
 </ResourceDictionary>

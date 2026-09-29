@@ -58,14 +58,18 @@
         <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
         <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />
     </Style>
-    <!-- 对话框内危险主按钮：只换配色，不带字号/最小尺寸（尺寸交由 ContentDialog 按钮区统一布局），
-         避免 DangerButtonStyle 的 FontSize/MinHeight/MinWidth 让主/次按钮错位。页面级按钮仍用 DangerButtonStyle。 -->
+    <!-- 对话框内危险主按钮：红底白字，尺寸与 PrimaryButtonStyle 保持一致。 -->
     <Style x:Key="DangerDialogButtonStyle" TargetType="Button">
         <Setter Property="Background" Value="{ThemeResource AppDangerBrush}" />
         <Setter Property="Foreground" Value="{ThemeResource AppOnAccentBrush}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+        <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />
     </Style>
-    <!-- 菜单里的破坏性项（删除/断开）：红字，与 ConfirmDialog(isDanger) 呼应 -->
+    <!-- 菜单里的破坏性项（删除/断开）：红字，触控高度 ≥40，与 ConfirmDialog(isDanger) 呼应 -->
     <Style x:Key="DangerMenuItemStyle" TargetType="MenuFlyoutItem">
+        <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
         <Setter Property="Foreground" Value="{ThemeResource AppDangerBrush}" />
     </Style>
     <!-- C-03（01-DESIGN.md §7.5）：终端区图标按钮统一。AllowFocusOnInteraction=False
@@ -1211,5 +1215,62 @@
     <!-- G02: RadioButton 隐式样式（07-UI-POLISH-TASKS §4.3） -->
     <Style TargetType="RadioButton">
         <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+    </Style>
+
+    <!-- ====================================================================== -->
+    <!-- G03: 对话框、菜单、底栏统一（07-UI-POLISH-TASKS §4.3）                   -->
+    <!-- ====================================================================== -->
+
+    <!-- G03: ContentDialog 隐式样式
+         背景 Surface 1、前景 AppTextBrush、边框 AppBorderBrush、四周内边距 PadCard、
+         默认主按钮 PrimaryButtonStyle、次/关闭按钮 SecondaryButtonStyle。 -->
+    <Style TargetType="ContentDialog">
+        <Setter Property="Background" Value="{ThemeResource AppSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AppBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderThin}" />
+        <Setter Property="Padding" Value="{StaticResource PadCard}" />
+        <Setter Property="PrimaryButtonStyle" Value="{StaticResource PrimaryButtonStyle}" />
+        <Setter Property="SecondaryButtonStyle" Value="{StaticResource SecondaryButtonStyle}" />
+        <Setter Property="CloseButtonStyle" Value="{StaticResource SecondaryButtonStyle}" />
+    </Style>
+
+    <!-- G03: MenuFlyout 隐式样式
+         浮层面板 Surface 2 底色、1 epx AppBorderBrush 边框；各项触控高度 ≥40、FontBody 正文字号。 -->
+    <Style TargetType="MenuFlyoutPresenter">
+        <Setter Property="Background" Value="{ThemeResource AppSurfaceAltBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AppBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderThin}" />
+    </Style>
+
+    <Style TargetType="MenuFlyoutItem">
+        <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+    </Style>
+
+    <Style TargetType="ToggleMenuFlyoutItem">
+        <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+    </Style>
+
+    <!-- G03: CommandBar 隐式样式
+         背景 Surface 1、前景 AppTextBrush、边框 AppBorderBrush、与 BottomActionBar 视觉对齐。 -->
+    <Style TargetType="CommandBar">
+        <Setter Property="Background" Value="{ThemeResource AppSurfaceBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AppBorderBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderThinTop}" />
+        <Setter Property="ClosedDisplayMode" Value="Compact" />
+    </Style>
+
+    <!-- G03: AppBarButton / AppBarToggleButton 隐式样式 -->
+    <Style TargetType="AppBarButton">
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+    </Style>
+
+    <Style TargetType="AppBarToggleButton">
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
     </Style>
 </ResourceDictionary>

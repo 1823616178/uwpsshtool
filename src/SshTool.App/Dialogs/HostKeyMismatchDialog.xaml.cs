@@ -24,6 +24,7 @@ namespace SshTool.App.Dialogs
             string hostName, string recordedFingerprint, string currentFingerprint)
         {
             var dialog = new HostKeyMismatchDialog();
+            dialog.SecondaryButtonStyle = (Style)Application.Current.Resources["DangerDialogButtonStyle"];
             dialog.OldFingerprintText.Text = recordedFingerprint;
             dialog.NewFingerprintText.Text = currentFingerprint;
             dialog.ConfirmHintText.Text = Localized.Format("HostKeyMismatch_ConfirmHint", "移除需确认：请输入主机名 {0}", hostName);

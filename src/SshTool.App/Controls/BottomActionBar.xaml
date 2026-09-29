@@ -8,9 +8,10 @@
          状态：normal / keyboard-visible——SIP 弹出时整条收起让位（code-behind 监听 InputPane，
          与 SoftKeyboardInput 同一感知机制；也可由页面直接驱动 IsKeyboardVisible）。 -->
     <Border x:Name="Root"
-            Background="{ThemeResource AppSurfaceAltBrush}"
+            Background="{ThemeResource AppSurfaceBrush}"
             BorderBrush="{ThemeResource AppBorderBrush}"
             BorderThickness="{StaticResource BorderThinTop}"
+            MinHeight="{StaticResource BottomBarHeight}"
             Padding="{StaticResource PadActionBar}">
         <Grid>
             <Grid.ColumnDefinitions>

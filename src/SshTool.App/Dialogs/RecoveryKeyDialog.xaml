@@ -25,6 +25,7 @@
             </StackPanel>
         </Border>
         <Button x:Name="CopyButton" x:Uid="VaultDialog_CopyButton" Content="复制"
+                Style="{StaticResource SecondaryButtonStyle}"
                 Margin="{StaticResource GapSmTop}"
                 Click="OnCopyClick" />
         <TextBlock x:Name="CopiedText" x:Uid="VaultDialog_Copied" Text="已复制到剪贴板"

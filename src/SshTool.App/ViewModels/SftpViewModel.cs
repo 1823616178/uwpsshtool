@@ -1067,7 +1067,7 @@ namespace SshTool.App.ViewModels
                 message,
                 Loader.GetString("Sftp_DeleteButtonText"),
                 Loader.GetString("Dialog_Cancel"),
-                recursive).ConfigureAwait(true);
+                true).ConfigureAwait(true);
             if (!confirm.Confirmed)
             {
                 return;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using SshTool.App.Controls;
 using SshTool.App.Dialogs;
@@ -133,7 +133,7 @@ namespace SshTool.App.Views
         private async System.Threading.Tasks.Task ConfirmAbandonAsync()
         {
             ConfirmDialogResult result = await ConfirmDialog.ShowAsync(
-                "放弃修改？", "未保存的更改将丢失，预览会还原。", "放弃", "继续编辑");
+                "放弃修改？", "未保存的更改将丢失，预览会还原。", "放弃", "继续编辑", isDanger: true);
             if (result.Confirmed)
             {
                 _abandonConfirmed = true;

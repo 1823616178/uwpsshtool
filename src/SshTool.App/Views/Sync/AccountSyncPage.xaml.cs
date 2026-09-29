@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SshTool.App.Controls;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
@@ -435,7 +435,8 @@ namespace SshTool.App.Views.Sync
                 message: GetString("AccountSync_RestoreMessage",
                     "将以此版本创建新的云端版本并覆盖本机配置。"),
                 confirmText: GetString("AccountSync_Restore", "恢复"),
-                cancelText: GetString("AccountSync_Cancel", "取消"));
+                cancelText: GetString("AccountSync_Cancel", "取消"),
+                isDanger: true);
             if (result != null && result.Confirmed)
             {
                 ViewModel.RestoreRevisionAsync(row.Revision).Forget("AccountSyncPage.RestoreRevision", AppLog.Logger);

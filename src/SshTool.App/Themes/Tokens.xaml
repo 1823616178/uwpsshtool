@@ -57,9 +57,9 @@
     <Thickness x:Key="PadXs">4</Thickness>
     <!-- StatusPill 内边距（横 8 纵 4）：配合 SpaceXl 的 MinHeight 收成约 24 高胶囊。 -->
     <Thickness x:Key="PadPill">8,4</Thickness>
-    <!-- BottomActionBar 内边距：横向同 PagePadding 刻度，纵向 SpaceSm 垫高触控区
-         （条内主按钮 MinHeight=TouchTargetMin，整条约 56）。 -->
-    <Thickness x:Key="PadActionBar">12,8,12,8</Thickness>
+    <!-- G03: 底部栏统一高度（48 epx，与系统 CommandBar Compact 对齐）与内边距 -->
+    <x:Double x:Key="BottomBarHeight">48</x:Double>
+    <Thickness x:Key="PadActionBar">12,4,12,4</Thickness>
     <CornerRadius x:Key="RadiusSm">4</CornerRadius>
     <CornerRadius x:Key="RadiusMd">8</CornerRadius>
     <!-- StatusPill 外圈全圆角（≈ 胶囊高度一半），只用于短状态标签。 -->

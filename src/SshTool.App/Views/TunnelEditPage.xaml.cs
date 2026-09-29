@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using SshTool.App.Dialogs;
@@ -161,7 +161,8 @@ namespace SshTool.App.Views
                 var flyout = new MenuFlyout();
                 var deleteItem = new MenuFlyoutItem
                 {
-                    Text = Localized.Get("TunnelEdit_Delete", "删除隧道")
+                    Text = Localized.Get("TunnelEdit_Delete", "删除隧道"),
+                    Style = (Style)Application.Current.Resources["DangerMenuItemStyle"]
                 };
                 deleteItem.Click += (s, e) => OnDeleteClick(s, EventArgs.Empty);
                 flyout.Items.Add(deleteItem);

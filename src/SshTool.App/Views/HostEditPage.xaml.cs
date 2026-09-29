@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
@@ -187,7 +187,8 @@ namespace SshTool.App.Views
                 _loader.GetString("HostEdit_AbandonTitle"),
                 _loader.GetString("HostEdit_AbandonMessage"),
                 _loader.GetString("HostEdit_AbandonConfirm"),
-                _loader.GetString("HostEdit_AbandonCancel"));
+                _loader.GetString("HostEdit_AbandonCancel"),
+                isDanger: true);
             if (result.Confirmed)
             {
                 _abandonConfirmed = true;
@@ -445,7 +446,8 @@ namespace SshTool.App.Views
                     _loader.GetString("HostEdit_SwitchAuthTitle"),
                     preview.Message,
                     _loader.GetString("HostEdit_SwitchAuthConfirm"),
-                    _loader.GetString("HostEdit_SwitchAuthCancel"));
+                    _loader.GetString("HostEdit_SwitchAuthCancel"),
+                    isDanger: true);
                 if (!confirm.Confirmed)
                 {
                     _suppressAuth = true;
