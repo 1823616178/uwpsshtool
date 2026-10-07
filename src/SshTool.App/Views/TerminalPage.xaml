@@ -38,21 +38,30 @@
             </Grid.ColumnDefinitions>
             <controls:StatusDot x:Name="Dot" VerticalAlignment="Center"
                                 Margin="{StaticResource PagePadding}" />
-            <Grid Grid.Column="1" VerticalAlignment="Center" Margin="{StaticResource PagePadding}"
+            <!-- 竖屏单行：主机名与地址分列，地址限宽，避免叠在名字上。 -->
+            <Grid Grid.Column="1" VerticalAlignment="Center"
+                  Margin="{StaticResource GapSmRight}"
                   AllowFocusOnInteraction="False">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition x:Name="AddressRow" Height="0" />
                 </Grid.RowDefinitions>
-                <TextBlock x:Name="TitleText" Grid.Row="0"
+                <TextBlock x:Name="TitleText" Grid.Row="0" Grid.Column="0"
                            Style="{StaticResource SubtitleTextStyle}"
-                           TextTrimming="CharacterEllipsis" />
-                <!-- Normal：同行右侧（CaptionTextStyle=次要色小字）；Expanded：换行占满。 -->
-                <TextBlock x:Name="AddressText" Grid.Row="0"
+                           TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center" />
+                <!-- Normal：右列地址；Expanded：换到第二行占满。 -->
+                <TextBlock x:Name="AddressText" Grid.Row="0" Grid.Column="1"
                            Style="{StaticResource CaptionTextStyle}"
                            Foreground="{ThemeResource AppTextDimBrush}"
                            TextTrimming="CharacterEllipsis"
-                           HorizontalAlignment="Right"
+                           TextWrapping="NoWrap"
+                           MaxWidth="{StaticResource TerminalAddressMaxWidth}"
+                           VerticalAlignment="Center"
                            Margin="{StaticResource GapSmLeft}" />
             </Grid>
             <!-- C-03：TerminalIconButtonStyle 统一焦点行为（AllowFocusOnInteraction=False）
@@ -106,7 +115,10 @@
                         <Setter Target="InfoBar.Height" Value="{StaticResource TerminalCompactBarHeight}" />
                         <Setter Target="AddressRow.Height" Value="0" />
                         <Setter Target="AddressText.(Grid.Row)" Value="0" />
+                        <Setter Target="AddressText.(Grid.Column)" Value="1" />
+                        <Setter Target="AddressText.(Grid.ColumnSpan)" Value="1" />
                         <Setter Target="AddressText.HorizontalAlignment" Value="Right" />
+                        <Setter Target="AddressText.MaxWidth" Value="{StaticResource TerminalAddressMaxWidth}" />
                         <Setter Target="AddressText.Margin" Value="{StaticResource GapSmLeft}" />
                     </VisualState.Setters>
                 </VisualState>
@@ -115,7 +127,10 @@
                         <Setter Target="InfoBar.Height" Value="{StaticResource TerminalExpandedBarHeight}" />
                         <Setter Target="AddressRow.Height" Value="Auto" />
                         <Setter Target="AddressText.(Grid.Row)" Value="1" />
-                        <Setter Target="AddressText.HorizontalAlignment" Value="Stretch" />
+                        <Setter Target="AddressText.(Grid.Column)" Value="0" />
+                        <Setter Target="AddressText.(Grid.ColumnSpan)" Value="2" />
+                        <Setter Target="AddressText.HorizontalAlignment" Value="Left" />
+                        <Setter Target="AddressText.MaxWidth" Value="{StaticResource TerminalAddressExpandedMaxWidth}" />
                         <Setter Target="AddressText.Margin" Value="{StaticResource GapXsTop}" />
                     </VisualState.Setters>
                 </VisualState>

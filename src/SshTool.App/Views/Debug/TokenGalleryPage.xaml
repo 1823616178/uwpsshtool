@@ -63,7 +63,7 @@
                 <TextBlock Text="字号（§2.2 / §2.4）" Style="{StaticResource SectionTitleTextStyle}" Margin="0,16,0,4" />
                 <TextBlock Text="FontCaption 12 — CaptionTextStyle 次要说明文字" Style="{StaticResource CaptionTextStyle}" />
                 <TextBlock Text="FontBody 15 — BodyTextStyle 正文" Style="{StaticResource BodyTextStyle}" />
-                <TextBlock Text="FontSubtitle 18 — SectionTitleTextStyle 小节标题" Style="{StaticResource SectionTitleTextStyle}" />
+                <TextBlock Text="FontSubtitle 18 — SubtitleTextStyle / SectionTitleTextStyle" Style="{StaticResource SubtitleTextStyle}" />
                 <TextBlock Text="FontTitle 20" FontSize="{StaticResource FontTitle}" Style="{StaticResource BodyTextStyle}" />
                 <TextBlock Text="FontHeader 28 — PageTitleTextStyle 页标题" Style="{StaticResource PageTitleTextStyle}" />
                 <TextBlock Text="MonoCaption: AA:BB:CC:DD:EE 192.168.1.1" Style="{StaticResource MonoCaptionTextStyle}" />

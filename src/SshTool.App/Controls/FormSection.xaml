@@ -5,15 +5,22 @@
 
     <!-- 05 §5.3：表单分组容器（无卡片描边，SurfaceCard 才是带边卡片）。
          固定顺序（§5.2「标签、说明和错误采用固定顺序」）：标题 → 说明 → 内容槽 → 验证信息。
-         状态：normal / error（验证信息以 Danger 色显示）/ readonly（内容降 DisabledOpacity 并断命中）。 -->
-    <StackPanel x:Name="Root">
+         内容槽用 *：父级给出有限高度时（竖屏列表页）列表能滚动；放进 ScrollViewer
+         时可用高度无限，* 退化为 Auto，表单控件不会被拉高。 -->
+    <Grid x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
         <TextBlock x:Name="HeaderText" Style="{StaticResource SectionTitleTextStyle}"
                    Visibility="Collapsed" />
-        <TextBlock x:Name="DescriptionText" Style="{StaticResource CaptionTextStyle}"
+        <TextBlock x:Name="DescriptionText" Grid.Row="1" Style="{StaticResource CaptionTextStyle}"
                    TextWrapping="Wrap" Visibility="Collapsed" />
-        <ContentPresenter x:Name="ContentSlot" />
-        <TextBlock x:Name="ErrorText" Style="{StaticResource CaptionTextStyle}"
+        <ContentPresenter x:Name="ContentSlot" Grid.Row="2" />
+        <TextBlock x:Name="ErrorText" Grid.Row="3" Style="{StaticResource CaptionTextStyle}"
                    Foreground="{ThemeResource AppDangerBrush}"
                    TextWrapping="Wrap" Visibility="Collapsed" />
-    </StackPanel>
+    </Grid>
 </UserControl>

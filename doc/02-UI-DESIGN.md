@@ -103,7 +103,7 @@
 
 ### 2.4 文字样式（`Controls.xaml`）
 
-`PageTitleTextStyle`（FontHeader，Light）、`SectionTitleTextStyle`（FontSubtitle，SemiBold）、`BodyTextStyle`、`CaptionTextStyle`（AppTextDimBrush）、`MonoCaptionTextStyle`（Consolas/JetBrains Mono，用于指纹与地址）。
+`PageTitleTextStyle`（FontHeader，Light）、`SubtitleTextStyle`（FontSubtitle，SemiBold，紧凑标题，如终端信息条）、`SectionTitleTextStyle`（FontSubtitle，SemiBold）、`BodyTextStyle`、`CaptionTextStyle`（AppTextDimBrush）、`MonoCaptionTextStyle`（Consolas/JetBrains Mono，用于指纹与地址）。
 
 ---
 

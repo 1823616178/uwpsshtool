@@ -94,6 +94,9 @@
     <!-- V03a（05 §6.2）：紧凑信息条——默认单行 44 epx，展开双行 64 epx。 -->
     <x:Double x:Key="TerminalCompactBarHeight">44</x:Double>
     <x:Double x:Key="TerminalExpandedBarHeight">64</x:Double>
+    <!-- 竖屏单行信息条：地址限宽，主机名留在左侧；展开后第二行不再限这档。 -->
+    <x:Double x:Key="TerminalAddressMaxWidth">160</x:Double>
+    <x:Double x:Key="TerminalAddressExpandedMaxWidth">640</x:Double>
     <x:Double x:Key="TabStripHeight">36</x:Double>
     <x:Double x:Key="SplitterThickness">6</x:Double>
     <x:Double x:Key="SessionsPaneWidth">280</x:Double>

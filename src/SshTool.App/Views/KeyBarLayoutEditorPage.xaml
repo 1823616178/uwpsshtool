@@ -28,15 +28,20 @@
                                 BackRequested="OnHeaderBackRequested" />
         <TextBlock x:Uid="KeyBarEditor_Subtitle" Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
                    Margin="{StaticResource PagePadding}" />
+        <!-- 竖屏上下分：360 宽并排两列列表放不下。宽屏（≥720）再改成左右两列。 -->
         <Grid Grid.Row="2" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
             <Grid.ChildrenTransitions>
                 <TransitionCollection>
                     <EntranceThemeTransition />
                 </TransitionCollection>
             </Grid.ChildrenTransitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition x:Name="EditorStackRow" Height="*" />
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition x:Name="EditorSideColumn" Width="Auto" />
             </Grid.ColumnDefinitions>
             <controls:FormSection x:Uid="KeyBarEditor_Section_Available" Margin="{StaticResource PagePadding}">
                 <controls:FormSection.SectionContent>
@@ -45,7 +50,8 @@
                               SelectionMode="Single" />
                 </controls:FormSection.SectionContent>
             </controls:FormSection>
-            <controls:FormSection x:Uid="KeyBarEditor_Section_Selected" Grid.Column="1" Margin="{StaticResource PagePadding}">
+            <controls:FormSection x:Name="SelectedSection" x:Uid="KeyBarEditor_Section_Selected"
+                                  Grid.Row="1" Grid.Column="0" Margin="{StaticResource PagePadding}">
                 <controls:FormSection.SectionContent>
                     <ListView x:Name="SelectedList"
                               ItemTemplate="{StaticResource KeyItemTemplate}"
@@ -74,5 +80,21 @@
                                   PrimaryClick="OnResetClick"
                                   PrimaryButtonStyle="{StaticResource SecondaryButtonStyle}" />
         <controls:TransientToast x:Name="Toast" Grid.Row="4" />
+
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup>
+                <VisualState x:Name="WideState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="{StaticResource WideBreakpoint}" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="EditorStackRow.Height" Value="0" />
+                        <Setter Target="EditorSideColumn.Width" Value="*" />
+                        <Setter Target="SelectedSection.(Grid.Row)" Value="0" />
+                        <Setter Target="SelectedSection.(Grid.Column)" Value="1" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
     </Grid>
 </Page>

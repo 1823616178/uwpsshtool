@@ -13,6 +13,12 @@
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
     </Style>
+    <!-- 紧凑标题（终端信息条）。FontSubtitle 才放得进 44 epx 单行，并给右侧地址留位。 -->
+    <Style x:Key="SubtitleTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource FontSubtitle}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+    </Style>
     <Style x:Key="BodyTextStyle" TargetType="TextBlock">
         <Setter Property="FontSize" Value="{StaticResource FontBody}" />
         <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
