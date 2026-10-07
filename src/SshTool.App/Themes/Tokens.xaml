@@ -181,6 +181,8 @@
     <x:String x:Key="IconSplitH">&#xE7FA;</x:String>
     <x:String x:Key="IconSplitV">&#xE7FB;</x:String>
     <x:String x:Key="IconKeyboard">&#xE765;</x:String>
+    <!-- Color（E790 调色板）：外观列表空态字形（AppearanceListPage，G09 引入引用时漏定义）。 -->
+    <x:String x:Key="IconPalette">&#xE790;</x:String>
     <x:String x:Key="IconWarning">&#xE7BA;</x:String>
     <x:String x:Key="IconError">&#xE783;</x:String>
     <x:String x:Key="IconInfo">&#xE946;</x:String>
