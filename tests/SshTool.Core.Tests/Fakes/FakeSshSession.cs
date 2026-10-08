@@ -72,6 +72,7 @@ namespace SshTool.Core.Tests.Fakes
         public IReadOnlyList<string> KiPrompts;
         public TaskCompletionSource<SshErrorCode> ConnectHold;
         public TaskCompletionSource<SshErrorCode> OpenShellHold;
+        public Exception ConnectException;
         public bool HostKeyOnJump;
         public ISshSession LastJumpSession;
 
@@ -79,6 +80,10 @@ namespace SshTool.Core.Tests.Fakes
         {
             Calls.Add("Connect");
             LastConnectRequest = request;
+            if (ConnectException != null)
+            {
+                throw ConnectException;
+            }
             if (ConnectHold != null)
             {
                 return await ConnectHold.Task.ConfigureAwait(false);

@@ -159,14 +159,7 @@ namespace SshTool.Core.Sessions
             info.SetDispatcherPost(_ui.Post);
             _sessions.Add(info);
             RaiseChanged();
-            var ignore = ConnectCoreAsync(info, host, false).ContinueWith(t =>
-            {
-                if (t.IsFaulted && !info.UserClosed
-                    && (info.State == SessionUiState.Connecting || info.State == SessionUiState.Authenticating))
-                {
-                    Fail(info, SshErrorCode.InternalError, false);
-                }
-            });
+            ObserveConnect(info, ConnectCoreAsync(info, host, false));
             return info;
         }
 
@@ -212,7 +205,7 @@ namespace SshTool.Core.Sessions
             }
             CancelTimer(info.SessionId);
             info.ReconnectInSeconds = 0;
-            var ignore = ReconnectAsync(info);
+            ObserveConnect(info, ReconnectAsync(info));
         }
 
         public void CancelReconnect(string sessionId)
@@ -1442,9 +1435,33 @@ namespace SshTool.Core.Sessions
             RaiseChanged();
             IDisposable timer = _timers.Schedule(delay * 1000, () =>
             {
-                var ignore = ReconnectAsync(info);
+                ObserveConnect(info, ReconnectAsync(info));
             });
             _reconnectTimers[info.SessionId] = timer;
+        }
+
+        // 连接任务的异常兜底。此前只有首次连接（OpenAsync）挂了这层，两条重连路径
+        //（计时器到点、ReconnectNow）是裸的 fire-and-forget：ConnectCoreAsync 中途抛异常
+        //（native 投递失败、读主机仓库失败等）时异常被静默吞掉，会话永远停在「重连中」、
+        // 倒计时归零却再也不动，用户只能手动关掉。
+        private void ObserveConnect(SessionInfo info, Task task)
+        {
+            task.ContinueWith(t =>
+            {
+                Exception ex = t.Exception == null ? null : t.Exception.GetBaseException();
+                if (_logger != null)
+                {
+                    _logger.Log(LogLevel.Error, "Session",
+                        "connect task faulted " + (ex == null ? string.Empty : ex.GetType().Name));
+                }
+                if (!info.UserClosed
+                    && (info.State == SessionUiState.Connecting
+                        || info.State == SessionUiState.Authenticating
+                        || info.State == SessionUiState.Reconnecting))
+                {
+                    Fail(info, SshErrorCode.InternalError, false);
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         private async Task ReconnectAsync(SessionInfo info)

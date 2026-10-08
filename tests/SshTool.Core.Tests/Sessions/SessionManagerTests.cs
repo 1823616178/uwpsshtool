@@ -440,6 +440,52 @@ namespace SshTool.Core.Tests.Sessions
             Assert.Equal(2, fx.Factory.Created.Count);
         }
 
+        // code-review-pass：重连路径的连接任务抛异常时，会话不能永远卡在「重连中」。
+        [Fact]
+        public async Task Reconnect_ConnectThrows_LeavesReconnectingState()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            FakeSshSession first = fx.Enqueue(ReadySession());
+            FakeSshSession second = fx.Enqueue(ReadySession());
+            second.ConnectException = new InvalidOperationException("native 投递失败");
+
+            SessionInfo info = await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            first.FireStateChanged(SessionStateKind.Disconnected, SshErrorCode.RemoteClosed);
+            Assert.Equal(SessionUiState.Reconnecting, info.State);
+
+            fx.Timers.FirePending();
+            for (int i = 0; i < 50 && info.State == SessionUiState.Reconnecting; i++)
+            {
+                await Task.Delay(10);
+            }
+
+            // 落到可手动重连的终态（Disconnected），并带上错误码。
+            Assert.Equal(SessionUiState.Disconnected, info.State);
+            Assert.Equal(SshErrorCode.InternalError, info.ErrorCode);
+        }
+
+        [Fact]
+        public async Task ReconnectNow_ConnectThrows_LeavesReconnectingState()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            FakeSshSession first = fx.Enqueue(ReadySession());
+            FakeSshSession second = fx.Enqueue(ReadySession());
+            second.ConnectException = new InvalidOperationException("native 投递失败");
+
+            SessionInfo info = await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            first.FireStateChanged(SessionStateKind.Disconnected, SshErrorCode.RemoteClosed);
+            fx.Manager.ReconnectNow(info.SessionId);
+            for (int i = 0; i < 50 && info.State == SessionUiState.Reconnecting; i++)
+            {
+                await Task.Delay(10);
+            }
+
+            Assert.Equal(SessionUiState.Disconnected, info.State);
+            Assert.Equal(SshErrorCode.InternalError, info.ErrorCode);
+        }
+
         [Fact]
         public async Task AuthError_DoesNotReconnect()
         {
