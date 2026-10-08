@@ -292,7 +292,8 @@ namespace SshTool.Core.Tests.Sync
             Assert.Equal("Bearer a-2", HeaderOf(transport.Requests[2], "Authorization"));
         }
 
-        // ---------- 用例 7：刷新网络失败 → 不重试、标记 uncertain、下次直接不可用 ----------
+        // ---------- 用例 7：刷新网络失败 → 当次不重试、标记 uncertain、不清会话 ----------
+        // fix/persist-login：下次 401 仍用同一个 refreshToken 试一次，由服务端裁决（见 PersistLoginTests）。
 
         [Fact]
         public async Task Refresh_NetworkFailure_NoRetryAndMarksUncertain()
@@ -312,13 +313,18 @@ namespace SshTool.Core.Tests.Sync
             Assert.False(tokens.Cleared);
             Assert.Equal(2, transport.Requests.Count); // 刷新不重试
 
-            // 下次：刷新直接不可用（uncertain），清会话
+            // 下次：uncertain 不再直接清会话——用原 refreshToken 再试一次；上次其实没送达 → 轮换成功
             transport.Enqueue(Json(401,
                 @"{""statusCode"":401,""data"":{""code"":""AUTH_TOKEN_EXPIRED"",""message"":""过期""}}"));
-            var next = await Assert.ThrowsAsync<ApiError>(() => client.GetMeAsync());
-            Assert.Equal(ApiError.CodeAuthRefreshUnavailable, next.Code);
-            Assert.True(tokens.Cleared);
-            Assert.Equal(3, transport.Requests.Count); // 只发了原请求，没再碰 auth/refresh
+            transport.Enqueue(Json(200, RotatedTokensJson));
+            transport.Enqueue(Json(200, MeJson));
+            var me = await client.GetMeAsync();
+            Assert.Equal("u1", me.User.Id);
+            Assert.False(tokens.Cleared);
+            Assert.False(tokens.Uncertain);
+            Assert.Equal("a-2", tokens.Saved.AccessToken);
+            Assert.Equal(5, transport.Requests.Count);
+            Assert.Contains(@"""refreshToken"":""refresh-1""", transport.Requests[3].Body);
         }
 
         // ---------- 用例 8：遵守 Retry-After；可重试判定 ----------

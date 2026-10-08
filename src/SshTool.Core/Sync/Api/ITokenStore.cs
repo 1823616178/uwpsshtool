@@ -20,7 +20,8 @@ namespace SshTool.Core.Sync.Api
         void Save(Dtos.AuthTokenResponse tokens);
         void Clear();
 
-        // S07 刷新策略：refreshUncertain==true 时返回 false
+        // refreshUncertain==true 时返回 false。fix/persist-login 起只作诊断：ApiClient 不再据此
+        // 拒绝刷新（结果不明的 refreshToken 仍试一次，由服务端裁决，见 ApiClient.PerformRefreshAsync）。
         bool CanRefresh { get; }
         void MarkRefreshUncertain();
     }
