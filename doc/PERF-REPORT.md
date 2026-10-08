@@ -119,3 +119,13 @@ native 资源计数（Q02 新增 `NativeInfo.DiagCounters()`，实现在
   ScrollbackCount/FrameSchedulerCore.IsRunning/HostsPivot.Attach/DebugReport.*）
   逐一核对存在，入口经 DevToolsPage（DEBUG_PAGES 默认开，Release 可用）。📱
   数据采集指南见 §2，真机回填后按 §4 判定并追加针对性优化。
+- 2026-10-08（opt/full-pass，Linux x64 本地验证，真机数据仍待回填）：
+  - libvterm 损伤合并：一次 feed 内的滚动/改写只在 feed 结束时按行列范围 flush 一次
+    （`VtermBridge::feed` 内 `inFeed_` + RAII 复位，行级 damage 列区间）。x64 基准 `bench_bridge`（48×30，
+    1000 次 feed、共 20 万行）由 4394 ms 降到 317 ms；新增 4 个 gtest 且在 main 实现上同样通过（行为不变）。
+  - 光标闪烁与帧率解耦：`FrameSchedulerCore` 闪烁翻转不再按 tick 计数，空闲时停掉帧循环、
+    改用一次性 `IBlinkTimer`（DispatcherTimer）定时唤醒；60/50/30 fps 下闪烁周期一致（单测覆盖）。
+  - 修复修订号竞态：TerminalView 先抓 `TerminalScreenState` 快照（含 revision）再拉行，
+    `RevisionGate` 只在快照之后推进，避免「拉取期间新写入被当成已绘制」。
+  - 注意：DevToolsPage/PerfPage 入口改为仅 Debug 构建默认可用（`EnableDebugPages` Debug-only），
+    Release 真机测性能需用 Debug 包或本地开启。
