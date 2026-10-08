@@ -466,7 +466,7 @@ namespace SshTool.App.Terminal
         // C-03（§7.5）：浮出层关闭后把焦点还给输入哨兵（SIP 随之重新弹出）。
         // 调用方须先确认浮出层打开前 SIP 是弹出的，否则会把已收起的软键盘反复拉起。
         // 物理键盘在场时不抢：硬件输入走 CoreWindow 与焦点无关，抢焦点反而唤起 SIP。
-        public void RestoreInputFocus()
+        public void RestoreInputFocus(bool showKeyboard = false)
         {
             if (HardwareKeyboardInput.IsHardwareKeyboardPresent)
             {
@@ -475,6 +475,10 @@ namespace SshTool.App.Terminal
             if (!_softKeyboard.HasFocus)
             {
                 FocusInput();
+            }
+            if (showKeyboard)
+            {
+                _softKeyboard.ShowPane();
             }
         }
 

@@ -36,6 +36,8 @@ namespace SshTool.App.Views
         private readonly DispatcherTimer _durationTimer = new DispatcherTimer();
         // ui/fix-pass：顶/底栏显隐输入（TerminalChromePolicy 统一计算，ApplyChrome 一次性写回）。
         private bool _findOpen;
+        private bool _keyBarSipWasVisible;
+        private int _keyBarFocusVersion;
         private bool _keyBarSetting = true;
         private bool? _keyBarOverride;
 
@@ -83,7 +85,7 @@ namespace SshTool.App.Views
             };
             // 真机反馈（2026-09-29）：「打开键盘时点 Ctrl/Esc/Tab 不要关闭键盘」。
             // 预防在 KeyBar 侧（ScrollViewer 不再抢焦点）；这里是兜底修复——万一焦点还是
-            // 被抢走，趁 InputPane 尚未收完把焦点还给哨兵。只在 SIP 本来弹着时做，
+            // 被抢走，按点击前的可见状态恢复焦点与 SIP。只在 SIP 本来弹着时做，
             // 否则点一下键条就会把收起的软键盘硬拉出来。
             Keys.Interacted += OnKeyBarInteracted;
             // U13：键条 snippets 键打开片段选择器（发送经 ISshSession.Write）。
@@ -564,13 +566,32 @@ namespace SshTool.App.Views
             };
         }
 
-        private void OnKeyBarInteracted(object sender, EventArgs e)
+        private void OnKeyBarInteracted(object sender, KeyBarInteractionEventArgs e)
         {
-            if (Term.IsInputPaneVisible)
+            if (e.IsStarting)
             {
-                // RestoreInputFocus 自带「已有焦点就不动」「物理键盘在场不抢」两道守卫。
-                Term.RestoreInputFocus();
+                _keyBarFocusVersion++;
+                _keyBarSipWasVisible = Term.IsInputPaneVisible;
             }
+            bool restoreSip = _keyBarSipWasVisible;
+            if (!e.IsStarting)
+            {
+                _keyBarSipWasVisible = false;
+            }
+            if (!restoreSip)
+            {
+                return;
+            }
+            int generation = _generation;
+            int focusVersion = _keyBarFocusVersion;
+            // 必须排队：同步恢复会发生在框架完成本次触摸的焦点处理之前。
+            Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Low, () =>
+            {
+                if (_lifetime.IsCurrent(generation) && focusVersion == _keyBarFocusVersion)
+                {
+                    Term.RestoreInputFocus(showKeyboard: true);
+                }
+            }).AsTask().Forget("TerminalPage.KeyBarFocus", AppLog.Logger);
         }
 
         private void OnKeyBarAction(object sender, SshTool.Core.Terminal.KeyBarActionEventArgs e)
@@ -579,6 +600,8 @@ namespace SshTool.App.Views
             {
                 return;
             }
+            _keyBarFocusVersion++;
+            _keyBarSipWasVisible = false;
             switch (e.Action)
             {
                 case SshTool.Core.Terminal.KeyBarAction.Snippets:

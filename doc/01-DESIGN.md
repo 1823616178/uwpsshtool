@@ -543,8 +543,15 @@ public ref class KeyTool sealed {
 - 预防：`KeysScroller`/`KeysPanel`/生成的键 `Border` 一律 `AllowFocusOnInteraction="False"`（`ScrollViewer` 另加 `IsTabStop="False"`）。
   注意**不能**在 `PointerPressed` 上置 `Handled`——那会连带废掉键条的横向滑动。
 - 兜底：`KeyBar.Interacted`（非 `Action` 类键的按下与抬起各发一次，含只改粘滞状态、压根不产生 `Input` 的修饰键）
-  → 终端页在 SIP 本来弹着时调 `RestoreInputFocus()`。框架挪焦点的时机（按下前/抬起后）无从预设，两头各补一次；
-  已有焦点时是空操作。仅在 SIP 弹着时做，否则点一下键条会把收起的软键盘硬拉出来。
+  → 终端页按交互开始前的 SIP 状态决定是否恢复。框架挪焦点的时机（按下前/抬起后）无从预设，两头各补一次；
+  原本隐藏的键盘不主动展开。
+
+**修复补充（2026-10-08）：键条点击后键盘仍会收起**。恢复依据改为按下前采样的 SIP 状态，不能在抬起时
+重新判断「当前是否可见」，否则已经开始收起的键盘会跳过恢复。`KeyBar.Interacted` 明确区分交互开始与结束，
+采样发生在捕获指针之前；按下与结束各在下一轮 Low 优先级消息恢复哨兵焦点，并用 `InputPane.TryShow()` 保持原本
+已展开的键盘（哨兵仍有焦点也可能已收起 SIP）。原本隐藏的键盘不主动展开；动作类按键取消待执行的恢复，
+让片段选择器、粘贴确认与收起键盘按各自流程处理焦点。只处理键帽的 `Tapped`，不拦截 `PointerPressed`，保留横向滑动。
+释放捕获引发的 `PointerCaptureLost` 与 `PointerReleased` 按同一次交互处理，防止重复切换粘滞修饰键。
 
 **键条（KeyBar）**：见 UI §5.6；按键产生 `KeyChord`（键 + 修饰），经 `StickyModifiers`：单击 Ctrl → 下一个键带 Ctrl 后自动释放；双击或长按 → 锁定直到再次点击。
 - **键条与终端页上所有可点控件必须设 `AllowFocusOnInteraction="False"`**（contract 3.0，15063 可用）：

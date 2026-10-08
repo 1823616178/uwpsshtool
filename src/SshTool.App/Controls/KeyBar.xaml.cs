@@ -10,6 +10,16 @@ using Windows.UI.Xaml.Media;
 
 namespace SshTool.App.Controls
 {
+    public sealed class KeyBarInteractionEventArgs : EventArgs
+    {
+        public KeyBarInteractionEventArgs(bool isStarting)
+        {
+            IsStarting = isStarting;
+        }
+
+        public bool IsStarting { get; private set; }
+    }
+
     // T10：功能键条。布局解析在 Core；本控件负责滚动、三态视觉、方向键连发与动作事件。
     public sealed partial class KeyBar : UserControl
     {
@@ -24,6 +34,8 @@ namespace SshTool.App.Controls
         private KeyBarKey _heldModifier;
         private bool _modifierLocked;
         private bool _repeatStarted;
+        private Border _pressedChrome;
+        private uint _pressedPointerId;
 
         public KeyBar()
         {
@@ -39,11 +51,9 @@ namespace SshTool.App.Controls
 
         public event EventHandler<KeyBarActionEventArgs> Action;
 
-        // §7.5：每次按下键条上的键都通知宿主，让它把焦点还给哨兵、别让 SIP 收起。
-        // 必须独立于 Input：修饰键（Ctrl/Alt/Shift）只改粘滞状态、压根不产生 Input，
-        // 而用户报的正是「点 Ctrl 键盘就关了」。Action 类（片段/收起键盘）不在此列——
-        // 它们本就要开浮出层或主动收键盘。
-        public event EventHandler Interacted;
+        // 开始时采样键盘状态，结束后恢复；修饰键没有 Input，也必须通知。
+        // 片段选择器、粘贴确认与收起键盘等动作交给各自的焦点处理。
+        public event EventHandler<KeyBarInteractionEventArgs> Interacted;
 
         public StickyModifiers Sticky
         {
@@ -113,6 +123,9 @@ namespace SshTool.App.Controls
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             StopRepeat();
+            _pressedChrome = null;
+            _heldModifier = null;
+            _modifierLocked = false;
             UnsubscribeSticky();
         }
 
@@ -199,6 +212,7 @@ namespace SshTool.App.Controls
         {
             var label = new TextBlock
             {
+                AllowFocusOnInteraction = false,
                 Text = key.Label,
                 Style = (Style)Application.Current.Resources["CaptionTextStyle"],
                 HorizontalAlignment = HorizontalAlignment.Center,
@@ -214,12 +228,13 @@ namespace SshTool.App.Controls
                 Background = Brush("AppAccentBrush"),
                 Visibility = Visibility.Collapsed
             };
-            var grid = new Grid();
+            var grid = new Grid { AllowFocusOnInteraction = false };
             FontIcon lockIcon = null;
             if (key.Kind == KeyBarKeyKind.Modifier)
             {
                 lockIcon = new FontIcon
                 {
+                    AllowFocusOnInteraction = false,
                     Glyph = (string)Application.Current.Resources["IconLock"],
                     FontSize = TokenDouble("FontCaption"),
                     Margin = TokenThickness("GapXsLeft"),
@@ -228,6 +243,7 @@ namespace SshTool.App.Controls
                 };
                 var contentPanel = new StackPanel
                 {
+                    AllowFocusOnInteraction = false,
                     Orientation = Orientation.Horizontal,
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center
@@ -270,6 +286,7 @@ namespace SshTool.App.Controls
             chrome.PointerReleased += OnKeyPointerReleased;
             chrome.PointerCanceled += OnKeyPointerReleased;
             chrome.PointerCaptureLost += OnKeyPointerReleased;
+            chrome.Tapped += OnKeyTapped;
             if (key.Kind == KeyBarKeyKind.Modifier)
             {
                 _modifierChrome[key.Id] = chrome;
@@ -350,21 +367,16 @@ namespace SshTool.App.Controls
         {
             var chrome = sender as Border;
             var key = chrome != null ? chrome.Tag as KeyBarKey : null;
-            if (key == null)
+            if (key == null || _pressedChrome != null)
             {
                 return;
             }
+            _pressedChrome = chrome;
+            _pressedPointerId = e.Pointer.PointerId;
+            NotifyInteraction(key, true);
             chrome.CapturePointer(e.Pointer);
             Haptics.VibrateLight(HapticsEnabled);
             chrome.Background = Brush("AppPressedBrush");
-            if (key.Kind != KeyBarKeyKind.Action)
-            {
-                EventHandler interacted = Interacted;
-                if (interacted != null)
-                {
-                    interacted(this, EventArgs.Empty);
-                }
-            }
             if (key.Kind == KeyBarKeyKind.Modifier)
             {
                 _heldModifier = key;
@@ -390,43 +402,36 @@ namespace SshTool.App.Controls
         private void OnKeyPointerReleased(object sender, PointerRoutedEventArgs e)
         {
             var chrome = sender as Border;
-            if (chrome != null)
+            if (chrome == null || chrome != _pressedChrome || e.Pointer.PointerId != _pressedPointerId)
             {
-                try
-                {
-                    chrome.ReleasePointerCapture(e.Pointer);
-                }
-                catch (Exception)
-                {
-                }
+                return;
             }
-            KeyBarKey released = chrome != null ? chrome.Tag as KeyBarKey : null;
+            // ReleasePointerCapture 会再次进入 PointerCaptureLost，先清掉本次交互。
+            _pressedChrome = null;
+            try
+            {
+                chrome.ReleasePointerCapture(e.Pointer);
+            }
+            catch (Exception)
+            {
+            }
+            KeyBarKey released = chrome.Tag as KeyBarKey;
             if (released != null)
             {
                 if (released.Kind == KeyBarKeyKind.Modifier)
                 {
                     RefreshModifierVisuals();
                 }
-                else if (chrome != null)
+                else
                 {
                     chrome.Background = Brush(IdleKeyBrushKey);
                 }
             }
-            else if (chrome != null)
+            else
             {
                 chrome.Background = Brush(IdleKeyBrushKey);
             }
 
-            // 按下与抬起各通知一次：框架把焦点挪走的时机（按下前 / 抬起后）无从预设，
-            // 两头都补一次；宿主那边「已有焦点就不动」，多余的一次是空操作。
-            if (released == null || released.Kind != KeyBarKeyKind.Action)
-            {
-                EventHandler interacted = Interacted;
-                if (interacted != null)
-                {
-                    interacted(this, EventArgs.Empty);
-                }
-            }
             if (_heldModifier != null && !_modifierLocked)
             {
                 Sticky.Tap(_heldModifier.Modifier);
@@ -434,6 +439,22 @@ namespace SshTool.App.Controls
             _heldModifier = null;
             _modifierLocked = false;
             StopRepeat();
+            NotifyInteraction(released, false);
+        }
+
+        private void OnKeyTapped(object sender, TappedRoutedEventArgs e)
+        {
+            // 不拦截 PointerPressed/移动事件，ScrollViewer 仍可横向滚动。
+            e.Handled = true;
+        }
+
+        private void NotifyInteraction(KeyBarKey key, bool isStarting)
+        {
+            if (key == null || key.Kind == KeyBarKeyKind.Action)
+            {
+                return;
+            }
+            Interacted?.Invoke(this, new KeyBarInteractionEventArgs(isStarting));
         }
 
         private void OnRepeatTick(object sender, object e)

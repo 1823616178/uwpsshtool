@@ -166,6 +166,14 @@ namespace SshTool.App.Terminal
             }
         }
 
+        public void ShowPane()
+        {
+            if (_inputPane != null && HasFocus)
+            {
+                _inputPane.TryShow();
+            }
+        }
+
         public void Dispose()
         {
             if (_disposed)
