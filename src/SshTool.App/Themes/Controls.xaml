@@ -88,6 +88,95 @@
         <Setter Property="Padding" Value="{StaticResource PadNone}" />
     </Style>
 
+    <!-- ====================================================================== -->
+    <!-- opt/full-pass 竖屏重设计（doc/PORTRAIT-UI.md）：卡片 / 胶囊 / 玻璃条 / 强调圆钮 -->
+    <!-- 只用 15063 已有能力：Border 圆角 + LinearGradientBrush + 半透明色 + ThemeTransition。 -->
+    <!-- ====================================================================== -->
+
+    <!-- 卡片列表的容器：拉伸、去内边距、去最小高（卡片自带高度与外边距）。 -->
+    <Style x:Key="CardListViewItemStyle" TargetType="ListViewItem" BasedOn="{StaticResource StretchListViewItemStyle}">
+        <Setter Property="MinHeight" Value="0" />
+    </Style>
+
+    <!-- 通用卡片：渐变卡底 + 发丝高光描边 + 大圆角，外边距与 PagePadding 对齐。 -->
+    <Style x:Key="CardBorderStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource AppCardBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AppCardStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderThin}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
+        <Setter Property="Margin" Value="{StaticResource CardMargin}" />
+    </Style>
+
+    <!-- 胶囊输入容器（搜索框）：卡片材质，内边距收窄，内部 TextControl 画刷由使用点就地透明。 -->
+    <Style x:Key="PillFieldBorderStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource AppCardBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AppCardStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderThin}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
+        <Setter Property="Padding" Value="{StaticResource PadPillField}" />
+    </Style>
+
+    <!-- 终端页玻璃悬浮条：半透明底（透出终端底色）+ 底部发丝线。 -->
+    <Style x:Key="GlassBarGridStyle" TargetType="Grid">
+        <Setter Property="Background" Value="{ThemeResource AppGlassBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource AppGlassStrokeBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderThinBottom}" />
+    </Style>
+
+    <!-- 玻璃条上的图标按钮：透明底 + 按压反馈（IconButtonStyle 模板），且不抢哨兵焦点（§7.5）。 -->
+    <Style x:Key="TerminalGlassButtonStyle" TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+        <Setter Property="AllowFocusOnInteraction" Value="False" />
+        <Setter Property="IsTabStop" Value="False" />
+    </Style>
+
+    <!-- 强调色圆钮（新建等主操作的图标形态）：强调色 16% 叠层底 + 强调色字形，正圆。 -->
+    <Style x:Key="AccentCircleButtonStyle" TargetType="Button">
+        <Setter Property="Width" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="Height" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="Padding" Value="{StaticResource PadNone}" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderNone}" />
+        <Setter Property="Background" Value="{ThemeResource AppAccentSoftBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppAccentBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="RootBorder"
+                            Background="{TemplateBinding Background}"
+                            CornerRadius="{StaticResource RadiusCircle}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup>
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <VisualState.Setters>
+                                        <Setter Target="RootBorder.Background" Value="{ThemeResource AppPressedBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <VisualState.Setters>
+                                        <Setter Target="RootBorder.Background" Value="{ThemeResource AppAccentBrush}" />
+                                        <Setter Target="ContentPresenter.Foreground" Value="{ThemeResource AppOnAccentBrush}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <VisualState.Setters>
+                                        <Setter Target="RootBorder.Opacity" Value="{StaticResource DisabledOpacity}" />
+                                    </VisualState.Setters>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <ContentPresenter x:Name="ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          AutomationProperties.AccessibilityView="Raw" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- SFTP 重设计：面包屑段——纯文本按钮，沿用 IconButtonStyle 的按压反馈，左右留 4 epx。 -->
     <Style x:Key="BreadcrumbButtonStyle" TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
         <Setter Property="Padding" Value="{StaticResource PadXs}" />

@@ -31,6 +31,32 @@
     <SolidColorBrush x:Key="KeyBarKeyLockedBrush" Color="#C9800C" />
     <SolidColorBrush x:Key="OverlayScrimBrush" Color="#99FFFFFF" />
 
+    <!-- opt/full-pass 竖屏重设计：分层材质（键与 Tokens.Dark.xaml 一一对应，说明见该文件） -->
+    <LinearGradientBrush x:Key="AppCardBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFFFFF" Offset="0" />
+        <GradientStop Color="#F7F9FD" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="AppCardPressedBrush" Color="#E2E8F4" />
+    <SolidColorBrush x:Key="AppCardSelectedBrush" Color="#EAF0FB" />
+    <SolidColorBrush x:Key="AppCardStrokeBrush" Color="#1A1A2233" />
+    <SolidColorBrush x:Key="AppGlassBrush" Color="#E6FFFFFF" />
+    <SolidColorBrush x:Key="AppGlassStrokeBrush" Color="#141A2233" />
+    <LinearGradientBrush x:Key="AppHeaderGlowBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#2E2F6FE4" Offset="0" />
+        <GradientStop Color="#0A2F6FE4" Offset="0.55" />
+        <GradientStop Color="#00FFFFFF" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="AppAccentSoftBrush" Color="#242F6FE4" />
+    <LinearGradientBrush x:Key="KeyBarGradientBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#EEF1F7" Offset="0" />
+        <GradientStop Color="#DFE4EE" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="KeyBarKeyIdleBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFFFFF" Offset="0" />
+        <GradientStop Color="#F3F5FA" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="KeyBarKeyStrokeBrush" Color="#1F1A2233" />
+
     <!-- G01: TextControl（TextBox / PasswordBox / AutoSuggestBox）系统画刷重写 -->
     <SolidColorBrush x:Key="TextControlBackground" Color="#EEF1F7" />
     <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#EEF1F7" />

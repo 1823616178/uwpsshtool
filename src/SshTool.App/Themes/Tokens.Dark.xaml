@@ -31,6 +31,38 @@
     <SolidColorBrush x:Key="KeyBarKeyLockedBrush" Color="#F5A524" />
     <SolidColorBrush x:Key="OverlayScrimBrush" Color="#B3000000" />
 
+    <!-- opt/full-pass 竖屏重设计：分层材质（doc/PORTRAIT-UI.md）。
+         W10M 15063 无 AcrylicBrush（需 16299），用「半透明叠层 + 轻渐变 + 发丝高光描边」模拟层次：
+         Card   = 列表卡片（自上而下微暗的渐变，比 Surface 1 略亮，AMOLED 下仍以近黑为主）
+         Glass  = 终端页悬浮工具条（半透明，透出终端底色）
+         Glow   = 主页页头的强调色斜向晕染（装饰；不跟随系统强调色）
+         KeyBar = 键条底板与键帽渐变 + 顶部发丝高光 -->
+    <LinearGradientBrush x:Key="AppCardBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#171D2A" Offset="0" />
+        <GradientStop Color="#10141D" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="AppCardPressedBrush" Color="#222C42" />
+    <SolidColorBrush x:Key="AppCardSelectedBrush" Color="#1C2436" />
+    <SolidColorBrush x:Key="AppCardStrokeBrush" Color="#1FFFFFFF" />
+    <SolidColorBrush x:Key="AppGlassBrush" Color="#D90E121A" />
+    <SolidColorBrush x:Key="AppGlassStrokeBrush" Color="#14FFFFFF" />
+    <LinearGradientBrush x:Key="AppHeaderGlowBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#384D8DFF" Offset="0" />
+        <GradientStop Color="#0D4D8DFF" Offset="0.55" />
+        <GradientStop Color="#00000000" Offset="1" />
+    </LinearGradientBrush>
+    <!-- 强调色 16% 叠层（徽章底、选中条底）；UseSystemAccent 时 ThemeService 按 AccentSoftOpacity 覆盖 -->
+    <SolidColorBrush x:Key="AppAccentSoftBrush" Color="#294D8DFF" />
+    <LinearGradientBrush x:Key="KeyBarGradientBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#131926" Offset="0" />
+        <GradientStop Color="#07090E" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="KeyBarKeyIdleBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#2A3449" Offset="0" />
+        <GradientStop Color="#1C2333" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="KeyBarKeyStrokeBrush" Color="#26FFFFFF" />
+
     <!-- G01: TextControl（TextBox / PasswordBox / AutoSuggestBox）系统画刷重写 -->
     <SolidColorBrush x:Key="TextControlBackground" Color="#1A2030" />
     <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#1A2030" />
