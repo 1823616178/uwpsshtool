@@ -271,7 +271,7 @@ namespace SshTool.App.Controls
             };
             if (spaced)
             {
-                chrome.Margin = TokenThickness("GapSmLeft");
+                chrome.Margin = TokenThickness("KeyBarKeyGap");
             }
             chrome.Tag = key;
             chrome.IsHitTestVisible = true;
