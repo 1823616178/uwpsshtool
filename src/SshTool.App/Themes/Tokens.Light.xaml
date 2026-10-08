@@ -28,6 +28,9 @@
     <SolidColorBrush x:Key="AppDangerFillBrush" Color="#C42B30" />
     <SolidColorBrush x:Key="AppDangerSoftBrush" Color="#1FC42B30" />
     <SolidColorBrush x:Key="AppInfoBrush" Color="#0B7285" />
+    <!-- feat/account-sync-ui：成功 / 警告 12% 叠层（状态徽章底），与 AppDangerSoftBrush 同法。 -->
+    <SolidColorBrush x:Key="AppSuccessSoftBrush" Color="#1F0E7A49" />
+    <SolidColorBrush x:Key="AppWarningSoftBrush" Color="#1F8F5A00" />
     <SolidColorBrush x:Key="KeyBarBgBrush" Color="#E6EAF2" />
     <SolidColorBrush x:Key="KeyBarKeyBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="KeyBarKeyActiveBrush" Color="#2F6FE4" />

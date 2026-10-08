@@ -567,8 +567,26 @@ namespace SshTool.Core.Sync
         }
 
         // §7.2 LockVault：仅清 key。
+        // feat/account-sync-ui：「账号与同步」页新增「锁定保险库」（本机忘记同步密码）。正在进行的同步
+        // 先跑完再锁：否则同步收尾的 PatchState 会把相位改回 Synced，界面显示已同步而保险库其实已锁。
         public async Task LockVaultAsync()
         {
+            Task running;
+            lock (_syncLock)
+            {
+                running = _runningSync;
+            }
+            if (running != null)
+            {
+                try
+                {
+                    await running.ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    // 同步失败已由 HandleSyncError 落进状态；锁定照常进行。
+                }
+            }
             await _vault.LockAsync().ConfigureAwait(false);
             PatchState(next =>
             {
@@ -576,6 +594,7 @@ namespace SshTool.Core.Sync
                 next.Phase = SyncPhase.Locked;
                 SetMessage(next, SyncMessageCode.None);
             });
+            Info("保险库已锁定（本机已忘记同步密码）");
         }
 
         // §7.2 DeleteVault：删云端库与历史 → 本地 Clear（保留 userId）→ disabled。
