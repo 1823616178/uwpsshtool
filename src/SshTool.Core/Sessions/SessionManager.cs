@@ -729,9 +729,27 @@ namespace SshTool.Core.Sessions
             }
         }
 
+        // code-review-pass：提示器抛异常（对话框构造/显示失败）时必须 fail-closed 作答。
+        // native 侧持有 Deferral 等待作答且不计时，不答则会话永远停在握手中、连接转圈不止。
+        private async Task<bool> PromptUnknownSafeAsync(HostKeyInfo key, string title)
+        {
+            try
+            {
+                return await _hostKeys.PromptUnknownAsync(key, title).ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                if (_logger != null)
+                {
+                    _logger.Log(LogLevel.Warning, "Session", "host key prompt failed " + ex.GetType().Name);
+                }
+                return false;
+            }
+        }
+
         private async Task PromptUnknownAsync(SessionInfo info, HostKeyCheckEventArgs e)
         {
-            bool ok = await _hostKeys.PromptUnknownAsync(e.Info, info.Title).ConfigureAwait(true);
+            bool ok = await PromptUnknownSafeAsync(e.Info, info.Title).ConfigureAwait(true);
             if (ok)
             {
                 info.AcceptedKey = e.Info;
@@ -769,7 +787,7 @@ namespace SshTool.Core.Sessions
             }
             _ui.Post(async () =>
             {
-                bool ok = await _hostKeys.PromptUnknownAsync(e.Info, hopTitle).ConfigureAwait(true);
+                bool ok = await PromptUnknownSafeAsync(e.Info, hopTitle).ConfigureAwait(true);
                 if (ok)
                 {
                     acceptedKeys.Add(e.Info);
@@ -888,7 +906,20 @@ namespace SshTool.Core.Sessions
 
         private async Task AnswerKiAsync(AuthPromptEventArgs e)
         {
-            IReadOnlyList<string> answers = await _credentials.PromptKeyboardInteractiveAsync(e).ConfigureAwait(true);
+            IReadOnlyList<string> answers;
+            try
+            {
+                answers = await _credentials.PromptKeyboardInteractiveAsync(e).ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                // 同 PromptUnknownSafeAsync：不答复 native 会一直等到 KI 超时（120 s）。
+                if (_logger != null)
+                {
+                    _logger.Log(LogLevel.Warning, "Session", "ki prompt failed " + ex.GetType().Name);
+                }
+                answers = null;
+            }
             if (answers == null)
             {
                 e.Cancel();

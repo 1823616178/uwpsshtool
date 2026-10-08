@@ -23,12 +23,17 @@ namespace SshTool.Core.Tests.Sessions
         {
             public bool AcceptUnknown = true;
             public bool AcceptMismatch = false;
+            public Exception ThrowOnUnknown;
             public int UnknownCount;
             public int MismatchCount;
 
             public Task<bool> PromptUnknownAsync(HostKeyInfo info, string hostDisplay)
             {
                 UnknownCount++;
+                if (ThrowOnUnknown != null)
+                {
+                    throw ThrowOnUnknown;
+                }
                 return Task.FromResult(AcceptUnknown);
             }
 
@@ -484,6 +489,23 @@ namespace SshTool.Core.Tests.Sessions
 
             Assert.Equal(SessionUiState.Disconnected, info.State);
             Assert.Equal(SshErrorCode.InternalError, info.ErrorCode);
+        }
+
+        // code-review-pass：主机密钥提示器抛异常时按拒绝作答，连接以失败结束而不是一直挂着。
+        [Fact]
+        public async Task HostKeyPromptThrows_RejectsInsteadOfHanging()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            FakeSshSession native = fx.Enqueue(ReadySession());
+            fx.HostKeys.ThrowOnUnknown = new InvalidOperationException("对话框显示失败");
+
+            Task<SessionInfo> opening = fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            Task done = await Task.WhenAny(opening, Task.Delay(5000));
+
+            Assert.Same(opening, done);
+            Assert.False(native.HostKeyDecision);
+            Assert.NotEqual(SessionUiState.Connected, (await opening).State);
         }
 
         [Fact]
