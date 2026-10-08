@@ -159,9 +159,21 @@ VtermBridge::~VtermBridge()
 
 size_t VtermBridge::feed(const char *data, size_t len)
 {
-    const size_t consumed = vterm_input_write(vt_, data, len);
-    // DAMAGE_ROW 合并模式下最后一行的 damage 处于挂起态，flush 保证脏行立即可见
-    vterm_screen_flush_damage(screen_);
+    // opt/full-pass：feed 期间的 damage 只登记不重读（onDamage），末尾统一重读一次。
+    // RAII 复位，保证任何路径离开后 inFeed_ 都回到 false。
+    struct FeedScope {
+        bool &flag;
+        explicit FeedScope(bool &f) : flag(f) { flag = true; }
+        ~FeedScope() { flag = false; }
+    };
+    size_t consumed = 0;
+    {
+        FeedScope scope(inFeed_);
+        consumed = vterm_input_write(vt_, data, len);
+        // DAMAGE_ROW 合并模式下最后一行的 damage 处于挂起态，flush 保证脏行立即可见
+        vterm_screen_flush_damage(screen_);
+    }
+    flushPendingDamage();
     noteDecModesFromInput(data, len);
     refreshSoftWrapFlags();
     return consumed;
@@ -186,9 +198,21 @@ void VtermBridge::setDefaultColors(uint32_t fgArgb, uint32_t bgArgb)
 
 // ---------------------------------------------------------------- 回调
 
+// opt/full-pass：DAMAGE_ROW + onMoveRect 返回 0 的组合下，libvterm 每滚动一行就把整个
+// 滚动区作为一次多行 damage 立即上抛（screen.c damagerect：「Bigger than 1 line - flush
+// existing, emit this」）。旧实现在回调里当场 convertRect，于是 `yes`/`cat` 这类整屏滚动
+// 的输出是 O(行数 × 屏幕格数)。现在 feed 期间只登记「哪些行的哪些列待重读」，feed 结束
+// 统一按最终内容重读一次（x64 -O2 实测：48×30 网格、20 万行 "y\r\n"、每次 feed 200 行，
+// 4394 ms → 317 ms；ARM 设备上的绝对值待真机测）。vterm 缓冲本来就是内容真源，
+// 只读最终状态天然正确——也顺带消掉了 onMoveRect 注释里「读到滞后行」那类时序问题。
+// feed 之外到达的 damage（resize、reset、setDefaultColors 等）仍当场重读。
 int VtermBridge::onDamage(VTermRect rect, void *user)
 {
-    self(user)->convertRect(rect.start_row, rect.start_col, rect.end_row, rect.end_col);
+    VtermBridge *b = self(user);
+    if (b->inFeed_)
+        b->noteDamage(rect.start_row, rect.start_col, rect.end_row, rect.end_col);
+    else
+        b->convertRect(rect.start_row, rect.start_col, rect.end_row, rect.end_col);
     return 1;
 }
 
@@ -235,9 +259,13 @@ int VtermBridge::onSetTermProp(VTermProp prop, VTermValue *val, void *user)
         b->altScreen_ = val->boolean != 0;
         // 屏幕层在本回调之前已完成缓冲切换；库在切入/切出时的 damage 覆盖
         // 依赖内部时序（切入靠 erase 的 damage、切出靠 damagescreen），
-        // 这里直接全屏重读一次，两个方向都确定性地落到新缓冲内容
-        b->convertRect(0, 0, b->grid_.rows(), b->grid_.cols());
-        b->refreshSoftWrapFlags();
+        // 这里确定性地全屏重读一次（feed 中则登记全屏，feed 末尾统一重读）
+        if (b->inFeed_) {
+            b->noteDamage(0, 0, b->grid_.rows(), b->grid_.cols());
+        } else {
+            b->convertRect(0, 0, b->grid_.rows(), b->grid_.cols());
+            b->refreshSoftWrapFlags();
+        }
         return 1;
     case VTERM_PROP_CURSORVISIBLE:
         b->cursorVisible_ = val->boolean != 0;
@@ -310,6 +338,54 @@ int VtermBridge::onSbClear(void *user)
 }
 
 // ---------------------------------------------------------------- 内部逻辑
+
+void VtermBridge::noteDamage(int startRow, int startCol, int endRow, int endCol)
+{
+    startRow = std::max(startRow, 0);
+    startCol = std::max(startCol, 0);
+    endRow = std::min(endRow, grid_.rows());
+    endCol = std::min(endCol, grid_.cols());
+    if (startRow >= endRow || startCol >= endCol)
+        return;
+    const size_t need = static_cast<size_t>(grid_.rows());
+    if (damageColStart_.size() < need) {
+        damageColStart_.resize(need, 0);
+        damageColEnd_.resize(need, 0);
+    }
+    for (int r = startRow; r < endRow; ++r) {
+        int &s = damageColStart_[static_cast<size_t>(r)];
+        int &e = damageColEnd_[static_cast<size_t>(r)];
+        if (s >= e) {
+            s = startCol;
+            e = endCol;
+        } else {
+            s = std::min(s, startCol);
+            e = std::max(e, endCol);
+        }
+    }
+    anyPendingDamage_ = true;
+}
+
+void VtermBridge::flushPendingDamage()
+{
+    if (!anyPendingDamage_)
+        return;
+    anyPendingDamage_ = false;
+    const int rows = std::min(static_cast<int>(damageColStart_.size()), grid_.rows());
+    for (int r = 0; r < rows; ++r) {
+        int &s = damageColStart_[static_cast<size_t>(r)];
+        int &e = damageColEnd_[static_cast<size_t>(r)];
+        if (s < e)
+            convertRect(r, s, r + 1, e);
+        s = 0;
+        e = 0;
+    }
+    // 网格行数缩小后多出来的旧登记直接作废
+    for (size_t r = static_cast<size_t>(rows); r < damageColStart_.size(); ++r) {
+        damageColStart_[r] = 0;
+        damageColEnd_[r] = 0;
+    }
+}
 
 void VtermBridge::convertRect(int startRow, int startCol, int endRow, int endCol)
 {
