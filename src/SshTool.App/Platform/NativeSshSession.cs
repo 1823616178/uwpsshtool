@@ -29,8 +29,18 @@ namespace SshTool.App.Platform
         // K03：agent 句柄由 NativeSshSessionFactory 注入（与 SessionManager 共用
         // 同一个 NativeSshAgent 实例，多会话复用同一份 native 内存）。
         public NativeSshSession(NativeSshAgent agent)
+            : this(agent, 0)
+        {
+        }
+
+        // fix/functional-pass：scrollbackLines > 0 时在任何输出到达前设定 native 回滚容量。
+        public NativeSshSession(NativeSshAgent agent, int scrollbackLines)
         {
             _native = new NativeBridge.SshSession();
+            if (scrollbackLines > 0)
+            {
+                _native.Screen.ConfigureScrollback(scrollbackLines);
+            }
             _screen = new NativeTerminalScreen(_native.Screen);
             _agent = agent;
             _native.StateChanged += OnStateChanged;

@@ -163,6 +163,10 @@ namespace SshTool.App.Views
                     AppServices.Current.AppearanceService.Changed += OnAppearanceChanged;
                     _lifetime.Track(UnsubscribeAppearance);
                 }
+                // fix/functional-pass（P1-4）：双指缩放结束后持久化字号（内置外观 → 设置项，
+                // 自定义外观 → 更新该外观），下次打开终端不再回到默认值。
+                Term.FontSizeCommitted += OnTermFontSizeCommitted;
+                _lifetime.Track(UnsubscribeFontSize);
                 // P02：省电模式 Banner（事件在系统线程触发，handler 内封送回 UI）。
                 _energySaver.Changed += OnEnergySaverChanged;
                 _lifetime.Track(UnsubscribeEnergySaver);
@@ -207,6 +211,24 @@ namespace SshTool.App.Views
             {
                 AppServices.Current.AppearanceService.Changed -= OnAppearanceChanged;
             }
+        }
+
+        private void UnsubscribeFontSize()
+        {
+            Term.FontSizeCommitted -= OnTermFontSizeCommitted;
+        }
+
+        private void OnTermFontSizeCommitted(object sender, EventArgs e)
+        {
+            PersistFontSize();
+        }
+
+        private void PersistFontSize()
+        {
+            SessionInfo info = ViewModel.Session;
+            string hostId = info == null ? null : info.HostId;
+            AppearanceApplier.PersistFontSizeAsync(hostId, Term.CurrentFontSize)
+                .Forget("TerminalPage.PersistFontSize", AppLog.Logger);
         }
 
         private void UnsubscribeEnergySaver()
@@ -718,14 +740,17 @@ namespace SshTool.App.Views
                     break;
                 case SshTool.Core.Terminal.ShortcutAction.FontIncrease:
                     Term.Renderer.FontSize = Term.Renderer.FontSize + 1;
+                    PersistFontSize();
                     break;
                 case SshTool.Core.Terminal.ShortcutAction.FontDecrease:
                     Term.Renderer.FontSize = Term.Renderer.FontSize - 1;
+                    PersistFontSize();
                     break;
                 case SshTool.Core.Terminal.ShortcutAction.FontReset:
                     try
                     {
-                        Term.Renderer.FontSize = (float)SshTool.Core.Models.Defaults.DefaultAppearance().FontSize;
+                        Term.Renderer.FontSize = TerminalFontSizePolicy.DefaultSize;
+                        PersistFontSize();
                     }
                     catch (Exception ex)
                     {

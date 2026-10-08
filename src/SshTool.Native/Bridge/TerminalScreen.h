@@ -50,6 +50,9 @@ namespace SshTool
                 // Q01：PerfPage 按 TerminalView 实测网格重设 vterm 尺寸
                 // （正常路径由 SshSession 在 OpenShell/Resize 时调 internal ResetGrid）。
                 void ResizeGrid(int cols, int rows);
+                // fix/functional-pass（P1-4）：按设置项 scrollbackLines 设定回滚容量。只在尚未
+                // 喂入任何输出时生效（重建内部缓冲；容量钳制到 [1, 50000]），返回是否已生效。
+                bool ConfigureScrollback(int lines);
 
             internal:
                 void Feed(const char *data, size_t len);

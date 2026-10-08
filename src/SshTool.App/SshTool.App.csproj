@@ -138,6 +138,7 @@
     <Compile Include="Platform\Haptics.cs" />
     <Compile Include="Platform\ClipboardService.cs" />
     <Compile Include="Platform\NativeSshSessionFactory.cs" />
+    <Compile Include="Platform\LanguageOverride.cs" />
     <Compile Include="Platform\UwpHostKeyPrompter.cs" />
     <Compile Include="Platform\UwpCredentialPrompter.cs" />
     <Compile Include="Platform\UwpDeviceDescriptorProvider.cs" />

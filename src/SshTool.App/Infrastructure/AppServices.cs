@@ -90,7 +90,7 @@ namespace SshTool.App.Infrastructure
             // 挂起清除走 LifecycleService→SessionManager.LockAgentKeys）。
             services.Agent = new NativeSshAgent(services.Logger);
             services.Agent.SetTimeout(ReadAgentTimeout(services.Settings));
-            var sshFactory = new NativeSshSessionFactory(services.Agent);
+            var sshFactory = new NativeSshSessionFactory(services.Agent, services.Settings);
             ServiceRegistry.Register(sshFactory);
             ServiceRegistry.Register<SshTool.Core.Sessions.ISshSessionFactory>(sshFactory);
             return services;
@@ -101,6 +101,8 @@ namespace SshTool.App.Infrastructure
             var total = Stopwatch.StartNew();
             await TimeAsync("AppConfig", () => AppConfig.LoadAsync()).ConfigureAwait(true);
             Time("Settings", () => Settings.EnsureDefaults());
+            // fix/functional-pass（P1-4）：首个页面创建前应用界面语言设置。
+            LanguageOverride.Apply(Settings.Language);
             // 修（2026-09-29 排查真机输入问题时发现）：AppConfig.LoadAsync 刚把 MinLevel 设成
             // 打包默认值（info），而用户在设置页选的日志级别只在当场生效、重启即被上面这行盖掉——
             // 「调成调试、重启、日志里还是什么都没有」。设置是用户的显式选择，启动时必须复原。
