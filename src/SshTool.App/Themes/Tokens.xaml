@@ -74,7 +74,8 @@
     <CornerRadius x:Key="RadiusCircle">999</CornerRadius>
     <x:Double x:Key="ListRowHeight">64</x:Double>
     <x:Double x:Key="ListRowCompactHeight">48</x:Double>
-    <x:Double x:Key="GroupHeaderHeight">36</x:Double>
+    <!-- ui/fix-pass：触控目标统一 ≥ TouchTargetMin(40)（分组头、标签条、键条第二行原为 34–36）。 -->
+    <x:Double x:Key="GroupHeaderHeight">40</x:Double>
     <x:Double x:Key="StatusDotSize">10</x:Double>
     <!-- G06：主机列表首字母头像尺寸（36 epx） -->
     <x:Double x:Key="AvatarSize">36</x:Double>
@@ -92,14 +93,14 @@
     <x:Double x:Key="SelectionOverlayOpacity">0.35</x:Double>
     <!-- W04（01-DESIGN §16.4）：终端响铃「闪屏」模式的起始不透明度。 -->
     <x:Double x:Key="BellFlashOpacity">0.3</x:Double>
-    <x:Double x:Key="TerminalInfoBarHeight">32</x:Double>
+    <x:Double x:Key="TerminalInfoBarHeight">40</x:Double>
     <!-- V03a（05 §6.2）：紧凑信息条——默认单行 44 epx，展开双行 64 epx。 -->
     <x:Double x:Key="TerminalCompactBarHeight">44</x:Double>
     <x:Double x:Key="TerminalExpandedBarHeight">64</x:Double>
     <!-- 竖屏单行信息条：地址限宽，主机名留在左侧；展开后第二行不再限这档。 -->
     <x:Double x:Key="TerminalAddressMaxWidth">160</x:Double>
     <x:Double x:Key="TerminalAddressExpandedMaxWidth">640</x:Double>
-    <x:Double x:Key="TabStripHeight">36</x:Double>
+    <x:Double x:Key="TabStripHeight">40</x:Double>
     <x:Double x:Key="SplitterThickness">6</x:Double>
     <x:Double x:Key="SessionsPaneWidth">280</x:Double>
     <x:Double x:Key="MasterPaneWidth">320</x:Double>
@@ -115,6 +116,8 @@
     <!-- opt/full-pass 竖屏重设计（doc/PORTRAIT-UI.md）：窗高 ≥560 视为「竖屏/高窗」，
          启用键条第二行等竖屏增强；手机横屏（窗高 ≈360）自动回到单行紧凑布局。 -->
     <x:Double x:Key="TallBreakpoint">560</x:Double>
+    <!-- ui/fix-pass：窗高低于此（Lumia 950 横屏 ≈360 epx）终端页收起信息条，菜单改为右上角浮钮。 -->
+    <x:Double x:Key="TerminalCompactHeightBreakpoint">400</x:Double>
     <CornerRadius x:Key="RadiusLg">12</CornerRadius>
     <!-- 卡片外边距：左右与 PagePadding 对齐，上下各 4 让出卡片间 8 的呼吸缝 -->
     <Thickness x:Key="CardMargin">12,4,12,4</Thickness>
@@ -126,11 +129,11 @@
     <Thickness x:Key="GapMdLeft">12,0,0,0</Thickness>
     <!-- 搜索/快速连接胶囊容器 -->
     <Thickness x:Key="PadPillField">4,2,4,2</Thickness>
-    <!-- 键条：底板内边距、双行间缝、第二行键高（比主行矮一档，竖屏多一行仍省高度） -->
+    <!-- 键条：底板内边距、双行间缝、第二行键高（ui/fix-pass 起与主行同为 40，满足触控下限） -->
     <Thickness x:Key="KeyBarPad">4,4,4,4</Thickness>
     <Thickness x:Key="KeyBarRowGap">0,0,0,4</Thickness>
-    <x:Double x:Key="KeyBarExtraRowHeight">34</x:Double>
-    <x:Double x:Key="KeyBarExtraKeyMinWidth">36</x:Double>
+    <x:Double x:Key="KeyBarExtraRowHeight">40</x:Double>
+    <x:Double x:Key="KeyBarExtraKeyMinWidth">40</x:Double>
     <!-- 竖屏终端信息条（玻璃悬浮条）高度：比旧紧凑条再收 4 epx，留给终端行 -->
     <x:Double x:Key="TerminalGlassBarHeight">40</x:Double>
     <!-- UseSystemAccent 时 AppAccentSoftBrush 的不透明度（ThemeService 读取） -->

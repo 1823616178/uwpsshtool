@@ -241,7 +241,7 @@ namespace SshTool.App.Controls
                 grid.Children.Add(label);
             }
             grid.Children.Add(accentBar);
-            // opt/full-pass：键帽 = 纵向渐变 + 发丝描边 + RadiusMd；第二行键矮一档、窄一档。
+            // opt/full-pass：键帽 = 纵向渐变 + 发丝描边 + RadiusMd；第二行键宽下限 KeyBarExtraKeyMinWidth（≥40 触控）。
             var chrome = new Border
             {
                 Child = grid,

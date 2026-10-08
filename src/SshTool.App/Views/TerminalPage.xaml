@@ -6,11 +6,84 @@
     xmlns:term="using:SshTool.App.Terminal"
     Background="{ThemeResource AppBgBrush}">
 
+    <Page.Resources>
+        <Storyboard x:Key="FindBarEnter">
+            <DoubleAnimation Storyboard.TargetName="FindBar" Storyboard.TargetProperty="Opacity"
+                             From="0" To="1" Duration="0:0:0.15" />
+            <DoubleAnimation Storyboard.TargetName="FindBarShift" Storyboard.TargetProperty="Y"
+                             From="-16" To="0" Duration="0:0:0.15">
+                <DoubleAnimation.EasingFunction>
+                    <CubicEase EasingMode="EaseOut" />
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </Page.Resources>
+
     <SplitView x:Name="SessionsSplit" PanePlacement="Left" DisplayMode="Overlay"
                OpenPaneLength="{StaticResource SessionsPaneWidth}" IsPaneOpen="False">
         <SplitView.Pane>
             <controls:SessionsPane x:Name="SessionsPane" />
         </SplitView.Pane>
+
+    <!-- ui/fix-pass：状态组从内层 Grid 挪到页面根（SplitView）上——VisualStateManager.GoToState(this, …)
+         只在 Page 的根元素上找状态组，放在内层 Grid 时信息条 Normal/Expanded 切换不会生效。
+         U12：窄屏回退单窗格（本页即单窗格）；宽屏键条默认隐藏由 TerminalChromePolicy 决定。 -->
+    <VisualStateManager.VisualStateGroups>
+        <!-- V03a（05 §6.2）：信息条 Normal/Expanded 切换（单行紧凑 / 双行详情）。 -->
+        <VisualStateGroup x:Name="InfoStates">
+            <VisualState x:Name="Normal">
+                <VisualState.Setters>
+                    <Setter Target="InfoBar.MinHeight" Value="{StaticResource TerminalGlassBarHeight}" />
+                    <Setter Target="AddressRow.Height" Value="0" />
+                    <Setter Target="AddressText.(Grid.Row)" Value="0" />
+                    <Setter Target="AddressText.(Grid.Column)" Value="1" />
+                    <Setter Target="AddressText.(Grid.ColumnSpan)" Value="1" />
+                    <Setter Target="AddressText.HorizontalAlignment" Value="Right" />
+                    <Setter Target="AddressText.MaxWidth" Value="{StaticResource TerminalAddressMaxWidth}" />
+                    <Setter Target="AddressText.Margin" Value="{StaticResource GapSmLeft}" />
+                </VisualState.Setters>
+            </VisualState>
+            <VisualState x:Name="Expanded">
+                <VisualState.Setters>
+                    <Setter Target="InfoBar.MinHeight" Value="{StaticResource TerminalExpandedBarHeight}" />
+                    <Setter Target="AddressRow.Height" Value="Auto" />
+                    <Setter Target="AddressText.(Grid.Row)" Value="1" />
+                    <Setter Target="AddressText.(Grid.Column)" Value="0" />
+                    <Setter Target="AddressText.(Grid.ColumnSpan)" Value="2" />
+                    <Setter Target="AddressText.HorizontalAlignment" Value="Left" />
+                    <Setter Target="AddressText.MaxWidth" Value="{StaticResource TerminalAddressExpandedMaxWidth}" />
+                    <Setter Target="AddressText.Margin" Value="{StaticResource GapXsTop}" />
+                </VisualState.Setters>
+            </VisualState>
+        </VisualStateGroup>
+        <!-- opt/full-pass 竖屏重设计：高窗口（≥TallBreakpoint，竖屏手机）打开键条第二行。
+             W10M 弹出 SIP 不改变窗口高度（InputPane 遮挡 + UpdateKeyBarLift 抬升），
+             所以 SIP 开合不会让第二行闪烁；横屏手机（高 &lt;560）保持单行。 -->
+        <VisualStateGroup x:Name="HeightStates">
+            <VisualState x:Name="ShortState" />
+            <VisualState x:Name="TallState">
+                <VisualState.StateTriggers>
+                    <AdaptiveTrigger MinWindowHeight="{StaticResource TallBreakpoint}" />
+                </VisualState.StateTriggers>
+                <VisualState.Setters>
+                    <Setter Target="Keys.ShowExtraRow" Value="True" />
+                </VisualState.Setters>
+            </VisualState>
+        </VisualStateGroup>
+        <VisualStateGroup>
+            <VisualState x:Name="WideState">
+                <VisualState.StateTriggers>
+                    <AdaptiveTrigger MinWindowWidth="{StaticResource WideBreakpoint}" />
+                </VisualState.StateTriggers>
+                <VisualState.Setters>
+                    <!-- ui/fix-pass：键条显隐不再由这里的 Setter 决定（Setter 优先级高于本地值，
+                         宽屏下菜单「显示键条」会失效）——统一走 Core TerminalChromePolicy。 -->
+                    <!-- V03a（05 §6.2）：横屏隐藏次要地址。 -->
+                    <Setter Target="AddressText.Visibility" Value="Collapsed" />
+                </VisualState.Setters>
+            </VisualState>
+        </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -29,9 +102,11 @@
              中列用 2 行 Grid 容纳同行（Normal）与换行（Expanded）两种布局。 -->
         <!-- opt/full-pass 竖屏重设计：信息条改「玻璃条」（半透明底 + 底部发丝线，GlassBarGridStyle），
              单行高度收为 TerminalGlassBarHeight（40，仍满足 TouchTargetMin）；图标按钮透明底。 -->
+        <!-- ui/fix-pass：固定 Height=40 + 底部 1 epx 发丝线会把 40 epx 的按钮压掉 1 px，系统文字放大时标题也被裁；
+             改为 MinHeight（内容撑开），横屏窗高 &lt; TerminalCompactHeightBreakpoint 时整条收起（TerminalChromePolicy）。 -->
         <Grid x:Name="InfoBar" Grid.Row="1" Style="{StaticResource GlassBarGridStyle}"
               AllowFocusOnInteraction="False"
-              Height="{StaticResource TerminalGlassBarHeight}" Tapped="OnInfoTapped">
+              MinHeight="{StaticResource TerminalGlassBarHeight}" Tapped="OnInfoTapped">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -75,15 +150,13 @@
         </Grid>
 
         <!-- W02（01-DESIGN §16.2）：回滚查找条，打开时替换信息条所在行。 -->
+        <!-- ui/fix-pass：进场改为显式 Storyboard（FindBarEnter：Opacity + TranslateY，均为独立动画，
+             走合成线程，低端 ARM 不卡 UI 线程）；ChildrenTransitions 在 Visibility 切换时不会重放。 -->
         <Grid x:Name="FindBar" Grid.Row="1" Style="{StaticResource GlassBarGridStyle}"
-              Height="{StaticResource TerminalGlassBarHeight}" Visibility="Collapsed">
-            <!-- opt/full-pass：查找条子元素进场动画（Entrance 只在元素进入可视树时播放，
-                 Visibility 切换是否重放以真机为准，见 PR 待验证项）。 -->
-            <Grid.ChildrenTransitions>
-                <TransitionCollection>
-                    <EntranceThemeTransition />
-                </TransitionCollection>
-            </Grid.ChildrenTransitions>
+              MinHeight="{StaticResource TerminalGlassBarHeight}" Visibility="Collapsed">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="FindBarShift" />
+            </Grid.RenderTransform>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -112,65 +185,17 @@
         </Grid>
 
         <term:TerminalView x:Name="Term" Grid.Row="2" />
+        <!-- ui/fix-pass：横屏收起信息条后，菜单入口浮在终端右上角（玻璃底，触控 40 epx）。 -->
+        <Button x:Name="CompactMenuButton" x:Uid="Terminal_MoreButton" Grid.Row="2"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                Background="{ThemeResource AppGlassBrush}"
+                Visibility="Collapsed" Click="OnMenuClick"
+                Style="{StaticResource TerminalGlassButtonStyle}">
+            <FontIcon Glyph="{StaticResource IconMore}" />
+        </Button>
         <controls:KeyBar x:Name="Keys" Grid.Row="3" />
         <controls:SessionOverlay x:Name="Overlay" Grid.RowSpan="4" />
 
-        <!-- U12：窄屏回退单窗格（本页即单窗格）；宽屏（Continuum/鼠标）键条默认隐藏，可从菜单手动打开。 -->
-        <VisualStateManager.VisualStateGroups>
-            <!-- V03a（05 §6.2）：信息条 Normal/Expanded 切换（单行紧凑 / 双行详情）。 -->
-            <VisualStateGroup x:Name="InfoStates">
-                <VisualState x:Name="Normal">
-                    <VisualState.Setters>
-                        <Setter Target="InfoBar.Height" Value="{StaticResource TerminalGlassBarHeight}" />
-                        <Setter Target="AddressRow.Height" Value="0" />
-                        <Setter Target="AddressText.(Grid.Row)" Value="0" />
-                        <Setter Target="AddressText.(Grid.Column)" Value="1" />
-                        <Setter Target="AddressText.(Grid.ColumnSpan)" Value="1" />
-                        <Setter Target="AddressText.HorizontalAlignment" Value="Right" />
-                        <Setter Target="AddressText.MaxWidth" Value="{StaticResource TerminalAddressMaxWidth}" />
-                        <Setter Target="AddressText.Margin" Value="{StaticResource GapSmLeft}" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="Expanded">
-                    <VisualState.Setters>
-                        <Setter Target="InfoBar.Height" Value="{StaticResource TerminalExpandedBarHeight}" />
-                        <Setter Target="AddressRow.Height" Value="Auto" />
-                        <Setter Target="AddressText.(Grid.Row)" Value="1" />
-                        <Setter Target="AddressText.(Grid.Column)" Value="0" />
-                        <Setter Target="AddressText.(Grid.ColumnSpan)" Value="2" />
-                        <Setter Target="AddressText.HorizontalAlignment" Value="Left" />
-                        <Setter Target="AddressText.MaxWidth" Value="{StaticResource TerminalAddressExpandedMaxWidth}" />
-                        <Setter Target="AddressText.Margin" Value="{StaticResource GapXsTop}" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-            <!-- opt/full-pass 竖屏重设计：高窗口（≥TallBreakpoint，竖屏手机）打开键条第二行。
-                 W10M 弹出 SIP 不改变窗口高度（InputPane 遮挡 + UpdateKeyBarLift 抬升），
-                 所以 SIP 开合不会让第二行闪烁；横屏手机（高 &lt;560）保持单行。 -->
-            <VisualStateGroup x:Name="HeightStates">
-                <VisualState x:Name="ShortState" />
-                <VisualState x:Name="TallState">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowHeight="{StaticResource TallBreakpoint}" />
-                    </VisualState.StateTriggers>
-                    <VisualState.Setters>
-                        <Setter Target="Keys.ShowExtraRow" Value="True" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-            <VisualStateGroup>
-                <VisualState x:Name="WideState">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="{StaticResource WideBreakpoint}" />
-                    </VisualState.StateTriggers>
-                    <VisualState.Setters>
-                        <Setter Target="Keys.Visibility" Value="Collapsed" />
-                        <!-- V03a（05 §6.2）：横屏隐藏次要地址。 -->
-                        <Setter Target="AddressText.Visibility" Value="Collapsed" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
     </Grid>
     </SplitView>
 </Page>

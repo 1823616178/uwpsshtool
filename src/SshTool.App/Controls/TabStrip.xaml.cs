@@ -126,7 +126,7 @@ namespace SshTool.App.Controls
 
             var close = new Button();
             // C-03：TerminalIconButtonStyle 统一焦点行为（AllowFocusOnInteraction=False）与
-            // 触控宽（§7.5）；高度受 TabStripHeight=36 行约束；无障碍名走 resw（C# 创建用 ResourceLoader）。
+            // 触控宽（§7.5）；高度受 TabStripHeight=40 行约束；无障碍名走 resw（C# 创建用 ResourceLoader）。
             close.Style = (Style)Application.Current.Resources["TerminalIconButtonStyle"];
             close.Content = new FontIcon
             {
