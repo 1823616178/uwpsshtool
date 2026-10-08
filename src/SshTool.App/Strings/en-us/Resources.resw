@@ -17,6 +17,7 @@
   <data name="Error_206" xml:space="preserve"><value>No local credential. Unlock the vault first.</value></data>
   <data name="Error_301" xml:space="preserve"><value>Algorithm negotiation failed.</value></data>
   <data name="Error_302" xml:space="preserve"><value>Unknown host key. Verify the fingerprint before trusting.</value></data>
+  <data name="Tunnel_UnknownHostKey" xml:space="preserve"><value>Unknown host key: connect to this host in a terminal and trust it first, then start the tunnel.</value></data>
   <data name="Error_303" xml:space="preserve"><value>Host key mismatch. Possible man-in-the-middle attack.</value></data>
   <data name="Error_304" xml:space="preserve"><value>SSH handshake failed.</value></data>
   <data name="Error_305" xml:space="preserve"><value>SSH handshake timed out.</value></data>

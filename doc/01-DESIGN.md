@@ -712,7 +712,9 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
                   （hostFingerprint 随同步漫游、known_hosts 只在本机：新设备上不能把「钉住指纹变了」
                    伪装成首次连接；恢复路径为主机编辑页「重置指纹」，opt/full-pass 2026-10-08 修订）；
                   Host.hostFingerprint 为空 → 弹 HostKeyDialog（指纹 + randomart，“信任并连接/取消”）
-          后台隧道（NativeForwarder）同一判定：不匹配直接拒绝；仅「两者皆无」时 TOFU 静默接受
+          后台隧道（NativeForwarder）无交互，用 HostKeyVerifier.VerifyNonInteractive：不匹配直接拒绝；
+                  「两者皆无」也拒绝（RejectUnknown，不写 KnownHost，返回 302 + 提示先在终端里连接并信任），
+                  不再 TOFU 静默接受（PR #1 评审修订 2026-10-08）
  3. 认证（按 authType）：
       password：SecretStore 有 → 用；无 → CredentialDialog（密码 + “记住”）→ 失败 201 → 重新弹框（最多 3 次）
       key：读 KeyEntry 私钥 +（加密则短语：SecretStore 或 PassphraseDialog）→ 失败 202/204 → 提示

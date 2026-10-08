@@ -7,7 +7,10 @@ namespace SshTool.Core.Sessions
     {
         Accept = 0,
         RejectMismatch = 1,
-        PromptUnknown = 2
+        PromptUnknown = 2,
+        // 无交互场景（后台隧道）遇到未知主机：既无 known_hosts 也无钉住指纹 → 拒绝，
+        // 只由 VerifyNonInteractive 返回；用户须先在前台终端连接一次并确认信任。
+        RejectUnknown = 3
     }
 
     public sealed class HostKeyVerdict
@@ -48,6 +51,19 @@ namespace SshTool.Core.Sessions
                 return new HostKeyVerdict { Kind = HostKeyVerdictKind.RejectMismatch };
             }
             return new HostKeyVerdict { Kind = HostKeyVerdictKind.PromptUnknown, WriteKnownHost = true };
+        }
+
+        // 评审（PR #1）：没有用户可交互的调用方（后台隧道 NativeForwarder）用这个入口。
+        // 与 Verify 相同，只是把 PromptUnknown 换成 RejectUnknown（不接受、不写 known_hosts），
+        // 杜绝首次隧道连接静默信任中间人。已知主机 / 钉住指纹一致时照常接受。
+        public static HostKeyVerdict VerifyNonInteractive(KnownHost known, string hostFingerprint, HostKeyInfo presented)
+        {
+            HostKeyVerdict verdict = Verify(known, hostFingerprint, presented);
+            if (verdict.Kind == HostKeyVerdictKind.PromptUnknown)
+            {
+                return new HostKeyVerdict { Kind = HostKeyVerdictKind.RejectUnknown, WriteKnownHost = false };
+            }
+            return verdict;
         }
     }
 }

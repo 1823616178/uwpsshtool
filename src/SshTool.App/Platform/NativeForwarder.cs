@@ -142,13 +142,16 @@ namespace SshTool.App.Platform
                 KnownHost known = await FindKnownAsync(host.HostName, port).ConfigureAwait(false);
                 string hostFp = host.HostFingerprint;
                 bool acceptedKeyShouldSave = false;
+                bool rejectedUnknownKey = false;
                 HostKeyInfo acceptedKey = null;
 
                 EventHandler<HostKeyCheckEventArgs> onKey = (s, args) =>
                 {
                     try
                     {
-                        HostKeyVerdict verdict = HostKeyVerifier.Verify(known, hostFp, args.Info);
+                        // 评审（PR #1）：后台隧道无交互，走 VerifyNonInteractive——未知主机
+                        // （无 known_hosts、无钉住指纹）直接拒绝、不保存，不再 TOFU 静默信任。
+                        HostKeyVerdict verdict = HostKeyVerifier.VerifyNonInteractive(known, hostFp, args.Info);
                         if (verdict.Kind == HostKeyVerdictKind.Accept)
                         {
                             if (verdict.WriteKnownHost)
@@ -164,11 +167,10 @@ namespace SshTool.App.Platform
                             args.Reject();
                             return;
                         }
-                        // 后台隧道无前台弹窗交互；根据 01-DESIGN / 05-CODE-AUDIT，
-                        // 首次连接实行 TOFU：接受并保存指纹
-                        acceptedKeyShouldSave = true;
-                        acceptedKey = args.Info;
-                        args.Accept();
+                        // RejectUnknown（以及任何未来新增的判定）一律拒绝：用户须先在前台
+                        // 终端连接该主机并确认信任（写入 known_hosts），隧道才会放行。
+                        rejectedUnknownKey = verdict.Kind == HostKeyVerdictKind.RejectUnknown;
+                        args.Reject();
                     }
                     catch (Exception ex)
                     {
@@ -207,6 +209,15 @@ namespace SshTool.App.Platform
                 {
                     session.Close();
                     session.Dispose();
+                    if (rejectedUnknownKey)
+                    {
+                        return new TunnelRuntimeStartResult
+                        {
+                            Code = SshErrorCode.UnknownHostKey,
+                            Message = Localized.Get("Tunnel_UnknownHostKey",
+                                "未知主机密钥：请先在终端里连接该主机并确认信任，再启动隧道")
+                        };
+                    }
                     return new TunnelRuntimeStartResult
                     {
                         Code = connectCode,
