@@ -55,6 +55,11 @@
     <Thickness x:Key="PadMd">12</Thickness>
     <Thickness x:Key="PagePadding">12,0,12,0</Thickness>
     <Thickness x:Key="PagePaddingWide">24,0,24,0</Thickness>
+    <!-- ui/portrait-spacing：页头上下留白（顶部离状态栏 16、底部离页签 8），竖屏不再贴顶。 -->
+    <Thickness x:Key="PageHeaderPadding">12,16,12,8</Thickness>
+    <Thickness x:Key="PageHeaderPaddingWide">24,16,24,8</Thickness>
+    <!-- 列表页顶部工具行（搜索/新建）：上下各 8，与页签、首张卡片拉开间距。 -->
+    <Thickness x:Key="ListTopRowMargin">12,8,12,8</Thickness>
     <!-- V01a（05 §5.2）：卡片内边距手机档（12）；宽松档 16 暂无本批消费方，需要时再加。 -->
     <Thickness x:Key="PadCard">12</Thickness>
     <!-- SegmentTabs 容器内边距：选中段圆角块与外框之间让出的间隙。 -->
@@ -123,7 +128,7 @@
     <CornerRadius x:Key="RadiusLg">12</CornerRadius>
     <!-- 卡片外边距：左右与 PagePadding 对齐，上下各 4 让出卡片间 8 的呼吸缝 -->
     <Thickness x:Key="CardMargin">12,4,12,4</Thickness>
-    <Thickness x:Key="CardListPadding">0,4,0,12</Thickness>
+    <Thickness x:Key="CardListPadding">0,8,0,16</Thickness>
     <!-- 会话卡片左侧状态色条宽度 -->
     <x:Double x:Key="CardAccentStripWidth">3</x:Double>
     <CornerRadius x:Key="CardAccentStripRadius">2</CornerRadius>

@@ -6,7 +6,7 @@
     <!-- 05 §5.3：页头。标题（一级 FontHeader 28 / 编辑页 FontTitle 20）+ 可选返回
          + 右侧状态槽 + 仅 1 个主操作槽。状态：compact（窄屏降字号收敛）/ normal / wide
          （≥ExtraWideBreakpoint 加大页边距），按控件实际宽度在 code-behind 切换。 -->
-    <Grid x:Name="RootGrid" Padding="{StaticResource PagePadding}">
+    <Grid x:Name="RootGrid" Padding="{StaticResource PageHeaderPadding}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
