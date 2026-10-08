@@ -30,8 +30,8 @@
 ## 2. 场景操作指南（真机）
 
 前置：**Release/ARM 包**（.NET Native 才算数，见 doc/ENV.md），侧载后从
-主页 ⋯ 溢出菜单 →「开发工具」（DevToolsPage，DEBUG_PAGES 门控，默认开；
-Q09 正式包才会关）→「Q01 性能基准」进入。叠加读数每 500 ms 刷新：
+主页 ⋯ 溢出菜单 →「开发工具」（DevToolsPage，DEBUG_PAGES 门控；opt/full-pass 起 Release 默认关，
+采数包需 `-p:EnableDebugPages=true`）→「Q01 性能基准」进入。叠加读数每 500 ms 刷新：
 `tick x/s | 实绘 x/s | 帧 x ms | 喂 x ms/帧 | 内存 xMB`。
 
 口径（与报告文件头部一致）：
