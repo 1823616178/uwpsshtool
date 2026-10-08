@@ -519,8 +519,16 @@ namespace SshTool.App.Platform
                     {
                         return SshErrorCode.NoLocalCredential;
                     }
+                    // 评审（PR #1）：私钥字节数组认证后（含异常）立即清零。
                     byte[] pemBytes = Encoding.UTF8.GetBytes(privateKey);
-                    return await session.AuthenticatePublicKeyAsync(pemBytes, passphrase ?? string.Empty).ConfigureAwait(false);
+                    try
+                    {
+                        return await session.AuthenticatePublicKeyAsync(pemBytes, passphrase ?? string.Empty).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        Array.Clear(pemBytes, 0, pemBytes.Length);
+                    }
                 }
                 case AuthType.Agent:
                 {

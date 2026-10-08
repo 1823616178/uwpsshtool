@@ -641,7 +641,8 @@ namespace SshTool
                 std::string passPlain = ToUtf8(passphrase);
                 std::shared_ptr<SecretString> keyData = MakeSecret(keyPlain);
                 std::shared_ptr<SecretString> pass = MakeSecret(passPlain);
-                // 调用方传入的 Platform::Array 缓冲属于调用方（C# 侧负责在用完后清零）。
+                // 调用方传入的 Platform::Array 缓冲属于调用方：此处同步复制后不再读取，
+                // C# 侧（NativeSshSession / SessionManager / NativeForwarder）在 finally 中清零。
                 SshSession^ self = this;
                 return concurrency::create_async(
                     [self, keyData, pass]() -> task<int> {

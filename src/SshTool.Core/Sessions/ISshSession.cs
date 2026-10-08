@@ -39,6 +39,8 @@ namespace SshTool.Core.Sessions
         // jumpSession must be authenticated (Established state) already.
         Task<SshErrorCode> ConnectJumpAsync(SshConnectRequest request, ISshSession jumpSession);
         Task<SshErrorCode> AuthenticatePasswordAsync(string password);
+        // privateKeyPem 归调用方所有：调用方须在 await 结束后（finally）清零；实现方不得在
+        // 返回后继续引用该数组（真身 NativeSshSession 也会在 finally 中清零）。
         Task<SshErrorCode> AuthenticatePublicKeyAsync(byte[] privateKeyPem, string passphrase);
         // K03：应用内 agent 认证——只传 keyId，私钥材料由 native 直接从 agent
         // 托管内存中取（不经过 C# 层）。agent 未解锁/无此 keyId/已超时时 native
