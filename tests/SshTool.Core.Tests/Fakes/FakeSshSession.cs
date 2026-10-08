@@ -71,6 +71,7 @@ namespace SshTool.Core.Tests.Fakes
         public HostKeyInfo HostKeyOnConnect;
         public IReadOnlyList<string> KiPrompts;
         public TaskCompletionSource<SshErrorCode> ConnectHold;
+        public TaskCompletionSource<SshErrorCode> OpenShellHold;
         public bool HostKeyOnJump;
         public ISshSession LastJumpSession;
 
@@ -215,6 +216,10 @@ namespace SshTool.Core.Tests.Fakes
             Calls.Add("OpenShell");
             LastOpenShellCols = cols;
             LastOpenShellRows = rows;
+            if (OpenShellHold != null)
+            {
+                return OpenShellHold.Task;
+            }
             return Task.FromResult(OpenShellResult);
         }
 

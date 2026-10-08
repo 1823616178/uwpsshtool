@@ -504,7 +504,11 @@ namespace SshTool.Core.Sessions
             if (info.ShellOpened)
             {
                 code = await native.OpenShellAsync(info.Cols, info.Rows).ConfigureAwait(false);
-                if (info.UserClosed)
+                // code-review-pass：与上面两处一致也要判 attempt。开 shell 期间若已有新一轮
+                // 重连（网络切换、用户点「立即重连」）把本轮的 native 关掉，这里会拿到失败码，
+                // 旧逻辑照样 Fail(..., true) 排一个重连计时器，几秒后把新一轮已连上的会话拆掉重来；
+                // 成功时则把旧 native 标成已连接并对它发 AutoRun。
+                if (info.UserClosed || attempt != info.ConnectAttempt)
                 {
                     return;
                 }
