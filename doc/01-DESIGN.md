@@ -707,7 +707,12 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
       └ HostKeyCheck 事件：
           KnownHost 有记录：一致 → Accept；不一致 → Reject → 错误 303 → HostKeyMismatchDialog（只允许“查看详情/取消”，
                                      另提供“移除旧指纹后重新连接”需二次确认）
-          无记录：Host.hostFingerprint 非空且一致 → Accept 并写 KnownHost；否则弹 HostKeyDialog（指纹 + randomart，“信任并连接/取消”）
+          无记录：Host.hostFingerprint 非空且一致 → Accept 并写 KnownHost；
+                  Host.hostFingerprint 非空但不一致 → 按不匹配处理：Reject → 303 → HostKeyMismatchDialog
+                  （hostFingerprint 随同步漫游、known_hosts 只在本机：新设备上不能把「钉住指纹变了」
+                   伪装成首次连接；恢复路径为主机编辑页「重置指纹」，opt/full-pass 2026-10-08 修订）；
+                  Host.hostFingerprint 为空 → 弹 HostKeyDialog（指纹 + randomart，“信任并连接/取消”）
+          后台隧道（NativeForwarder）同一判定：不匹配直接拒绝；仅「两者皆无」时 TOFU 静默接受
  3. 认证（按 authType）：
       password：SecretStore 有 → 用；无 → CredentialDialog（密码 + “记住”）→ 失败 201 → 重新弹框（最多 3 次）
       key：读 KeyEntry 私钥 +（加密则短语：SecretStore 或 PassphraseDialog）→ 失败 202/204 → 提示
