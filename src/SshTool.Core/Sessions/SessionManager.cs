@@ -425,6 +425,8 @@ namespace SshTool.Core.Sessions
         {
             // F07: tear down stale jump sessions from any previous connect attempt.
             CloseJumpSessions(info);
+            int attempt = info.ConnectAttempt + 1;
+            info.ConnectAttempt = attempt;
 
             ISshSession native = _factory.Create();
             ISshSession old = info.NativeSession;
@@ -472,7 +474,7 @@ namespace SshTool.Core.Sessions
             }
 
             native.HostKeyCheck -= onKey;
-            if (info.UserClosed)
+            if (info.UserClosed || attempt != info.ConnectAttempt)
             {
                 return;
             }
@@ -485,7 +487,7 @@ namespace SshTool.Core.Sessions
             info.State = SessionUiState.Authenticating;
             RaiseChanged();
             code = await AuthenticateAsync(info, host, native).ConfigureAwait(false);
-            if (info.UserClosed)
+            if (info.UserClosed || attempt != info.ConnectAttempt)
             {
                 return;
             }
@@ -582,7 +584,7 @@ namespace SshTool.Core.Sessions
                 string hopFp = hopHost.HostFingerprint;
                 List<HostKeyInfo> hopAcceptedKeys = new List<HostKeyInfo>();
                 EventHandler<HostKeyCheckEventArgs> onHopKey =
-                    (s, e) => HandleHopHostKey(hopKnown, hopFp, hopTitle, hopAcceptedKeys, e);
+                    (s, e) => HandleHopHostKey(info, hopHost, hopKnown, hopFp, hopTitle, hopAcceptedKeys, e);
                 hopSession.HostKeyCheck += onHopKey;
 
                 SshErrorCode hopCode;
@@ -685,14 +687,49 @@ namespace SshTool.Core.Sessions
             if (verdict.Kind == HostKeyVerdictKind.RejectMismatch)
             {
                 e.Reject();
-                var ignoreMismatch = _ui.RunAsync(() => _hostKeys.PromptMismatchAsync(
-                    e.Info, info.Title, known == null ? hostFp : known.FingerprintSha256));
+                var ignoreMismatch = PromptMismatchAndMaybeRetryAsync(
+                    info, info.HostName, info.Port, info.HostId, info.Title,
+                    known == null ? hostFp : known.FingerprintSha256, e.Info);
                 return;
             }
             _ui.Post(() =>
             {
                 var ignore = PromptUnknownAsync(info, e);
             });
+        }
+
+        // fix/functional-pass：不匹配对话框的「移除旧记录并重试」。握手此时已被拒绝（连接按
+        // HostKeyMismatch 失败）；用户确认后清掉该地址的 known_hosts 与钉住指纹（HostKeyReset），
+        // 再整链重连——新一轮握手走首次连接确认，用户可核对新指纹后再信任。
+        // 跳板主机同样适用（hostId 传跳板自己的主机 id）。
+        private async Task PromptMismatchAndMaybeRetryAsync(
+            SessionInfo info, string hostName, int port, string hostId, string title,
+            string previousFingerprint, HostKeyInfo presented)
+        {
+            try
+            {
+                bool removeAndRetry = await _ui.RunAsync(
+                    () => _hostKeys.PromptMismatchAsync(presented, title, previousFingerprint)).ConfigureAwait(false);
+                if (!removeAndRetry || info.UserClosed)
+                {
+                    return;
+                }
+                HostKeyReset.Result reset = await HostKeyReset.ResetAsync(
+                    _knownHosts, _hosts, hostName, port, hostId).ConfigureAwait(false);
+                if (_logger != null)
+                {
+                    _logger.Log(LogLevel.Info, "Session", "host key reset known=" + reset.KnownHostsRemoved.ToString()
+                        + " pins=" + reset.PinsCleared.ToString());
+                }
+                _ui.Post(() => ReconnectNow(info.SessionId));
+            }
+            catch (Exception ex)
+            {
+                if (_logger != null)
+                {
+                    _logger.Log(LogLevel.Warning, "Session", "host key reset failed " + ex.GetType().Name);
+                }
+            }
         }
 
         private async Task PromptUnknownAsync(SessionInfo info, HostKeyCheckEventArgs e)
@@ -715,7 +752,7 @@ namespace SshTool.Core.Sessions
         // 目标的 known_hosts 行）；接受的密钥由调用方在该跳认证成功后经
         // PersistKnownHostAsync 以跳板自己的 host:port 落库。
         private void HandleHopHostKey(
-            KnownHost known, string hostFp, string hopTitle,
+            SessionInfo info, Host hopHost, KnownHost known, string hostFp, string hopTitle,
             List<HostKeyInfo> acceptedKeys, HostKeyCheckEventArgs e)
         {
             HostKeyVerdict verdict = HostKeyVerifier.Verify(known, hostFp, e.Info);
@@ -728,8 +765,9 @@ namespace SshTool.Core.Sessions
             if (verdict.Kind == HostKeyVerdictKind.RejectMismatch)
             {
                 e.Reject();
-                var ignoreMismatch = _ui.RunAsync(() => _hostKeys.PromptMismatchAsync(
-                    e.Info, hopTitle, known == null ? hostFp : known.FingerprintSha256));
+                var ignoreMismatch = PromptMismatchAndMaybeRetryAsync(
+                    info, hopHost.HostName, hopHost.Port, hopHost.Id, hopTitle,
+                    known == null ? hostFp : known.FingerprintSha256, e.Info);
                 return;
             }
             _ui.Post(async () =>

@@ -122,7 +122,7 @@ namespace SshTool.Core.Sessions
                     }
                     _ui.Post(() =>
                     {
-                        var ignore = PromptUnknownAsync(e, a => { accepted = a; writeKnown = true; });
+                        var ignore = PromptUnknownAsync(e, HostLabel(draft), a => { accepted = a; writeKnown = true; });
                     });
                 };
                 native.HostKeyCheck += onKey;
@@ -180,9 +180,29 @@ namespace SshTool.Core.Sessions
             }
         }
 
-        private async Task PromptUnknownAsync(HostKeyCheckEventArgs e, Action<HostKeyInfo> onAccept)
+        // fix/functional-pass：对话框「主机」处显示主机名称/地址（旧实现误传 e.Info.KeyType，显示成 ssh-ed25519）。
+        internal static string HostLabel(Host draft)
         {
-            bool ok = await _hostKeys.PromptUnknownAsync(e.Info, e.Info.KeyType).ConfigureAwait(true);
+            if (draft == null)
+            {
+                return string.Empty;
+            }
+            string address = draft.HostName ?? string.Empty;
+            int port = draft.Port < 1 ? 22 : draft.Port;
+            if (port != 22)
+            {
+                address = address + ":" + port.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+            if (!string.IsNullOrWhiteSpace(draft.Name) && !string.Equals(draft.Name, draft.HostName, StringComparison.Ordinal))
+            {
+                return draft.Name + " (" + address + ")";
+            }
+            return address;
+        }
+
+        private async Task PromptUnknownAsync(HostKeyCheckEventArgs e, string hostLabel, Action<HostKeyInfo> onAccept)
+        {
+            bool ok = await _hostKeys.PromptUnknownAsync(e.Info, hostLabel).ConfigureAwait(true);
             if (ok)
             {
                 onAccept(e.Info);

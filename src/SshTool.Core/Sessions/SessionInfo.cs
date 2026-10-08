@@ -94,6 +94,9 @@ namespace SshTool.Core.Sessions
         public DateTime? ConnectedAt { get; set; }
         public HostKeyInfo AcceptedKey { get; set; }
         public bool WriteKnownHost { get; set; }
+        // fix/functional-pass：连接尝试代号。ConnectCoreAsync 每次进入自增；await 回来后代号变了
+        // （「移除旧密钥并重试」等路径已发起新一轮连接）就丢弃旧一轮的结果，不覆写新一轮的状态。
+        internal int ConnectAttempt { get; set; }
         public int Cols { get; set; }
         public int Rows { get; set; }
         public bool UserClosed { get; set; }
