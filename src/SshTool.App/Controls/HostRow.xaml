@@ -26,7 +26,9 @@
          副标题=user@host:port（状态不只靠颜色），状态槽=徽章，单一尾操作=Chevron 进编辑；
          行点按=连接（两次点击内连接出口），长按/右键菜单保留全部动作。行名称由
          AppListRow 根上的 AutomationProperties.Name（=标题）代表。 -->
-    <controls:AppListRow x:Name="RowCtl" Click="OnRowClick">
+    <!-- opt/full-pass 竖屏重设计：IsCard=卡片外观（圆角/渐变卡底/发丝描边/卡间距），
+         头像加一圈发丝描边，与卡片同材质语言。 -->
+    <controls:AppListRow x:Name="RowCtl" Click="OnRowClick" IsCard="True">
         <controls:AppListRow.IconContent>
             <!-- G06：首字母圆形头像（底色取分组颜色或 AppSurfaceAltBrush）+ 状态点 -->
             <Grid Width="{StaticResource AvatarSize}" Height="{StaticResource AvatarSize}"
@@ -35,6 +37,8 @@
                         Width="{StaticResource AvatarSize}"
                         Height="{StaticResource AvatarSize}"
                         CornerRadius="{StaticResource RadiusCircle}"
+                        BorderBrush="{ThemeResource AppCardStrokeBrush}"
+                        BorderThickness="{StaticResource BorderThin}"
                         Background="{ThemeResource AppSurfaceAltBrush}">
                     <TextBlock x:Name="AvatarText"
                                HorizontalAlignment="Center"

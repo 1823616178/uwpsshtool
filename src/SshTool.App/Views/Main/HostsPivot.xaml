@@ -31,17 +31,29 @@
         </Grid.RowDefinitions>
 
         <!-- V02（05 §6.1）：搜索行常驻（原 CommandBar 搜索按钮的职责由底栏「快速连接」取代）；
-             右侧 ＋ 新建主机图标按钮，命令与底栏「新建主机」一致。 -->
+             右侧 ＋ 新建主机图标按钮，命令与底栏「新建主机」一致。
+             opt/full-pass 竖屏重设计：搜索框收进圆角卡片胶囊（卡底渐变 + 发丝描边），
+             框内 TextControl 画刷就地改透明（14393+ 轻量样式覆盖），新建按钮改强调色叠层圆块。 -->
         <Grid Margin="{StaticResource PagePadding}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <AutoSuggestBox x:Name="SearchBox" x:Uid="Hosts_SearchBox"
-                            QueryIcon="Find"
-                            TextChanged="OnSearchTextChanged" />
+            <Border Style="{StaticResource PillFieldBorderStyle}">
+                <Border.Resources>
+                    <SolidColorBrush x:Key="TextControlBackground" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
+                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
+                </Border.Resources>
+                <AutoSuggestBox x:Name="SearchBox" x:Uid="Hosts_SearchBox"
+                                QueryIcon="Find"
+                                TextChanged="OnSearchTextChanged" />
+            </Border>
             <Button x:Name="NewHostButton" x:Uid="Hosts_NewHostButton" Grid.Column="1"
-                    Style="{StaticResource IconButtonStyle}" Click="OnNewHostClick"
+                    Style="{StaticResource AccentCircleButtonStyle}" Click="OnNewHostClick"
                     Margin="{StaticResource GapSmLeft}">
                 <FontIcon Glyph="{StaticResource IconAdd}" FontSize="{StaticResource FontBody}" />
             </Button>
@@ -49,47 +61,61 @@
 
         <!-- V02（05 §6.1）：快速连接默认折叠为一行，点击（或底栏「快速连接」命令）展开为表单；
              展开态记忆 hostQuickConnectExpanded。Chevron 方向跟随展开态（code-behind 赋值）。 -->
+        <!-- opt/full-pass：快速连接折叠行改为强调色叠层圆角条（图标着强调色），与主机卡片同宽同圆角。 -->
         <Grid x:Name="QuickConnectRow" x:Uid="Hosts_QuickConnectRow" Grid.Row="1"
               Background="Transparent"
-              MinHeight="{StaticResource ListRowCompactHeight}"
-              Padding="{StaticResource PagePadding}"
+              Margin="{StaticResource CardMargin}"
               Tapped="OnQuickConnectRowTapped"
               Visibility="Collapsed">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <FontIcon Glyph="{StaticResource IconConnect}"
-                      FontSize="{StaticResource FontBody}"
-                      Foreground="{ThemeResource AppTextDimBrush}"
-                      VerticalAlignment="Center" />
-            <TextBlock x:Uid="Hosts_QuickConnectRowText" Grid.Column="1"
-                       Style="{StaticResource BodyTextStyle}"
-                       VerticalAlignment="Center"
-                       Margin="{StaticResource GapSmLeft}" />
-            <FontIcon x:Name="QuickConnectChevron" Grid.Column="2"
-                      Glyph="{StaticResource IconChevronDown}"
-                      FontSize="{StaticResource FontCaption}"
-                      Foreground="{ThemeResource AppTextDimBrush}"
-                      VerticalAlignment="Center" />
+            <Border Background="{ThemeResource AppAccentSoftBrush}"
+                    CornerRadius="{StaticResource RadiusLg}"
+                    MinHeight="{StaticResource ListRowCompactHeight}"
+                    Padding="{StaticResource PagePadding}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon Glyph="{StaticResource IconConnect}"
+                              FontSize="{StaticResource FontBody}"
+                              Foreground="{ThemeResource AppAccentBrush}"
+                              VerticalAlignment="Center" />
+                    <TextBlock x:Uid="Hosts_QuickConnectRowText" Grid.Column="1"
+                               Style="{StaticResource BodyTextStyle}"
+                               VerticalAlignment="Center"
+                               Margin="{StaticResource GapSmLeft}" />
+                    <FontIcon x:Name="QuickConnectChevron" Grid.Column="2"
+                              Glyph="{StaticResource IconChevronDown}"
+                              FontSize="{StaticResource FontCaption}"
+                              Foreground="{ThemeResource AppAccentBrush}"
+                              VerticalAlignment="Center" />
+                </Grid>
+            </Border>
         </Grid>
 
-        <Grid x:Name="QuickConnectCard" Grid.Row="2"
-              Background="{ThemeResource AppSurfaceAltBrush}"
-              Padding="{StaticResource PadMd}"
-              Margin="{StaticResource PagePadding}"
-              Visibility="Collapsed">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <TextBox x:Name="QuickConnectBox" x:Uid="Hosts_QuickConnectBox"
-                     TextChanged="OnQuickConnectTextChanged" />
-            <Button Grid.Column="1" x:Uid="Hosts_QuickConnectGo" Click="OnQuickConnectClick"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    VerticalAlignment="Bottom" Margin="{StaticResource GapSmLeft}" />
-        </Grid>
+        <!-- opt/full-pass：展开表单为卡片（与主机卡片同材质）；展开时自下而上淡入。 -->
+        <Border x:Name="QuickConnectCard" Grid.Row="2"
+                Style="{StaticResource CardBorderStyle}"
+                Padding="{StaticResource PadCard}"
+                Visibility="Collapsed">
+            <Border.Transitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Border.Transitions>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="QuickConnectBox" x:Uid="Hosts_QuickConnectBox"
+                         TextChanged="OnQuickConnectTextChanged" />
+                <Button Grid.Column="1" x:Uid="Hosts_QuickConnectGo" Click="OnQuickConnectClick"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        VerticalAlignment="Bottom" Margin="{StaticResource GapSmLeft}" />
+            </Grid>
+        </Border>
 
         <Grid Grid.Row="3">
             <Grid.ChildrenTransitions>
@@ -108,10 +134,25 @@
             <controls:EmptyState x:Name="ErrorState"
                                  Kind="Offline"
                                  Visibility="Collapsed" />
+            <!-- opt/full-pass：主机行改卡片（HostRow 内 AppListRow.IsCard）；容器去内边距与系统
+                 悬停/按压底色（卡片自带按压态），条目进场错峰 + 增删/重排位移动画。 -->
             <ListView x:Name="HostList"
                       ItemTemplate="{StaticResource HostItemTemplate}"
+                      ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                      Padding="{StaticResource CardListPadding}"
                       SelectionMode="None"
                       IsItemClickEnabled="False">
+                <ListView.Resources>
+                    <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent" />
+                </ListView.Resources>
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition IsStaggeringEnabled="True" />
+                        <AddDeleteThemeTransition />
+                        <RepositionThemeTransition />
+                    </TransitionCollection>
+                </ListView.ItemContainerTransitions>
                 <ListView.GroupStyle>
                     <GroupStyle HidesIfEmpty="False" HeaderTemplate="{StaticResource GroupHeaderTemplate}" />
                 </ListView.GroupStyle>

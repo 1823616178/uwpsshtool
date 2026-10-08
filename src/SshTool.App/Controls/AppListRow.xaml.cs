@@ -59,6 +59,10 @@ namespace SshTool.App.Controls
         public static readonly DependencyProperty StateProperty = DependencyProperty.Register(
             nameof(State), typeof(AppListRowState), typeof(AppListRow),
             new PropertyMetadata(AppListRowState.Normal, OnChanged));
+        // opt/full-pass 竖屏重设计：卡片外观（圆角 + 发丝描边 + 渐变卡底 + 卡片间距）。
+        public static readonly DependencyProperty IsCardProperty = DependencyProperty.Register(
+            nameof(IsCard), typeof(bool), typeof(AppListRow),
+            new PropertyMetadata(false, OnChanged));
         public static readonly DependencyProperty CommandProperty = DependencyProperty.Register(
             nameof(Command), typeof(ICommand), typeof(AppListRow),
             new PropertyMetadata(null));
@@ -151,6 +155,12 @@ namespace SshTool.App.Controls
             set { SetValue(IsCompactProperty, value); }
         }
 
+        public bool IsCard
+        {
+            get { return (bool)GetValue(IsCardProperty); }
+            set { SetValue(IsCardProperty, value); }
+        }
+
         public AppListRowState State
         {
             get { return (AppListRowState)GetValue(StateProperty); }
@@ -232,21 +242,42 @@ namespace SshTool.App.Controls
             // State=Disabled 时 IsEnabled 仍为 true，显式断掉整块命中（含槽内按钮）。
             Root.IsHitTestVisible = !disabled;
 
+            ApplyCardChrome();
             ApplyStateBrush();
             // §7.2：行作为整体进无障碍树，名称取可见标题（标题 TextBlock 已标 Raw）。
             AutomationProperties.SetName(this, Title ?? string.Empty);
         }
 
+        private void ApplyCardChrome()
+        {
+            ResourceDictionary res = Application.Current.Resources;
+            if (IsCard)
+            {
+                Root.CornerRadius = (CornerRadius)res["RadiusLg"];
+                Root.BorderThickness = (Thickness)res["BorderThin"];
+                Root.BorderBrush = Banner.ResolveThemedBrush("AppCardStrokeBrush");
+                Root.Margin = (Thickness)res["CardMargin"];
+            }
+            else
+            {
+                Root.CornerRadius = new CornerRadius();
+                Root.BorderThickness = (Thickness)res["BorderNone"];
+                Root.BorderBrush = null;
+                Root.Margin = (Thickness)res["PadNone"];
+            }
+        }
+
         private void ApplyStateBrush()
         {
-            string brushKey = "AppSurfaceBrush";
+            bool card = IsCard;
+            string brushKey = card ? "AppCardBrush" : "AppSurfaceBrush";
             if (!IsDisabled && (_pointerPressed || State == AppListRowState.Pressed))
             {
-                brushKey = "AppPressedBrush";
+                brushKey = card ? "AppCardPressedBrush" : "AppPressedBrush";
             }
             else if (State == AppListRowState.Selected)
             {
-                brushKey = "AppSurfaceAltBrush";
+                brushKey = card ? "AppCardSelectedBrush" : "AppSurfaceAltBrush";
             }
             Root.Background = Banner.ResolveThemedBrush(brushKey);
         }

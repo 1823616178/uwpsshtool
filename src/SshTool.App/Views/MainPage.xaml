@@ -54,6 +54,9 @@
              StatusContent 放同步图标按钮——从 CommandBar 挪上来，图标/前景/旋转动画与
              点击语义（SyncCommand）不变；PrimaryAction 留空（新建已在主底栏）。宽屏同样
              显示本页头，WideGrid 内不再重复标题。 -->
+        <!-- opt/full-pass 竖屏重设计：页头背后一层强调色斜向辉光（渐变到透明，不拦截点击）。
+             15063 没有 AcrylicBrush，用 LinearGradientBrush 叠层模拟层次感。 -->
+        <Border Grid.Row="1" Background="{ThemeResource AppHeaderGlowBrush}" IsHitTestVisible="False" />
         <controls:AppPageHeader x:Name="PageHeader" Grid.Row="1" x:Uid="Main_PageHeader"
                                 Level="Primary">
             <controls:AppPageHeader.StatusContent>

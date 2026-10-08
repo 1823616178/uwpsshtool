@@ -1019,6 +1019,7 @@
   <data name="SessionsPivot_Button1.Content" xml:space="preserve"><value>Restore all</value></data>
   <data name="SessionsPivot_Empty.Title" xml:space="preserve"><value>No open sessions</value></data>
   <data name="SessionsPivot_Empty.Description" xml:space="preserve"><value>Tap a host to connect.</value></data>
+  <data name="SessionsPivot_CloseButton.AutomationProperties.Name" xml:space="preserve"><value>Close session</value></data>
 
   <!-- O13：主机编辑环境变量占位符 -->
   <data name="HostEdit_EnvKeyBox.PlaceholderText" xml:space="preserve"><value>KEY</value></data>
