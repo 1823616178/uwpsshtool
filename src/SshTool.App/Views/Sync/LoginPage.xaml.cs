@@ -79,7 +79,8 @@ namespace SshTool.App.Views.Sync
                 sync,
                 defaultName,
                 AppConfig.Current.SyncApiBaseUrl,
-                AppConfig.Current.AllowHttp);
+                AppConfig.Current.AllowHttp,
+                AppConfig.Current.HttpFallback);
         }
 
         private static bool IsSignedIn()

@@ -19,7 +19,11 @@ namespace SshTool.Core.Sync.Api
         private static readonly Regex SchemePattern =
             new Regex(@"^[A-Za-z][A-Za-z0-9+.-]*:", RegexOptions.Compiled);
 
-        private readonly string _root;
+        // _root 在 HTTPS → HTTP 回退后会切到 _fallbackRoot（粘滞，客户端生命周期内不再回切）
+        private volatile string _root;
+        private readonly string _primaryRoot;
+        private readonly string _fallbackRoot;
+        private readonly object _fallbackLock = new object();
         private readonly ITokenStore _tokens;
         private readonly IHttpTransport _transport;
         private readonly int _timeoutMs;
@@ -39,11 +43,21 @@ namespace SshTool.Core.Sync.Api
             int timeoutMs = 15000,
             int retryLimit = 2,
             Func<long, Task> sleep = null,
-            Func<DateTimeOffset> clock = null)
+            Func<DateTimeOffset> clock = null,
+            bool httpFallback = false)
         {
             if (tokenStore == null) throw new ArgumentNullException(nameof(tokenStore));
             if (transport == null) throw new ArgumentNullException(nameof(transport));
             _root = NormalizeRoot(baseUrl, allowHttp);
+            _primaryRoot = _root;
+            // opt/full-pass：配置默认 https，但现网同步服务器尚未上 TLS。允许 HTTP 且开启
+            // httpFallback 时，https 在传输层失败（握手/连接异常，不含超时）即一次性降级到
+            // 同主机同端口的 http 并粘滞。注意这是可被主动攻击者诱导的降级——只是不比
+            // 「一直用 http」更差；服务器上 TLS 后应把 httpFallback 关掉（见 01-DESIGN §12.3）。
+            if (httpFallback && allowHttp && _root.StartsWith("https://", StringComparison.Ordinal))
+            {
+                _fallbackRoot = "http://" + _root.Substring("https://".Length);
+            }
             _tokens = tokenStore;
             _transport = transport;
             _timeoutMs = timeoutMs;
@@ -52,8 +66,23 @@ namespace SshTool.Core.Sync.Api
             _clock = clock ?? (() => DateTimeOffset.UtcNow);
         }
 
-        // 供测试与 S07 诊断使用：规范化后的 API 根地址（以 / 结尾）
+        // 供测试与 S07 诊断使用：规范化后的 API 根地址（以 / 结尾）；回退后为 http 根
         public string Root { get { return _root; } }
+
+        // 当前是否经由明文 HTTP 通信（配置即 http，或 https 已回退到 http）
+        public bool IsInsecureTransport
+        {
+            get { return _root.StartsWith("http://", StringComparison.Ordinal); }
+        }
+
+        // 是否已发生过 https → http 回退
+        public bool UsingHttpFallback
+        {
+            get { return _fallbackRoot != null && ReferenceEquals(_root, _fallbackRoot); }
+        }
+
+        // 回退发生时触发一次（任意线程），供 App 记日志 / 刷新明文风险提示
+        public event EventHandler HttpFallbackActivated;
 
         // If-Match 用的 ETag 值："revision-<n>"（带引号）；revision 必须是非负十进制整数字符串
         public static string FormatRevisionEtag(string revision)
@@ -450,10 +479,63 @@ namespace SshTool.Core.Sync.Api
             }
             catch (Exception ex)
             {
+                Exception failure = ex;
+                if (TryActivateHttpFallback(url))
+                {
+                    var retry = new HttpRequestData(method, Endpoint(path), headers, serialized, _timeoutMs);
+                    try
+                    {
+                        return SendResult.Ok(
+                            await _transport.SendAsync(retry, cancellationToken).ConfigureAwait(false));
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        throw;
+                    }
+                    catch (TimeoutException tex)
+                    {
+                        return SendResult.Failed(new ApiError(
+                            ApiErrorKind.Timeout, ApiError.CodeRequestTimeout, "服务器请求超时",
+                            ambiguous: method != "GET" && method != "HEAD", inner: tex));
+                    }
+                    catch (Exception ex2)
+                    {
+                        failure = ex2;
+                    }
+                }
                 return SendResult.Failed(new ApiError(
                     ApiErrorKind.Network, ApiError.CodeNetworkError, "无法连接同步服务器",
-                    ambiguous: method != "GET" && method != "HEAD", inner: ex));
+                    ambiguous: method != "GET" && method != "HEAD", inner: failure));
             }
+        }
+
+        // https 请求在传输层失败时切到 http 根（只切一次）。返回 true 表示调用方应
+        // 立即用新根重发：本次请求是发往 https 主根的，且回退已就位（可能是并发请求刚切的）。
+        private bool TryActivateHttpFallback(string failedUrl)
+        {
+            if (_fallbackRoot == null || failedUrl == null
+                || !failedUrl.StartsWith(_primaryRoot, StringComparison.Ordinal))
+            {
+                return false;
+            }
+            bool raised = false;
+            lock (_fallbackLock)
+            {
+                if (!ReferenceEquals(_root, _fallbackRoot))
+                {
+                    _root = _fallbackRoot;
+                    raised = true;
+                }
+            }
+            if (raised)
+            {
+                var handler = HttpFallbackActivated;
+                if (handler != null)
+                {
+                    handler(this, EventArgs.Empty);
+                }
+            }
+            return true;
         }
 
         private static bool IsRetriable(ApiError error)
