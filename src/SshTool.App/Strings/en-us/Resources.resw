@@ -17,6 +17,7 @@
   <data name="Error_206" xml:space="preserve"><value>No local credential. Unlock the vault first.</value></data>
   <data name="Error_301" xml:space="preserve"><value>Algorithm negotiation failed.</value></data>
   <data name="Error_302" xml:space="preserve"><value>Unknown host key. Verify the fingerprint before trusting.</value></data>
+  <data name="Tunnel_UnknownHostKey" xml:space="preserve"><value>Unknown host key: connect to this host in a terminal and trust it first, then start the tunnel.</value></data>
   <data name="Error_303" xml:space="preserve"><value>Host key mismatch. Possible man-in-the-middle attack.</value></data>
   <data name="Error_304" xml:space="preserve"><value>SSH handshake failed.</value></data>
   <data name="Error_305" xml:space="preserve"><value>SSH handshake timed out.</value></data>
@@ -1019,6 +1020,7 @@
   <data name="SessionsPivot_Button1.Content" xml:space="preserve"><value>Restore all</value></data>
   <data name="SessionsPivot_Empty.Title" xml:space="preserve"><value>No open sessions</value></data>
   <data name="SessionsPivot_Empty.Description" xml:space="preserve"><value>Tap a host to connect.</value></data>
+  <data name="SessionsPivot_CloseButton.AutomationProperties.Name" xml:space="preserve"><value>Close session</value></data>
 
   <!-- O13：主机编辑环境变量占位符 -->
   <data name="HostEdit_EnvKeyBox.PlaceholderText" xml:space="preserve"><value>KEY</value></data>

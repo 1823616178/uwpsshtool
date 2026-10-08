@@ -13,11 +13,13 @@ namespace SshTool.App.Platform
         {
             SyncApiBaseUrl = AppConfigParser.DefaultSyncApiBaseUrl,
             AllowHttp = AppConfigParser.DefaultAllowHttp,
+            HttpFallback = AppConfigParser.DefaultHttpFallback,
             LogLevel = AppConfigParser.DefaultLogLevel
         });
 
         public string SyncApiBaseUrl { get; private set; }
         public bool AllowHttp { get; private set; }
+        public bool HttpFallback { get; private set; }
         public LogLevel LogLevel { get; private set; }
 
         public static async Task LoadAsync()
@@ -57,6 +59,7 @@ namespace SshTool.App.Platform
             {
                 SyncApiBaseUrl = parsed.SyncApiBaseUrl,
                 AllowHttp = parsed.AllowHttp,
+                HttpFallback = parsed.HttpFallback,
                 LogLevel = level
             };
         }

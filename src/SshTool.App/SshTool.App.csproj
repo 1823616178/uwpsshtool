@@ -84,13 +84,14 @@
     <DebugType>pdbonly</DebugType>
     <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
   </PropertyGroup>
-  <!-- 调试页入口（SpikePage / RenderSpikePage / TokenGalleryPage）的编译开关。
-       **当前默认全配置开启**：项目还在 Spike 阶段，SP01/SP04/X03… 的 📱 验收都必须在
-       Release 包里做（只有 Release 启用 .NET Native），而在 VS 里点生成不会传命令行参数，
-       默认关掉会出一个「按钮不见了」的包。Q09 打正式发布包时用 -p:EnableDebugPages=false 关掉。
-       （2026-09-18：默认值从「仅 Debug」改为「全开」，原因见上。） -->
+  <!-- 调试页入口（SpikePage / RenderSpikePage / TokenGalleryPage / PerfPage…）与 SshAutoTest
+       无人值守自测的编译开关。
+       **默认只在 Debug 配置开启**（opt/full-pass 安全收口：Release 包不再带调试入口与自动
+       接受主机密钥的 SshAutoTest）。需要在 Release/.NET Native 包里做 📱 性能或 Spike 验收时，
+       显式传 -p:EnableDebugPages=true。 -->
   <PropertyGroup>
-    <EnableDebugPages Condition="'$(EnableDebugPages)'==''">true</EnableDebugPages>
+    <EnableDebugPages Condition="'$(EnableDebugPages)'=='' And '$(Configuration)'=='Debug'">true</EnableDebugPages>
+    <EnableDebugPages Condition="'$(EnableDebugPages)'==''">false</EnableDebugPages>
     <DefineConstants Condition="'$(EnableDebugPages)'=='true'">$(DefineConstants);DEBUG_PAGES</DefineConstants>
     <!-- 让调试页能报出自己跑在哪条工具链上：.NET Native 只在 Release 启用，
          而 SP01 之类的 Spike 结论只在 .NET Native 下才算数（见 doc/ENV.md §5）。 -->
@@ -238,6 +239,9 @@
       <DependentUpon>SpikePage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\Debug\DebugSshDefaults.cs" />
+    <!-- 本机私有测试凭据（.gitignore，不入库）；不存在时 DebugSshDefaults 全为空。 -->
+    <Compile Include="Views\Debug\DebugSshDefaults.local.cs" Condition="Exists('Views\Debug\DebugSshDefaults.local.cs')" />
+    <None Include="Views\Debug\DebugSshDefaults.local.cs.example" />
     <Compile Include="Views\Debug\DebugReport.cs" />
     <Compile Include="Views\Debug\SshAutoTest.cs" />
     <Compile Include="Views\Debug\PlatformSpikePage.xaml.cs">

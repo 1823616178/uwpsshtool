@@ -110,6 +110,29 @@
     <x:Double x:Key="FontTitle">20</x:Double>
     <x:Double x:Key="FontHeader">28</x:Double>
     <x:Double x:Key="WideBreakpoint">720</x:Double>
+    <!-- opt/full-pass 竖屏重设计（doc/PORTRAIT-UI.md）：窗高 ≥560 视为「竖屏/高窗」，
+         启用键条第二行等竖屏增强；手机横屏（窗高 ≈360）自动回到单行紧凑布局。 -->
+    <x:Double x:Key="TallBreakpoint">560</x:Double>
+    <CornerRadius x:Key="RadiusLg">12</CornerRadius>
+    <!-- 卡片外边距：左右与 PagePadding 对齐，上下各 4 让出卡片间 8 的呼吸缝 -->
+    <Thickness x:Key="CardMargin">12,4,12,4</Thickness>
+    <Thickness x:Key="CardListPadding">0,4,0,12</Thickness>
+    <!-- 会话卡片左侧状态色条宽度 -->
+    <x:Double x:Key="CardAccentStripWidth">3</x:Double>
+    <CornerRadius x:Key="CardAccentStripRadius">2</CornerRadius>
+    <Thickness x:Key="CardAccentStripMargin">0,10,0,10</Thickness>
+    <Thickness x:Key="GapMdLeft">12,0,0,0</Thickness>
+    <!-- 搜索/快速连接胶囊容器 -->
+    <Thickness x:Key="PadPillField">4,2,4,2</Thickness>
+    <!-- 键条：底板内边距、双行间缝、第二行键高（比主行矮一档，竖屏多一行仍省高度） -->
+    <Thickness x:Key="KeyBarPad">4,4,4,4</Thickness>
+    <Thickness x:Key="KeyBarRowGap">0,0,0,4</Thickness>
+    <x:Double x:Key="KeyBarExtraRowHeight">34</x:Double>
+    <x:Double x:Key="KeyBarExtraKeyMinWidth">36</x:Double>
+    <!-- 竖屏终端信息条（玻璃悬浮条）高度：比旧紧凑条再收 4 epx，留给终端行 -->
+    <x:Double x:Key="TerminalGlassBarHeight">40</x:Double>
+    <!-- UseSystemAccent 时 AppAccentSoftBrush 的不透明度（ThemeService 读取） -->
+    <x:Double x:Key="AccentSoftOpacity">0.16</x:Double>
     <!-- 05 §6.5：≥1024 宽屏档（AppPageHeader wide 态加大页边距用）。 -->
     <x:Double x:Key="ExtraWideBreakpoint">1024</x:Double>
 

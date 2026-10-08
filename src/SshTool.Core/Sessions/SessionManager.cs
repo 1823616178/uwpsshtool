@@ -894,8 +894,17 @@ namespace SshTool.Core.Sessions
             {
                 pass = await _ui.RunAsync(() => _credentials.PromptPassphraseAsync(key.Name)).ConfigureAwait(false);
             }
+            // 评审（PR #1）：私钥字节数组归调用方所有，认证结束（含异常）后立即清零，
+            // 不让私钥明文在托管堆上多留一份（桥接层在同步阶段已复制到自擦除的 SecretString）。
             byte[] bytes = Encoding.UTF8.GetBytes(pem);
-            return await native.AuthenticatePublicKeyAsync(bytes, pass ?? string.Empty).ConfigureAwait(false);
+            try
+            {
+                return await native.AuthenticatePublicKeyAsync(bytes, pass ?? string.Empty).ConfigureAwait(false);
+            }
+            finally
+            {
+                Array.Clear(bytes, 0, bytes.Length);
+            }
         }
 
         // K03：应用内 agent 认证（01-DESIGN.md §12.1）：

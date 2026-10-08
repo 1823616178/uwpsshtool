@@ -39,7 +39,10 @@ bool readBlobString(const std::vector<uint8_t>& blob, size_t* off,
     const uint32_t l = (static_cast<uint32_t>(p[0]) << 24) |
                        (static_cast<uint32_t>(p[1]) << 16) |
                        (static_cast<uint32_t>(p[2]) << 8) | static_cast<uint32_t>(p[3]);
-    if (*off + 4 + l > blob.size()) {
+    // 不写成 `*off + 4 + l > size`：ARM32/x86 上 size_t 为 32 位，恶意长度
+    // （如 0xFFFFFFF0）会让加法回绕而通过检查，随后越界读。上面已保证
+    // *off + 4 <= size，这里的减法不会下溢。
+    if (l > blob.size() - *off - 4) {
         return false;
     }
     *ptr = p + 4;

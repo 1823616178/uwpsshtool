@@ -22,3 +22,7 @@ artifacts/
 # 第三方源码由 scripts/fetch-third-party.ps1 抓取，不入库（补丁说明除外）
 native/third_party/*
 !native/third_party/PATCHES.md
+
+# 本机私有调试凭据（DebugSshDefaults.local.cs.example 为模板），切勿提交
+src/SshTool.App/Views/Debug/DebugSshDefaults.local.cs
+*.local.cs

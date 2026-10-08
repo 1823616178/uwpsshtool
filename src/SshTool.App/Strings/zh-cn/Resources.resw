@@ -17,6 +17,7 @@
   <data name="Error_206" xml:space="preserve"><value>本机没有可用凭据，请先在保险库中解锁</value></data>
   <data name="Error_301" xml:space="preserve"><value>加密算法协商失败</value></data>
   <data name="Error_302" xml:space="preserve"><value>未知主机密钥，请确认指纹后信任</value></data>
+  <data name="Tunnel_UnknownHostKey" xml:space="preserve"><value>未知主机密钥：请先在终端里连接该主机并确认信任，再启动隧道</value></data>
   <data name="Error_303" xml:space="preserve"><value>主机密钥与记录不匹配，可能存在中间人攻击</value></data>
   <data name="Error_304" xml:space="preserve"><value>SSH 握手失败</value></data>
   <data name="Error_305" xml:space="preserve"><value>SSH 握手超时</value></data>
@@ -1020,6 +1021,7 @@
   <data name="SessionsPivot_Button1.Content" xml:space="preserve"><value>全部恢复</value></data>
   <data name="SessionsPivot_Empty.Title" xml:space="preserve"><value>没有打开的会话</value></data>
   <data name="SessionsPivot_Empty.Description" xml:space="preserve"><value>点主机开始连接。</value></data>
+  <data name="SessionsPivot_CloseButton.AutomationProperties.Name" xml:space="preserve"><value>关闭会话</value></data>
 
   <!-- O13：主机编辑环境变量占位符 -->
   <data name="HostEdit_EnvKeyBox.PlaceholderText" xml:space="preserve"><value>键</value></data>

@@ -53,8 +53,22 @@ namespace SshTool.App.Terminal
         private ISshSession _contentDirtySource;
         private ITerminalScreen _screen;
         private byte[] _cells = new byte[0];
+        // _dirty：自上次 OnDraw 以来累积的脏行（多次 Pull 之间按位或，绘制后清零）；
+        // _dirtyScratch：单次 CopyDirtyRows / ViewportDiff 的输出（原生会覆盖写）。
         private byte[] _dirty = new byte[0];
-        private long _lastRevision = -1;
+        private byte[] _dirtyScratch = new byte[0];
+        private byte[] _viewportScratch = new byte[0];
+        // opt/full-pass：Pull 前取 Revision 快照、Pull 后只提交快照（见 Core RevisionGate）
+        private readonly RevisionGate _revisionGate = new RevisionGate();
+        // 最近一次 Pull 时的整帧状态（单次加锁读出），绘制用它而非逐属性回读原生
+        private TerminalScreenState _paintState;
+        private int _pulledCols;
+        private int _pulledRows;
+        // _cells 与原生网格不再保证同步（新挂屏幕、缓冲重分配、网格尺寸变化）时置 true，
+        // 下一次 offset 0 的 Pull 若没有脏行就整窗 CopyViewport 兜底
+        private bool _needsFullSync = true;
+        // 最近一次 ApplyAppearance 的外观（null = 尚未应用过，用默认外观/Token 色）
+        private AppearanceProfile _appearance;
         private bool _lastBlink = true;
         private bool _fullRedraw = true;
         private bool _registered;
@@ -275,10 +289,9 @@ namespace SshTool.App.Terminal
         }
 
         // W04（01-DESIGN §16.4）：BEL 不一定改动网格（Revision 可能不变），所以每帧比较计数。
-        private void CheckBell()
+        private void CheckBell(TerminalScreenState state)
         {
-            var source = _screen as IBellSource;
-            if (source == null || !_bell.ShouldRing(source.BellCount, BellClock.ElapsedMilliseconds))
+            if (!state.HasBellCount || !_bell.ShouldRing(state.BellCount, BellClock.ElapsedMilliseconds))
             {
                 return;
             }
@@ -423,6 +436,21 @@ namespace SshTool.App.Terminal
                 DispatcherHelper.Post(() => ApplyAppearance(captured));
                 return;
             }
+            // opt/full-pass：缓存最近一次外观。OnLoaded / OnCreateResources（含设备丢失重建）
+            // 原先调用 ApplyTokenColors 把颜色/字号/光标全部重置为默认外观，用户自定义外观
+            // 要等下次显式应用才回来；现在这两处改为重放这份缓存。
+            _appearance = profile;
+            ApplyAppearanceCore(profile);
+            _fullRedraw = true;
+            if (Canvas != null)
+            {
+                Canvas.Invalidate();
+            }
+            FrameScheduler.Instance.Wake();
+        }
+
+        private void ApplyAppearanceCore(AppearanceProfile profile)
+        {
             try
             {
                 _renderer.DefaultFgArgb = TerminalPalette.HexToArgb(profile.Foreground);
@@ -472,12 +500,6 @@ namespace SshTool.App.Terminal
                     Selection.HighlightBrush = null;
                 }
             }
-            _fullRedraw = true;
-            if (Canvas != null)
-            {
-                Canvas.Invalidate();
-            }
-            FrameScheduler.Instance.Wake();
         }
 
         public void ToggleSoftKeyboard()
@@ -537,7 +559,9 @@ namespace SshTool.App.Terminal
             set
             {
                 _screen = value;
-                _lastRevision = -1;
+                _revisionGate.Reset();
+                _needsFullSync = true;
+                _paintState = default(TerminalScreenState);
                 _bell.Reset();
                 _fullRedraw = true;
                 FrameScheduler.Instance.Wake();
@@ -546,7 +570,7 @@ namespace SshTool.App.Terminal
 
         public long LastRevision
         {
-            get { return _lastRevision; }
+            get { return _revisionGate.Consumed; }
         }
 
         public TerminalRenderer Renderer
@@ -619,7 +643,7 @@ namespace SshTool.App.Terminal
             }
             if (!_registered)
             {
-                FrameScheduler.Instance.Register(_schedulerId, OnTick);
+                FrameScheduler.Instance.Register(_schedulerId, OnTick, WantsBlink);
                 _registered = true;
             }
             FrameScheduler.Instance.SetVisible(_schedulerId, _renderingActive);
@@ -684,13 +708,16 @@ namespace SshTool.App.Terminal
 
         private void OnDraw(CanvasControl sender, CanvasDrawEventArgs args)
         {
-            if (_screen == null)
+            TerminalScreenState state = _paintState;
+            if (_screen == null || state.Cols <= 0 || state.Rows <= 0 ||
+                _cells.Length != state.Rows * state.Cols * TerminalCell.BytesPerCell)
             {
                 args.DrawingSession.Clear(ToColor(_renderer.DefaultBgArgb));
                 return;
             }
-            _renderer.Paint(sender, args.DrawingSession, _screen, _cells, _dirty, _fullRedraw, _lastBlink);
+            _renderer.Paint(sender, args.DrawingSession, state, _cells, _dirty, _fullRedraw, _lastBlink);
             _fullRedraw = false;
+            Array.Clear(_dirty, 0, _dirty.Length);
         }
 
         private bool OnTick()
@@ -706,72 +733,153 @@ namespace SshTool.App.Terminal
             bool blink = FrameScheduler.Instance.Core.BlinkOn;
             bool blinkChanged = blink != _lastBlink;
             _lastBlink = blink;
-            if (!_renderer.Focused)
+            if (!WantsBlink())
             {
                 blinkChanged = false;
             }
 
-            CheckBell();
-            bool pulled = false;
-            if (_screen.Revision != _lastRevision)
+            TerminalScreenState state;
+            if (!TerminalScreenState.TryRead(_screen, out state))
             {
-                _pointer.Scroll.OnOutput(_screen.ScrollbackCount);
-                pulled = Pull();
-                _lastRevision = _screen.Revision;
+                // 原生锁正被 Feed 占用：本帧不等锁，返回 true 让 ticker 继续、下一帧再读
+                if (blinkChanged)
+                {
+                    Canvas.Invalidate();
+                }
+                return true;
+            }
+
+            CheckBell(state);
+            bool pulled = false;
+            // Revision 快照取在 Pull 之前；Pull 期间新到的输出让 Revision 继续领先，下一帧必拉
+            if (_revisionGate.NeedsPull(state.Revision))
+            {
+                _pointer.Scroll.OnOutput(state.ScrollbackCount);
+                pulled = Pull(state);
+                _revisionGate.Commit(state.Revision);
             }
             else if (_pointer.Scroll.Offset != _pulledOffset)
             {
-                pulled = Pull();
+                pulled = Pull(state);
             }
-            if (pulled || blinkChanged || _fullRedraw)
+            if (pulled || _fullRedraw)
             {
                 Canvas.Invalidate();
-                return true;
+                return true; // 内容工作：ticker 保持运转
+            }
+            if (blinkChanged)
+            {
+                // 光标闪烁只重画，不算「工作」——否则闪烁会让 ticker 永不进入空闲
+                Canvas.Invalidate();
             }
             return false;
         }
 
+        // opt/full-pass：只有聚焦且开了光标闪烁、且未在回滚浏览时才需要闪烁相位
+        // （FrameScheduler 据此决定 ticker 停下后是否挂 530 ms 闪烁定时器）。
+        private bool WantsBlink()
+        {
+            return _renderingActive && _screen != null && _renderer.Focused && _renderer.CursorBlink &&
+                   !_renderer.SuppressCursor;
+        }
+
+        // 滚动等非帧回调路径：拿不到快照锁就退回逐属性读取（可短暂阻塞，频率低）。
         private bool Pull()
         {
-            int cols = _screen.Cols;
-            int rows = _screen.Rows;
+            if (_screen == null)
+            {
+                return false;
+            }
+            TerminalScreenState state;
+            if (!TerminalScreenState.TryRead(_screen, out state))
+            {
+                state = TerminalScreenState.ReadProperties(_screen);
+            }
+            return Pull(state);
+        }
+
+        private bool Pull(TerminalScreenState state)
+        {
+            int cols = state.Cols;
+            int rows = state.Rows;
             if (cols <= 0 || rows <= 0)
             {
                 return false;
             }
             int cellBytes = rows * cols * TerminalCell.BytesPerCell;
             int dirtyBytes = (rows + 7) / 8;
-            if (_cells.Length != cellBytes)
+            if (_cells.Length != cellBytes || cols != _pulledCols || rows != _pulledRows)
             {
-                _cells = new byte[cellBytes];
+                if (_cells.Length != cellBytes)
+                {
+                    _cells = new byte[cellBytes];
+                }
+                _pulledCols = cols;
+                _pulledRows = rows;
                 _fullRedraw = true;
+                _needsFullSync = true;
             }
             if (_dirty.Length != dirtyBytes)
             {
                 _dirty = new byte[dirtyBytes];
+                _dirtyScratch = new byte[dirtyBytes];
             }
 
             int offset = _pointer.Scroll.Offset;
-            _pointer.Scroll.SetScrollbackCount(_screen.ScrollbackCount);
+            _pointer.Scroll.SetScrollbackCount(state.ScrollbackCount);
             _renderer.SuppressCursor = offset > 0;
             bool changed;
             if (offset == 0)
             {
-                changed = _screen.CopyDirtyRows(_cells, _dirty);
-                if (!changed)
+                if (_pulledOffset != 0)
+                {
+                    // 刚从回滚浏览回到底部（或首次 Pull）：画面里是历史内容，必须整窗重画
+                    _needsFullSync = true;
+                    _fullRedraw = true;
+                }
+                changed = _screen.CopyDirtyRows(_cells, _dirtyScratch);
+                if (changed)
+                {
+                    // CopyDirtyRows 拷的是整张网格，_cells 已完整同步；脏位只决定重画哪些行
+                    OrDirty(_dirty, _dirtyScratch);
+                    _needsFullSync = false;
+                }
+                else if (_needsFullSync)
                 {
                     _screen.CopyViewport(0, _cells);
                     _fullRedraw = true;
+                    _needsFullSync = false;
                     changed = true;
                 }
+                // 否则：Revision 变了但脏行已被上一帧/滚动回调消费（RevisionGate 的重拉），
+                // _cells 已是最新，不必整窗兜底重画
             }
             else
             {
-                _screen.CopyViewport(offset, _cells);
-                _fullRedraw = true;
-                changed = true;
+                if (_viewportScratch.Length != cellBytes)
+                {
+                    _viewportScratch = new byte[cellBytes];
+                }
+                _screen.CopyViewport(offset, _viewportScratch);
+                if (_needsFullSync)
+                {
+                    Buffer.BlockCopy(_viewportScratch, 0, _cells, 0, cellBytes);
+                    _fullRedraw = true;
+                    _needsFullSync = false;
+                    changed = true;
+                }
+                else
+                {
+                    // 回看历史时后台输出不断，但视口被锚定、内容多半不变：逐行比较，只重画变化行
+                    changed = ViewportDiff.Apply(_cells, _viewportScratch, _dirtyScratch, rows, cols) > 0;
+                    if (changed)
+                    {
+                        OrDirty(_dirty, _dirtyScratch);
+                    }
+                }
             }
             _pulledOffset = offset;
+            _paintState = state;
 
             if (_renderer.CellWidth > 0)
             {
@@ -779,6 +887,15 @@ namespace SshTool.App.Terminal
                 Canvas.Height = rows * _renderer.CellHeight;
             }
             return changed;
+        }
+
+        private static void OrDirty(byte[] accumulated, byte[] fresh)
+        {
+            int n = Math.Min(accumulated.Length, fresh.Length);
+            for (int i = 0; i < n; i++)
+            {
+                accumulated[i] |= fresh[i];
+            }
         }
 
         private void OnTapped(object sender, TappedRoutedEventArgs e)
@@ -1405,6 +1522,11 @@ namespace SshTool.App.Terminal
 
         private void ApplyTokenColors()
         {
+            if (_appearance != null)
+            {
+                ApplyAppearanceCore(_appearance);
+                return;
+            }
             _renderer.DefaultFgArgb = BrushArgb("AppTextBrush", TerminalRenderer.FallbackFgArgb);
             _renderer.DefaultBgArgb = BrushArgb("AppBgBrush", TerminalRenderer.FallbackBgArgb);
             _renderer.CursorColor = ToColor(BrushArgb("AppAccentBrush", 0xFF4C8DFF));

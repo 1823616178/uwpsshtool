@@ -147,9 +147,19 @@ namespace SshTool.App.Platform
             {
                 throw new ArgumentNullException(nameof(privateKeyPem));
             }
-            int code = await _native.AuthenticatePublicKeyAsync(privateKeyPem, passphrase)
-                .AsTask().ConfigureAwait(false);
-            return (SshErrorCode)code;
+            // 评审（PR #1）：桥接层在同步阶段就把私钥复制进自擦除的 SecretString，之后不再
+            // 读这块托管数组；这里在 finally 中清零（调用方也会清零，重复清零无害），
+            // 保证无论认证成败/异常，托管侧都不残留私钥明文。约定见 ISshSession。
+            try
+            {
+                int code = await _native.AuthenticatePublicKeyAsync(privateKeyPem, passphrase)
+                    .AsTask().ConfigureAwait(false);
+                return (SshErrorCode)code;
+            }
+            finally
+            {
+                Array.Clear(privateKeyPem, 0, privateKeyPem.Length);
+            }
         }
 
         public async Task<SshErrorCode> AuthenticateKeyboardInteractiveAsync()

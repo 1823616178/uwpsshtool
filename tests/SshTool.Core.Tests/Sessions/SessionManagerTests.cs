@@ -157,6 +157,47 @@ namespace SshTool.Core.Tests.Sessions
         public void Verifier_Unknown_Prompt()
         {
             Assert.Equal(HostKeyVerdictKind.PromptUnknown, HostKeyVerifier.Verify(null, null, SampleKey).Kind);
+            Assert.Equal(HostKeyVerdictKind.PromptUnknown, HostKeyVerifier.Verify(null, string.Empty, SampleKey).Kind);
+        }
+
+        // opt/full-pass：钉住指纹（随同步漫游）与对端不一致、本机又没有 known_hosts 记录时，
+        // 必须按不匹配拒绝，不能退化成首次连接的 TOFU 弹框，也不能写 known_hosts。
+        [Fact]
+        public void Verifier_PinnedFingerprintMismatch_NoKnownHost_RejectMismatch()
+        {
+            HostKeyVerdict v = HostKeyVerifier.Verify(null, "SHA256:pinned-from-sync", SampleKey);
+            Assert.Equal(HostKeyVerdictKind.RejectMismatch, v.Kind);
+            Assert.False(v.WriteKnownHost);
+        }
+
+        // known_hosts 记录优先于钉住指纹：两者冲突时以本机 known_hosts 为准。
+        [Fact]
+        public void Verifier_KnownHostTakesPrecedenceOverPinned()
+        {
+            var known = new KnownHost { FingerprintSha256 = SampleKey.FingerprintSha256 };
+            Assert.Equal(HostKeyVerdictKind.Accept,
+                HostKeyVerifier.Verify(known, "SHA256:stale-pin", SampleKey).Kind);
+        }
+
+        [Fact]
+        public async Task Open_PinnedFingerprintMismatch_ShowsMismatchNotTofu()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            host.HostFingerprint = "SHA256:pinned-from-sync";
+            await fx.Hosts.UpdateAsync(host);
+            fx.Enqueue(ReadySession());
+            fx.HostKeys.AcceptUnknown = true; // 即便用户习惯性点「信任」，也不该有机会
+
+            SessionInfo info = await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+
+            Assert.Equal(SessionUiState.Error, info.State);
+            Assert.Equal(SshErrorCode.HostKeyMismatch, info.ErrorCode);
+            Assert.Equal(1, fx.HostKeys.MismatchCount);
+            Assert.Equal(0, fx.HostKeys.UnknownCount);
+            Assert.Empty(await fx.Known.GetAllAsync());
+            Host saved = await fx.Hosts.GetByIdAsync(host.Id);
+            Assert.Equal("SHA256:pinned-from-sync", saved.HostFingerprint);
         }
 
         [Fact]

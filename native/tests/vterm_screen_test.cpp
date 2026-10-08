@@ -635,3 +635,61 @@ TEST(VtermScreenTest, WideCharContinuationCodepoint)
     EXPECT_EQ(cellAt(b, 0, 0).attrs & kAttrWide, kAttrWide);
     EXPECT_EQ(cellAt(b, 0, 1).codepoint, kWideContinuation);
 }
+
+// ---- opt/full-pass：feed 内 damage 延迟到末尾统一重读 ----
+
+TEST(VtermScreenTest, ManyScrollsInOneFeedLandOnFinalContent)
+{
+    VtermBridge b(10, 4);
+    std::string chunk;
+    for (int i = 0; i < 1000; ++i)
+        chunk += "\x1b[31mL" + std::to_string(i) + "\x1b[0m\r\n";
+    b.feed(chunk);
+    EXPECT_EQ(dumpGridRow(b.grid(), 0), "L997");
+    EXPECT_EQ(dumpGridRow(b.grid(), 1), "L998");
+    EXPECT_EQ(dumpGridRow(b.grid(), 2), "L999");
+    EXPECT_EQ(dumpGridRow(b.grid(), 3), "");
+    EXPECT_EQ(cellAt(b, 2, 0).fgArgb, kPaletteRed); // 属性随最终内容一起重读
+    EXPECT_EQ(cellAt(b, 2, 0).bgArgb, kDefaultBg);
+    for (int r = 0; r < 4; ++r)
+        EXPECT_TRUE(b.grid().isDirty(r)) << r;
+}
+
+TEST(VtermScreenTest, AltScreenRoundTripInsideSingleFeed)
+{
+    VtermBridge b(20, 4);
+    b.feed("MAIN");
+    b.feed("\x1b[?1049h\x1b[HALT\x1b[?1049l");
+    EXPECT_FALSE(b.altScreenActive());
+    EXPECT_EQ(dumpGridRow(b.grid(), 0), "MAIN");
+
+    b.feed("\x1b[?1049h\x1b[HALT");
+    EXPECT_TRUE(b.altScreenActive());
+    EXPECT_EQ(dumpGridRow(b.grid(), 0), "ALT");
+}
+
+TEST(VtermScreenTest, DeferredDamageOnlyDirtiesTouchedRows)
+{
+    VtermBridge b(20, 6);
+    b.feed("\x1b[1;1Hone\x1b[3;1Hthree");
+    b.grid().clearDirty();
+    b.feed("\x1b[5;3Hxy\x1b[5;10Hz");
+    // 第 3 行是光标原位置（onMoveCursor 会标脏光标离开的行），不在断言范围内
+    for (int r : {0, 1, 3, 5})
+        EXPECT_FALSE(b.grid().isDirty(r)) << r;
+    EXPECT_TRUE(b.grid().isDirty(4));
+    EXPECT_EQ(dumpGridRow(b.grid(), 4), "  xy     z");
+    EXPECT_EQ(dumpGridRow(b.grid(), 2), "three");
+}
+
+TEST(VtermScreenTest, ResizeBetweenFeedsKeepsDeferredPathConsistent)
+{
+    VtermBridge b(10, 4);
+    b.feed("A\r\nB\r\nC\r\nD");
+    b.resize(12, 2);
+    b.feed("\r\nE");
+    EXPECT_EQ(dumpGridRow(b.grid(), 1), "E");
+    b.resize(12, 6);
+    b.feed("\r\nF");
+    EXPECT_NE(dumpGridRow(b.grid(), b.cursorRow()).find('F'), std::string::npos);
+}

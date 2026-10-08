@@ -32,11 +32,12 @@ namespace SshTool.App.ViewModels.Sync
         // SubmitAsync 全程不 ConfigureAwait(false)，成功续体回到 UI 线程。
         public event EventHandler LoginSucceeded;
 
-        public LoginViewModel(SyncCoordinator sync, string defaultDeviceName, string apiBaseUrl, bool allowHttp)
+        public LoginViewModel(SyncCoordinator sync, string defaultDeviceName, string apiBaseUrl, bool allowHttp,
+                              bool httpFallback = false)
         {
             _sync = sync;
             _deviceName = defaultDeviceName ?? string.Empty;
-            ShowHttpBanner = IsInsecureHttp(apiBaseUrl, allowHttp);
+            ShowHttpBanner = IsInsecureHttp(apiBaseUrl, allowHttp, httpFallback);
             SubmitCommand = new AsyncCommand(SubmitAsync, CanSubmit, OnSubmitError);
         }
 
@@ -288,14 +289,20 @@ namespace SshTool.App.ViewModels.Sync
             return fallback;
         }
 
-        internal static bool IsInsecureHttp(string baseUrl, bool allowHttp)
+        // opt/full-pass：https + httpFallback 时也可能落到明文（服务器无 TLS 会自动降级），
+        // 同样提示风险。
+        internal static bool IsInsecureHttp(string baseUrl, bool allowHttp, bool httpFallback = false)
         {
             if (!allowHttp || string.IsNullOrWhiteSpace(baseUrl))
             {
                 return false;
             }
             string trimmed = baseUrl.Trim();
-            return trimmed.StartsWith("http:", StringComparison.OrdinalIgnoreCase);
+            if (trimmed.StartsWith("http:", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            return httpFallback && trimmed.StartsWith("https:", StringComparison.OrdinalIgnoreCase);
         }
 
         private void LogInfo(string message)

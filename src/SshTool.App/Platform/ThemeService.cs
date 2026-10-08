@@ -165,6 +165,12 @@ namespace SshTool.App.Platform
                         Application.Current.Resources["KeyBarKeyActiveBrush"] =
                             new SolidColorBrush(keyFallback.Color);
                     }
+                    SolidColorBrush softFallback = FindThemedBrush("AppAccentSoftBrush", theme);
+                    if (softFallback != null)
+                    {
+                        Application.Current.Resources["AppAccentSoftBrush"] =
+                            new SolidColorBrush(softFallback.Color);
+                    }
                     return;
                 }
                 if (!ApiInformation.IsTypePresent("Windows.UI.ViewManagement.UISettings"))
@@ -177,10 +183,19 @@ namespace SshTool.App.Platform
                     Application.Current.Resources[key] = new SolidColorBrush(accent);
                 }
                 Application.Current.Resources["KeyBarKeyActiveBrush"] = new SolidColorBrush(accent);
+                // opt/full-pass：竖屏重设计的强调色叠层跟随系统强调色（不透明度取 Token）
+                Application.Current.Resources["AppAccentSoftBrush"] =
+                    new SolidColorBrush(accent) { Opacity = AccentSoftOpacity() };
             }
             catch (Exception)
             {
             }
+        }
+
+        private static double AccentSoftOpacity()
+        {
+            object value = Application.Current.Resources["AccentSoftOpacity"];
+            return value is double ? (double)value : 0.16;
         }
 
         // 有效主题键：跟随系统时取 Application.RequestedTheme（本应用从不覆盖它，即系统主题）。

@@ -138,4 +138,19 @@ namespace SshTool.App.Views.Main
             throw new NotSupportedException();
         }
     }
+
+    // opt/full-pass 竖屏重设计：会话卡片状态色条 / 状态文字颜色（键映射在 Core SessionStateVisuals）。
+    public sealed class SessionStateBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            SessionUiState state = value is SessionUiState ? (SessionUiState)value : SessionUiState.Disconnected;
+            return SshTool.App.Controls.Banner.ResolveThemedBrush(SessionStateVisuals.BrushKey(state));
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new NotSupportedException();
+        }
+    }
 }

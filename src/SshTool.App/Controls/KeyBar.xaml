@@ -5,9 +5,31 @@
     AllowFocusOnInteraction="False"
     IsTabStop="False">
 
-    <!-- T10：02-UI-DESIGN.md §5.6。键在代码里按布局字符串生成；右侧固定收起键盘。 -->
-    <Grid Background="{ThemeResource KeyBarBgBrush}"
-          Height="{StaticResource KeyBarHeight}">
+    <!-- T10：02-UI-DESIGN.md §5.6。键在代码里按布局字符串生成；右侧固定收起键盘。
+         opt/full-pass 竖屏重设计（doc/PORTRAIT-UI.md）：底板改纵向渐变 + 键帽渐变/发丝描边；
+         新增第二行（ExtraRow，ShowExtraRow=True 时显示，由 TerminalPage 的 TallState 打开），
+         放 SIP 需切符号页才有的字符（KeyBarLayout.ExtraRowFor 去重主行）。
+         外层高度随行数变化，TerminalPage.UpdateKeyBarLift 读 ActualHeight，无需改动。 -->
+    <Grid Background="{ThemeResource KeyBarGradientBrush}"
+          Padding="{StaticResource KeyBarPad}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ScrollViewer x:Name="KeysExtraScroller"
+                      Grid.Row="0"
+                      Visibility="Collapsed"
+                      Margin="{StaticResource KeyBarRowGap}"
+                      AllowFocusOnInteraction="False"
+                      IsTabStop="False"
+                      HorizontalScrollBarVisibility="Hidden"
+                      VerticalScrollBarVisibility="Disabled"
+                      HorizontalScrollMode="Enabled"
+                      VerticalScrollMode="Disabled">
+            <StackPanel x:Name="KeysExtraPanel" Orientation="Horizontal"
+                        AllowFocusOnInteraction="False" />
+        </ScrollViewer>
+    <Grid Grid.Row="1" Height="{StaticResource KeyBarHeight}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" />
@@ -40,10 +62,12 @@
                 Height="{StaticResource KeyBarHeight}"
                 Padding="{StaticResource PadNone}"
                 Margin="{StaticResource GapSmLeft}"
-                Background="{ThemeResource KeyBarKeyBrush}"
+                Background="{ThemeResource KeyBarKeyIdleBrush}"
                 Foreground="{ThemeResource AppTextBrush}"
-                BorderThickness="{StaticResource BorderNone}">
+                BorderBrush="{ThemeResource KeyBarKeyStrokeBrush}"
+                BorderThickness="{StaticResource BorderThin}">
             <FontIcon Glyph="{StaticResource IconKeyboard}" FontSize="{StaticResource FontBody}" />
         </Button>
+    </Grid>
     </Grid>
 </UserControl>

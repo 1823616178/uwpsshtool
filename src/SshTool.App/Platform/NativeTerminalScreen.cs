@@ -4,9 +4,11 @@ using NativeBridge = SshTool.Native.Bridge;
 namespace SshTool.App.Platform
 {
     // T03：ITerminalScreen 的原生适配。
-    public sealed class NativeTerminalScreen : ITerminalScreen, IBellSource
+    public sealed class NativeTerminalScreen : ITerminalScreen, IBellSource, ITerminalStateSource
     {
         private readonly NativeBridge.TerminalScreen _native;
+        // opt/full-pass：TryReadState 复用的槽位缓冲（每帧一次，避免 GC 抖动）
+        private readonly long[] _stateSlots = new long[TerminalScreenState.SlotCount];
 
         public NativeTerminalScreen(NativeBridge.TerminalScreen native)
         {
@@ -34,6 +36,19 @@ namespace SshTool.App.Platform
                 return false;
             }
             return _native.CopyDirtyRows(rowsOut, dirtyOut);
+        }
+
+        public bool TryReadState(out TerminalScreenState state)
+        {
+            lock (_stateSlots)
+            {
+                if (!_native.TryReadState(_stateSlots))
+                {
+                    state = default(TerminalScreenState);
+                    return false;
+                }
+                return TerminalScreenState.TryDecode(_stateSlots, out state);
+            }
         }
 
         public void CopyViewport(int offset, byte[] rowsOut)

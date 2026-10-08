@@ -7,6 +7,7 @@ namespace SshTool.Core.Common
     {
         public string SyncApiBaseUrl { get; set; }
         public bool AllowHttp { get; set; }
+        public bool HttpFallback { get; set; }
         public string LogLevel { get; set; }
         public List<string> Warnings { get; } = new List<string>();
     }
@@ -15,8 +16,12 @@ namespace SshTool.Core.Common
     // 注意：不包含任何服务端密钥（01-DESIGN.md §12.3）。
     public static class AppConfigParser
     {
-        public const string DefaultSyncApiBaseUrl = "http://123.161.179.32:46926";
+        // opt/full-pass：默认 https。现网服务器尚未上 TLS，所以同时默认允许 HTTP 并开启
+        // httpFallback（https 传输层失败时降级到同地址 http，见 ApiClient）。服务器支持
+        // TLS 后把 appconfig 里的 allowHttp / httpFallback 改成 false 即可强制 HTTPS。
+        public const string DefaultSyncApiBaseUrl = "https://123.161.179.32:46926";
         public const bool DefaultAllowHttp = true;
+        public const bool DefaultHttpFallback = true;
         public const string DefaultLogLevel = "info";
 
         private static readonly HashSet<string> ValidLogLevels =
@@ -28,6 +33,7 @@ namespace SshTool.Core.Common
             {
                 SyncApiBaseUrl = DefaultSyncApiBaseUrl,
                 AllowHttp = DefaultAllowHttp,
+                HttpFallback = DefaultHttpFallback,
                 LogLevel = DefaultLogLevel
             };
 
@@ -69,6 +75,19 @@ namespace SshTool.Core.Common
             else
             {
                 result.Warnings.Add("appconfig 缺 allowHttp，使用默认值 " + DefaultAllowHttp);
+            }
+
+            // httpFallback 是 opt/full-pass 新增的可选键：缺省静默取默认值，不记警告
+            if (obj.TryGetValue("httpFallback", System.StringComparison.OrdinalIgnoreCase, out token))
+            {
+                if (token.Type == JTokenType.Boolean)
+                {
+                    result.HttpFallback = (bool)token;
+                }
+                else
+                {
+                    result.Warnings.Add("appconfig 的 httpFallback 不是布尔值，使用默认值 " + DefaultHttpFallback);
+                }
             }
 
             if (obj.TryGetValue("logLevel", System.StringComparison.OrdinalIgnoreCase, out token)

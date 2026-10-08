@@ -242,7 +242,11 @@ namespace SshTool.App.Infrastructure
             VaultCache = new VaultCacheStore(new DpapiSecureFile(root, VaultCacheStore.RelativePath), Logger);
             ServiceRegistry.Register(VaultCache);
             SyncApi = new ApiClient(
-                AppConfig.Current.SyncApiBaseUrl, Auth, new UwpHttpTransport(), AppConfig.Current.AllowHttp);
+                AppConfig.Current.SyncApiBaseUrl, Auth, new UwpHttpTransport(), AppConfig.Current.AllowHttp,
+                httpFallback: AppConfig.Current.HttpFallback);
+            // https → http 降级只记一行日志（不含任何凭据），便于真机排查「为何仍是明文」。
+            SyncApi.HttpFallbackActivated += (s, e) => Logger.Log(
+                LogLevel.Warning, "SyncApi", "HTTPS 不可用，已降级为明文 HTTP（服务器未启用 TLS？）");
             ServiceRegistry.Register(SyncApi);
             SyncLocal = new SyncLocalAdapter(Hosts, Groups, Tunnels, Keys, Secrets, TunnelManager);
             ServiceRegistry.Register(SyncLocal);

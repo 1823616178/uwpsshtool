@@ -22,7 +22,10 @@ namespace SshTool.App
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+#if DEBUG_PAGES
+            // SshAutoTest 会自动接受主机密钥，只允许在调试构建里存在（opt/full-pass）。
             this.Resuming += OnResumingCheckSeed;
+#endif
             this.UnhandledException += OnUnhandledException;
         }
 
@@ -43,7 +46,9 @@ namespace SshTool.App
                 Platform.AppLockService.Instance.OnColdStart();
             }
 
-            var ignoreAutoTest = Views.Debug.SshAutoTest.RunIfSeedPresentAsync();
+#if DEBUG_PAGES
+            Views.Debug.SshAutoTest.RunIfSeedPresentAsync().Forget("App.RunIfSeedPresent", AppLog.Logger);
+#endif
         }
 
         // W03：ssh:// 协议激活；W04：点断线通知。冷启动或运行中都会走这里。
@@ -174,10 +179,12 @@ namespace SshTool.App
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
         }
 
+#if DEBUG_PAGES
         private void OnResumingCheckSeed(object sender, object e)
         {
             Views.Debug.SshAutoTest.RunIfSeedPresentAsync().Forget("App.RunIfSeedPresent", AppLog.Logger);
         }
+#endif
 
         private async void OnSuspending(object sender, SuspendingEventArgs e)
         {

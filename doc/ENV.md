@@ -89,7 +89,7 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\LocalState\logs"
 - native C/C++ 源码一律 UTF-8（无 BOM）；MSVC 工程必须加 `/utf-8`（已在 native/tests CMakeLists 设置），否则 GBK 区域下报 C4819 且可能吞字符导致诡异编译错误。
 - pwsh 脚本在 Git Bash 里 `| tail` 时退出码被 tail 覆盖，验证脚本退出码需 `set -o pipefail`。
 - **VS 里构建报 `ilc.exe 未能运行……ilclog.csv 正由另一进程使用`（LoggerBasedExecTask）**：命令行构建与 VS 撞同一配置。MSBuild 默认 **node reuse**，命令行构建结束后仍留常驻 `MSBuild.exe` 节点攥着 `obj\<Plat>\Release\ilc\` 下的文件，VS 再构建同一配置即被占用（.NET Native 的 ilc 尤其明显）。处置：命令行一律加 `-nr:false`（`scripts/verify.ps1` 已全部加上，2026-09-18）；已中招则 `Get-Process MSBuild | Stop-Process -Force`（别杀 devenv）+ 删 `obj\<Plat>\Release\ilc` 后重建。另：同一配置不要 VS 与命令行同时构建。
-- **Release 包里没有调试页入口（按钮不见了）**：入口编译开关是 `DEBUG_PAGES`（csproj 的 `EnableDebugPages`）。**2026-09-18 起默认全配置开启**——此前默认只在 Debug 开，而在 VS 里点「生成」不会传命令行参数，出来的 ARM Release 包 MainPage 三个按钮全 `Collapsed`，人会以为是包没装上。Q09 打正式发布包时用 `-p:EnableDebugPages=false` 关掉。注意：Spike 的 📱 验收必须在 Release 包做，**只有 Release 才 `UseDotNetNativeToolchain=true`**，Debug（含 ARM Debug）走 CoreCLR。
+- **Release 包里没有调试页入口（按钮不见了）**：入口编译开关是 `DEBUG_PAGES`（csproj 的 `EnableDebugPages`）。**2026-10-08（opt/full-pass）起恢复为默认只在 Debug 开**（安全收口：Release 包不再带调试入口、`DebugSshDefaults` 与会自动接受主机密钥的 `SshAutoTest`）。Release/.NET Native 下做 📱 Spike/性能验收时显式传 `-p:EnableDebugPages=true`，否则 MainPage 的调试按钮是 `Collapsed`，别误以为包没装上。调试页默认的测试服务器凭据放在本机私有的 `src/SshTool.App/Views/Debug/DebugSshDefaults.local.cs`（已 .gitignore，模板 `DebugSshDefaults.local.cs.example`），不再写进源码。注意：Spike 的 📱 验收必须在 Release 包做，**只有 Release 才 `UseDotNetNativeToolchain=true`**，Debug（含 ARM Debug）走 CoreCLR。
 - **装了新包却像没更新**：所有构建都叫 `0.1.0.0` 时，同版本号旁加载可能不替换旧包，界面上也分不出跑的是哪次构建。处置：每出一次真机包先 `pwsh scripts/bump-version.ps1`（改 `Package.appxmanifest` 的修订号）；MainPage 现在直接显示 `v0.1.0.x | ARM Release | .NET Native`，一眼可辨。
 - **真机加载某个 XAML 时 `XamlParseException 0x802B000A`（Failed to assign to property …）**：该属性的 API 契约高于 `TargetPlatformMinVersion=15063`（contract 4.0）。首例：`Controls/Banner.xaml` 的 `Grid.ColumnSpacing`（需 contract 5.0 / 1709）。XAML 里无法用 `ApiInformation` 守卫，只能换等价写法——列/行间距改用子元素 `Margin`（token `GapSmLeft`）。编译期其实有 `WMC0151` 警告，但只是警告，且桌面 x64 （19041）跑起来不崩，只在 W10M 真机上炸，所以 `scripts/verify.ps1` 步骤⑤ 已把 WMC0151 升级为门禁失败（2026-09-18 加入，并用临时改回 `ColumnSpacing` 实测能拦住）。
 - **运行到激活 `SshTool.Native` 时 `FileNotFoundException 0x8007007E`（找不到指定的模块）**：不是 winmd/DLL 缺失（`SshTool.Native.dll` 一直在包里），而是缺 C++ 运行时框架依赖。Native 以裸 `<Reference>` 引 winmd（非 ProjectReference），MSBuild 不会自动注入 VCLibs，三个配置的 AppxManifest 都没有 `Microsoft.VCLibs.140.00[.Debug]` 依赖（Debug 侧 DLL 导入 `vccorlib140d_app.dll`/`MSVCP140D_APP.dll`/`VCRUNTIME140D_APP.dll`/`ucrtbased.dll`，Release 侧同名非 d 版）。修法（2026-09-18，App csproj 两处）：① 显式 `<SDKReference Include="Microsoft.VCLibs, Version=14.0" />`；② `<AppxExcludeArmFrameworkSdkPackagesFromLayout>false</...>`——VS2026 该属性默认 `true`（ARM32 已被其放弃），会把 ARM 框架包排除出 `_Test\Dependencies\`，真机旁加载时装不上 VCLibs。实测三配置的 manifest 依赖与 `Dependencies\arm\` 均已补齐（ARM Release 之前同样缺，真机装了也会崩）。
@@ -229,18 +229,18 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\LocalState\logs"
 
 ---
 
-## 12. SSH 调试默认连接参数（2026-09-19）
+## 12. SSH 调试默认连接参数（2026-09-19，2026-10-08 改为本机私有）
 
-SP03、SP06、N10 三个调试页面以及 `ssh-autotest.json` 缺省解析统一使用：
+SP03、SP06、N10 三个调试页面以及 `ssh-autotest.json` 缺省解析统一读
+`src/SshTool.App/Views/Debug/DebugSshDefaults.cs` 暴露的默认值；**具体主机 / 用户 / 密码
+不再入库**，而是写在本机私有文件 `DebugSshDefaults.local.cs`（已 .gitignore）：
 
-| 参数 | 默认值 |
-|---|---|
-| 主机 | `192.168.1.25` |
-| 端口 | `22` |
-| 用户 | `sun` |
-| 密码 | `550312171` |
+1. 复制同目录的 `DebugSshDefaults.local.cs.example` 为 `DebugSshDefaults.local.cs`；
+2. 在 `LoadLocal(...)` 里填自己的测试服务器（密码建议留空，在调试页手动输入）；
+3. csproj 只在该文件存在时把它编译进来；不存在时默认值全为空、端口 22。
 
-代码事实来源为 `src/SshTool.App/Views/Debug/DebugSshDefaults.cs`。页面里已保存到
-`LocalSettings` 的主机、端口、用户仍优先；密码不写 `LocalSettings`、日志或报告，
-每次新建调试页面时从上述开发默认值填入。这里是局域网测试凭据，已按调试便利性要求
-明文进入源码、文档与 Git 历史，不能复用于生产环境。
+页面里已保存到 `LocalSettings` 的主机、端口、用户仍优先；密码不写 `LocalSettings`、日志或报告。
+
+> ⚠️ 2026-09-19 ～ 2026-10-08 期间曾把一组局域网测试凭据明文写进源码与本文，
+> 它们仍留在 Git 历史里（本次未改写历史）。**该测试机密码必须视为已泄露并立即更换**，
+> 其他复用了同一密码的地方一并更换。

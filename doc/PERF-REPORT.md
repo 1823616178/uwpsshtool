@@ -30,8 +30,8 @@
 ## 2. 场景操作指南（真机）
 
 前置：**Release/ARM 包**（.NET Native 才算数，见 doc/ENV.md），侧载后从
-主页 ⋯ 溢出菜单 →「开发工具」（DevToolsPage，DEBUG_PAGES 门控，默认开；
-Q09 正式包才会关）→「Q01 性能基准」进入。叠加读数每 500 ms 刷新：
+主页 ⋯ 溢出菜单 →「开发工具」（DevToolsPage，DEBUG_PAGES 门控；opt/full-pass 起 Release 默认关，
+采数包需 `-p:EnableDebugPages=true`）→「Q01 性能基准」进入。叠加读数每 500 ms 刷新：
 `tick x/s | 实绘 x/s | 帧 x ms | 喂 x ms/帧 | 内存 xMB`。
 
 口径（与报告文件头部一致）：
@@ -75,6 +75,8 @@ Q09 正式包才会关）→「Q01 性能基准」进入。叠加读数每 500 m
 （待真机：逐行对比 §15 目标；不达标项给出剖析与原因；优化提交记录在此追加）
 ```
 
+- 采数前置（opt/full-pass 修订）：DEBUG_PAGES 仅 Debug 默认开启；判定用的 Release/ARM 包须以
+  `-p:EnableDebugPages=true` 构建，才有「开发工具 → Q01 性能基准」入口（§2）。
 - 已知口径限制（真机数据解读时注意）：
   - `tick/s` 含本页 FPS 叠加自身的 Rendering 订阅底噪；判定 30 fps 目标看 `draw/s` 与 `帧 avg/max`；
   - 场景①②③的喂入节奏为「每 16 ms 一块」，模拟 `cat` 的持续流；喂入耗时（`喂`）与渲染并行，
@@ -117,5 +119,17 @@ native 资源计数（Q02 新增 `NativeInfo.DiagCounters()`，实现在
 - 2026-09-21：Q01 代码任务完成核验——PerfPage 六场景/FPS 叠加/内存读数/报告落盘
   均已实现并随 verify 全绿构建；页面引用的 token 与 API（FeedBytes/ResizeGrid/
   ScrollbackCount/FrameSchedulerCore.IsRunning/HostsPivot.Attach/DebugReport.*）
-  逐一核对存在，入口经 DevToolsPage（DEBUG_PAGES 默认开，Release 可用）。📱
+  逐一核对存在，入口经 DevToolsPage（当时 DEBUG_PAGES 默认开、Release 可用；
+  **opt/full-pass 起改为仅 Debug 默认开，Release 采数包须显式 `-p:EnableDebugPages=true`**，见 §2）。📱
   数据采集指南见 §2，真机回填后按 §4 判定并追加针对性优化。
+- 2026-10-08（opt/full-pass，Linux x64 本地验证，真机数据仍待回填）：
+  - libvterm 损伤合并：一次 feed 内的滚动/改写只在 feed 结束时按行列范围 flush 一次
+    （`VtermBridge::feed` 内 `inFeed_` + RAII 复位，行级 damage 列区间）。x64 基准 `bench_bridge`（48×30，
+    1000 次 feed、共 20 万行）由 4394 ms 降到 317 ms；新增 4 个 gtest 且在 main 实现上同样通过（行为不变）。
+  - 光标闪烁与帧率解耦：`FrameSchedulerCore` 闪烁翻转不再按 tick 计数，空闲时停掉帧循环、
+    改用一次性 `IBlinkTimer`（DispatcherTimer）定时唤醒；60/50/30 fps 下闪烁周期一致（单测覆盖）。
+  - 修复修订号竞态：TerminalView 先抓 `TerminalScreenState` 快照（含 revision）再拉行，
+    `RevisionGate` 只在快照之后推进，避免「拉取期间新写入被当成已绘制」。
+  - 注意：DevToolsPage/PerfPage 入口改为仅 Debug 构建默认可用（`EnableDebugPages` 默认只在 Debug 为 true）。
+    采数口径不变——仍须 **Release/ARM（.NET Native）** 包（Debug 包数据不作数），构建 Release 采数包时显式加
+    `-p:EnableDebugPages=true`，否则主页溢出菜单里没有「开发工具」入口。

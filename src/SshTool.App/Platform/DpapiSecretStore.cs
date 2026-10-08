@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+using SshTool.App.Infrastructure;
+using SshTool.Core.Common;
 using SshTool.Core.Storage;
 
 namespace SshTool.App.Platform
@@ -145,31 +145,25 @@ namespace SshTool.App.Platform
             {
                 return;
             }
-            _map = new Dictionary<string, string>(StringComparer.Ordinal);
-            byte[] raw = await _file.ReadAsync().ConfigureAwait(false);
-            if (raw != null && raw.Length > 0)
-            {
-                string json = Encoding.UTF8.GetString(raw, 0, raw.Length);
-                JObject obj = JsonText.ParseObject(json);
-                foreach (JProperty property in obj.Properties())
-                {
-                    if (property.Value != null && property.Value.Type == JTokenType.String)
-                    {
-                        _map[property.Name] = (string)property.Value;
-                    }
-                }
-            }
+            // opt/full-pass：内容损坏时隔离并从空表开始（SecretMapCodec）；解密失败由
+            // DpapiSecureFile.ReadAsync 隔离后返回空。旧实现两种情况都每次抛异常，
+            // 所有依赖凭据的功能永久不可用。
+            _map = await SecretMapCodec.LoadAsync(_file, Warn).ConfigureAwait(false);
             _loaded = true;
+        }
+
+        private static void Warn(string message)
+        {
+            ILogger log = AppLog.Logger;
+            if (log != null)
+            {
+                log.Log(LogLevel.Warning, "Secrets", message);
+            }
         }
 
         private async Task PersistAsync()
         {
-            var obj = new JObject();
-            foreach (KeyValuePair<string, string> pair in _map)
-            {
-                obj[pair.Key] = pair.Value;
-            }
-            byte[] utf8 = Encoding.UTF8.GetBytes(obj.ToString(Newtonsoft.Json.Formatting.None));
+            byte[] utf8 = SecretMapCodec.Serialize(_map);
             await _file.WriteAsync(utf8).ConfigureAwait(false);
         }
 

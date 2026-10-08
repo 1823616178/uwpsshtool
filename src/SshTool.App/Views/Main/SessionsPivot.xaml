@@ -9,6 +9,7 @@
          英文枚举名甩到屏幕上；改走转换器出中文（说法与 StatusDot 无障碍名一致）。 -->
     <UserControl.Resources>
         <local:SessionStateTextConverter x:Key="SessionStateText" />
+        <local:SessionStateBrushConverter x:Key="SessionStateBrush" />
     </UserControl.Resources>
 
     <Grid>
@@ -16,8 +17,10 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Border x:Name="RestoreCard" Background="{ThemeResource AppSurfaceAltBrush}"
-                Padding="{StaticResource PadMd}" Margin="{StaticResource PagePadding}"
+        <!-- opt/full-pass 竖屏重设计：恢复提示改卡片材质（强调色叠层底），与会话卡片同圆角。 -->
+        <Border x:Name="RestoreCard" Style="{StaticResource CardBorderStyle}"
+                Background="{ThemeResource AppAccentSoftBrush}"
+                Padding="{StaticResource PadCard}"
                 Visibility="Collapsed">
             <StackPanel>
                 <TextBlock x:Name="RestoreText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
@@ -33,28 +36,70 @@
                     <EntranceThemeTransition />
                 </TransitionCollection>
             </Grid.ChildrenTransitions>
+            <!-- opt/full-pass 竖屏重设计：会话卡片——左侧状态色条（连接中/已连接/错误 一眼可辨，
+                 文字状态仍保留，不只靠颜色）+ 终端字形强调色方块 + 标题/状态 + 关闭圆钮。
+                 系统悬停/按压/选中底色改透明，由卡片自身表达；条目进场错峰、增删位移动画。 -->
             <ListView x:Name="SessionList" SelectionMode="Single"
+                      ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                      Padding="{StaticResource CardListPadding}"
                       IsItemClickEnabled="True" ItemClick="OnItemClick">
+                <ListView.Resources>
+                    <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="SystemControlHighlightListAccentMediumBrush" Color="Transparent" />
+                </ListView.Resources>
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition IsStaggeringEnabled="True" />
+                        <AddDeleteThemeTransition />
+                        <RepositionThemeTransition />
+                    </TransitionCollection>
+                </ListView.ItemContainerTransitions>
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <Grid Padding="{StaticResource PagePadding}" MinHeight="{StaticResource ListRowCompactHeight}">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}" />
-                                <TextBlock Text="{Binding State, Converter={StaticResource SessionStateText}}"
-                                           Style="{StaticResource CaptionTextStyle}" />
-                            </StackPanel>
-                            <!-- UI 走查：✕ 换 IconClose 字形（Segoe MDL2），补触控与无障碍名。 -->
-                            <Button Grid.Column="1" Click="OnCloseClick" Tag="{Binding}"
-                                    AutomationProperties.Name="关闭会话"
-                                    MinWidth="{StaticResource TouchTargetMin}"
-                                    MinHeight="{StaticResource TouchTargetMin}">
-                                <FontIcon Glyph="{StaticResource IconClose}" />
-                            </Button>
-                        </Grid>
+                        <Border Style="{StaticResource CardBorderStyle}"
+                                MinHeight="{StaticResource ListRowHeight}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border Width="{StaticResource CardAccentStripWidth}"
+                                        CornerRadius="{StaticResource CardAccentStripRadius}"
+                                        Margin="{StaticResource CardAccentStripMargin}"
+                                        Background="{Binding State, Converter={StaticResource SessionStateBrush}}" />
+                                <Border Grid.Column="1"
+                                        Width="{StaticResource AvatarSize}"
+                                        Height="{StaticResource AvatarSize}"
+                                        CornerRadius="{StaticResource RadiusMd}"
+                                        Background="{ThemeResource AppAccentSoftBrush}"
+                                        Margin="{StaticResource GapSmLeft}"
+                                        VerticalAlignment="Center">
+                                    <FontIcon Glyph="{StaticResource IconTerminal}"
+                                              FontSize="{StaticResource FontBody}"
+                                              Foreground="{ThemeResource AppAccentBrush}" />
+                                </Border>
+                                <StackPanel Grid.Column="2" VerticalAlignment="Center"
+                                            Margin="{StaticResource GapMdLeft}">
+                                    <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}"
+                                               TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                                    <TextBlock Text="{Binding State, Converter={StaticResource SessionStateText}}"
+                                               Foreground="{Binding State, Converter={StaticResource SessionStateBrush}}"
+                                               Style="{StaticResource CaptionTextStyle}" />
+                                </StackPanel>
+                                <!-- UI 走查：✕ 换 IconClose 字形（Segoe MDL2），补触控；无障碍名走 resw。 -->
+                                <Button Grid.Column="3" x:Uid="SessionsPivot_CloseButton"
+                                        Click="OnCloseClick" Tag="{Binding}"
+                                        Style="{StaticResource IconButtonStyle}"
+                                        Margin="{StaticResource GapSmRight}"
+                                        VerticalAlignment="Center">
+                                    <FontIcon Glyph="{StaticResource IconClose}" FontSize="{StaticResource FontBody}" />
+                                </Button>
+                            </Grid>
+                        </Border>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>

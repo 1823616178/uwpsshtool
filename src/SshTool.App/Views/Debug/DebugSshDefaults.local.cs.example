@@ -1,0 +1,15 @@
+// 复制为同目录下的 DebugSshDefaults.local.cs（已被 .gitignore 忽略，切勿提交），
+// 填入你自己的测试服务器。只影响 DEBUG_PAGES 调试页与 SshAutoTest 的默认值。
+namespace SshTool.App.Views.Debug
+{
+    internal static partial class DebugSshDefaults
+    {
+        static partial void LoadLocal(ref string host, ref int port, ref string user, ref string password)
+        {
+            host = "192.0.2.10";   // 示例地址（TEST-NET-1），改成你的局域网测试机
+            port = 22;
+            user = "tester";
+            password = "";         // 建议留空，在调试页手动输入
+        }
+    }
+}

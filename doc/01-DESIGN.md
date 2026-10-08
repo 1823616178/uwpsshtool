@@ -50,7 +50,7 @@ Windows 10 Mobile 原生 UWP SSH 终端：**C# / XAML 界面 + C++/CX 原生核�
 | UWP 包 | `Microsoft.NETCore.UniversalWindowsPlatform` **6.2.14**（SP01 已结：真机 .NET Native 运行通过，**无需退 5.4.x**） | 版本号写入 `Directory.Build.props` 统一管理 |
 | 部署 | 手机开「开发人员模式」→ USB 或 Wi-Fi；`WinAppDeployCmd.exe install -file x.appx -ip <phone> -pin <pin>` | 依赖包（VCLibs、.NET Native Runtime/Framework ARM）一并安装 |
 | 测试 | `dotnet test`（Core 纯逻辑，宿主机 net8）；CMake + GoogleTest（native 纯 C++，宿主机 x64 MSVC）；真机手工验收清单 | 让绝大部分逻辑不依赖真机就能自证 |
-| 同步测试服务器 | `http://123.161.179.32:46926`（客户端自动拼 `/api/v1`） | 与鸿蒙端一致；明文 HTTP 风险见 §12.3 |
+| 同步测试服务器 | 配置默认 `https://123.161.179.32:46926`（客户端自动拼 `/api/v1`）；该服务器目前**未启用 TLS**，靠 `httpFallback` 降级到 `http://` 同地址 | 与鸿蒙端一致；明文 HTTP 风险见 §12.3 |
 
 ---
 
@@ -707,7 +707,14 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
       └ HostKeyCheck 事件：
           KnownHost 有记录：一致 → Accept；不一致 → Reject → 错误 303 → HostKeyMismatchDialog（只允许“查看详情/取消”，
                                      另提供“移除旧指纹后重新连接”需二次确认）
-          无记录：Host.hostFingerprint 非空且一致 → Accept 并写 KnownHost；否则弹 HostKeyDialog（指纹 + randomart，“信任并连接/取消”）
+          无记录：Host.hostFingerprint 非空且一致 → Accept 并写 KnownHost；
+                  Host.hostFingerprint 非空但不一致 → 按不匹配处理：Reject → 303 → HostKeyMismatchDialog
+                  （hostFingerprint 随同步漫游、known_hosts 只在本机：新设备上不能把「钉住指纹变了」
+                   伪装成首次连接；恢复路径为主机编辑页「重置指纹」，opt/full-pass 2026-10-08 修订）；
+                  Host.hostFingerprint 为空 → 弹 HostKeyDialog（指纹 + randomart，“信任并连接/取消”）
+          后台隧道（NativeForwarder）无交互，用 HostKeyVerifier.VerifyNonInteractive：不匹配直接拒绝；
+                  「两者皆无」也拒绝（RejectUnknown，不写 KnownHost，返回 302 + 提示先在终端里连接并信任），
+                  不再 TOFU 静默接受（PR #1 评审修订 2026-10-08）
  3. 认证（按 authType）：
       password：SecretStore 有 → 用；无 → CredentialDialog（密码 + “记住”）→ 失败 201 → 重新弹框（最多 3 次）
       key：读 KeyEntry 私钥 +（加密则短语：SecretStore 或 PassphraseDialog）→ 失败 202/204 → 提示
@@ -797,6 +804,17 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
 端到端加密保护**文档内容**，不保护**登录邮箱/密码、access/refresh token、保险库信封**。当前服务端为公网裸 IP + HTTP：
 - 登录/注册页固定显示风险提示；不提供「记住账号密码」自动登录（token 由 refresh 维持）。
 - 建议服务端挂域名 + TLS 后把 `SyncApiBaseUrl` 切 https（配置项，不改代码）。
+- **opt/full-pass（2026-10-08）现状**：`appconfig.*.json` 与 `AppConfigParser` 默认已是 `https://`，同时 `allowHttp=true`、
+  `httpFallback=true`。`ApiClient` 首次 https 请求在**传输层**失败（握手/连接异常；超时不算）时一次性降级到同主机同端口的
+  `http://` 并粘滞，`HttpFallbackActivated` 记一行告警日志；登录页在「http 或 https+回退」时都显示明文风险 Banner。
+  这层降级可被主动攻击者诱导（阻断 443/TLS 即可），只是不比原来「固定 http」更差——**服务器上 TLS 后必须把
+  `allowHttp`、`httpFallback` 置 false**，才真正获得 HTTPS 保护。2026-10-08 实测该服务器 https 握手失败
+  （`wrong version number`）、http 正常 401，所以当前包实际仍走明文。
+- **重放规则（PR #1 评审修订）**：回退切换本身仍粘滞生效，但**当次失败的请求**只在安全时才立即经 http 重发：
+  GET/HEAD、带 `Idempotency-Key` 的写请求（服务端去重，§2.4 / 03 文档）、或传输层确认请求未发出
+  （`HttpConnectionFailedException`：DNS/连接/TLS 握手失败，`UwpHttpTransport` 按 HRESULT/WebErrorStatus 判定）。
+  其余写请求（登录、注册、改密等无幂等键的 POST）在 https 上结果不明时不重放，返回 ambiguous network 错误，
+  避免服务器执行两次；用户重试时已直接走 http。
 - W10M 的 TLS 根证书较旧（2017 年），若日后切 HTTPS 使用 Let's Encrypt（ISRG Root X1）需验证手机信任链，必要时在 manifest `Certificates` 声明中打包根证书（Q03 验证）。
 
 ---

@@ -1,6 +1,7 @@
 using System;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Terminal;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
 
 namespace SshTool.App.Terminal
@@ -12,6 +13,7 @@ namespace SshTool.App.Terminal
         private static FrameScheduler _instance;
 
         private readonly RenderingTicker _ticker = new RenderingTicker();
+        private readonly DispatcherBlinkTimer _blinkTimer = new DispatcherBlinkTimer();
         private readonly FrameSchedulerCore _core;
 
         private FrameScheduler()
@@ -19,7 +21,8 @@ namespace SshTool.App.Terminal
             _core = new FrameSchedulerCore(_ticker, true,
                 FrameSchedulerCore.DefaultIdleFrames,
                 FrameSchedulerCore.DefaultBlinkPeriodMs,
-                () => Environment.TickCount);
+                () => Environment.TickCount,
+                _blinkTimer);
         }
 
         public static FrameScheduler Instance
@@ -44,6 +47,12 @@ namespace SshTool.App.Terminal
             DispatcherHelper.Post(() => _core.Register(id, callback));
         }
 
+        // opt/full-pass：wantsBlink 为 true 时，ticker 空闲停下后由闪烁定时器驱动光标闪烁
+        public void Register(string id, FrameCallback callback, Func<bool> wantsBlink)
+        {
+            DispatcherHelper.Post(() => _core.Register(id, callback, wantsBlink));
+        }
+
         public bool Unregister(string id)
         {
             if (DispatcherHelper.HasThreadAccess)
@@ -62,6 +71,53 @@ namespace SshTool.App.Terminal
         public void Wake()
         {
             DispatcherHelper.Post(() => _core.Wake());
+        }
+
+        // opt/full-pass：一次性 DispatcherTimer（UI 线程触发，与 CompositionTarget.Rendering 同线程）。
+        // 单例调度器持有，懒创建：首次 Start 一定发生在 UI 线程（帧回调/调度器 Post 内）。
+        private sealed class DispatcherBlinkTimer : IBlinkTimer
+        {
+            private DispatcherTimer _timer;
+            private Action _callback;
+            private bool _subscribed;
+
+            public void Start(int dueMs, Action callback)
+            {
+                if (_timer == null)
+                {
+                    _timer = new DispatcherTimer();
+                }
+                Stop();
+                _callback = callback;
+                _timer.Interval = TimeSpan.FromMilliseconds(Math.Max(1, dueMs));
+                _timer.Tick += OnTick;
+                _subscribed = true;
+                _timer.Start();
+            }
+
+            public void Stop()
+            {
+                if (_timer == null)
+                {
+                    return;
+                }
+                _timer.Stop();
+                if (_subscribed)
+                {
+                    _timer.Tick -= OnTick;
+                    _subscribed = false;
+                }
+            }
+
+            private void OnTick(object sender, object e)
+            {
+                Action callback = _callback;
+                Stop(); // 一次性
+                if (callback != null)
+                {
+                    callback();
+                }
+            }
         }
 
         private sealed class RenderingTicker : IFrameTicker

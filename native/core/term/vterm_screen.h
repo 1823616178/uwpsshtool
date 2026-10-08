@@ -106,6 +106,10 @@ private:
 
     // 把 damage 矩形内的 libvterm 单元格重读进网格
     void convertRect(int startRow, int startCol, int endRow, int endCol);
+    // opt/full-pass：feed() 期间 damage 只登记行内列区间，feed 末尾统一重读一次
+    // （见 .cpp onDamage 注释与 feed()）
+    void noteDamage(int startRow, int startCol, int endRow, int endCol);
+    void flushPendingDamage();
     // VTermScreenCell → 本层 Cell（颜色解析 + 属性位映射）；convertRect 与
     // sb_pushline 共用同一转换，保证屏幕与回滚的内容表示一致
     Cell convertCell(const VTermScreenCell &vc) const;
@@ -121,6 +125,12 @@ private:
     CellGrid grid_;
     ScrollbackBuffer scrollback_;
     std::vector<Cell> sbScratch_;
+
+    // 延迟 damage：每行待重读的列区间 [start, end)；start >= end 表示该行无待办
+    bool inFeed_ = false;
+    bool anyPendingDamage_ = false;
+    std::vector<int> damageColStart_;
+    std::vector<int> damageColEnd_;
 
     // 终端状态
     int cursorRow_ = 0;
