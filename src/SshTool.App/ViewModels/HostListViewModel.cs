@@ -14,6 +14,8 @@ using SshTool.Core.Models;
 using SshTool.Core.Mvvm;
 using SshTool.Core.Storage;
 using SshTool.Core.Storage.Repositories;
+using SshTool.Core.Sync;
+using SshTool.Core.Sync.Auth;
 
 namespace SshTool.App.ViewModels
 {
@@ -37,6 +39,12 @@ namespace SshTool.App.ViewModels
         private bool _hasError;
         private string _errorMessage = string.Empty;
         private bool _detached;
+        // fix/cold-start-login：空列表的「登录同步」按钮此前不看登录状态——已登录用户只要本机还没有
+        // 主机（加上同步一直没接上本地适配器，云端主机永远下不来），每次打开都看到
+        //「添加一台主机，或登录同步已有配置 [登录同步]」，以为自己又被登出了。
+        private readonly SyncCoordinator _sync;
+        private readonly AuthStore _auth;
+        private bool _isSignedIn;
 
         public HostListViewModel(AppServices services, IHostStatusProvider status = null)
         {
@@ -73,7 +81,48 @@ namespace SshTool.App.ViewModels
             _groups.Changed += OnRepoChanged;
             _tunnels.Changed += OnRepoChanged;
             _settings.Changed += OnSettingChanged;
+            _sync = services.Sync;
+            _auth = services.Auth;
+            SyncStatusCommand = new RelayCommand(() => Navigation.Navigate<Views.Sync.AccountSyncPage>());
+            _isSignedIn = ReadSignedIn();
+            if (_sync != null)
+            {
+                _sync.StateChanged += OnSyncStateChanged;
+            }
             RefreshAsync().Forget("HostListViewModel.Refresh", AppLog.Logger);
+        }
+
+        // 已登录同步账号（空列表据此显示「查看同步状态」而不是「登录同步」）。
+        public bool IsSignedIn
+        {
+            get { return _isSignedIn; }
+            private set { SetProperty(ref _isSignedIn, value); }
+        }
+
+        public ICommand SyncStatusCommand { get; private set; }
+
+        private bool ReadSignedIn()
+        {
+            try
+            {
+                return _auth != null && _auth.Session.Authenticated;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        // StateChanged 可能在线程池触发：封送回 UI 线程。
+        private void OnSyncStateChanged(SyncState state)
+        {
+            DispatcherHelper.Post(() =>
+            {
+                if (!_detached)
+                {
+                    IsSignedIn = ReadSignedIn();
+                }
+            });
         }
 
         public ObservableCollection<HostListGroup> Groups { get; private set; }
@@ -517,6 +566,10 @@ namespace SshTool.App.ViewModels
             _groups.Changed -= OnRepoChanged;
             _tunnels.Changed -= OnRepoChanged;
             _settings.Changed -= OnSettingChanged;
+            if (_sync != null)
+            {
+                _sync.StateChanged -= OnSyncStateChanged;
+            }
         }
 
         private void OnRepoChanged(object sender, RepositoryChangedEventArgs e)

@@ -1494,5 +1494,10 @@
   <data name="AccountSync_RememberVaultKey.Text" xml:space="preserve"><value>Remember sync password after sign-out</value></data>
   <data name="AccountSync_RememberVaultKeySwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Remember sync password after sign-out</value></data>
   <data name="AccountSync_RememberVaultKeyNote.Text" xml:space="preserve"><value>When on, signing back in to the same account on this device does not ask for the sync password again. It is cleared when you switch or delete the account. When off, it is forgotten on sign-out.</value></data>
+  <data name="Hosts_EmptySignedIn" xml:space="preserve"><value>You are signed in to sync. There are no hosts in the cloud yet, or sync has not finished. Hosts you add here are synced automatically.</value></data>
+  <data name="Hosts_EmptySyncStatus" xml:space="preserve"><value>View sync status</value></data>
+  <data name="Sync_Err_LocalAdapterMissing" xml:space="preserve"><value>The sync component was not set up correctly and cannot read or write local data. Please update the app.</value></data>
+  <data name="Sync_Err_Local" xml:space="preserve"><value>Sync failed while reading or writing local data ({0})</value></data>
+  <data name="Sync_Err_Apply" xml:space="preserve"><value>Cloud data could not be applied on this device ({0}); local data was left unchanged</value></data>
 </root>
 

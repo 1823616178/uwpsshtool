@@ -94,13 +94,17 @@ Kind 判定：status==401 → authentication；其他非 2xx → http；发送�
 1. **可重试请求** = GET、HEAD、或带 Idempotency-Key 的写请求；尝试次数 = `retryLimit(2) + 1`；其他请求只发 1 次。
 2. **可重试错误** = network、timeout、429、≥500。等待 = `RetryAfterMs ?? min(4000, 250 × 2^attempt)` 毫秒。
 3. 单次超时 15 s。
-4. **401 刷新**：鉴权请求得到 `status==401` 且（`code==AUTH_TOKEN_EXPIRED` 或 `CodeUnknown`）→ `RefreshTokens()`（单飞：并发请求共用同一个刷新任务）→ 原请求再走一遍发送策略；仍失败则抛出。
+4. **401 刷新**：鉴权请求得到 `status==401` 且（`code` 以 `AUTH_TOKEN_` 开头但不是 `AUTH_TOKEN_REUSED`，或 `CodeUnknown`）→ `RefreshTokens()`（单飞：并发请求共用同一个刷新任务）→ 原请求再走一遍发送策略；仍失败则抛出。
 5. **刷新本身**（`auth/refresh`，只发一次，绝不重试）：
    - AuthStore 无 token → 清空 AuthStore，抛 `AUTH_REFRESH_UNAVAILABLE`；
    - `refreshUncertain==true` **不再**直接清空（fix/persist-login）：仍用该 refreshToken 发一次，由服务端裁决——没被消耗 → 正常轮换；已被消耗 → 401 `AUTH_TOKEN_REUSED`/`AUTH_TOKEN_EXPIRED`，按第 6 条清空（与旧行为同一结局；被撤销的 token family 只属于本设备这次登录）；
    - 发送异常（网络/超时）→ 抛错但**不清会话**；连接阶段失败（`HttpConnectionFailedException`，请求一定没发出）不标 uncertain、`ambiguous=false`，其余标 `MarkRefreshUncertain()`、`ambiguous=true`；
    - 非 2xx → 若为终端鉴权错误则清空 AuthStore，抛出；
    - 成功 → `AuthStore.Save(response)`（`expiresAt = now + expiresIn×1000`，`refreshUncertain=false`）。
+   fix/cold-start-login：真实服务端对 accessToken 的 401 实测有 `AUTH_TOKEN_EXPIRED`、`AUTH_TOKEN_INVALID_SIGNATURE`（JWT 密钥变了，如服务端重启 / 重新部署）、
+   `AUTH_TOKEN_REQUIRED`。此前只有 `AUTH_TOKEN_EXPIRED` 会刷新，其余直接被 Coordinator 当成终端鉴权错误清空会话，表现为「打开软件又要重新登录」。
+   现在一律先刷新，由刷新结果裁决；`AUTH_CURRENT_PASSWORD_INVALID` / `AUTH_INVALID_CREDENTIALS` 等密码类 401 不刷新。
+   ApiClient 自己清会话时触发 `TokensCleared(code)`，App 记一行日志（只含错误码）。
 6. **终端鉴权错误**（任一请求最终失败时检查）：`AUTH_DEVICE_REVOKED`、`AUTH_TOKEN_REUSED`、或 `status==401 && code==AUTH_TOKEN_EXPIRED` → 清空 AuthStore。
 7. **HEAD 无响应体**：HEAD `sync/document` 返回 404 且 `CodeUnknown` → 改发 GET `sync/document` 以拿到准确的 `SYNC_DOCUMENT_NOT_FOUND` / `VAULT_NOT_FOUND`（GET 成功时用其 revision/keyVersion 作为 head）。
    HEAD 成功需校验：`X-Sync-Revision` 合法、`X-Key-Version` 为 ≥1 的安全整数、`ETag` 非空，否则 `SYNC_METADATA_INVALID`。
@@ -251,6 +255,11 @@ DecryptSyncDocument(envelope, vaultKey, vaultId):
 
 ## 5. 本地模型 ↔ 文档映射（`SyncLocalAdapter`）
 
+> 接线（fix/cold-start-login）：`AppServices.BuildSyncStack` 必须把 `SyncLocalAdapter` 以 `local:` 传给 `SyncCoordinator`，
+> 并注入 `TunnelManager`（ITunnelBusyProbe）与 `KeyToolPrivateKeyInspector(NativeKeyTool)`。此前 `local:` 漏传（51d42ea 起），
+> 每次同步都在构建本地文档时失败，云端主机从未下到本机。未接入时协调器抛 `SyncOperationException(LocalAdapterMissing)`
+>（本地化文案 `Sync_Err_LocalAdapterMissing`），Core 单测按源码文本检查组合根接线。
+
 ### 5.1 构建本地文档（上行）
 
 | 文档字段 | 来源 |
@@ -321,6 +330,8 @@ DecryptSyncDocument(envelope, vaultKey, vaultId):
 ```
 Initialize():
   session = AuthStore.Load(); cache = BindCacheToSession(session)
+  （fix/cold-start-login：vault.bin 读 / 绑定失败不再让 Initialize 抛出——登录状态照常生效，相位 error、vault=locked，
+   SessionLoadFailed=true，回前台时重读；启动结果写一行日志「启动恢复：已登录/未登录，保险库 …，相位 …」）
   state = { phase: 未登录→signed_out；已登录：enabled ? (vaultKey ? idle : locked) : disabled,
             vault: vaultKey ? ready : (vaultId ? locked : missing), revision/keyVersion/dirty/lastSyncedAt/conflict 取缓存 }
   已登录且无 vaultId → ProbeVaultSafely()

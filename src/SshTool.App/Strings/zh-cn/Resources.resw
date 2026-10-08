@@ -1495,5 +1495,10 @@
   <data name="AccountSync_RememberVaultKey.Text" xml:space="preserve"><value>退出登录后记住同步密码</value></data>
   <data name="AccountSync_RememberVaultKeySwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>退出登录后记住同步密码</value></data>
   <data name="AccountSync_RememberVaultKeyNote.Text" xml:space="preserve"><value>开启时，同一账号在本机重新登录无需再输入同步密码；换账号或删除账号时会清除。关闭后，退出登录即忘记。</value></data>
+  <data name="Hosts_EmptySignedIn" xml:space="preserve"><value>已登录同步账号。云端还没有主机，或尚未完成同步；在这里添加的主机会自动同步。</value></data>
+  <data name="Hosts_EmptySyncStatus" xml:space="preserve"><value>查看同步状态</value></data>
+  <data name="Sync_Err_LocalAdapterMissing" xml:space="preserve"><value>同步组件未正确初始化，无法读写本机配置，请更新应用</value></data>
+  <data name="Sync_Err_Local" xml:space="preserve"><value>同步失败：读写本机数据时出错（{0}）</value></data>
+  <data name="Sync_Err_Apply" xml:space="preserve"><value>云端配置无法应用到本机（{0}），本机数据未改动</value></data>
 </root>
 

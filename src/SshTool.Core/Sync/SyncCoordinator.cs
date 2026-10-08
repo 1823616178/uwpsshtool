@@ -202,18 +202,60 @@ namespace SshTool.Core.Sync
         // 轮询在 S14 落地；登录/初始化成功后的首次同步由调用方显式 SyncNowAsync 触发。
         public async Task InitializeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
+            if (_local == null)
+            {
+                Warn("未接入本地同步适配器：同步无法读写本机主机 / 分组 / 隧道");
+            }
             var session = await LoadAuthWithRetryAsync().ConfigureAwait(false);
-            await _vault.LoadAsync().ConfigureAwait(false);
-            await _vault.BindToUserAsync(session.Authenticated ? session.UserId : null).ConfigureAwait(false);
+            // fix/cold-start-login：保险库缓存（vault.bin，可达 2 MiB）读失败此前会让整个
+            // InitializeAsync 在 ApplySessionState 之前抛出——登录状态明明读出来了，界面状态却停在
+            // 构造时的「未登录」，且回前台的恢复逻辑只看 auth.bin，永远不会重试。现在缓存读失败
+            // 只记日志：登录状态照常生效，保险库按「待解锁」处理，回到前台时再重读一次。
+            Exception vaultFailure = null;
+            try
+            {
+                await _vault.LoadAsync().ConfigureAwait(false);
+                await _vault.BindToUserAsync(session.Authenticated ? session.UserId : null).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                vaultFailure = ex;
+                Warn("读取保险库缓存失败（" + ex.GetType().Name + " 0x"
+                    + ex.HResult.ToString("X8", CultureInfo.InvariantCulture) + "），登录状态不受影响，稍后重试");
+            }
+            _vaultLoadFailed = vaultFailure != null;
             // O15：重建状态只需元数据，不克隆文档。
             ApplySessionState(_auth.Session, _vault.CloneWithoutDocuments());
+            if (vaultFailure != null && _auth.Session.Authenticated)
+            {
+                PatchState(next =>
+                {
+                    next.Phase = SyncPhase.Error;
+                    next.Vault = VaultStatus.Locked;
+                    SetErrorMessage(next, vaultFailure);
+                });
+            }
             // fix/auth-audit：已登录（含升级前登录的会话）就记下本机设备，下次重新登录时可撤销它。
             RememberDevice(_auth.Session);
-            if (_auth.Session.Authenticated && _vault.ReadVaultId() == null)
+            LogStartupState();
+            if (vaultFailure == null && _auth.Session.Authenticated && _vault.ReadVaultId() == null)
             {
                 await ProbeVaultSafelyAsync(cancellationToken).ConfigureAwait(false);
             }
         }
+
+        // fix/cold-start-login：启动恢复结果一行日志（不含邮箱 / id / 密钥）。
+        private void LogStartupState()
+        {
+            SyncState state = State;
+            Info("启动恢复：" + (_auth.Session.Authenticated ? "已登录" : "未登录")
+                + "，保险库 " + state.Vault
+                + "，相位 " + state.Phase
+                + (state.Preferences != null && state.Preferences.Enabled ? "，同步已启用" : "，同步未启用")
+                + (_local == null ? "，本地适配器缺失" : string.Empty));
+        }
+
+        private volatile bool _vaultLoadFailed;
 
         // fix/persist-login：启动读 auth.bin 遇到暂时性错误（DPAPI/IO）时退避重试。此前一次失败就让
         // 整个 InitializeAsync 抛出，本次运行一直显示「未登录」——用户只好再登录一次，
@@ -239,7 +281,7 @@ namespace SshTool.Core.Sync
         // fix/persist-login：启动时登录状态没读出来（auth.bin 读文件抛错，文件原样保留）。
         public bool SessionLoadFailed
         {
-            get { return _auth.LastLoadFailed; }
+            get { return _auth.LastLoadFailed || _vaultLoadFailed; }
         }
 
         // fix/persist-login：上次读 auth.bin 失败时重新初始化一次（回到前台、登录 / 注册前调用）。
@@ -247,7 +289,7 @@ namespace SshTool.Core.Sync
         public async Task<bool> RecoverSessionIfLoadFailedAsync(
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (!_auth.LastLoadFailed)
+            if (!SessionLoadFailed)
             {
                 return false;
             }
@@ -656,7 +698,7 @@ namespace SshTool.Core.Sync
         // 服务端失败也清本地（由 LogoutAsync 的 finally 调用：失败时状态同样回到 signed_out）。
         private async Task ClearLocalAfterLogoutAsync()
         {
-            await _auth.ClearAsync().ConfigureAwait(false);
+            await _auth.ClearAsync("logout").ConfigureAwait(false);
             await LockVaultOnSignOutAsync().ConfigureAwait(false);
             // O15：只读 VaultId 标量，不克隆文档。
             string logoutVaultId = _vault.ReadVaultId();
@@ -678,7 +720,7 @@ namespace SshTool.Core.Sync
             RequireCredential(newPassword, nameof(newPassword));
             await _api.ChangePasswordAsync(currentPassword, newPassword, cancellationToken)
                 .ConfigureAwait(false);
-            await _auth.ClearAsync().ConfigureAwait(false);
+            await _auth.ClearAsync("change-password").ConfigureAwait(false);
             // 登录密码与同步密码无关：保险库密钥仍然有效。
             await LockVaultOnSignOutAsync().ConfigureAwait(false);
             // O15：只读 VaultId 标量，不克隆文档。
@@ -700,7 +742,7 @@ namespace SshTool.Core.Sync
             RequireCredential(currentPassword, nameof(currentPassword));
             await _api.DeleteAccountAsync(currentPassword, cancellationToken).ConfigureAwait(false);
             ForgetDevice();
-            await _auth.ClearAsync().ConfigureAwait(false);
+            await _auth.ClearAsync("delete-account").ConfigureAwait(false);
             await _vault.ClearAsync().ConfigureAwait(false);
             PatchState(next =>
             {
@@ -867,7 +909,7 @@ namespace SshTool.Core.Sync
             var apiError = error as ApiError;
             if (apiError != null && IsTerminalAuthError(apiError))
             {
-                await _auth.ClearAsync().ConfigureAwait(false);
+                await _auth.ClearAsync("terminal " + (apiError.Code ?? "?")).ConfigureAwait(false);
                 if (string.Equals(apiError.Code, "AUTH_DEVICE_REVOKED", StringComparison.Ordinal))
                 {
                     // feat/remember-vault：本机被账号主人在别处撤销 → 视为不可信设备，不保留保险库密钥。
@@ -1348,7 +1390,7 @@ namespace SshTool.Core.Sync
                 }
                 if (!active.Dirty || strategy == SyncNowStrategy.UseRemote)
                 {
-                    await _local.ApplyDocumentAsync(remote).ConfigureAwait(false);
+                    await RequireLocal().ApplyDocumentAsync(remote).ConfigureAwait(false);
                     await CommitRemoteAsync(remote, remoteResponse.Revision).ConfigureAwait(false);
                     Info("已应用远端文档 revision=" + remoteResponse.Revision);
                     return;
@@ -1370,7 +1412,7 @@ namespace SshTool.Core.Sync
                         SyncConflictReason.MergeConflict).ConfigureAwait(false);
                     return;
                 }
-                await _local.ApplyDocumentAsync(merged.Document).ConfigureAwait(false);
+                await RequireLocal().ApplyDocumentAsync(merged.Document).ConfigureAwait(false);
                 await _vault.UpdateAsync(next =>
                 {
                     next.Revision = remoteResponse.Revision;
@@ -1602,12 +1644,27 @@ namespace SshTool.Core.Sync
             return SyncDocumentReader.Read(json);
         }
 
-        private async Task<SyncDocumentV1> BuildLocalDocumentAsync()
+        // fix/cold-start-login：未接入本地适配器时给出可本地化的明确错误（此前抛裸
+        // InvalidOperationException，界面直接显示中文诊断「本地同步适配器未配置」；
+        // 下行应用路径则是 NullReferenceException）。
+        private ISyncLocalPort RequireLocal()
         {
             if (_local == null)
             {
-                throw new InvalidOperationException("本地同步适配器未配置");
+                throw new SyncOperationException(SyncErrorCode.LocalAdapterMissing, "本地同步适配器未配置");
             }
+            return _local;
+        }
+
+        // fix/cold-start-login：组合根是否把本地适配器接进来了（App 启动日志 / 接线自检用）。
+        public bool HasLocalPort
+        {
+            get { return _local != null; }
+        }
+
+        private async Task<SyncDocumentV1> BuildLocalDocumentAsync()
+        {
+            RequireLocal();
             // O15：只读 Preferences，不克隆文档。
             SyncPreferences prefs = _vault.ReadPreferences();
             var documentPrefs = new SyncPreferencesV1
@@ -1666,7 +1723,7 @@ namespace SshTool.Core.Sync
             }
             if (strategy == SyncNowStrategy.UseRemote)
             {
-                await _local.ApplyDocumentAsync(remote.Clone()).ConfigureAwait(false);
+                await RequireLocal().ApplyDocumentAsync(remote.Clone()).ConfigureAwait(false);
                 await CommitRemoteAsync(remote, revision).ConfigureAwait(false);
                 Info("冲突已解决（use-remote）revision=" + revision);
                 return;
@@ -2052,7 +2109,7 @@ namespace SshTool.Core.Sync
                 }
                 // Lumia 的本地端口无 lockSecrets（凭据只在 SecretStore，无内存明文缓存）；
                 // 新基线直接应用（ChangeOrigin.Sync，不再标脏）。
-                await _local.ApplyDocumentAsync(document).ConfigureAwait(false);
+                await RequireLocal().ApplyDocumentAsync(document).ConfigureAwait(false);
                 string syncedAt = response.UpdatedAt;
                 SyncDocumentV1 committed = document.Clone();
                 SyncPreferences committedPrefs = wanted.Clone();

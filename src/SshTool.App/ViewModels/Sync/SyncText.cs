@@ -45,6 +45,21 @@ namespace SshTool.App.ViewModels.Sync
                 case SyncMessageCode.None:
                     return state.Message ?? string.Empty;
                 case SyncMessageCode.Error:
+                    // fix/cold-start-login：App 侧本地适配器等抛出的普通异常不再把 Core / 平台的
+                    // 原始诊断文本（常为中文）直接显示出来，改为本地化的「本机数据处理失败」+ 异常类型名。
+                    SyncApplyException apply = state.MessageError as SyncApplyException;
+                    if (apply != null)
+                    {
+                        return FormatName(Get(loader, "Sync_Err_Apply",
+                            "Cloud data could not be applied on this device ({0})"), apply.Failure.ToString());
+                    }
+                    if (state.MessageError != null
+                        && !(state.MessageError is SyncOperationException)
+                        && !(state.MessageError is SshTool.Core.Sync.Api.ApiError))
+                    {
+                        return FormatName(Get(loader, "Sync_Err_Local",
+                            "Sync failed while reading or writing local data ({0})"), state.MessageError.GetType().Name);
+                    }
                     if (state.MessageError != null)
                     {
                         string described = VaultErrorText.Describe(state.MessageError, loader);
@@ -58,6 +73,18 @@ namespace SshTool.App.ViewModels.Sync
                         : state.Message;
                 default:
                     return Get(loader, "Sync_Msg_" + state.MessageCode.ToString(), state.Message ?? string.Empty);
+            }
+        }
+
+        private static string FormatName(string template, string name)
+        {
+            try
+            {
+                return string.Format(CultureInfo.CurrentCulture, template, name);
+            }
+            catch (FormatException)
+            {
+                return template;
             }
         }
 

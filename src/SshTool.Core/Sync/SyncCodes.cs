@@ -39,7 +39,9 @@ namespace SshTool.Core.Sync
         RotateOnlyDisables,
         VaultCreateFailed,
         UnexpectedKeyVersion,
-        EnvelopeInvalid
+        EnvelopeInvalid,
+        // fix/cold-start-login：组合根未接入 ISyncLocalPort（本地主机 / 分组 / 隧道读写）。
+        LocalAdapterMissing
     }
 
     // 面向用户的同步操作失败：继承 InvalidOperationException 保持既有 catch 语义；

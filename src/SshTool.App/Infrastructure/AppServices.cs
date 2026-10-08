@@ -251,12 +251,24 @@ namespace SshTool.App.Infrastructure
             // https → http 降级只记一行日志（不含任何凭据），便于真机排查「为何仍是明文」。
             SyncApi.HttpFallbackActivated += (s, e) => Logger.Log(
                 LogLevel.Warning, "SyncApi", "HTTPS 不可用，已降级为明文 HTTP（服务器未启用 TLS？）");
+            // fix/cold-start-login：ApiClient 因鉴权错误自己清掉会话时记一行（只记错误码）。
+            SyncApi.TokensCleared += code => Logger.Log(
+                LogLevel.Warning, "SyncApi", "服务器判定登录已失效，已清除本机登录状态（" + code + "）");
             ServiceRegistry.Register(SyncApi);
-            SyncLocal = new SyncLocalAdapter(Hosts, Groups, Tunnels, Keys, Secrets, TunnelManager);
+            // fix/cold-start-login：私钥同步检查器（原生 KeyTool 解析 + 指纹）此前没接，
+            // 「同步私钥」开着也一律跳过私钥段、入站私钥段也不校验落库。
+            SyncLocal = new SyncLocalAdapter(
+                Hosts, Groups, Tunnels, Keys, Secrets, TunnelManager,
+                new KeyToolPrivateKeyInspector(new NativeKeyTool(Logger), Logger), Logger);
             ServiceRegistry.Register(SyncLocal);
+            // fix/cold-start-login：local: SyncLocal 此前漏传（51d42ea 起），协调器构建本地文档时抛
+            //「本地同步适配器未配置」，同步从未真正读写过本机主机——首页一直是空列表 +「登录同步」按钮，
+            // 用户看到的就是「每次打开都要重新登录」。
             Sync = new SyncCoordinator(
                 Auth, VaultCache, SyncApi, new NativeVaultCrypto(Logger),
-                new UwpDeviceDescriptorProvider(), Logger, timers: new DispatcherTimerFactory(),
+                new UwpDeviceDescriptorProvider(), Logger,
+                local: SyncLocal,
+                timers: new DispatcherTimerFactory(),
                 // fix/auth-audit：记住本机上一次的设备记录，重新登录后撤销它（防止攒满 10 台配额）。
                 lastDevice: new SettingsLastDeviceStore(new LocalSettingsStore()),
                 deviceOptions: new SyncDeviceOptions(new LocalSettingsStore()));
