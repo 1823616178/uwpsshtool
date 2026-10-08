@@ -139,6 +139,46 @@ namespace SshTool
                                      dirtyOut->Data, dirtyOut->Length);
             }
 
+            bool TerminalScreen::TryReadState(Platform::WriteOnlyArray<int64>^ stateOut)
+            {
+                // 槽位与 SshTool.Core.Terminal.TerminalScreenState 常量一一对应
+                constexpr unsigned kSlotCount = 9;
+                constexpr int64 kFlagCursorVisible = 1;
+                constexpr int64 kFlagAltScreen = 2;
+                constexpr int64 kFlagAppCursorKeys = 4;
+                constexpr int64 kFlagBracketedPaste = 8;
+                constexpr int64 kFlagMouseSgr = 16;
+                constexpr int64 kFlagHasBellCount = 32;
+                if (stateOut == nullptr || stateOut->Length < kSlotCount)
+                    return false;
+                std::unique_lock<std::mutex> lock(mutex_, std::try_to_lock);
+                if (!lock.owns_lock())
+                    return false;
+                const auto &b = impl_->bridge;
+                int64 flags = kFlagHasBellCount;
+                if (b.cursorVisible())
+                    flags |= kFlagCursorVisible;
+                if (b.altScreenActive())
+                    flags |= kFlagAltScreen;
+                if (b.appCursorKeys())
+                    flags |= kFlagAppCursorKeys;
+                if (b.bracketedPaste())
+                    flags |= kFlagBracketedPaste;
+                if (b.mouseSgr())
+                    flags |= kFlagMouseSgr;
+                int64 *out = stateOut->Data;
+                out[0] = static_cast<int64>(b.grid().revision());
+                out[1] = b.grid().cols();
+                out[2] = b.grid().rows();
+                out[3] = b.cursorRow();
+                out[4] = b.cursorCol();
+                out[5] = flags;
+                out[6] = mouseModeDec(b.mouseMode());
+                out[7] = static_cast<int64>(b.scrollback().size());
+                out[8] = static_cast<int64>(b.bellCount());
+                return true;
+            }
+
             void TerminalScreen::CopyViewport(int offset, Platform::WriteOnlyArray<uint8>^ rowsOut)
             {
                 if (rowsOut == nullptr)

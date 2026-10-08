@@ -171,10 +171,12 @@ namespace SshTool.App.Terminal
             OnMetricsInvalidated();
         }
 
-        public void Paint(CanvasControl canvas, CanvasDrawingSession ds, ITerminalScreen screen,
+        // opt/full-pass：屏幕状态改由调用方传入单次加锁读出的快照（TerminalScreenState），
+        // 绘制期间不再逐属性回读原生屏幕（每次都是一次 WinRT 调用 + 一次互斥锁）。
+        public void Paint(CanvasControl canvas, CanvasDrawingSession ds, TerminalScreenState screen,
                           byte[] cells, byte[] dirty, bool fullRedraw, bool blinkOn)
         {
-            if (canvas == null || ds == null || screen == null || cells == null)
+            if (canvas == null || ds == null || cells == null || screen.Cols <= 0 || screen.Rows <= 0)
             {
                 return;
             }
@@ -297,7 +299,7 @@ namespace SshTool.App.Terminal
             }
         }
 
-        private void DrawCursor(CanvasDrawingSession ds, ITerminalScreen screen, byte[] cells, bool blinkOn)
+        private void DrawCursor(CanvasDrawingSession ds, TerminalScreenState screen, byte[] cells, bool blinkOn)
         {
             if (!screen.CursorVisible)
             {

@@ -37,6 +37,9 @@ namespace SshTool
                 bool CopyDirtyRows(Platform::WriteOnlyArray<uint8>^ rowsOut,
                                    Platform::WriteOnlyArray<uint8>^ dirtyOut);
                 void CopyViewport(int offset, Platform::WriteOnlyArray<uint8>^ rowsOut);
+                // opt/full-pass：一次加锁读完整帧状态（布局见 Core TerminalScreenState.Slot*）。
+                // 用 try_lock：Feed 持锁期间立即返回 false，UI 线程下一帧再读，不阻塞。
+                bool TryReadState(Platform::WriteOnlyArray<int64>^ stateOut);
                 Platform::String^ GetText(int startRow, int startCol, int endRow, int endCol, int offset);
 
                 // Q01（PerfPage 字节流直喂）：不经 SSH 灌输出流——把生成的终端输出
