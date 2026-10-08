@@ -35,6 +35,10 @@ namespace SshTool.App.Terminal
 
         public Func<bool> SoftInputHasFocus { get; set; }
 
+        // code-review-pass：多个终端视图同时挂在同一个 CoreWindow 上时，由宿主判定本实例
+        // 是否为物理键盘的目标；返回 false 时**不置 Handled** 直接放行，交给后面的订阅者。
+        public Func<bool> IsTarget { get; set; }
+
         public event EventHandler<TerminalInputEventArgs> Input;
 
         public event EventHandler<ShortcutActionEventArgs> Shortcut;
@@ -96,9 +100,15 @@ namespace SshTool.App.Terminal
             return probe != null && probe();
         }
 
+        private bool NotTarget()
+        {
+            Func<bool> probe = IsTarget;
+            return probe != null && !probe();
+        }
+
         private void OnKeyDown(CoreWindow sender, KeyEventArgs args)
         {
-            if (args == null || args.Handled)
+            if (args == null || args.Handled || NotTarget())
             {
                 return;
             }
@@ -165,7 +175,7 @@ namespace SshTool.App.Terminal
 
         private void OnCharacterReceived(CoreWindow sender, CharacterReceivedEventArgs args)
         {
-            if (args == null || args.Handled || SentinelOwnsPrintable())
+            if (args == null || args.Handled || SentinelOwnsPrintable() || NotTarget())
             {
                 return;
             }
@@ -186,7 +196,7 @@ namespace SshTool.App.Terminal
 
         private void OnAcceleratorKey(CoreDispatcher sender, AcceleratorKeyEventArgs args)
         {
-            if (args == null || args.Handled)
+            if (args == null || args.Handled || NotTarget())
             {
                 return;
             }
