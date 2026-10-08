@@ -54,7 +54,7 @@ namespace SshTool.App.ViewModels
         private HostEditState _state;
         private IReadOnlyList<Host> _allHosts = new Host[0];
         private IReadOnlyDictionary<string, string> _errors = new Dictionary<string, string>();
-        private string _title = "新建主机";
+        private string _title = Localized.Get("HostEdit_TitleNew", "New host");
         private AuthType _loadedAuth;
         private string _loadedKeyId;
 
@@ -161,23 +161,23 @@ namespace SshTool.App.ViewModels
                 if (host == null)
                 {
                     _state = HostEditState.ForNew();
-                    Title = "新建主机";
+                    Title = Localized.Get("HostEdit_TitleNew", "New host");
                 }
                 else if (a.Mode == HostEditMode.Duplicate)
                 {
                     _state = HostEditState.ForDuplicate(host);
-                    Title = "复制为新主机";
+                    Title = Localized.Get("HostEdit_TitleDuplicate", "Duplicate as new host");
                 }
                 else
                 {
                     _state = HostEditState.ForEdit(host);
-                    Title = "编辑主机";
+                    Title = Localized.Get("HostEdit_TitleEdit", "Edit host");
                 }
             }
             else
             {
                 _state = HostEditState.ForNew();
-                Title = "新建主机";
+                Title = Localized.Get("HostEdit_TitleNew", "New host");
             }
 
             EnvVars.Clear();
@@ -288,7 +288,7 @@ namespace SshTool.App.ViewModels
         private async Task LoadLookupsAsync()
         {
             Groups.Clear();
-            Groups.Add(new IdNameOption(string.Empty, "未分组"));
+            Groups.Add(new IdNameOption(string.Empty, Localized.Get("HostEdit_Ungrouped", "Ungrouped")));
             IReadOnlyList<HostGroup> groups = await _services.Groups.GetAllAsync().ConfigureAwait(true);
             for (int i = 0; i < groups.Count; i++)
             {
@@ -319,13 +319,13 @@ namespace SshTool.App.ViewModels
         public async Task ReloadKeysAsync()
         {
             Keys.Clear();
-            Keys.Add(new IdNameOption(string.Empty, "（未选择）"));
+            Keys.Add(new IdNameOption(string.Empty, Localized.Get("HostEdit_KeyNone", "(none selected)")));
             IReadOnlyList<KeyEntry> keys = await _services.Keys.GetAllAsync().ConfigureAwait(true);
             for (int i = 0; i < keys.Count; i++)
             {
                 KeyEntry key = keys[i];
                 string tail = CredentialDraft.FingerprintTail(key.FingerprintSha256);
-                string label = (key.Name ?? "密钥") + " · " + (key.KeyType ?? "") + " · " + tail;
+                string label = (key.Name ?? Localized.Get("HostEdit_KeyDefaultName", "Key")) + " · " + (key.KeyType ?? "") + " · " + tail;
                 Keys.Add(new IdNameOption(key.Id, label));
             }
         }
@@ -334,7 +334,7 @@ namespace SshTool.App.ViewModels
         public async Task ReloadAppearancesAsync()
         {
             Appearances.Clear();
-            Appearances.Add(new IdNameOption(string.Empty, "跟随默认"));
+            Appearances.Add(new IdNameOption(string.Empty, Localized.Get("HostEdit_AppearanceDefault", "Use default")));
             IReadOnlyList<AppearanceProfile> builtIns = BuiltInThemes.All;
             for (int i = 0; i < builtIns.Count; i++)
             {
@@ -475,7 +475,7 @@ namespace SshTool.App.ViewModels
         public async Task ReloadGroupsAsync()
         {
             Groups.Clear();
-            Groups.Add(new IdNameOption(string.Empty, "未分组"));
+            Groups.Add(new IdNameOption(string.Empty, Localized.Get("HostEdit_Ungrouped", "Ungrouped")));
             IReadOnlyList<HostGroup> groups = await _services.Groups.GetAllAsync().ConfigureAwait(true);
             for (int i = 0; i < groups.Count; i++)
             {
@@ -503,7 +503,7 @@ namespace SshTool.App.ViewModels
         private void RefreshJumps()
         {
             Jumps.Clear();
-            Jumps.Add(new IdNameOption(string.Empty, "无"));
+            Jumps.Add(new IdNameOption(string.Empty, Localized.Get("HostEdit_JumpNone", "None")));
             List<Host> eligible = JumpChainValidator.EligibleJumps(_state == null ? null : _state.HostId, _allHosts);
             for (int i = 0; i < eligible.Count; i++)
             {

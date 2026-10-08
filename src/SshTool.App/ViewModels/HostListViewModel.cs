@@ -299,13 +299,14 @@ namespace SshTool.App.ViewModels
                 return;
             }
             int tunnels = await CountTunnelsAsync(row.HostId).ConfigureAwait(true);
-            string message = "删除主机「" + row.Name + "」？";
+            string message = Localized.Format("Hosts_DeleteMessage", "Delete host \"{0}\"?", row.Name);
             if (tunnels > 0)
             {
-                message += " 将同时删除 " + tunnels.ToString() + " 条隧道。";
+                message += " " + Localized.Format("Hosts_DeleteTunnels", "{0} tunnels will also be deleted.", tunnels);
             }
             ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
-                "删除主机", message, "删除", "取消", true).ConfigureAwait(true);
+                Localized.Get("Hosts_DeleteTitle", "Delete host"), message,
+                Localized.Get("Common_Delete", "Delete"), Localized.Get("Common_Cancel", "Cancel"), true).ConfigureAwait(true);
             if (!confirm.Confirmed)
             {
                 return;
@@ -443,17 +444,21 @@ namespace SshTool.App.ViewModels
             await _hosts.AddManyAsync(batch, ChangeOrigin.User).ConfigureAwait(true);
         }
 
+        // 开发者工具（批量生成测试主机）专用分组：固定英文名，不随界面语言变化，
+        // 否则切换语言后会再建一个同义分组。
+        private const string TestGroupName = "Test hosts";
+
         private async Task<HostGroup> EnsureTestGroupAsync()
         {
             IReadOnlyList<HostGroup> groups = await _groups.GetAllAsync().ConfigureAwait(true);
             for (int i = 0; i < groups.Count; i++)
             {
-                if (string.Equals(groups[i].Name, "测试主机", StringComparison.Ordinal))
+                if (string.Equals(groups[i].Name, TestGroupName, StringComparison.Ordinal))
                 {
                     return groups[i];
                 }
             }
-            HostGroup created = Defaults.NewGroup("测试主机");
+            HostGroup created = Defaults.NewGroup(TestGroupName);
             created.Order = 999;
             await _groups.AddAsync(created, ChangeOrigin.User).ConfigureAwait(true);
             return created;

@@ -50,7 +50,7 @@ namespace SshTool.App.ViewModels.Keys
                 || (_lastOutcome.Status != KeyInspectStatus.Ready
                     && _lastOutcome.Status != KeyInspectStatus.Duplicate))
             {
-                throw new InvalidOperationException("解析尚未就绪，不能保存");
+                throw new InvalidOperationException("parse result not ready; cannot save");
             }
             string store = rememberPassphrase ? passphraseToStore : null;
             return await _service.SaveAsync(InputText, KeyName, _lastOutcome.Inspected, store)

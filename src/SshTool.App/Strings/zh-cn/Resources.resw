@@ -1328,5 +1328,96 @@
   <data name="SecurityRotate_LoginPasswordBox.PlaceholderText" xml:space="preserve"><value>请输入账号登录密码</value></data>
   <data name="SecurityRotate_NewPasswordBox.PlaceholderText" xml:space="preserve"><value>设置新同步密码（至少 8 位）</value></data>
   <data name="SecurityRotate_ConfirmBox.PlaceholderText" xml:space="preserve"><value>再次输入新同步密码</value></data>
+  <data name="AgentUnlock_PromptFull" xml:space="preserve"><value>主机 {0} 需要密钥认证，解锁一把密钥后继续</value></data>
+  <data name="AgentUnlock_Unlocked" xml:space="preserve"><value>已解锁</value></data>
+  <data name="AgentUnlock_Locked" xml:space="preserve"><value>未解锁</value></data>
+  <data name="Credential_PromptFor" xml:space="preserve"><value>{0} 的密码</value></data>
+  <data name="SnippetVariable_DefaultTitle" xml:space="preserve"><value>发送片段</value></data>
+  <data name="Forwarder_Disposed" xml:space="preserve"><value>转发运行时已释放</value></data>
+  <data name="Forwarder_EmptyConfig" xml:space="preserve"><value>隧道配置为空</value></data>
+  <data name="Forwarder_RelayDesktopOnly" xml:space="preserve"><value>中转隧道仅在桌面端运行</value></data>
+  <data name="Forwarder_NoHost" xml:space="preserve"><value>未指定目标主机</value></data>
+  <data name="Forwarder_HostNotFound" xml:space="preserve"><value>找不到对应的主机配置：{0}</value></data>
+  <data name="Forwarder_ConnectFailed" xml:space="preserve"><value>连接服务器失败（{0}）</value></data>
+  <data name="Forwarder_AuthFailed" xml:space="preserve"><value>认证失败（{0}）</value></data>
+  <data name="Forwarder_UnsupportedType" xml:space="preserve"><value>不支持的隧道类型</value></data>
+  <data name="Forwarder_StartFailed" xml:space="preserve"><value>启动转发失败（{0}）</value></data>
+  <data name="Forwarder_LinkLost" xml:space="preserve"><value>会话链路中断</value></data>
+  <data name="Forwarder_Started" xml:space="preserve"><value>已启动</value></data>
+  <data name="Forwarder_StartException" xml:space="preserve"><value>隧道启动异常：{0}</value></data>
+  <data name="Forwarder_RemotePrefix" xml:space="preserve"><value>(远程)</value></data>
+  <data name="Forwarder_Generic" xml:space="preserve"><value>转发</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Common_Ok" xml:space="preserve"><value>确定</value></data>
+  <data name="Common_Discard" xml:space="preserve"><value>放弃</value></data>
+  <data name="Common_KeepEditing" xml:space="preserve"><value>继续编辑</value></data>
+  <data name="Common_DiscardTitle" xml:space="preserve"><value>放弃修改？</value></data>
+  <data name="Snippets_DeleteTitle" xml:space="preserve"><value>删除片段？</value></data>
+  <data name="Snippets_DeleteMessage" xml:space="preserve"><value>删除「{0}」后无法恢复。</value></data>
+  <data name="Snippets_Ungrouped" xml:space="preserve"><value>未分组</value></data>
+  <data name="AppearanceEdit_TitleNew" xml:space="preserve"><value>新建外观</value></data>
+  <data name="AppearanceEdit_TitleBuiltInCopy" xml:space="preserve"><value>新建外观（内置主题的副本）</value></data>
+  <data name="AppearanceEdit_TitleEdit" xml:space="preserve"><value>编辑外观</value></data>
+  <data name="AppearanceEdit_NewName" xml:space="preserve"><value>新主题</value></data>
+  <data name="AppearanceEdit_ErrNotFound" xml:space="preserve"><value>外观不存在</value></data>
+  <data name="AppearanceEdit_ErrNameLength" xml:space="preserve"><value>名称长度 1–255</value></data>
+  <data name="AppearanceEdit_ErrFontSize" xml:space="preserve"><value>字号范围 8–28</value></data>
+  <data name="AppearanceEdit_ErrLineHeight" xml:space="preserve"><value>行高范围 1.0–1.6</value></data>
+  <data name="AppearanceEdit_ErrPadding" xml:space="preserve"><value>内边距范围 0–16</value></data>
+  <data name="AppearanceEdit_ErrPaletteCount" xml:space="preserve"><value>调色板必须为 16 色</value></data>
+  <data name="AppearanceEdit_ErrPaletteColor" xml:space="preserve"><value>调色板第 {0} 色非法</value></data>
+  <data name="AppearanceEdit_ErrColor" xml:space="preserve"><value>颜色须为 #RRGGBB 形式</value></data>
+  <data name="Appearance_CopyName" xml:space="preserve"><value>{0} 副本</value></data>
+  <data name="Appearance_DefaultName" xml:space="preserve"><value>主题</value></data>
+  <data name="AppearanceList_BadgeDefault" xml:space="preserve"><value>默认</value></data>
+  <data name="AppearanceList_BadgeBuiltIn" xml:space="preserve"><value>内置</value></data>
+  <data name="GroupManage_NewGroupName" xml:space="preserve"><value>新分组</value></data>
+  <data name="GroupManage_DeleteMessage" xml:space="preserve"><value>删除分组「{0}」？</value></data>
+  <data name="GroupManage_DeleteImpact" xml:space="preserve"><value>将影响 {0} 台主机、{1} 条隧道（分组会清空，主机与隧道保留）。</value></data>
+  <data name="GroupManage_DeleteTitle" xml:space="preserve"><value>删除分组</value></data>
+  <data name="HostEdit_TitleNew" xml:space="preserve"><value>新建主机</value></data>
+  <data name="HostEdit_TitleDuplicate" xml:space="preserve"><value>复制为新主机</value></data>
+  <data name="HostEdit_TitleEdit" xml:space="preserve"><value>编辑主机</value></data>
+  <data name="HostEdit_KeyNone" xml:space="preserve"><value>（未选择）</value></data>
+  <data name="HostEdit_KeyDefaultName" xml:space="preserve"><value>密钥</value></data>
+  <data name="HostEdit_AppearanceDefault" xml:space="preserve"><value>跟随默认</value></data>
+  <data name="HostEdit_JumpNone" xml:space="preserve"><value>无</value></data>
+  <data name="HostEdit_Ungrouped" xml:space="preserve"><value>未分组</value></data>
+  <data name="Hosts_DeleteMessage" xml:space="preserve"><value>删除主机「{0}」？</value></data>
+  <data name="Hosts_DeleteTunnels" xml:space="preserve"><value>将同时删除 {0} 条隧道。</value></data>
+  <data name="Hosts_DeleteTitle" xml:space="preserve"><value>删除主机</value></data>
+  <data name="KnownHosts_DeleteTitle" xml:space="preserve"><value>删除已知主机？</value></data>
+  <data name="KnownHosts_DeleteMessage" xml:space="preserve"><value>删除「{0}」后，下次连接会重新校验主机密钥。</value></data>
+  <data name="SecurityRotate_TitleChangePassword" xml:space="preserve"><value>修改同步密码</value></data>
+  <data name="SecurityRotate_TitleCleanup" xml:space="preserve"><value>安全清理</value></data>
+  <data name="SecurityRotate_ExplainChangePassword" xml:space="preserve"><value>将生成新的加密密钥与恢复密钥，清除云端历史版本。旧恢复密钥立即失效。</value></data>
+  <data name="SecurityRotate_ExplainCleanup" xml:space="preserve"><value>关闭敏感同步将生成新的加密密钥与恢复密钥、清除云端历史版本，旧恢复密钥立即失效。</value></data>
+  <data name="AppearanceEdit_DiscardMessage" xml:space="preserve"><value>未保存的更改将丢失，预览会还原。</value></data>
+  <data name="AppearanceEdit_SaveFailedTitle" xml:space="preserve"><value>保存失败</value></data>
+  <data name="AppearanceEdit_SaveFailedMessage" xml:space="preserve"><value>这份配色没能保存，请检查名称与颜色设置后重试。</value></data>
+  <data name="SnippetEdit_DiscardMessage" xml:space="preserve"><value>未保存的更改将丢失。</value></data>
+  <data name="AppearanceList_ImportFailed" xml:space="preserve"><value>导入失败</value></data>
+  <data name="AppearanceList_ImportSaveError" xml:space="preserve"><value>保存导入的配色时出错，请重试。</value></data>
+  <data name="AppearanceList_CannotDeleteTitle" xml:space="preserve"><value>无法删除</value></data>
+  <data name="AppearanceList_CannotDeleteMessage" xml:space="preserve"><value>内置主题不能删除，可以「复制为新主题」后再改。</value></data>
+  <data name="AppearanceList_DeleteMessage" xml:space="preserve"><value>删除外观「{0}」？</value></data>
+  <data name="AppearanceList_DeleteRefs" xml:space="preserve"><value>引用它的 {0} 台主机将改回跟随默认。</value></data>
+  <data name="AppearanceList_DeleteIsDefault" xml:space="preserve"><value>它还是全局默认，删除后默认回到内置主题。</value></data>
+  <data name="AppearanceList_DeleteTitle" xml:space="preserve"><value>删除外观</value></data>
+  <data name="AppearanceList_ImportTooLarge" xml:space="preserve"><value>文件过大（超过 256 KiB），请选择配色文件。</value></data>
+  <data name="AppearanceList_ImportBadType" xml:space="preserve"><value>不支持的文件类型，请选择 .itermcolors 或 .json 文件。</value></data>
+  <data name="AppearanceList_ImportEmpty" xml:space="preserve"><value>文件中没有可导入的配色。</value></data>
+  <data name="AppearanceList_ImportIoError" xml:space="preserve"><value>读取或保存文件时出错，请重试。</value></data>
+  <data name="KeyBarEditor_ResetDone" xml:space="preserve"><value>已恢复默认布局</value></data>
+  <data name="KnownHosts_NoRandomArt" xml:space="preserve"><value>（无 randomart）</value></data>
+  <data name="ShortcutEditor_ConflictMany" xml:space="preserve"><value>冲突：{0} 被两个动作使用（等 {1} 处），后匹配到的优先生效，请重新录制</value></data>
+  <data name="ShortcutEditor_ConflictOne" xml:space="preserve"><value>冲突：{0} 被两个动作使用，后匹配到的优先生效，请重新录制</value></data>
+  <data name="ShortcutEditor_Listening" xml:space="preserve"><value>请按键…（Esc 取消）</value></data>
+  <data name="ShortcutEditor_ResetDone" xml:space="preserve"><value>已恢复默认快捷键</value></data>
+  <data name="ShortcutEditor_Cancelled" xml:space="preserve"><value>已取消</value></data>
+  <data name="ShortcutEditor_SavedNoModifier" xml:space="preserve"><value>已保存（无修饰键会抢占终端输入，请谨慎）</value></data>
+  <data name="ShortcutEditor_Saved" xml:space="preserve"><value>已保存 {0}</value></data>
+  <data name="Sync_DeviceListFailed" xml:space="preserve"><value>无法加载设备列表</value></data>
+  <data name="Sync_HistoryListFailed" xml:space="preserve"><value>无法加载历史版本</value></data>
 </root>
 

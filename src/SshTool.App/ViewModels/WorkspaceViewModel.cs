@@ -20,7 +20,7 @@ namespace SshTool.App.ViewModels
         {
             if (string.IsNullOrEmpty(tabId))
             {
-                throw new ArgumentException("tabId 不能为空", nameof(tabId));
+                throw new ArgumentException("tabId must not be empty", nameof(tabId));
             }
             if (tree == null)
             {

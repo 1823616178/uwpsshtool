@@ -56,7 +56,7 @@ namespace SshTool.App.Platform
         {
             if (string.IsNullOrEmpty(key))
             {
-                throw new ArgumentException("凭据键不能为空", nameof(key));
+                throw new ArgumentException("credential key must not be empty", nameof(key));
             }
             await _gate.WaitAsync().ConfigureAwait(false);
             try

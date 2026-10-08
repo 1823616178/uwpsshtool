@@ -133,7 +133,8 @@ namespace SshTool.App.Views
         private async System.Threading.Tasks.Task ConfirmAbandonAsync()
         {
             ConfirmDialogResult result = await ConfirmDialog.ShowAsync(
-                "放弃修改？", "未保存的更改将丢失，预览会还原。", "放弃", "继续编辑", isDanger: true);
+                Localized.Get("Common_DiscardTitle", "Discard changes?"), Localized.Get("AppearanceEdit_DiscardMessage", "Unsaved changes will be lost and the preview restored."),
+                Localized.Get("Common_Discard", "Discard"), Localized.Get("Common_KeepEditing", "Keep editing"), isDanger: true);
             if (result.Confirmed)
             {
                 _abandonConfirmed = true;
@@ -376,7 +377,9 @@ namespace SshTool.App.Views
                     // 「save」里是 VM 兜到的原始异常（细节已入日志），不一句红字糊到用户脸上；
                     // 这里只给一句能照着做的中文。
                     await ConfirmDialog.ShowAsync(
-                        "保存失败", "这份配色没能保存，请检查名称与颜色设置后重试。", "确定", "关闭");
+                        Localized.Get("AppearanceEdit_SaveFailedTitle", "Save failed"),
+                        Localized.Get("AppearanceEdit_SaveFailedMessage", "This color scheme could not be saved. Check the name and colors, then try again."),
+                        Localized.Get("Common_Ok", "OK"), Localized.Get("Common_Close", "Close"));
                 }
             }
             catch (Exception ex)

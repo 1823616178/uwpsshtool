@@ -102,7 +102,7 @@ namespace SshTool.App.Views
                 return;
             }
             FingerprintText.Text = row.Fingerprint;
-            ArtView.Art = string.IsNullOrEmpty(row.RandomArt) ? "（无 randomart）" : row.RandomArt;
+            ArtView.Art = string.IsNullOrEmpty(row.RandomArt) ? Localized.Get("KnownHosts_NoRandomArt", "(no randomart)") : row.RandomArt;
             Detail.Visibility = Visibility.Visible;
         }
 

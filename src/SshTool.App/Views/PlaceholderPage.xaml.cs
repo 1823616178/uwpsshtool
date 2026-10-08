@@ -35,7 +35,7 @@ namespace SshTool.App.Views
             var args = e.Parameter as PlaceholderArgs;
             string title = args != null && !string.IsNullOrEmpty(args.Title)
                 ? args.Title : Loader.GetString("Placeholder_Title");
-            string milestone = args != null ? args.Milestone : "后续";
+            string milestone = args != null ? args.Milestone : "later";
             Empty.Title = title;
             Empty.Description = Loader.GetString("Placeholder_ComingSoon/Description");
             // 里程碑代号只进日志，供开发排查；页面不显示 M3/M5/M7 这类内部代号。

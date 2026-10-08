@@ -280,7 +280,7 @@ namespace SshTool.App.Views
                 string format = ResourceLoader.GetForCurrentView().GetString("Overlay_ReconnectingCountdown");
                 if (string.IsNullOrEmpty(format))
                 {
-                    format = "连接已断开，{0} 秒后第 {1} 次重连";
+                    format = "Disconnected. Reconnect attempt {1} in {0} s";
                 }
                 text = string.Format(format, model.ReconnectInSeconds, model.ReconnectAttempt);
             }
@@ -319,11 +319,11 @@ namespace SshTool.App.Views
             string message = loader.GetString("EnergySaverBanner_Message");
             if (string.IsNullOrEmpty(title))
             {
-                title = "省电模式已开启";
+                title = "Battery saver is on";
             }
             if (string.IsNullOrEmpty(message))
             {
-                message = "省电模式下切换到后台时连接会被系统断开，回到应用后会自动重连";
+                message = "With battery saver on, the system drops connections in the background; they reconnect when you return.";
             }
             EnergySaverBanner.Severity = BannerSeverity.Warning;
             EnergySaverBanner.Title = title;

@@ -141,6 +141,42 @@ namespace SshTool.Core.Tests
             Assert.True(bad.Count == 0, "代码按 Uid/属性 取的资源键不存在：\n" + string.Join("\n", bad));
         }
 
+        // Localized.Get/Format("键", 兜底) 与 GetString("键") 的键必须在中英两份 resw 里都存在：
+        // 缺键时运行时静默落到兜底文案（多为英文），切到中文界面也不会被发现。
+        [Theory]
+        [InlineData("zh-cn")]
+        [InlineData("en-us")]
+        public void LiteralLookupsInCode_ResolveToExistingKeys(string lang)
+        {
+            var keys = new HashSet<string>(LoadKeys(lang), StringComparer.Ordinal);
+            var bad = new List<string>();
+            foreach (string file in Directory.GetFiles(AppDir(), "*.cs", SearchOption.AllDirectories))
+            {
+                if (IsExcluded(file) || file.Replace('\\', '/').Contains("/Views/Debug/"))
+                {
+                    continue;
+                }
+                string code = CommentLine.Replace(File.ReadAllText(file), string.Empty);
+                foreach (Match m in LiteralLookup.Matches(code))
+                {
+                    string key = m.Groups[1].Value;
+                    if (!keys.Contains(key))
+                    {
+                        bad.Add(Path.GetFileName(file) + ": " + key);
+                    }
+                }
+            }
+            Assert.True(bad.Count == 0, lang + " 代码引用的资源键不存在：\n" + string.Join("\n", bad.Distinct()));
+        }
+
+        private static readonly Regex CommentLine = new Regex("^\\s*//.*$", RegexOptions.Multiline | RegexOptions.Compiled);
+
+        private static readonly Regex LiteralLookup = new Regex(
+            // 只认资源查找：Localized.*、页面私有的 GetString(键, 兜底)、ResourceLoader 的 Loader/loader.GetString；
+            // _settings.GetString("themeMode") 是设置表读取，不在此列。键以 _ 结尾的是前缀拼接（"Error_" + 码），跳过。
+            "(?:Localized\\.(?:Get|Format)|(?<![\\w.])GetString|\\b[Ll]oader\\(?\\)?\\.GetString)\\(\"([A-Za-z0-9_]*[A-Za-z0-9])\"[,)]",
+            RegexOptions.Compiled);
+
         private static bool? PropertyExists(string tag, string prop)
         {
             string[] allowed;

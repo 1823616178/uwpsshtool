@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SshTool.App.Infrastructure;
 using SshTool.Core.Models;
 
 namespace SshTool.App.ViewModels.Snippets
@@ -33,7 +34,10 @@ namespace SshTool.App.ViewModels.Snippets
     // 分组按名称排序（未分组永远在最后），组内按 SortOrder 再按名称。
     public static class SnippetGrouping
     {
-        public const string UngroupedTitle = "未分组";
+        public static string UngroupedTitle
+        {
+            get { return Localized.Get("Snippets_Ungrouped", "Ungrouped"); }
+        }
 
         public static string DisplayName(string groupName)
         {

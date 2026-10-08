@@ -33,7 +33,9 @@ namespace SshTool.App.Dialogs
             SnippetBuiltin builtin, IReadOnlyList<string> variables)
         {
             var dialog = new SnippetVariableDialog();
-            dialog.Title = string.IsNullOrEmpty(snippetName) ? "发送片段" : snippetName;
+            dialog.Title = string.IsNullOrEmpty(snippetName)
+                ? Localized.Get("SnippetVariable_DefaultTitle", "Send snippet")
+                : snippetName;
             dialog.PrimaryButtonText = Localized.Get("SnippetVariable_Send", "发送");
             dialog.SecondaryButtonText = Localized.Get("Dialog_Cancel", "取消");
             dialog._template = template ?? string.Empty;

@@ -196,14 +196,14 @@ namespace SshTool.App.ViewModels.Sync
                         throw;
                     }
                 }
-                LogInfo("轮换成功");
+                LogInfo("rotation succeeded");
                 IsBusy = false;
                 RotationCompleted?.Invoke(this, recoveryKey);
             }
             catch (Exception ex)
             {
                 IsBusy = false;
-                LogWarning("轮换失败 " + ex.GetType().Name);
+                LogWarning("rotation failed " + ex.GetType().Name);
                 SetError(DescribeError(ex));
             }
         }
@@ -236,13 +236,13 @@ namespace SshTool.App.ViewModels.Sync
             catch (Exception)
             {
             }
-            BusyMessage = string.IsNullOrEmpty(syncText) ? "正在同步…" : syncText;
+            BusyMessage = string.IsNullOrEmpty(syncText) ? Localized.Get("Sync_Syncing", "Syncing…") : syncText;
         }
 
         private void OnSubmitError(Exception ex)
         {
             SetError("SecurityRotate_Failed");
-            LogWarning("提交异常 " + ex.GetType().Name);
+            LogWarning("submit failed " + ex.GetType().Name);
         }
 
         private string GetString(string key, string fallback)

@@ -891,7 +891,7 @@ namespace SshTool.App.ViewModels
         {
             if (ex == null)
             {
-                return "无异常对象";
+                return "no exception object";
             }
             return ex.GetType().Name + " " + ex.Message;
         }

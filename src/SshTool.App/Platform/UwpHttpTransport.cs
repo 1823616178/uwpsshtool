@@ -62,7 +62,7 @@ namespace SshTool.App.Platform
                     {
                         if (!cancellationToken.IsCancellationRequested)
                         {
-                            throw new TimeoutException("请求超时（" + request.TimeoutMs + "ms）");
+                            throw new TimeoutException("request timed out (" + request.TimeoutMs + " ms)");
                         }
                         throw;
                     }

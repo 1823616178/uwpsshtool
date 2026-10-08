@@ -32,7 +32,7 @@ namespace SshTool.App.Platform
             var file = await TryGetFileAsync(path).ConfigureAwait(false);
             if (file == null)
             {
-                throw new FileNotFoundException("文件不存在: " + path);
+                throw new FileNotFoundException("file not found: " + path);
             }
             return await FileIO.ReadTextAsync(file);
         }
@@ -51,7 +51,7 @@ namespace SshTool.App.Platform
             var source = await TryGetFileAsync(sourcePath).ConfigureAwait(false);
             if (source == null)
             {
-                throw new FileNotFoundException("文件不存在: " + sourcePath);
+                throw new FileNotFoundException("file not found: " + sourcePath);
             }
             var folder = await EnsureParentAsync(targetPath).ConfigureAwait(false);
             string name = FileNameOf(targetPath);
@@ -106,7 +106,7 @@ namespace SshTool.App.Platform
         {
             if (string.IsNullOrWhiteSpace(path))
             {
-                throw new ArgumentException("路径为空");
+                throw new ArgumentException("path is empty");
             }
             return path.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
         }

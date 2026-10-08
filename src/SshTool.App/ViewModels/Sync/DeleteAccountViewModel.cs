@@ -110,7 +110,7 @@ namespace SshTool.App.ViewModels.Sync
             try
             {
                 await _sync.DeleteAccountAsync(_password).ConfigureAwait(true);
-                LogInfo("账号已注销");
+                LogInfo("account deleted");
                 Succeeded = true;
                 IsBusy = false;
                 AccountDeleted?.Invoke(this, EventArgs.Empty);
@@ -118,7 +118,7 @@ namespace SshTool.App.ViewModels.Sync
             catch (Exception ex)
             {
                 IsBusy = false;
-                LogWarning("注销账号失败 " + ex.GetType().Name);
+                LogWarning("delete account failed " + ex.GetType().Name);
                 ShowError(DescribeError(ex));
             }
         }
@@ -138,7 +138,7 @@ namespace SshTool.App.ViewModels.Sync
         private void OnSubmitError(Exception ex)
         {
             ShowError("DeleteAccount_Failed");
-            LogWarning("提交异常 " + ex.GetType().Name);
+            LogWarning("submit failed " + ex.GetType().Name);
         }
 
         private string GetString(string key, string fallback)

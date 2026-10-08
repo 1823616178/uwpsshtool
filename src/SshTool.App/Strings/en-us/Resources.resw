@@ -1327,5 +1327,96 @@
   <data name="SecurityRotate_LoginPasswordBox.PlaceholderText" xml:space="preserve"><value>Enter account login password</value></data>
   <data name="SecurityRotate_NewPasswordBox.PlaceholderText" xml:space="preserve"><value>New sync password (at least 8 characters)</value></data>
   <data name="SecurityRotate_ConfirmBox.PlaceholderText" xml:space="preserve"><value>Re-enter new sync password</value></data>
+  <data name="AgentUnlock_PromptFull" xml:space="preserve"><value>Host {0} requires key authentication. Unlock a key to continue.</value></data>
+  <data name="AgentUnlock_Unlocked" xml:space="preserve"><value>Unlocked</value></data>
+  <data name="AgentUnlock_Locked" xml:space="preserve"><value>Locked</value></data>
+  <data name="Credential_PromptFor" xml:space="preserve"><value>Password for {0}</value></data>
+  <data name="SnippetVariable_DefaultTitle" xml:space="preserve"><value>Send snippet</value></data>
+  <data name="Forwarder_Disposed" xml:space="preserve"><value>Forwarding runtime has been released</value></data>
+  <data name="Forwarder_EmptyConfig" xml:space="preserve"><value>Tunnel configuration is empty</value></data>
+  <data name="Forwarder_RelayDesktopOnly" xml:space="preserve"><value>Relay tunnels only run on desktop</value></data>
+  <data name="Forwarder_NoHost" xml:space="preserve"><value>No target host specified</value></data>
+  <data name="Forwarder_HostNotFound" xml:space="preserve"><value>Host configuration not found: {0}</value></data>
+  <data name="Forwarder_ConnectFailed" xml:space="preserve"><value>Failed to connect to server ({0})</value></data>
+  <data name="Forwarder_AuthFailed" xml:space="preserve"><value>Authentication failed ({0})</value></data>
+  <data name="Forwarder_UnsupportedType" xml:space="preserve"><value>Unsupported tunnel type</value></data>
+  <data name="Forwarder_StartFailed" xml:space="preserve"><value>Failed to start forwarding ({0})</value></data>
+  <data name="Forwarder_LinkLost" xml:space="preserve"><value>Session link lost</value></data>
+  <data name="Forwarder_Started" xml:space="preserve"><value>Started</value></data>
+  <data name="Forwarder_StartException" xml:space="preserve"><value>Tunnel failed to start: {0}</value></data>
+  <data name="Forwarder_RemotePrefix" xml:space="preserve"><value>(remote)</value></data>
+  <data name="Forwarder_Generic" xml:space="preserve"><value>Forward</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="Common_Discard" xml:space="preserve"><value>Discard</value></data>
+  <data name="Common_KeepEditing" xml:space="preserve"><value>Keep editing</value></data>
+  <data name="Common_DiscardTitle" xml:space="preserve"><value>Discard changes?</value></data>
+  <data name="Snippets_DeleteTitle" xml:space="preserve"><value>Delete snippet?</value></data>
+  <data name="Snippets_DeleteMessage" xml:space="preserve"><value>"{0}" will be deleted permanently.</value></data>
+  <data name="Snippets_Ungrouped" xml:space="preserve"><value>Ungrouped</value></data>
+  <data name="AppearanceEdit_TitleNew" xml:space="preserve"><value>New appearance</value></data>
+  <data name="AppearanceEdit_TitleBuiltInCopy" xml:space="preserve"><value>New appearance (copy of built-in theme)</value></data>
+  <data name="AppearanceEdit_TitleEdit" xml:space="preserve"><value>Edit appearance</value></data>
+  <data name="AppearanceEdit_NewName" xml:space="preserve"><value>New theme</value></data>
+  <data name="AppearanceEdit_ErrNotFound" xml:space="preserve"><value>Appearance not found</value></data>
+  <data name="AppearanceEdit_ErrNameLength" xml:space="preserve"><value>Name must be 1–255 characters</value></data>
+  <data name="AppearanceEdit_ErrFontSize" xml:space="preserve"><value>Font size must be 8–28</value></data>
+  <data name="AppearanceEdit_ErrLineHeight" xml:space="preserve"><value>Line height must be 1.0–1.6</value></data>
+  <data name="AppearanceEdit_ErrPadding" xml:space="preserve"><value>Padding must be 0–16</value></data>
+  <data name="AppearanceEdit_ErrPaletteCount" xml:space="preserve"><value>Palette must have 16 colors</value></data>
+  <data name="AppearanceEdit_ErrPaletteColor" xml:space="preserve"><value>Palette color {0} is invalid</value></data>
+  <data name="AppearanceEdit_ErrColor" xml:space="preserve"><value>Color must be #RRGGBB</value></data>
+  <data name="Appearance_CopyName" xml:space="preserve"><value>{0} copy</value></data>
+  <data name="Appearance_DefaultName" xml:space="preserve"><value>Theme</value></data>
+  <data name="AppearanceList_BadgeDefault" xml:space="preserve"><value>Default</value></data>
+  <data name="AppearanceList_BadgeBuiltIn" xml:space="preserve"><value>Built-in</value></data>
+  <data name="GroupManage_NewGroupName" xml:space="preserve"><value>New group</value></data>
+  <data name="GroupManage_DeleteMessage" xml:space="preserve"><value>Delete group "{0}"?</value></data>
+  <data name="GroupManage_DeleteImpact" xml:space="preserve"><value>This affects {0} hosts and {1} tunnels (they are kept; only the group is cleared).</value></data>
+  <data name="GroupManage_DeleteTitle" xml:space="preserve"><value>Delete group</value></data>
+  <data name="HostEdit_TitleNew" xml:space="preserve"><value>New host</value></data>
+  <data name="HostEdit_TitleDuplicate" xml:space="preserve"><value>Duplicate as new host</value></data>
+  <data name="HostEdit_TitleEdit" xml:space="preserve"><value>Edit host</value></data>
+  <data name="HostEdit_KeyNone" xml:space="preserve"><value>(none selected)</value></data>
+  <data name="HostEdit_KeyDefaultName" xml:space="preserve"><value>Key</value></data>
+  <data name="HostEdit_AppearanceDefault" xml:space="preserve"><value>Use default</value></data>
+  <data name="HostEdit_JumpNone" xml:space="preserve"><value>None</value></data>
+  <data name="HostEdit_Ungrouped" xml:space="preserve"><value>Ungrouped</value></data>
+  <data name="Hosts_DeleteMessage" xml:space="preserve"><value>Delete host "{0}"?</value></data>
+  <data name="Hosts_DeleteTunnels" xml:space="preserve"><value>{0} tunnels will also be deleted.</value></data>
+  <data name="Hosts_DeleteTitle" xml:space="preserve"><value>Delete host</value></data>
+  <data name="KnownHosts_DeleteTitle" xml:space="preserve"><value>Delete known host?</value></data>
+  <data name="KnownHosts_DeleteMessage" xml:space="preserve"><value>After deleting "{0}", the host key is verified again on next connect.</value></data>
+  <data name="SecurityRotate_TitleChangePassword" xml:space="preserve"><value>Change sync password</value></data>
+  <data name="SecurityRotate_TitleCleanup" xml:space="preserve"><value>Security cleanup</value></data>
+  <data name="SecurityRotate_ExplainChangePassword" xml:space="preserve"><value>A new encryption key and recovery key will be generated and cloud history cleared. The old recovery key stops working immediately.</value></data>
+  <data name="SecurityRotate_ExplainCleanup" xml:space="preserve"><value>Turning off sensitive sync generates a new encryption key and recovery key and clears cloud history. The old recovery key stops working immediately.</value></data>
+  <data name="AppearanceEdit_DiscardMessage" xml:space="preserve"><value>Unsaved changes will be lost and the preview restored.</value></data>
+  <data name="AppearanceEdit_SaveFailedTitle" xml:space="preserve"><value>Save failed</value></data>
+  <data name="AppearanceEdit_SaveFailedMessage" xml:space="preserve"><value>This color scheme could not be saved. Check the name and colors, then try again.</value></data>
+  <data name="SnippetEdit_DiscardMessage" xml:space="preserve"><value>Unsaved changes will be lost.</value></data>
+  <data name="AppearanceList_ImportFailed" xml:space="preserve"><value>Import failed</value></data>
+  <data name="AppearanceList_ImportSaveError" xml:space="preserve"><value>Could not save the imported color scheme. Please try again.</value></data>
+  <data name="AppearanceList_CannotDeleteTitle" xml:space="preserve"><value>Cannot delete</value></data>
+  <data name="AppearanceList_CannotDeleteMessage" xml:space="preserve"><value>Built-in themes cannot be deleted. Duplicate it as a new theme and edit that instead.</value></data>
+  <data name="AppearanceList_DeleteMessage" xml:space="preserve"><value>Delete appearance "{0}"?</value></data>
+  <data name="AppearanceList_DeleteRefs" xml:space="preserve"><value>{0} hosts using it will switch back to the default.</value></data>
+  <data name="AppearanceList_DeleteIsDefault" xml:space="preserve"><value>It is also the global default; the default reverts to the built-in theme.</value></data>
+  <data name="AppearanceList_DeleteTitle" xml:space="preserve"><value>Delete appearance</value></data>
+  <data name="AppearanceList_ImportTooLarge" xml:space="preserve"><value>The file is too large (over 256 KiB). Choose a color scheme file.</value></data>
+  <data name="AppearanceList_ImportBadType" xml:space="preserve"><value>Unsupported file type. Choose a .itermcolors or .json file.</value></data>
+  <data name="AppearanceList_ImportEmpty" xml:space="preserve"><value>The file contains no color schemes to import.</value></data>
+  <data name="AppearanceList_ImportIoError" xml:space="preserve"><value>Could not read or save the file. Please try again.</value></data>
+  <data name="KeyBarEditor_ResetDone" xml:space="preserve"><value>Default layout restored</value></data>
+  <data name="KnownHosts_NoRandomArt" xml:space="preserve"><value>(no randomart)</value></data>
+  <data name="ShortcutEditor_ConflictMany" xml:space="preserve"><value>Conflict: {0} is used by two actions (and {1} more). The later match wins; please record again.</value></data>
+  <data name="ShortcutEditor_ConflictOne" xml:space="preserve"><value>Conflict: {0} is used by two actions. The later match wins; please record again.</value></data>
+  <data name="ShortcutEditor_Listening" xml:space="preserve"><value>Press keys… (Esc to cancel)</value></data>
+  <data name="ShortcutEditor_ResetDone" xml:space="preserve"><value>Default shortcuts restored</value></data>
+  <data name="ShortcutEditor_Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="ShortcutEditor_SavedNoModifier" xml:space="preserve"><value>Saved (a shortcut without modifiers takes keys from the terminal; use with care)</value></data>
+  <data name="ShortcutEditor_Saved" xml:space="preserve"><value>Saved {0}</value></data>
+  <data name="Sync_DeviceListFailed" xml:space="preserve"><value>Could not load the device list</value></data>
+  <data name="Sync_HistoryListFailed" xml:space="preserve"><value>Could not load history versions</value></data>
 </root>
 

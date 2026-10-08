@@ -40,10 +40,14 @@ namespace SshTool.App.Views.Sync
             ViewModel.SubmitCommand.CanExecuteChanged += OnCanExecuteChanged;
             ViewModel.PropertyChanged += OnViewModelChanged;
             ViewModel.RotationCompleted += OnRotationCompleted;
-            Header.Title = ViewModel.IsChangePassword ? "修改同步密码" : "安全清理";
+            Header.Title = ViewModel.IsChangePassword
+                ? Localized.Get("SecurityRotate_TitleChangePassword", "Change sync password")
+                : Localized.Get("SecurityRotate_TitleCleanup", "Security cleanup");
             ExplanationText.Text = ViewModel.IsChangePassword
-                ? "将生成新的加密密钥与恢复密钥，清除云端历史版本。旧恢复密钥立即失效。"
-                : "关闭敏感同步将生成新的加密密钥与恢复密钥、清除云端历史版本，旧恢复密钥立即失效。";
+                ? Localized.Get("SecurityRotate_ExplainChangePassword",
+                    "A new encryption key and recovery key will be generated and cloud history cleared. The old recovery key stops working immediately.")
+                : Localized.Get("SecurityRotate_ExplainCleanup",
+                    "Turning off sensitive sync generates a new encryption key and recovery key and clears cloud history. The old recovery key stops working immediately.");
             RefreshError();
             RefreshBusy();
         }

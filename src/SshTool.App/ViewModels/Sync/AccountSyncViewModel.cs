@@ -346,8 +346,8 @@ namespace SshTool.App.ViewModels.Sync
             }
             catch (Exception ex)
             {
-                LogWarning("加载设备列表失败 " + ex.GetType().Name);
-                ErrorMessage = GetString("Sync_DeviceListFailed", "无法加载设备列表");
+                LogWarning("load devices failed " + ex.GetType().Name);
+                ErrorMessage = GetString("Sync_DeviceListFailed", "Could not load the device list");
             }
             finally
             {
@@ -423,8 +423,8 @@ namespace SshTool.App.ViewModels.Sync
             }
             catch (Exception ex)
             {
-                LogWarning("加载历史版本失败 " + ex.GetType().Name);
-                ErrorMessage = GetString("Sync_HistoryListFailed", "无法加载历史版本");
+                LogWarning("load history failed " + ex.GetType().Name);
+                ErrorMessage = GetString("Sync_HistoryListFailed", "Could not load history versions");
             }
             finally
             {
@@ -554,13 +554,13 @@ namespace SshTool.App.ViewModels.Sync
                 {
                     if (t.IsFaulted && t.Exception != null)
                     {
-                        LogWarning(action + " 失败 " + (t.Exception.InnerException ?? t.Exception).GetType().Name);
+                        LogWarning(action + " failed " + (t.Exception.InnerException ?? t.Exception).GetType().Name);
                     }
                 }, TaskContinuationOptions.OnlyOnFaulted);
             }
             catch (Exception ex)
             {
-                LogWarning(action + " 失败 " + ex.GetType().Name);
+                LogWarning(action + " failed " + ex.GetType().Name);
                 return Task.CompletedTask;
             }
         }
@@ -574,7 +574,7 @@ namespace SshTool.App.ViewModels.Sync
             catch (Exception)
             {
             }
-            LogWarning("命令异常 " + ex.GetType().Name);
+            LogWarning("command failed " + ex.GetType().Name);
         }
 
         private static void ReplaceAll<T>(ObservableCollection<T> target, List<T> source)
