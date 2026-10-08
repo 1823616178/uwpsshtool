@@ -23,12 +23,17 @@ namespace SshTool.Core.Tests.Sessions
         {
             public bool AcceptUnknown = true;
             public bool AcceptMismatch = false;
+            public Exception ThrowOnUnknown;
             public int UnknownCount;
             public int MismatchCount;
 
             public Task<bool> PromptUnknownAsync(HostKeyInfo info, string hostDisplay)
             {
                 UnknownCount++;
+                if (ThrowOnUnknown != null)
+                {
+                    throw ThrowOnUnknown;
+                }
                 return Task.FromResult(AcceptUnknown);
             }
 
@@ -406,6 +411,101 @@ namespace SshTool.Core.Tests.Sessions
             Assert.Equal(SessionUiState.Connected, info.State);
             Assert.Same(second, info.NativeSession);
             Assert.Contains("Connect", second.Calls);
+        }
+
+        // code-review-pass：开 shell 期间被新一轮重连顶掉的旧尝试，拿到失败码后
+        // 不得再排重连计时器（否则几秒后会把已连上的新会话拆掉），成功时也不得改状态。
+        [Fact]
+        public async Task StaleAttempt_ShellResultAfterReconnect_Ignored()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            FakeSshSession first = fx.Enqueue(ReadySession());
+            first.OpenShellHold = new TaskCompletionSource<SshErrorCode>();
+            FakeSshSession second = fx.Enqueue(ReadySession());
+
+            Task<SessionInfo> opening = fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            Assert.Contains("OpenShell", first.Calls);
+            SessionInfo info = fx.Manager.Sessions[0];
+
+            fx.Manager.ReconnectNow(info.SessionId);
+            await Task.Yield();
+            Assert.Equal(SessionUiState.Connected, info.State);
+            Assert.Same(second, info.NativeSession);
+
+            // 旧 native 已被关闭，它挂着的开 shell 以失败返回。
+            first.OpenShellHold.SetResult(SshErrorCode.RemoteClosed);
+            await opening;
+
+            Assert.Equal(SessionUiState.Connected, info.State);
+            Assert.Equal(0, info.ReconnectAttempt);
+            Assert.Same(second, info.NativeSession);
+            fx.Timers.FirePending();
+            Assert.Same(second, info.NativeSession);
+            Assert.Equal(2, fx.Factory.Created.Count);
+        }
+
+        // code-review-pass：重连路径的连接任务抛异常时，会话不能永远卡在「重连中」。
+        [Fact]
+        public async Task Reconnect_ConnectThrows_LeavesReconnectingState()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            FakeSshSession first = fx.Enqueue(ReadySession());
+            FakeSshSession second = fx.Enqueue(ReadySession());
+            second.ConnectException = new InvalidOperationException("native 投递失败");
+
+            SessionInfo info = await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            first.FireStateChanged(SessionStateKind.Disconnected, SshErrorCode.RemoteClosed);
+            Assert.Equal(SessionUiState.Reconnecting, info.State);
+
+            fx.Timers.FirePending();
+            for (int i = 0; i < 50 && info.State == SessionUiState.Reconnecting; i++)
+            {
+                await Task.Delay(10);
+            }
+
+            // 落到可手动重连的终态（Disconnected），并带上错误码。
+            Assert.Equal(SessionUiState.Disconnected, info.State);
+            Assert.Equal(SshErrorCode.InternalError, info.ErrorCode);
+        }
+
+        [Fact]
+        public async Task ReconnectNow_ConnectThrows_LeavesReconnectingState()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            FakeSshSession first = fx.Enqueue(ReadySession());
+            FakeSshSession second = fx.Enqueue(ReadySession());
+            second.ConnectException = new InvalidOperationException("native 投递失败");
+
+            SessionInfo info = await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            first.FireStateChanged(SessionStateKind.Disconnected, SshErrorCode.RemoteClosed);
+            fx.Manager.ReconnectNow(info.SessionId);
+            for (int i = 0; i < 50 && info.State == SessionUiState.Reconnecting; i++)
+            {
+                await Task.Delay(10);
+            }
+
+            Assert.Equal(SessionUiState.Disconnected, info.State);
+            Assert.Equal(SshErrorCode.InternalError, info.ErrorCode);
+        }
+
+        // code-review-pass：主机密钥提示器抛异常时按拒绝作答，连接以失败结束而不是一直挂着。
+        [Fact]
+        public async Task HostKeyPromptThrows_RejectsInsteadOfHanging()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            FakeSshSession native = fx.Enqueue(ReadySession());
+            fx.HostKeys.ThrowOnUnknown = new InvalidOperationException("对话框显示失败");
+
+            Task<SessionInfo> opening = fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            Task done = await Task.WhenAny(opening, Task.Delay(5000));
+
+            Assert.Same(opening, done);
+            Assert.False(native.HostKeyDecision);
+            Assert.NotEqual(SessionUiState.Connected, (await opening).State);
         }
 
         [Fact]

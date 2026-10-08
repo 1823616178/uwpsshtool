@@ -1129,7 +1129,10 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
-            ClipboardService.SetText(row.Entry.Path);
+            if (!ClipboardService.TrySetText(row.Entry.Path))
+            {
+                return;
+            }
             Notify(Loader.GetString("Sftp_PathCopied"));
         }
 

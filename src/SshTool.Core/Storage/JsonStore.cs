@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -21,6 +22,9 @@ namespace SshTool.Core.Storage
         private readonly ILogger _logger;
         private readonly Func<DateTime> _clock;
         private readonly List<string> _loadWarnings = new List<string>();
+        // 读失败且原文件也挪不走时置位：此时盘上的文件很可能完好（只是暂时读不了），
+        // 若照常保存，「以空集合继续」后的第一次增删改就会把整份数据覆盖成一两条。
+        private bool _saveBlocked;
 
         public JsonStore(
             IFileSystem fs,
@@ -63,9 +67,16 @@ namespace SshTool.Core.Storage
             get { return _loadWarnings; }
         }
 
+        // false = 上次加载读取失败且原文件未能挪走，SaveAsync 会拒绝写入。
+        public bool CanSave
+        {
+            get { return !_saveBlocked; }
+        }
+
         public async Task<IReadOnlyList<T>> LoadAsync()
         {
             _loadWarnings.Clear();
+            _saveBlocked = false;
             if (!await _fs.ExistsAsync(Path).ConfigureAwait(false))
             {
                 return new List<T>();
@@ -78,7 +89,11 @@ namespace SshTool.Core.Storage
             }
             catch (Exception ex)
             {
-                return await HandleCorruptAsync("读取失败: " + ex.Message, null).ConfigureAwait(false);
+                // 读不出内容就没法像其他损坏那样写备份：改为把原文件整个挪到备份名，
+                // 挪不动则禁止后续保存（见 _saveBlocked），宁可这次改动落不了盘也不覆盖原数据。
+                Warn(Path + " 已损坏（读取失败: " + ex.Message + "），以空集合继续");
+                await PreserveUnreadableAsync().ConfigureAwait(false);
+                return new List<T>();
             }
 
             if (string.IsNullOrWhiteSpace(text))
@@ -175,6 +190,10 @@ namespace SshTool.Core.Storage
 
         public async Task SaveAsync(IReadOnlyList<T> items)
         {
+            if (_saveBlocked)
+            {
+                throw new IOException(Path + " 加载时读取失败且无法备份，为免覆盖原数据拒绝写入（重启应用后重试）");
+            }
             var root = new JObject();
             root["schemaVersion"] = SchemaVersion;
             var array = new JArray();
@@ -195,7 +214,7 @@ namespace SshTool.Core.Storage
             Warn(Path + " 已损坏（" + reason + "），以空集合继续");
             if (originalText != null)
             {
-                string backup = Path + ".corrupt-" + _clock().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+                string backup = BackupPath();
                 try
                 {
                     await _fs.WriteAllTextAsync(backup, originalText).ConfigureAwait(false);
@@ -207,6 +226,26 @@ namespace SshTool.Core.Storage
                 }
             }
             return new List<T>();
+        }
+
+        private async Task PreserveUnreadableAsync()
+        {
+            string backup = BackupPath();
+            try
+            {
+                await _fs.MoveAndReplaceAsync(Path, backup).ConfigureAwait(false);
+                Warn("已备份到 " + backup);
+            }
+            catch (Exception ex)
+            {
+                _saveBlocked = true;
+                Warn("备份失败: " + ex.Message + "，本次运行不再写入该文件");
+            }
+        }
+
+        private string BackupPath()
+        {
+            return Path + ".corrupt-" + _clock().ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
         }
 
         private void Warn(string message)

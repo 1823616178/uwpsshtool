@@ -284,6 +284,28 @@ namespace SshTool.Core.Tests.Storage
 
             Assert.Equal("第一个", (await repo.GetByIdAsync("dup")).Name);
         }
+
+        // code-review-pass：启动时读失败且备份不了 → 挂起时的 Flush 不得把占位空集合写回盘上。
+        [Fact]
+        public async Task Flush_AfterUnreadableLoad_DoesNotOverwriteOriginal()
+        {
+            var fs = new InMemoryFileSystem();
+            var seed = new HostRepo(fs);
+            await seed.AddAsync(NewHost("h1"));
+            await seed.AddAsync(NewHost("h2"));
+            string original = fs.Files["data/hosts.json"];
+
+            var repo = new HostRepo(fs);
+            fs.FailNextRead(new System.IO.IOException("文件被占用"));
+            fs.FailNextMove(new System.IO.IOException("仍被占用"));
+            Assert.Empty(await repo.GetAllAsync());
+
+            await repo.FlushAsync();
+            await Assert.ThrowsAsync<System.IO.IOException>(() => repo.AddAsync(NewHost("h3")));
+
+            Assert.Equal(original, fs.Files["data/hosts.json"]);
+            Assert.Equal(2, (await new HostRepo(fs).GetAllAsync()).Count);
+        }
     }
 
     // O08：known_hosts 的 (host, port) 索引。

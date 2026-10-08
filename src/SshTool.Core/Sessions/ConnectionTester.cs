@@ -202,7 +202,15 @@ namespace SshTool.Core.Sessions
 
         private async Task PromptUnknownAsync(HostKeyCheckEventArgs e, string hostLabel, Action<HostKeyInfo> onAccept)
         {
-            bool ok = await _hostKeys.PromptUnknownAsync(e.Info, hostLabel).ConfigureAwait(true);
+            bool ok;
+            try
+            {
+                ok = await _hostKeys.PromptUnknownAsync(e.Info, hostLabel).ConfigureAwait(true);
+            }
+            catch (Exception)
+            {
+                ok = false; // 提示器失败：fail-closed，别让测试连接干等到超时
+            }
             if (ok)
             {
                 onAccept(e.Info);

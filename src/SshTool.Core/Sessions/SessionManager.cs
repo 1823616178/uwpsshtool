@@ -159,14 +159,7 @@ namespace SshTool.Core.Sessions
             info.SetDispatcherPost(_ui.Post);
             _sessions.Add(info);
             RaiseChanged();
-            var ignore = ConnectCoreAsync(info, host, false).ContinueWith(t =>
-            {
-                if (t.IsFaulted && !info.UserClosed
-                    && (info.State == SessionUiState.Connecting || info.State == SessionUiState.Authenticating))
-                {
-                    Fail(info, SshErrorCode.InternalError, false);
-                }
-            });
+            ObserveConnect(info, ConnectCoreAsync(info, host, false));
             return info;
         }
 
@@ -212,7 +205,7 @@ namespace SshTool.Core.Sessions
             }
             CancelTimer(info.SessionId);
             info.ReconnectInSeconds = 0;
-            var ignore = ReconnectAsync(info);
+            ObserveConnect(info, ReconnectAsync(info));
         }
 
         public void CancelReconnect(string sessionId)
@@ -504,7 +497,11 @@ namespace SshTool.Core.Sessions
             if (info.ShellOpened)
             {
                 code = await native.OpenShellAsync(info.Cols, info.Rows).ConfigureAwait(false);
-                if (info.UserClosed)
+                // code-review-pass：与上面两处一致也要判 attempt。开 shell 期间若已有新一轮
+                // 重连（网络切换、用户点「立即重连」）把本轮的 native 关掉，这里会拿到失败码，
+                // 旧逻辑照样 Fail(..., true) 排一个重连计时器，几秒后把新一轮已连上的会话拆掉重来；
+                // 成功时则把旧 native 标成已连接并对它发 AutoRun。
+                if (info.UserClosed || attempt != info.ConnectAttempt)
                 {
                     return;
                 }
@@ -732,9 +729,27 @@ namespace SshTool.Core.Sessions
             }
         }
 
+        // code-review-pass：提示器抛异常（对话框构造/显示失败）时必须 fail-closed 作答。
+        // native 侧持有 Deferral 等待作答且不计时，不答则会话永远停在握手中、连接转圈不止。
+        private async Task<bool> PromptUnknownSafeAsync(HostKeyInfo key, string title)
+        {
+            try
+            {
+                return await _hostKeys.PromptUnknownAsync(key, title).ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                if (_logger != null)
+                {
+                    _logger.Log(LogLevel.Warning, "Session", "host key prompt failed " + ex.GetType().Name);
+                }
+                return false;
+            }
+        }
+
         private async Task PromptUnknownAsync(SessionInfo info, HostKeyCheckEventArgs e)
         {
-            bool ok = await _hostKeys.PromptUnknownAsync(e.Info, info.Title).ConfigureAwait(true);
+            bool ok = await PromptUnknownSafeAsync(e.Info, info.Title).ConfigureAwait(true);
             if (ok)
             {
                 info.AcceptedKey = e.Info;
@@ -772,7 +787,7 @@ namespace SshTool.Core.Sessions
             }
             _ui.Post(async () =>
             {
-                bool ok = await _hostKeys.PromptUnknownAsync(e.Info, hopTitle).ConfigureAwait(true);
+                bool ok = await PromptUnknownSafeAsync(e.Info, hopTitle).ConfigureAwait(true);
                 if (ok)
                 {
                     acceptedKeys.Add(e.Info);
@@ -891,7 +906,20 @@ namespace SshTool.Core.Sessions
 
         private async Task AnswerKiAsync(AuthPromptEventArgs e)
         {
-            IReadOnlyList<string> answers = await _credentials.PromptKeyboardInteractiveAsync(e).ConfigureAwait(true);
+            IReadOnlyList<string> answers;
+            try
+            {
+                answers = await _credentials.PromptKeyboardInteractiveAsync(e).ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                // 同 PromptUnknownSafeAsync：不答复 native 会一直等到 KI 超时（120 s）。
+                if (_logger != null)
+                {
+                    _logger.Log(LogLevel.Warning, "Session", "ki prompt failed " + ex.GetType().Name);
+                }
+                answers = null;
+            }
             if (answers == null)
             {
                 e.Cancel();
@@ -1438,9 +1466,33 @@ namespace SshTool.Core.Sessions
             RaiseChanged();
             IDisposable timer = _timers.Schedule(delay * 1000, () =>
             {
-                var ignore = ReconnectAsync(info);
+                ObserveConnect(info, ReconnectAsync(info));
             });
             _reconnectTimers[info.SessionId] = timer;
+        }
+
+        // 连接任务的异常兜底。此前只有首次连接（OpenAsync）挂了这层，两条重连路径
+        //（计时器到点、ReconnectNow）是裸的 fire-and-forget：ConnectCoreAsync 中途抛异常
+        //（native 投递失败、读主机仓库失败等）时异常被静默吞掉，会话永远停在「重连中」、
+        // 倒计时归零却再也不动，用户只能手动关掉。
+        private void ObserveConnect(SessionInfo info, Task task)
+        {
+            task.ContinueWith(t =>
+            {
+                Exception ex = t.Exception == null ? null : t.Exception.GetBaseException();
+                if (_logger != null)
+                {
+                    _logger.Log(LogLevel.Error, "Session",
+                        "connect task faulted " + (ex == null ? string.Empty : ex.GetType().Name));
+                }
+                if (!info.UserClosed
+                    && (info.State == SessionUiState.Connecting
+                        || info.State == SessionUiState.Authenticating
+                        || info.State == SessionUiState.Reconnecting))
+                {
+                    Fail(info, SshErrorCode.InternalError, false);
+                }
+            }, TaskContinuationOptions.OnlyOnFaulted);
         }
 
         private async Task ReconnectAsync(SessionInfo info)

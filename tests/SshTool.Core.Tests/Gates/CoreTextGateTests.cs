@@ -30,7 +30,7 @@ namespace SshTool.Core.Tests.Gates
             { "Lifecycle/BackgroundPolicy.cs", 3 },
             { "Models/Defaults.cs", 1 },
             { "Spikes/JsonSpike.cs", 6 },
-            { "Storage/JsonStore.cs", 7 },
+            { "Storage/JsonStore.cs", 6 },
             { "Sync/Api/Dtos/DtoReader.cs", 1 },
         };
 

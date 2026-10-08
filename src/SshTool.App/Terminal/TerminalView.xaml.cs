@@ -44,6 +44,13 @@ namespace SshTool.App.Terminal
         // W04：响铃反馈（200 ms 合并窗见 BellThrottle）。
         private const int BellFlashMilliseconds = 120;
         private static readonly System.Diagnostics.Stopwatch BellClock = System.Diagnostics.Stopwatch.StartNew();
+
+        // code-review-pass：宽屏 TerminalWorkspace 分屏/多标签时，每个 TerminalView 都在同一个
+        // CoreWindow 上订阅物理键盘，事件按订阅顺序派发、先置 Handled 者独得——于是蓝牙键盘
+        // 敲的字总进**最先加载**的那个窗格（可能是隐藏标签里另一台服务器的会话），而不是
+        // 用户正在操作的窗格。记住最近获得焦点的视图，只让它处理物理键盘；它已卸载或从未有
+        // 视图获得过焦点时退回旧行为（任一视图都可处理，单终端页不受影响）。弱引用，不拽住页面。
+        private static WeakReference<TerminalView> _hardwareTarget;
         private readonly BellThrottle _bell = new BellThrottle();
         private int _matchIndex = -1;
         private int _pulledOffset = int.MinValue;
@@ -109,6 +116,7 @@ namespace SshTool.App.Terminal
             _hardwareKeyboard.Sticky = _sticky;
             _hardwareKeyboard.Modes = _modes;
             _hardwareKeyboard.SoftInputHasFocus = () => _softKeyboard.HasFocus;
+            _hardwareKeyboard.IsTarget = IsHardwareKeyboardTarget;
             _hardwareKeyboard.Input += OnHardwareInput;
             _hardwareKeyboard.Shortcut += OnHardwareShortcut;
             _hardwareKeyboard.HardwareActivity += OnHardwareActivity;
@@ -400,7 +408,7 @@ namespace SshTool.App.Terminal
             var loader = ResourceLoader.GetForCurrentView();
             var flyout = new MenuFlyout();
             flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuOpenLink"), (s, a) => OpenLink(url)));
-            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuCopyLink"), (s, a) => ClipboardService.SetText(url)));
+            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuCopyLink"), (s, a) => ClipboardService.TrySetText(url)));
             try
             {
                 flyout.ShowAt(this, point);
@@ -730,6 +738,11 @@ namespace SshTool.App.Terminal
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
             _loaded = false;
+            TerminalView target;
+            if (_hardwareTarget != null && _hardwareTarget.TryGetTarget(out target) && ReferenceEquals(target, this))
+            {
+                _hardwareTarget = null;
+            }
             UnsubscribeContentDirty();
             _resizeTimer.Stop();
             _softKeyboard.Detach();
@@ -1114,7 +1127,11 @@ namespace SshTool.App.Terminal
         {
             ISelectionGrid grid = CurrentGrid();
             string text = _selection.ExtractText(grid);
-            ClipboardService.SetText(text);
+            // 剪贴板被占用时静默失败：不弹「已复制」，选区保留可再试。
+            if (!ClipboardService.TrySetText(text))
+            {
+                return;
+            }
             Haptics.VibrateLight(true);
             if (CopiedToast != null)
             {
@@ -1523,8 +1540,20 @@ namespace SshTool.App.Terminal
             }
         }
 
+        private bool IsHardwareKeyboardTarget()
+        {
+            TerminalView target;
+            WeakReference<TerminalView> weak = _hardwareTarget;
+            if (weak == null || !weak.TryGetTarget(out target) || target == null || !target._loaded)
+            {
+                return true;
+            }
+            return ReferenceEquals(target, this);
+        }
+
         private void OnGotFocus(object sender, RoutedEventArgs e)
         {
+            _hardwareTarget = new WeakReference<TerminalView>(this);
             _renderer.Focused = true;
             FrameScheduler.Instance.Wake();
             if (Canvas != null)

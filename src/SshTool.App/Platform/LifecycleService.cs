@@ -316,7 +316,16 @@ namespace SshTool.App.Platform
 
         // P02：切网收敛（线程池线程触发；SessionManager 内部已做 UI 封送，
         // 此处直接调用。日志只记会话计数）。
+        // code-review-pass：NetworkMonitor 在 ThreadPoolTimer 线程上触发（1 s 防抖之后）。
+        // SessionManager 只能在 UI 线程上动：ReconnectNow → CancelTimer 会 Stop 一个
+        // DispatcherTimer，跨线程直接抛 RPC_E_WRONG_THREAD（下面的 catch 吞掉后只剩一行日志），
+        // 「网络恢复立即重连」从未真正生效，_sessions/_reconnectTimers 也在和 UI 线程并发读写。
         private void OnNetworkChanged(object sender, EventArgs e)
+        {
+            DispatcherHelper.Post(ConvergeOnNetworkChange);
+        }
+
+        private void ConvergeOnNetworkChange()
         {
             int n;
             try
@@ -464,10 +473,23 @@ namespace SshTool.App.Platform
             }
             // RevokedReason 是系统枚举，无 PII，可记。
             _logger?.Log(LogLevel.Info, "Lifecycle", "execution revoked=" + args.Reason);
-            Run(follow);
+            RunOnUi(follow); // Revoked 在系统线程上触发
         }
 
         // ---- 动作执行 ----
+
+        // code-review-pass：Revoked 与后台 ThreadPoolTimer 的回调不在 UI 线程。PolicyDisconnect
+        // 走 SessionManager.SuspendAllForPolicy → CancelTimer，会 Stop 待命中的重连 DispatcherTimer，
+        // 跨线程抛 RPC_E_WRONG_THREAD：被 Execute 的 catch 吞掉后循环中断，后面的会话没被挂起，
+        // 继续在后台耗电跑着。动作统一封送回 UI 线程执行（已在 UI 线程则就地执行）。
+        private void RunOnUi(BackgroundAction[] actions)
+        {
+            if (actions == null || actions.Length == 0)
+            {
+                return;
+            }
+            DispatcherHelper.Post(() => Run(actions));
+        }
 
         private void Run(BackgroundAction[] actions)
         {
@@ -593,7 +615,7 @@ namespace SshTool.App.Platform
                 _backgroundTimer = null;
                 follow = _policy.OnBackgroundTimerExpired();
             }
-            Run(follow);
+            RunOnUi(follow);
         }
 
         // 调用方已持有 _sync。

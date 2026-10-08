@@ -317,16 +317,30 @@ namespace SshTool.App.Infrastructure
             await new SessionSnapshotStore(FileSystem).SaveAsync(snap).ConfigureAwait(false);
         }
 
+        // 逐个刷、互不牵连：此前任何一个仓库写盘抛错（磁盘满、文件被占用），
+        // 后面的仓库和日志队列都不再刷，而挂起路径又把异常整体吞掉。
         public async Task FlushAsync()
         {
-            await Hosts.FlushAsync().ConfigureAwait(false);
-            await Groups.FlushAsync().ConfigureAwait(false);
-            await Tunnels.FlushAsync().ConfigureAwait(false);
-            await Keys.FlushAsync().ConfigureAwait(false);
-            await Snippets.FlushAsync().ConfigureAwait(false);
-            await Appearances.FlushAsync().ConfigureAwait(false);
-            await KnownHosts.FlushAsync().ConfigureAwait(false);
+            await FlushOneAsync("hosts", Hosts.FlushAsync).ConfigureAwait(false);
+            await FlushOneAsync("groups", Groups.FlushAsync).ConfigureAwait(false);
+            await FlushOneAsync("tunnels", Tunnels.FlushAsync).ConfigureAwait(false);
+            await FlushOneAsync("keys", Keys.FlushAsync).ConfigureAwait(false);
+            await FlushOneAsync("snippets", Snippets.FlushAsync).ConfigureAwait(false);
+            await FlushOneAsync("appearances", Appearances.FlushAsync).ConfigureAwait(false);
+            await FlushOneAsync("knownHosts", KnownHosts.FlushAsync).ConfigureAwait(false);
             await FileLogger.Instance.FlushAsync().ConfigureAwait(false);
+        }
+
+        private async Task FlushOneAsync(string name, Func<Task> flush)
+        {
+            try
+            {
+                await flush().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Logger?.Log(LogLevel.Error, "Storage", "flush " + name + " failed " + ex.GetType().Name);
+            }
         }
 
         // K03：agent 超时设置变更即时对齐 + 读取兜底（非法/缺失 → 默认 15）。
