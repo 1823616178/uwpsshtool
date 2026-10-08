@@ -76,7 +76,15 @@
         </controls:AppPageHeader>
 
         <!-- V02：Pivot Title 移除（标题由 AppPageHeader 承担，避免双标题）；页签文字走 resw。 -->
+        <!-- ui/portrait-polish-2：系统 PivotItem 默认左右各 12 的外边距，叠上卡片自带的 12 后，
+             竖屏卡片离屏幕边 24、和页头标题/页签对不齐，360 宽的 Lumia 950 上显得窄而空。
+             仅对主页 Pivot 去掉这层外边距，卡片与标题统一 12 的左右边。 -->
         <Pivot x:Name="MainPivot" Grid.Row="2">
+            <Pivot.Resources>
+                <Style TargetType="PivotItem">
+                    <Setter Property="Margin" Value="{StaticResource PadNone}" />
+                </Style>
+            </Pivot.Resources>
             <PivotItem x:Uid="Main_PivotHosts">
                 <main:HostsPivot x:Name="HostsPane" />
             </PivotItem>

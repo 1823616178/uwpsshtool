@@ -26,7 +26,7 @@
                 <FontIcon Glyph="{StaticResource IconDisconnect}" FontSize="{StaticResource FontBody}" />
             </Button>
             <Button x:Name="AddTunnelButton" x:Uid="Tunnels_AddTunnelButton" Grid.Column="2"
-                    Style="{StaticResource IconButtonStyle}" Click="OnAddClick"
+                    Style="{StaticResource AccentCircleButtonStyle}" Click="OnAddClick"
                     Margin="{StaticResource GapSmLeft}">
                 <FontIcon Glyph="{StaticResource IconAdd}" FontSize="{StaticResource FontBody}" />
             </Button>
@@ -39,7 +39,21 @@
                     <EntranceThemeTransition />
                 </TransitionCollection>
             </Grid.ChildrenTransitions>
-            <ListView x:Name="TunnelList" SelectionMode="None">
+            <!-- ui/portrait-polish-2：隧道行改卡片，与主机/会话列表同材质、同间距。 -->
+            <ListView x:Name="TunnelList" SelectionMode="None"
+                      ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                      Padding="{StaticResource CardListPadding}">
+                <ListView.Resources>
+                    <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent" />
+                </ListView.Resources>
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition IsStaggeringEnabled="True" />
+                        <AddDeleteThemeTransition />
+                        <RepositionThemeTransition />
+                    </TransitionCollection>
+                </ListView.ItemContainerTransitions>
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <controls:TunnelRow EditRequested="OnRowEdit"

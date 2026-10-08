@@ -60,6 +60,10 @@
     <Thickness x:Key="PageHeaderPaddingWide">24,16,24,8</Thickness>
     <!-- 列表页顶部工具行（搜索/新建）：上下各 8，与页签、首张卡片拉开间距。 -->
     <Thickness x:Key="ListTopRowMargin">12,8,12,8</Thickness>
+    <!-- ui/portrait-polish-2：分组头上方多留 12，组与组之间有段落感；下方 4 贴近本组首卡。 -->
+    <Thickness x:Key="GroupHeaderPadding">12,12,12,4</Thickness>
+    <!-- 空状态字形徽章：强调色淡底正圆，替代原先孤零零的灰色小字形。 -->
+    <x:Double x:Key="EmptyStateBadgeSize">72</x:Double>
     <!-- V01a（05 §5.2）：卡片内边距手机档（12）；宽松档 16 暂无本批消费方，需要时再加。 -->
     <Thickness x:Key="PadCard">12</Thickness>
     <!-- SegmentTabs 容器内边距：选中段圆角块与外框之间让出的间隙。 -->

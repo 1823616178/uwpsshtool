@@ -115,6 +115,7 @@ namespace SshTool.App.Controls
             }
             GlyphIcon.Glyph = glyph ?? string.Empty;
             GlyphIcon.Visibility = string.IsNullOrEmpty(glyph) ? Visibility.Collapsed : Visibility.Visible;
+            GlyphBadge.Visibility = GlyphIcon.Visibility;
             TitleText.Text = Title ?? string.Empty;
             TitleText.Visibility = string.IsNullOrEmpty(Title) ? Visibility.Collapsed : Visibility.Visible;
             DescriptionText.Text = Description ?? string.Empty;

@@ -5,7 +5,7 @@
 
     <Grid Background="Transparent"
           MinHeight="{StaticResource GroupHeaderHeight}"
-          Padding="{StaticResource PagePadding}">
+          Padding="{StaticResource GroupHeaderPadding}">
         <Grid.ChildrenTransitions>
             <TransitionCollection>
                 <RepositionThemeTransition />
@@ -33,7 +33,7 @@
                   VerticalAlignment="Center"
                   Margin="{StaticResource GapSmLeft}"
                   Visibility="Collapsed" />
-        <TextBlock x:Name="TitleText" Grid.Column="2" Style="{StaticResource CaptionTextStyle}"
+        <TextBlock x:Name="TitleText" Grid.Column="2" Style="{StaticResource GroupHeaderTextStyle}"
                    VerticalAlignment="Center" Margin="{StaticResource GapSmLeft}" />
     </Grid>
 </UserControl>
