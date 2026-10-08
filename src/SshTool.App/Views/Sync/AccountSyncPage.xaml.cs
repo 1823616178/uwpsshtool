@@ -150,7 +150,7 @@ namespace SshTool.App.Views.Sync
             {
                 return GetString("AccountSync_LastSyncedNone", "尚未同步");
             }
-            return GetString("AccountSync_LastSynced", "上次同步 {0}", relative);
+            return GetString("AccountSync_LastSyncedFormat", "上次同步 {0}", relative);
         }
 
         private void RefreshStatusVisual()
@@ -483,8 +483,8 @@ namespace SshTool.App.Views.Sync
                     ? GetString("AccountSync_LogoutAllMessage", "所有设备都将退出登录，需要重新登录才能同步。")
                     : GetString("AccountSync_LogoutMessage", "将退出当前设备。"),
                 confirmText: all
-                    ? GetString("AccountSync_LogoutAll", "退出所有设备")
-                    : GetString("AccountSync_Logout", "退出登录"),
+                    ? GetString("AccountSync_LogoutAllLabel", "退出所有设备")
+                    : GetString("AccountSync_LogoutLabel", "退出登录"),
                 cancelText: GetString("AccountSync_Cancel", "取消"),
                 isDanger: all);
             if (result != null && result.Confirmed)

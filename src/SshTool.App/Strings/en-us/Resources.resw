@@ -676,7 +676,7 @@
   <data name="Settings_About_LogLevel_Warn" xml:space="preserve"><value>Warning</value></data>
   <data name="Settings_About_LogLevel_Error" xml:space="preserve"><value>Error</value></data>
   <data name="Settings_About_ExportLogs.Content" xml:space="preserve"><value>Export logs</value></data>
-  <data name="Settings_About_ClearLogs" xml:space="preserve"><value>Clear logs</value></data>
+  <data name="Settings_About_ClearLogsLabel" xml:space="preserve"><value>Clear logs</value></data>
   <data name="Settings_About_ClearLogs.Content" xml:space="preserve"><value>Clear logs</value></data>
   <data name="Settings_About_Diagnostics_Header" xml:space="preserve"><value>Diagnostics</value></data>
   <data name="Settings_About_Refresh.Content" xml:space="preserve"><value>Refresh</value></data>
@@ -819,7 +819,7 @@
   <data name="AccountSync_TabStatus.Header" xml:space="preserve"><value>Status</value></data>
   <data name="AccountSync_TabDevices.Header" xml:space="preserve"><value>Devices</value></data>
   <data name="AccountSync_TabHistory.Header" xml:space="preserve"><value>History</value></data>
-  <data name="AccountSync_LastSynced" xml:space="preserve"><value>Last synced {0}</value></data>
+  <data name="AccountSync_LastSyncedFormat" xml:space="preserve"><value>Last synced {0}</value></data>
   <data name="AccountSync_LastSynced.Text" xml:space="preserve"><value>Last synced {0}</value></data>
   <data name="AccountSync_LastSyncedNone" xml:space="preserve"><value>Never synced</value></data>
   <data name="AccountSync_NextRetry" xml:space="preserve"><value>Next retry {0}</value></data>
@@ -835,9 +835,9 @@
   <data name="AccountSync_ChangeSyncPassword.Content" xml:space="preserve"><value>Change sync password</value></data>
   <data name="AccountSync_Account.Header" xml:space="preserve"><value>Account</value></data>
   <data name="AccountSync_ChangeLoginPassword.Content" xml:space="preserve"><value>Change login password</value></data>
-  <data name="AccountSync_Logout" xml:space="preserve"><value>Sign out</value></data>
+  <data name="AccountSync_LogoutLabel" xml:space="preserve"><value>Sign out</value></data>
   <data name="AccountSync_Logout.Content" xml:space="preserve"><value>Sign out</value></data>
-  <data name="AccountSync_LogoutAll" xml:space="preserve"><value>Sign out all devices</value></data>
+  <data name="AccountSync_LogoutAllLabel" xml:space="preserve"><value>Sign out all devices</value></data>
   <data name="AccountSync_LogoutAll.Content" xml:space="preserve"><value>Sign out all devices</value></data>
   <data name="AccountSync_Danger.Header" xml:space="preserve"><value>Danger zone</value></data>
   <data name="AccountSync_DeleteVault.Content" xml:space="preserve"><value>Delete cloud vault…</value></data>

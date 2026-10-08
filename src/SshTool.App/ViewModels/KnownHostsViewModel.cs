@@ -130,7 +130,7 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
-            KnownHost doomed = _selected;
+            KnownHost doomed = _selected.Source;
             await _services.KnownHosts.RemoveAsync(doomed.Id, ChangeOrigin.User).ConfigureAwait(true);
             // fix/functional-pass：同地址主机上的钉住指纹一并清掉——否则 HostKeyVerifier 仍按钉住指纹
             // 判定，「下次连接重新验证」的说明不成立（换过密钥的服务器会继续报不匹配）。

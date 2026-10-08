@@ -117,9 +117,9 @@ namespace SshTool.App.Views.Settings
             {
                 int generation = _lifetime.Current;
                 var confirm = await Dialogs.ConfirmDialog.ShowAsync(
-                    Load("Settings_About_ClearLogs"),
+                    Load("Settings_About_ClearLogsLabel"),
                     Load("Settings_Confirm_ClearLogs"),
-                    Load("Settings_About_ClearLogs"),
+                    Load("Settings_About_ClearLogsLabel"),
                     Load("Dialog_Cancel"), true);
                 if (!confirm.Confirmed)
                 {

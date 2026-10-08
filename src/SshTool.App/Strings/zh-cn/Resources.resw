@@ -677,7 +677,7 @@
   <data name="Settings_About_LogLevel_Warn" xml:space="preserve"><value>警告</value></data>
   <data name="Settings_About_LogLevel_Error" xml:space="preserve"><value>错误</value></data>
   <data name="Settings_About_ExportLogs.Content" xml:space="preserve"><value>导出日志</value></data>
-  <data name="Settings_About_ClearLogs" xml:space="preserve"><value>清空日志</value></data>
+  <data name="Settings_About_ClearLogsLabel" xml:space="preserve"><value>清空日志</value></data>
   <data name="Settings_About_ClearLogs.Content" xml:space="preserve"><value>清空日志</value></data>
   <data name="Settings_About_Diagnostics_Header" xml:space="preserve"><value>诊断信息</value></data>
   <data name="Settings_About_Refresh.Content" xml:space="preserve"><value>刷新</value></data>
@@ -820,7 +820,7 @@
   <data name="AccountSync_TabStatus.Header" xml:space="preserve"><value>状态</value></data>
   <data name="AccountSync_TabDevices.Header" xml:space="preserve"><value>设备</value></data>
   <data name="AccountSync_TabHistory.Header" xml:space="preserve"><value>历史</value></data>
-  <data name="AccountSync_LastSynced" xml:space="preserve"><value>上次同步 {0}</value></data>
+  <data name="AccountSync_LastSyncedFormat" xml:space="preserve"><value>上次同步 {0}</value></data>
   <data name="AccountSync_LastSynced.Text" xml:space="preserve"><value>上次同步 {0}</value></data>
   <data name="AccountSync_LastSyncedNone" xml:space="preserve"><value>尚未同步</value></data>
   <data name="AccountSync_NextRetry" xml:space="preserve"><value>下次重试 {0}</value></data>
@@ -836,9 +836,9 @@
   <data name="AccountSync_ChangeSyncPassword.Content" xml:space="preserve"><value>修改同步密码</value></data>
   <data name="AccountSync_Account.Header" xml:space="preserve"><value>账号</value></data>
   <data name="AccountSync_ChangeLoginPassword.Content" xml:space="preserve"><value>修改登录密码</value></data>
-  <data name="AccountSync_Logout" xml:space="preserve"><value>退出登录</value></data>
+  <data name="AccountSync_LogoutLabel" xml:space="preserve"><value>退出登录</value></data>
   <data name="AccountSync_Logout.Content" xml:space="preserve"><value>退出登录</value></data>
-  <data name="AccountSync_LogoutAll" xml:space="preserve"><value>退出所有设备</value></data>
+  <data name="AccountSync_LogoutAllLabel" xml:space="preserve"><value>退出所有设备</value></data>
   <data name="AccountSync_LogoutAll.Content" xml:space="preserve"><value>退出所有设备</value></data>
   <data name="AccountSync_Danger.Header" xml:space="preserve"><value>危险操作</value></data>
   <data name="AccountSync_DeleteVault.Content" xml:space="preserve"><value>删除云端保险库…</value></data>

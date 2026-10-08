@@ -29,6 +29,30 @@ namespace SshTool.Core.Tests
         [Theory]
         [InlineData("en-us")]
         [InlineData("zh-cn")]
+        public void ResourceKeys_DoNotConflictWithPropertyPaths(string lang)
+        {
+            // PRI 将点转换为路径分隔符；同一路径不能同时是值和属性子树。
+            var paths = new HashSet<string>(KeySet(FindResw(lang))
+                .Select(key => key.Replace('.', '/')), StringComparer.OrdinalIgnoreCase);
+            var conflicts = new List<string>();
+            foreach (string path in paths)
+            {
+                for (int separator = path.IndexOf('/'); separator >= 0;
+                    separator = path.IndexOf('/', separator + 1))
+                {
+                    if (paths.Contains(path.Substring(0, separator)))
+                    {
+                        conflicts.Add(path);
+                    }
+                }
+            }
+            Assert.True(conflicts.Count == 0,
+                lang + " 资源值与属性路径冲突：" + string.Join(", ", conflicts));
+        }
+
+        [Theory]
+        [InlineData("en-us")]
+        [InlineData("zh-cn")]
         public void EveryKey_ValueIsNonEmpty(string lang)
         {
             var values = ReadValues(FindResw(lang));
