@@ -136,7 +136,7 @@ namespace SshTool.App.ViewModels.Sync
             {
                 // CreateAsync（Argon2id，后台线程）+ 先落盘 pending 再 POST；返回恢复密钥。
                 string recoveryKey = await _sync.SetupVaultAsync(_syncPassword).ConfigureAwait(true);
-                LogInfo("保险库创建成功");
+                LogInfo("vault created");
                 EventHandler<string> handler = SetupCompleted;
                 if (handler != null)
                 {
@@ -145,7 +145,7 @@ namespace SshTool.App.ViewModels.Sync
             }
             catch (Exception ex)
             {
-                LogWarning("建库失败 " + ex.GetType().Name);
+                LogWarning("vault setup failed " + ex.GetType().Name);
                 ErrorMessage = VaultErrorText.Describe(ex, loader);
                 RaisePropertyChanged("HasError");
             }
@@ -169,11 +169,11 @@ namespace SshTool.App.ViewModels.Sync
             try
             {
                 await _sync.SyncNowAsync().ConfigureAwait(true);
-                LogInfo("首次同步完成");
+                LogInfo("initial sync done");
             }
             catch (Exception ex)
             {
-                LogWarning("首次同步失败 " + ex.GetType().Name);
+                LogWarning("initial sync failed " + ex.GetType().Name);
             }
             finally
             {
@@ -197,7 +197,7 @@ namespace SshTool.App.ViewModels.Sync
             catch (Exception)
             {
             }
-            BusyMessage = string.IsNullOrEmpty(syncText) ? "正在同步…" : syncText;
+            BusyMessage = string.IsNullOrEmpty(syncText) ? Localized.Get("Sync_Syncing", "Syncing…") : syncText;
         }
 
         private void ShowError(ResourceLoader loader, string key)
@@ -211,7 +211,7 @@ namespace SshTool.App.ViewModels.Sync
             // SubmitAsync 内部已吞掉业务异常，此处只防资源加载等意外。
             try
             {
-                LogWarning("提交异常 " + ex.GetType().Name);
+                LogWarning("submit failed " + ex.GetType().Name);
             }
             catch (Exception)
             {

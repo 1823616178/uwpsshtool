@@ -86,7 +86,7 @@ namespace SshTool.App.Platform
                 return new TunnelRuntimeStartResult
                 {
                     Code = SshErrorCode.InternalError,
-                    Message = "转发运行时已释放"
+                    Message = Localized.Get("Forwarder_Disposed", "Forwarding runtime has been released")
                 };
             }
             if (tunnel == null)
@@ -94,7 +94,7 @@ namespace SshTool.App.Platform
                 return new TunnelRuntimeStartResult
                 {
                     Code = SshErrorCode.InternalError,
-                    Message = "隧道配置为空"
+                    Message = Localized.Get("Forwarder_EmptyConfig", "Tunnel configuration is empty")
                 };
             }
             if (tunnel.Type == TunnelType.Relay)
@@ -102,7 +102,7 @@ namespace SshTool.App.Platform
                 return new TunnelRuntimeStartResult
                 {
                     Code = SshErrorCode.InternalError,
-                    Message = "中转隧道仅在桌面端运行"
+                    Message = Localized.Get("Forwarder_RelayDesktopOnly", "Relay tunnels only run on desktop")
                 };
             }
 
@@ -114,7 +114,7 @@ namespace SshTool.App.Platform
                 return new TunnelRuntimeStartResult
                 {
                     Code = SshErrorCode.InternalError,
-                    Message = "未指定目标主机"
+                    Message = Localized.Get("Forwarder_NoHost", "No target host specified")
                 };
             }
 
@@ -128,7 +128,7 @@ namespace SshTool.App.Platform
                 return new TunnelRuntimeStartResult
                 {
                     Code = SshErrorCode.InternalError,
-                    Message = "找不到对应的主机配置: " + tunnel.ServerId
+                    Message = Localized.Format("Forwarder_HostNotFound", "Host configuration not found: {0}", tunnel.ServerId)
                 };
             }
 
@@ -221,7 +221,7 @@ namespace SshTool.App.Platform
                     return new TunnelRuntimeStartResult
                     {
                         Code = connectCode,
-                        Message = "连接服务器失败 (" + (int)connectCode + ")"
+                        Message = Localized.Format("Forwarder_ConnectFailed", "Failed to connect to server ({0})", (int)connectCode)
                     };
                 }
 
@@ -241,7 +241,7 @@ namespace SshTool.App.Platform
                     return new TunnelRuntimeStartResult
                     {
                         Code = authCode,
-                        Message = "认证失败 (" + (int)authCode + ")"
+                        Message = Localized.Format("Forwarder_AuthFailed", "Authentication failed ({0})", (int)authCode)
                     };
                 }
 
@@ -268,7 +268,7 @@ namespace SshTool.App.Platform
                         return new TunnelRuntimeStartResult
                         {
                             Code = SshErrorCode.InternalError,
-                            Message = "不支持的隧道类型"
+                            Message = Localized.Get("Forwarder_UnsupportedType", "Unsupported tunnel type")
                         };
                 }
 
@@ -294,7 +294,7 @@ namespace SshTool.App.Platform
                     {
                         Code = (SshErrorCode)fwdResult.Code,
                         Message = string.IsNullOrEmpty(fwdResult.Message)
-                            ? "启动转发失败 (" + fwdResult.Code + ")"
+                            ? Localized.Format("Forwarder_StartFailed", "Failed to start forwarding ({0})", fwdResult.Code)
                             : fwdResult.Message
                     };
                 }
@@ -324,7 +324,7 @@ namespace SshTool.App.Platform
                             Dropped?.Invoke(this, new TunnelRuntimeDroppedEventArgs
                             {
                                 TunnelId = tunnel.Id,
-                                Reason = "会话链路中断",
+                                Reason = Localized.Get("Forwarder_LinkLost", "Session link lost"),
                                 ErrorCode = args.ErrorCode != SshErrorCode.None ? args.ErrorCode : SshErrorCode.SocketError
                             });
                         }
@@ -338,7 +338,7 @@ namespace SshTool.App.Platform
                     Code = SshErrorCode.None,
                     BoundPort = boundPort,
                     RouteDescription = routeDesc,
-                    Message = "已启动"
+                    Message = Localized.Get("Forwarder_Started", "Started")
                 };
             }
             catch (OperationCanceledException)
@@ -373,7 +373,7 @@ namespace SshTool.App.Platform
                 return new TunnelRuntimeStartResult
                 {
                     Code = SshErrorCode.InternalError,
-                    Message = "隧道启动异常: " + ex.GetType().Name
+                    Message = Localized.Format("Forwarder_StartException", "Tunnel failed to start: {0}", ex.GetType().Name)
                 };
             }
         }
@@ -578,11 +578,11 @@ namespace SshTool.App.Platform
                 case TunnelType.Local:
                     return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1} -> {2}:{3}", listenHost, listenPort, destHost, destPort);
                 case TunnelType.Remote:
-                    return string.Format(System.Globalization.CultureInfo.InvariantCulture, "(远程):{0} -> {1}:{2}", listenPort, destHost, destPort);
+                    return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}:{1} -> {2}:{3}", Localized.Get("Forwarder_RemotePrefix", "(remote)"), listenPort, destHost, destPort);
                 case TunnelType.Dynamic:
                     return string.Format(System.Globalization.CultureInfo.InvariantCulture, "SOCKS5 {0}:{1}", listenHost, listenPort);
                 default:
-                    return "转发";
+                    return Localized.Get("Forwarder_Generic", "Forward");
             }
         }
 

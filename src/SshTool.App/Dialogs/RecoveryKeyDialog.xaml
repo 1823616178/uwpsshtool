@@ -4,15 +4,13 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:SshTool.App.Controls"
     x:Uid="VaultDialog"
-    MaxWidth="{StaticResource DialogMaxWidth}"
-    Title="立即保存恢复密钥"
-    PrimaryButtonText="完成">
+    MaxWidth="{StaticResource DialogMaxWidth}">
 
     <!-- 02-UI-DESIGN.md §5.8 RecoveryKeyDialog：大号等宽分 3 行显示 SPM1-…-XXXX、
          [复制]、说明「只显示这一次」、[☐ 我已抄写/保存] 勾选后主按钮才可用。
          恢复密钥只经内存字段与剪贴板，不写日志（脱敏）。 -->
     <StackPanel>
-        <TextBlock x:Uid="VaultDialog_Note" Text="这是唯一一次显示。同步密码遗忘时，只能使用恢复密钥解锁保险库。"
+        <TextBlock x:Uid="VaultDialog_Note"
                    Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
         <Border Background="{ThemeResource AppSurfaceAltBrush}"
                 CornerRadius="{StaticResource RadiusMd}"
@@ -24,18 +22,18 @@
                 <controls:MonoText x:Name="KeyLine3" Margin="{StaticResource GapXsTop}" />
             </StackPanel>
         </Border>
-        <Button x:Name="CopyButton" x:Uid="VaultDialog_CopyButton" Content="复制"
+        <Button x:Name="CopyButton" x:Uid="VaultDialog_CopyButton"
                 Style="{StaticResource SecondaryButtonStyle}"
                 Margin="{StaticResource GapSmTop}"
                 Click="OnCopyClick" />
-        <TextBlock x:Name="CopiedText" x:Uid="VaultDialog_Copied" Text="已复制到剪贴板"
+        <TextBlock x:Name="CopiedText" x:Uid="VaultDialog_Copied"
                    Style="{StaticResource CaptionTextStyle}"
                    Margin="{StaticResource GapXsTop}"
                    Visibility="Collapsed" />
-        <CheckBox x:Name="SavedBox" x:Uid="VaultDialog_SavedBox" Content="我已抄写/保存"
+        <CheckBox x:Name="SavedBox" x:Uid="VaultDialog_SavedBox"
                   Margin="{StaticResource GapSmTop}"
                   Checked="OnSavedChanged" Unchecked="OnSavedChanged" />
-        <TextBlock x:Name="WarningText" x:Uid="VaultDialog_Warning" Text="必须先勾选「我已抄写/保存」才能继续"
+        <TextBlock x:Name="WarningText" x:Uid="VaultDialog_Warning"
                    Style="{StaticResource CaptionTextStyle}"
                    Foreground="{ThemeResource AppWarningBrush}"
                    TextWrapping="Wrap"

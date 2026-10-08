@@ -418,7 +418,7 @@ namespace SshTool.App.Views.Sync
             var result = await ConfirmDialog.ShowAsync(
                 title: GetString("AccountSync_RevokeDeviceTitle", "撤销设备"),
                 message: GetString("AccountSync_RevokeDeviceMessage",
-                    "撤销后该设备将需要重新登录才能同步。此操作不可撤销。"),
+                    "The device must sign in again to sync. This cannot be undone."),
                 confirmText: GetString("AccountSync_Revoke", "撤销"),
                 cancelText: GetString("AccountSync_Cancel", "取消"),
                 isDanger: true);
@@ -433,7 +433,7 @@ namespace SshTool.App.Views.Sync
             var result = await ConfirmDialog.ShowAsync(
                 title: GetString("AccountSync_RestoreTitle", "恢复到此版本"),
                 message: GetString("AccountSync_RestoreMessage",
-                    "将以此版本创建新的云端版本并覆盖本机配置。"),
+                    "A new cloud version is created from this one and overwrites local settings."),
                 confirmText: GetString("AccountSync_Restore", "恢复"),
                 cancelText: GetString("AccountSync_Cancel", "取消"),
                 isDanger: true);
@@ -448,7 +448,7 @@ namespace SshTool.App.Views.Sync
             var result = await ConfirmDialog.ShowAsync(
                 title: GetString("AccountSync_ClearHistoryTitle", "清空历史"),
                 message: GetString("AccountSync_ClearHistoryMessage",
-                    "云端历史版本将全部删除，且不可恢复。"),
+                    "All cloud history versions will be deleted permanently."),
                 confirmText: GetString("AccountSync_Clear", "清空"),
                 cancelText: GetString("AccountSync_Cancel", "取消"),
                 isDanger: true);
@@ -463,7 +463,7 @@ namespace SshTool.App.Views.Sync
             var result = await ConfirmDialog.ShowAsync(
                 title: GetString("AccountSync_DeleteVaultTitle", "删除云端保险库"),
                 message: GetString("AccountSync_DeleteVaultMessage",
-                    "云端保险库和历史版本将被删除，本机配置仍保留。"),
+                    "The cloud vault and its history will be deleted; local settings are kept."),
                 confirmText: GetString("AccountSync_Delete", "删除"),
                 cancelText: GetString("AccountSync_Cancel", "取消"),
                 isDanger: true);

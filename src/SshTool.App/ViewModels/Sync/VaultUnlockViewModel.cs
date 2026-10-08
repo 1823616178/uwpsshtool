@@ -168,16 +168,16 @@ namespace SshTool.App.ViewModels.Sync
             {
                 // 拉信封 → 解包（Argon2id 数秒 / 恢复密钥直解）→ 记 key 并启用。
                 await _sync.UnlockVaultAsync(secret, _mode).ConfigureAwait(true);
-                LogInfo("保险库解锁成功");
+                LogInfo("vault unlocked");
                 // 成功回状态页并同步（§5.13）：错误已由 HandleSyncError 落状态，吞掉重抛。
                 try
                 {
                     await _sync.SyncNowAsync().ConfigureAwait(true);
-                    LogInfo("解锁后首次同步完成");
+                    LogInfo("initial sync after unlock done");
                 }
                 catch (Exception syncEx)
                 {
-                    LogWarning("解锁后同步失败 " + syncEx.GetType().Name);
+                    LogWarning("sync after unlock failed " + syncEx.GetType().Name);
                 }
                 EventHandler handler = Unlocked;
                 if (handler != null)
@@ -187,7 +187,7 @@ namespace SshTool.App.ViewModels.Sync
             }
             catch (Exception ex)
             {
-                LogWarning("解锁失败 " + ex.GetType().Name);
+                LogWarning("unlock failed " + ex.GetType().Name);
                 ErrorMessage = VaultErrorText.Describe(ex, loader);
                 RaisePropertyChanged("HasError");
             }
@@ -212,7 +212,7 @@ namespace SshTool.App.ViewModels.Sync
             catch (Exception)
             {
             }
-            BusyMessage = string.IsNullOrEmpty(syncText) ? "正在同步…" : syncText;
+            BusyMessage = string.IsNullOrEmpty(syncText) ? Localized.Get("Sync_Syncing", "Syncing…") : syncText;
         }
 
         private void ShowError(ResourceLoader loader, string key)
@@ -226,7 +226,7 @@ namespace SshTool.App.ViewModels.Sync
             // SubmitAsync 内部已吞掉业务异常，此处只防资源加载等意外。
             try
             {
-                LogWarning("提交异常 " + ex.GetType().Name);
+                LogWarning("submit failed " + ex.GetType().Name);
             }
             catch (Exception)
             {

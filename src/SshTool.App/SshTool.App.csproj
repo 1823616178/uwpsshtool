@@ -151,7 +151,9 @@
     <Compile Include="Infrastructure\ServiceRegistry.cs" />
     <Compile Include="Infrastructure\AppLog.cs" />
     <Compile Include="Infrastructure\LaunchRequests.cs" />
+    <Compile Include="Infrastructure\InputPaneScroll.cs" />
     <Compile Include="Infrastructure\Localized.cs" />
+    <Compile Include="Infrastructure\ThemeRefreshHook.cs" />
     <Compile Include="Infrastructure\AppServices.cs" />
     <Compile Include="Infrastructure\DispatcherHelper.cs" />
     <Compile Include="Infrastructure\IBackHandler.cs" />
@@ -711,6 +713,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Themes\Tokens.Light.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Themes\Tokens.HighContrast.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

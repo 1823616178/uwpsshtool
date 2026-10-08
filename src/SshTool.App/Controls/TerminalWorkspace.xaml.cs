@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.App.Terminal;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;
@@ -48,6 +49,8 @@ namespace SshTool.App.Controls
         public TerminalWorkspace()
         {
             this.InitializeComponent();
+            // ui/fix-pass：代码赋值的主题画刷随 ThemeService.ThemeChanged 重算。
+            ThemeRefreshHook.Attach(this, RefreshThemeBrushes);
             this.Unloaded += OnUnloaded;
             this.SizeChanged += OnSizeChanged;
             ApplyEmptyStateText();
@@ -441,7 +444,7 @@ namespace SshTool.App.Controls
             var frame = new Border();
             frame.Tag = sessionId;
             frame.BorderThickness = (Thickness)Application.Current.Resources["BorderThin"];
-            frame.Background = Banner.ResolveThemedBrush("AppBgBrush");
+            frame.Background = ThemeService.ResolveBrush("AppBgBrush");
             frame.Tapped += OnPaneTapped;
             frame.Holding += OnPaneHolding;
             frame.PointerEntered += OnPanePointerEntered;
@@ -468,7 +471,7 @@ namespace SshTool.App.Controls
         {
             var bar = new StackPanel();
             bar.Orientation = Orientation.Horizontal;
-            bar.Background = Banner.ResolveThemedBrush("AppSurfaceBrush");
+            bar.Background = ThemeService.ResolveBrush("AppSurfaceBrush");
             bar.Tag = sessionId;
 
             // C-03：悬浮条按钮套 TerminalIconButtonStyle（§7.5 AllowFocusOnInteraction=False，
@@ -571,7 +574,7 @@ namespace SshTool.App.Controls
                 outer.Height = (double)Application.Current.Resources["SpaceLg"];
             }
             var inner = new Border();
-            inner.Background = Banner.ResolveThemedBrush("AppBorderBrush");
+            inner.Background = ThemeService.ResolveBrush("AppBorderBrush");
             if (vertical)
             {
                 inner.Width = (double)Application.Current.Resources["SplitterThickness"];
@@ -597,6 +600,31 @@ namespace SshTool.App.Controls
         }
 
         // ---------- 布局 ----------
+
+        // ui/fix-pass：主题切换时重套代码创建的窗格框/悬浮条/分隔条画刷；焦点边框由 LayoutAll 重算。
+        private void RefreshThemeBrushes()
+        {
+            Brush bg = ThemeService.ResolveBrush("AppBgBrush");
+            foreach (Border frame in _chrome.Values)
+            {
+                frame.Background = bg;
+            }
+            Brush surface = ThemeService.ResolveBrush("AppSurfaceBrush");
+            foreach (StackPanel bar in _hoverBars.Values)
+            {
+                bar.Background = surface;
+            }
+            Brush hairline = ThemeService.ResolveBrush("AppBorderBrush");
+            foreach (Border outer in _splitters.Values)
+            {
+                var inner = outer.Child as Border;
+                if (inner != null)
+                {
+                    inner.Background = hairline;
+                }
+            }
+            LayoutAll();
+        }
 
         private void LayoutAll()
         {
@@ -634,8 +662,8 @@ namespace SshTool.App.Controls
                 if (show)
                 {
                     pair.Value.BorderBrush = pair.Key == focused
-                        ? Banner.ResolveThemedBrush("AppAccentBrush")
-                        : Banner.ResolveThemedBrush("AppBorderBrush");
+                        ? ThemeService.ResolveBrush("AppAccentBrush")
+                        : ThemeService.ResolveBrush("AppBorderBrush");
                 }
             }
             PaneLayout layout = ComputeLayout();

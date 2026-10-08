@@ -95,7 +95,7 @@ namespace SshTool.App.ViewModels.Sync
             try
             {
                 await _sync.DeleteVaultAsync(_password).ConfigureAwait(true);
-                LogInfo("云端保险库已删除");
+                LogInfo("cloud vault deleted");
                 Succeeded = true;
                 IsBusy = false;
                 VaultDeleted?.Invoke(this, EventArgs.Empty);
@@ -103,7 +103,7 @@ namespace SshTool.App.ViewModels.Sync
             catch (Exception ex)
             {
                 IsBusy = false;
-                LogWarning("删除保险库失败 " + ex.GetType().Name);
+                LogWarning("delete vault failed " + ex.GetType().Name);
                 ShowError(DescribeError(ex));
             }
         }
@@ -123,7 +123,7 @@ namespace SshTool.App.ViewModels.Sync
         private void OnSubmitError(Exception ex)
         {
             ShowError("DeleteVault_Failed");
-            LogWarning("提交异常 " + ex.GetType().Name);
+            LogWarning("submit failed " + ex.GetType().Name);
         }
 
         private string GetString(string key, string fallback)

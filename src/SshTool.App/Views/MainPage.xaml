@@ -92,7 +92,10 @@
         <!-- U12：宽屏主从（02-UI-DESIGN.md §3、§5.7）。左主机列表（可折叠 Inline）+ 右 TerminalWorkspace。
              窄屏回退上面的 Pivot 单页导航；窗格树由 WorkspaceViewModel 持有，不随显隐销毁。
              V02：栏内标题移除（AppPageHeader 统一承担），只留 PaneToggle。 -->
-        <Grid x:Name="WideGrid" Grid.Row="2" Visibility="Collapsed">
+        <!-- ui/fix-pass：x:DeferLoadStrategy="Lazy"——手机竖/横屏（&lt;720）永远用不到主从布局，
+             不再在启动时构建第二份 HostsPivot + TerminalWorkspace；WideState 的 Setter 首次命中时
+             由框架实例化，code-behind 在 LayoutStates.CurrentStateChanged 里补 Attach（RealizeWide）。 -->
+        <Grid x:Name="WideGrid" Grid.Row="2" Visibility="Collapsed" x:DeferLoadStrategy="Lazy">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -125,7 +128,7 @@
 
         <VisualStateManager.VisualStateGroups>
             <!-- U12：默认即窄屏单页；窗宽 ≥720（WideBreakpoint）时切主从。 -->
-            <VisualStateGroup>
+            <VisualStateGroup x:Name="LayoutStates">
                 <VisualState x:Name="WideState">
                     <VisualState.StateTriggers>
                         <AdaptiveTrigger MinWindowWidth="{StaticResource WideBreakpoint}" />

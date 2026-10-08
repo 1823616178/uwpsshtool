@@ -25,7 +25,7 @@ namespace SshTool.App.ViewModels
         private AppearanceProfile _draft;
         private AppearanceProfile _baseline;
         private bool _isNew;
-        private string _title = "新建外观";
+        private string _title = Localized.Get("AppearanceEdit_TitleNew", "New appearance");
         private Dictionary<string, string> _errors = new Dictionary<string, string>();
 
         public AppearanceEditViewModel(AppServices services)
@@ -84,24 +84,24 @@ namespace SshTool.App.ViewModels
                 _draft = BaseForNew(all);
                 _isNew = true;
                 IsBuiltInCopy = false;
-                Title = "新建外观";
+                Title = Localized.Get("AppearanceEdit_TitleNew", "New appearance");
             }
             else if (found.BuiltIn || _services.AppearanceService.IsBuiltIn(found.Id))
             {
                 _draft = found.Clone();
                 _draft.Id = IdGenerator.NewId();
                 _draft.BuiltIn = false;
-                _draft.Name = (found.Name ?? "主题") + " 副本";
+                _draft.Name = CopyName(found.Name);
                 _isNew = true;
                 IsBuiltInCopy = true;
-                Title = "新建外观（内置主题的副本）";
+                Title = Localized.Get("AppearanceEdit_TitleBuiltInCopy", "New appearance (copy of built-in theme)");
             }
             else
             {
                 _draft = found.Clone();
                 _isNew = false;
                 IsBuiltInCopy = false;
-                Title = "编辑外观";
+                Title = Localized.Get("AppearanceEdit_TitleEdit", "Edit appearance");
             }
             _baseline = _draft.Clone();
             _errors = new Dictionary<string, string>();
@@ -124,8 +124,15 @@ namespace SshTool.App.ViewModels
             AppearanceProfile draft = baseProfile != null ? baseProfile.Clone() : Defaults.DefaultAppearance();
             draft.Id = IdGenerator.NewId();
             draft.BuiltIn = false;
-            draft.Name = "新主题";
+            draft.Name = Localized.Get("AppearanceEdit_NewName", "New theme");
             return draft;
+        }
+
+        // 「复制为新主题」的默认名：「{原名} 副本」，原名缺失时用「主题」。
+        public static string CopyName(string name)
+        {
+            return Localized.Format("Appearance_CopyName", "{0} copy",
+                name ?? Localized.Get("Appearance_DefaultName", "Theme"));
         }
 
         public void Touch()
@@ -150,25 +157,25 @@ namespace SshTool.App.ViewModels
             var errors = new Dictionary<string, string>();
             if (_draft == null)
             {
-                errors["name"] = "外观不存在";
+                errors["name"] = Localized.Get("AppearanceEdit_ErrNotFound", "Appearance not found");
             }
             else
             {
                 if (string.IsNullOrEmpty(_draft.Name) || _draft.Name.Length > 255)
                 {
-                    errors["name"] = "名称长度 1–255";
+                    errors["name"] = Localized.Get("AppearanceEdit_ErrNameLength", "Name must be 1–255 characters");
                 }
                 if (_draft.FontSize < MinFontSize || _draft.FontSize > MaxFontSize)
                 {
-                    errors["fontSize"] = "字号范围 8–28";
+                    errors["fontSize"] = Localized.Get("AppearanceEdit_ErrFontSize", "Font size must be 8–28");
                 }
                 if (_draft.LineHeight < MinLineHeight || _draft.LineHeight > MaxLineHeight)
                 {
-                    errors["lineHeight"] = "行高范围 1.0–1.6";
+                    errors["lineHeight"] = Localized.Get("AppearanceEdit_ErrLineHeight", "Line height must be 1.0–1.6");
                 }
                 if (_draft.Padding < MinPadding || _draft.Padding > MaxPadding)
                 {
-                    errors["padding"] = "内边距范围 0–16";
+                    errors["padding"] = Localized.Get("AppearanceEdit_ErrPadding", "Padding must be 0–16");
                 }
                 CheckColor(errors, "foreground", _draft.Foreground);
                 CheckColor(errors, "background", _draft.Background);
@@ -176,7 +183,7 @@ namespace SshTool.App.ViewModels
                 CheckColor(errors, "selection", _draft.Selection);
                 if (_draft.Palette == null || _draft.Palette.Count != 16)
                 {
-                    errors["palette"] = "调色板必须为 16 色";
+                    errors["palette"] = Localized.Get("AppearanceEdit_ErrPaletteCount", "Palette must have 16 colors");
                 }
                 else
                 {
@@ -184,7 +191,7 @@ namespace SshTool.App.ViewModels
                     {
                         if (!GroupValidator.IsValidColor(_draft.Palette[i]))
                         {
-                            errors["palette"] = "调色板第 " + (i + 1).ToString() + " 色非法";
+                            errors["palette"] = Localized.Format("AppearanceEdit_ErrPaletteColor", "Palette color {0} is invalid", i + 1);
                             break;
                         }
                     }
@@ -235,7 +242,7 @@ namespace SshTool.App.ViewModels
                 AppearanceProfile copy = _draft.Clone();
                 copy.Id = IdGenerator.NewId();
                 copy.BuiltIn = false;
-                copy.Name = (_draft.Name ?? "主题") + " 副本";
+                copy.Name = CopyName(_draft.Name);
                 await _services.AppearanceService.AddAsync(copy).ConfigureAwait(true);
                 return copy.Id;
             }
@@ -251,7 +258,7 @@ namespace SshTool.App.ViewModels
         {
             if (!GroupValidator.IsValidColor(value))
             {
-                errors[field] = "颜色须为 #RRGGBB 形式";
+                errors[field] = Localized.Get("AppearanceEdit_ErrColor", "Color must be #RRGGBB");
             }
         }
     }

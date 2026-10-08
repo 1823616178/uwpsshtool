@@ -155,9 +155,9 @@ namespace SshTool.App.ViewModels.Snippets
                 return;
             }
             ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
-                "删除片段？",
-                "删除「" + (row.Name ?? string.Empty) + "」后无法恢复。",
-                "删除", "取消", true).ConfigureAwait(true);
+                Localized.Get("Snippets_DeleteTitle", "Delete snippet?"),
+                Localized.Format("Snippets_DeleteMessage", "\"{0}\" will be deleted permanently.", row.Name ?? string.Empty),
+                Localized.Get("Common_Delete", "Delete"), Localized.Get("Common_Cancel", "Cancel"), true).ConfigureAwait(true);
             if (!confirm.Confirmed)
             {
                 return;

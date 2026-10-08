@@ -1,5 +1,7 @@
 using System;
 using System.Windows.Input;
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
@@ -32,6 +34,8 @@ namespace SshTool.App.Controls
         public Banner()
         {
             this.InitializeComponent();
+            // ui/fix-pass：代码赋值的主题画刷随 ThemeService.ThemeChanged 重算。
+            ThemeRefreshHook.Attach(this, UpdateVisual);
             this.Loaded += (s, e) => UpdateVisual();
         }
 
@@ -115,41 +119,12 @@ namespace SshTool.App.Controls
             }
         }
 
-        // 主题字典解析（跟随当前 RequestedTheme）
+        // 主题字典解析：委托 ThemeService（有效主题由 Core ThemeKeyResolver 统一判定）。
+        // ui/fix-pass：旧实现按 root.RequestedTheme == Light 判断，「跟随系统」时根元素是
+        // Default，系统浅色也被当成 Dark（单测 ThemeKeyResolverTests 覆盖该回归）。
         internal static Brush ResolveThemedBrush(string key)
         {
-            var app = Application.Current;
-            var element = Window.Current.Content as FrameworkElement;
-            bool light = (element != null && element.RequestedTheme == ElementTheme.Light)
-                || (element == null && app.RequestedTheme == ApplicationTheme.Light);
-            return ResolveThemed(app.Resources, key, light ? "Light" : "Dark") as Brush;
-        }
-
-        internal static object ResolveThemed(ResourceDictionary resources, string key, string theme)
-        {
-            object value;
-            if (resources.TryGetValue(key, out value))
-            {
-                return value;
-            }
-            foreach (var merged in resources.MergedDictionaries)
-            {
-                value = ResolveThemed(merged, key, theme);
-                if (value != null)
-                {
-                    return value;
-                }
-            }
-            ResourceDictionary themed;
-            if (resources.ThemeDictionaries.TryGetValue(theme, out value))
-            {
-                themed = value as ResourceDictionary;
-                if (themed != null)
-                {
-                    return ResolveThemed(themed, key, theme);
-                }
-            }
-            return null;
+            return ThemeService.ResolveBrush(key);
         }
 
         private void OnActionClick(object sender, RoutedEventArgs e)

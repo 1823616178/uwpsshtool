@@ -58,7 +58,7 @@
         <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />
     </Style>
     <Style x:Key="DangerButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{ThemeResource AppDangerBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AppDangerFillBrush}" />
         <Setter Property="Foreground" Value="{ThemeResource AppOnAccentBrush}" />
         <Setter Property="FontSize" Value="{StaticResource FontBody}" />
         <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
@@ -66,7 +66,7 @@
     </Style>
     <!-- 对话框内危险主按钮：红底白字，尺寸与 PrimaryButtonStyle 保持一致。 -->
     <Style x:Key="DangerDialogButtonStyle" TargetType="Button">
-        <Setter Property="Background" Value="{ThemeResource AppDangerBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AppDangerFillBrush}" />
         <Setter Property="Foreground" Value="{ThemeResource AppOnAccentBrush}" />
         <Setter Property="FontSize" Value="{StaticResource FontBody}" />
         <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
@@ -136,7 +136,7 @@
         <Setter Property="Padding" Value="{StaticResource PadNone}" />
         <Setter Property="BorderThickness" Value="{StaticResource BorderNone}" />
         <Setter Property="Background" Value="{ThemeResource AppAccentSoftBrush}" />
-        <Setter Property="Foreground" Value="{ThemeResource AppAccentBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppAccentTextBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
@@ -839,6 +839,128 @@
         </Setter>
     </Style>
 
+    <!-- ui/fix-pass：胶囊搜索框（HostsPivot）内的 AutoSuggestBox 文本框——透明无边，由外层 PillFieldBorderStyle
+         提供材质。替代使用点的 TextControlBackground* 轻量覆盖（那组键 16299 起才进 TextBox 模板，15063 无效，
+         框在胶囊里仍是一块实底矩形）。悬停/聚焦态不再刷底色与描边。 -->
+    <Style x:Key="PillAutoSuggestTextBoxStyle" TargetType="TextBox">
+        <Setter Property="MinWidth" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="MinHeight" Value="{StaticResource InputHeight}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderNone}" />
+        <Setter Property="SelectionHighlightColor" Value="{ThemeResource AppAccentBrush}" />
+        <Setter Property="FontFamily" Value="{ThemeResource ContentControlThemeFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+        <Setter Property="ScrollViewer.HorizontalScrollMode" Value="Auto" />
+        <Setter Property="ScrollViewer.VerticalScrollMode" Value="Auto" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden" />
+        <Setter Property="ScrollViewer.IsDeferredScrollingEnabled" Value="False" />
+        <Setter Property="Padding" Value="{StaticResource PadInput}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Grid>
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Disabled">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RootGrid"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="{StaticResource DisabledOpacity}" Duration="0" />
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver" />
+                                <VisualState x:Name="Focused" />
+                            </VisualStateGroup>
+                            <VisualStateGroup x:Name="ButtonStates">
+                                <VisualState x:Name="ButtonVisible">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="DeleteButton" Storyboard.TargetProperty="Visibility">
+                                            <DiscreteObjectKeyFrame KeyTime="0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <Visibility>Visible</Visibility>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="ButtonCollapsed" />
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+
+                        <Grid x:Name="RootGrid">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Border x:Name="BorderElement"
+                                    Grid.Row="1"
+                                    Grid.ColumnSpan="3"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="{StaticResource RadiusSm}" />
+                            <ContentPresenter x:Name="HeaderContentPresenter"
+                                              x:DeferLoadStrategy="Lazy"
+                                              Visibility="Collapsed"
+                                              Grid.Row="0"
+                                              Grid.ColumnSpan="3"
+                                              Foreground="{ThemeResource AppTextDimBrush}"
+                                              FontSize="{StaticResource FontCaption}"
+                                              Margin="{StaticResource GapXsBottom}"
+                                              Content="{TemplateBinding Header}"
+                                              ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                              TextWrapping="{TemplateBinding TextWrapping}"
+                                              FontWeight="Normal" />
+                            <ScrollViewer x:Name="ContentElement"
+                                          Grid.Row="1"
+                                          HorizontalScrollMode="{TemplateBinding ScrollViewer.HorizontalScrollMode}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                          VerticalScrollMode="{TemplateBinding ScrollViewer.VerticalScrollMode}"
+                                          VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                                          IsHorizontalRailEnabled="{TemplateBinding ScrollViewer.IsHorizontalRailEnabled}"
+                                          IsVerticalRailEnabled="{TemplateBinding ScrollViewer.IsVerticalRailEnabled}"
+                                          IsDeferredScrollingEnabled="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                                          Margin="{TemplateBinding BorderThickness}"
+                                          Padding="{TemplateBinding Padding}"
+                                          IsTabStop="False"
+                                          AutomationProperties.AccessibilityView="Raw"
+                                          ZoomMode="Disabled" />
+                            <TextBlock x:Name="PlaceholderTextContentPresenter"
+                                       Grid.Row="1"
+                                       Grid.ColumnSpan="3"
+                                       Foreground="{ThemeResource AppTextFaintBrush}"
+                                       Margin="{TemplateBinding BorderThickness}"
+                                       Padding="{TemplateBinding Padding}"
+                                       Text="{TemplateBinding PlaceholderText}"
+                                       TextWrapping="{TemplateBinding TextWrapping}"
+                                       TextAlignment="{TemplateBinding TextAlignment}"
+                                       IsHitTestVisible="False" />
+                            <Button x:Name="DeleteButton"
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    Style="{StaticResource TextControlDeleteButtonStyle}"
+                                    Visibility="Collapsed" />
+                            <Button x:Name="QueryButton"
+                                    Grid.Row="1"
+                                    Grid.Column="2"
+                                    Style="{StaticResource AutoSuggestBoxQueryButtonStyle}"
+                                    Visibility="Collapsed" />
+                        </Grid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- 全局 AutoSuggestBox 隐式样式 -->
     <Style TargetType="AutoSuggestBox">
         <Setter Property="VerticalAlignment" Value="Top" />
@@ -1367,5 +1489,55 @@
 
     <Style TargetType="AppBarToggleButton">
         <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+    </Style>
+
+    <!-- ui/fix-pass：「整行可点」的无装饰按钮（快速连接折叠行等）。替代 Grid+Tapped：
+         可获焦（Tab/方向键）、有系统焦点框、读屏报「按钮」、空格/回车可触发；按压态内容降不透明度。 -->
+    <Style x:Key="PlainRowButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+        <Setter Property="BorderThickness" Value="{StaticResource BorderNone}" />
+        <Setter Property="Padding" Value="{StaticResource PadNone}" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="MinHeight" Value="{StaticResource TouchTargetMin}" />
+        <Setter Property="UseSystemFocusVisuals" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid x:Name="RootGrid" Background="{TemplateBinding Background}">
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver" />
+                                <VisualState x:Name="Pressed">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ContentPresenter"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="{StaticResource PressedOpacity}" Duration="0" />
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="ContentPresenter"
+                                                         Storyboard.TargetProperty="Opacity"
+                                                         To="{StaticResource DisabledOpacity}" Duration="0" />
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                        <ContentPresenter x:Name="ContentPresenter"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          ContentTransitions="{TemplateBinding ContentTransitions}"
+                                          Padding="{TemplateBinding Padding}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          AutomationProperties.AccessibilityView="Raw" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 </ResourceDictionary>

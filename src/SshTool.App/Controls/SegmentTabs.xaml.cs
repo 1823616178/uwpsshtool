@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using Windows.ApplicationModel.Resources;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -33,6 +35,8 @@ namespace SshTool.App.Controls
         public SegmentTabs()
         {
             this.InitializeComponent();
+            // ui/fix-pass：代码赋值的主题画刷随 ThemeService.ThemeChanged 重算。
+            ThemeRefreshHook.Attach(this, UpdateVisual);
             // 质量评审 Minor-5：去掉 Loaded→Rebuild 与 ItemsSource DP 回调的重复构建，只留后者。
             this.IsEnabledChanged += (s, e) => UpdateVisual();
         }
@@ -178,10 +182,10 @@ namespace SshTool.App.Controls
 
         private void UpdateVisual()
         {
-            Brush accent = Banner.ResolveThemedBrush("AppAccentBrush");
-            Brush onAccent = Banner.ResolveThemedBrush("AppOnAccentBrush");
-            Brush surface = Banner.ResolveThemedBrush("AppSurfaceBrush");
-            Brush text = Banner.ResolveThemedBrush("AppTextBrush");
+            Brush accent = ThemeService.ResolveBrush("AppAccentBrush");
+            Brush onAccent = ThemeService.ResolveBrush("AppOnAccentBrush");
+            Brush surface = ThemeService.ResolveBrush("AppSurfaceBrush");
+            Brush text = ThemeService.ResolveBrush("AppTextBrush");
             // 质量评审 Important-2：选中态进无障碍树——读屏播报「标签，已选」，未选段只报标签。
             string selectedSuffix = ResourceLoader.GetForCurrentView().GetString("SegmentTabs_SelectedSuffix");
             for (int i = 0; i < _segments.Count; i++)

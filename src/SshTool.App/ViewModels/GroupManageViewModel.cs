@@ -87,7 +87,7 @@ namespace SshTool.App.ViewModels
 
         public async Task AddAsync()
         {
-            HostGroup group = Defaults.NewGroup("新分组");
+            HostGroup group = Defaults.NewGroup(Localized.Get("GroupManage_NewGroupName", "New group"));
             group.Order = NextOrder();
             ValidationResult v = GroupValidator.Validate(group);
             if (!v.IsValid)
@@ -157,14 +157,16 @@ namespace SshTool.App.ViewModels
 
         public async Task DeleteAsync(GroupRow row)
         {
-            string message = "删除分组「" + row.Name + "」？";
+            string message = Localized.Format("GroupManage_DeleteMessage", "Delete group \"{0}\"?", row.Name);
             if (row.HostCount > 0 || row.TunnelCount > 0)
             {
-                message += " 将影响 " + row.HostCount.ToString() + " 台主机、"
-                    + row.TunnelCount.ToString() + " 条隧道（分组会清空，主机与隧道保留）。";
+                message += " " + Localized.Format("GroupManage_DeleteImpact",
+                    "This affects {0} hosts and {1} tunnels (they are kept; only the group is cleared).",
+                    row.HostCount, row.TunnelCount);
             }
             ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
-                "删除分组", message, "删除", "取消", true).ConfigureAwait(true);
+                Localized.Get("GroupManage_DeleteTitle", "Delete group"), message,
+                Localized.Get("Common_Delete", "Delete"), Localized.Get("Common_Cancel", "Cancel"), true).ConfigureAwait(true);
             if (!confirm.Confirmed)
             {
                 return;

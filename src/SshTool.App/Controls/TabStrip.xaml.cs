@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.App.ViewModels;
 using SshTool.Core.Common;
 using SshTool.Core.Terminal;
@@ -21,6 +22,8 @@ namespace SshTool.App.Controls
         public TabStrip()
         {
             this.InitializeComponent();
+            // ui/fix-pass：代码赋值的主题画刷随 ThemeService.ThemeChanged 重算。
+            ThemeRefreshHook.Attach(this, Rebuild);
             this.Unloaded += OnUnloaded;
         }
 
@@ -101,10 +104,10 @@ namespace SshTool.App.Controls
             outer.Tag = tab.TabId;
             outer.BorderThickness = (Thickness)Application.Current.Resources["BorderThinBottom"];
             outer.BorderBrush = active
-                ? Banner.ResolveThemedBrush("AppAccentBrush")
+                ? ThemeService.ResolveBrush("AppAccentBrush")
                 : new SolidColorBrush(Windows.UI.Colors.Transparent);
             outer.Background = active
-                ? Banner.ResolveThemedBrush("AppSurfaceAltBrush")
+                ? ThemeService.ResolveBrush("AppSurfaceAltBrush")
                 : new SolidColorBrush(Windows.UI.Colors.Transparent);
 
             var row = new Grid();
@@ -123,7 +126,7 @@ namespace SshTool.App.Controls
 
             var close = new Button();
             // C-03：TerminalIconButtonStyle 统一焦点行为（AllowFocusOnInteraction=False）与
-            // 触控宽（§7.5）；高度受 TabStripHeight=36 行约束；无障碍名走 resw（C# 创建用 ResourceLoader）。
+            // 触控宽（§7.5）；高度受 TabStripHeight=40 行约束；无障碍名走 resw（C# 创建用 ResourceLoader）。
             close.Style = (Style)Application.Current.Resources["TerminalIconButtonStyle"];
             close.Content = new FontIcon
             {
@@ -138,7 +141,7 @@ namespace SshTool.App.Controls
             close.Height = (double)Application.Current.Resources["TabStripHeight"];
             // C-03：Transparent 是有意覆盖样式的 Surface 底——✕ 直接坐在标签行上，不带自己的底色。
             close.Background = new SolidColorBrush(Windows.UI.Colors.Transparent);
-            close.Foreground = Banner.ResolveThemedBrush("AppTextDimBrush");
+            close.Foreground = ThemeService.ResolveBrush("AppTextDimBrush");
             close.Click += OnCloseClick;
             Grid.SetColumn(close, 1);
             row.Children.Add(close);

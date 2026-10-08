@@ -22,7 +22,9 @@ namespace SshTool.App.ViewModels
             Name = profile.Name;
             IsBuiltIn = profile.BuiltIn;
             IsDefault = isDefault;
-            Badge = isDefault ? "默认" : (profile.BuiltIn ? "内置" : string.Empty);
+            Badge = isDefault
+                ? Localized.Get("AppearanceList_BadgeDefault", "Default")
+                : (profile.BuiltIn ? Localized.Get("AppearanceList_BadgeBuiltIn", "Built-in") : string.Empty);
             Strip = BuildStrip(profile.Palette);
         }
 
@@ -204,7 +206,7 @@ namespace SshTool.App.ViewModels
                 AppearanceProfile copy = src.Clone();
                 copy.Id = IdGenerator.NewId();
                 copy.BuiltIn = false;
-                copy.Name = (src.Name ?? "主题") + " 副本";
+                copy.Name = AppearanceEditViewModel.CopyName(src.Name);
                 await _services.AppearanceService.AddAsync(copy).ConfigureAwait(true);
                 await RefreshAsync().ConfigureAwait(true);
             }

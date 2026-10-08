@@ -34,6 +34,10 @@ namespace SshTool.App.Views
         private readonly TranslateTransform _keyBarLift = new TranslateTransform();
         // G07：信息条展开态已连接时长计时器（仅展开且 Connected 时激活，1 秒间隔）。
         private readonly DispatcherTimer _durationTimer = new DispatcherTimer();
+        // ui/fix-pass：顶/底栏显隐输入（TerminalChromePolicy 统一计算，ApplyChrome 一次性写回）。
+        private bool _findOpen;
+        private bool _keyBarSetting = true;
+        private bool? _keyBarOverride;
 
         public TerminalPage()
         {
@@ -100,6 +104,8 @@ namespace SshTool.App.Views
             Keys.RenderTransform = _keyBarLift;
             Term.InputPaneOcclusionChanged += OnInputPaneOcclusionChanged;
             Keys.SizeChanged += OnKeyBarSizeChanged;
+            // ui/fix-pass：横竖屏切换（Lumia 950：360×616 ↔ 616×360）重算顶栏显隐；同为本页自身事件。
+            this.SizeChanged += OnPageSizeChanged;
         }
 
         public TerminalViewModel ViewModel { get; private set; }
@@ -124,11 +130,9 @@ namespace SshTool.App.Views
                 Keys.Layout = settings.KeyBarLayout;
                 Keys.HapticsEnabled = settings.HapticsEnabled;
             }
-            bool keyBarWanted = settings == null || settings.KeyBarVisible;
-            Keys.Visibility = keyBarWanted && !InteractionModeHelper.IsMouseMode
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-            UpdateKeyBarLift();
+            _keyBarSetting = settings == null || settings.KeyBarVisible;
+            _keyBarOverride = null;
+            ApplyChrome();
             // R01 (C-02) + R03 (C-05)：加载/绑定共享世代；fire-and-forget 经 Forget 统一观察。
             LoadAndBindAsync(generation, e.Parameter as TerminalArgs).Forget("TerminalPage.LoadAndBind", AppLog.Logger);
         }
@@ -280,7 +284,7 @@ namespace SshTool.App.Views
                 string format = ResourceLoader.GetForCurrentView().GetString("Overlay_ReconnectingCountdown");
                 if (string.IsNullOrEmpty(format))
                 {
-                    format = "连接已断开，{0} 秒后第 {1} 次重连";
+                    format = "Disconnected. Reconnect attempt {1} in {0} s";
                 }
                 text = string.Format(format, model.ReconnectInSeconds, model.ReconnectAttempt);
             }
@@ -319,11 +323,11 @@ namespace SshTool.App.Views
             string message = loader.GetString("EnergySaverBanner_Message");
             if (string.IsNullOrEmpty(title))
             {
-                title = "省电模式已开启";
+                title = "Battery saver is on";
             }
             if (string.IsNullOrEmpty(message))
             {
-                message = "省电模式下切换到后台时连接会被系统断开，回到应用后会自动重连";
+                message = "With battery saver on, the system drops connections in the background; they reconnect when you return.";
             }
             EnergySaverBanner.Severity = BannerSeverity.Warning;
             EnergySaverBanner.Title = title;
@@ -598,10 +602,49 @@ namespace SshTool.App.Views
         // U12：宽屏默认隐藏键条后可手动打开/关闭。
         private void ToggleKeyBar()
         {
-            Keys.Visibility = Keys.Visibility == Visibility.Visible
-                ? Visibility.Collapsed
-                : Visibility.Visible;
-            UpdateKeyBarLift();
+            _keyBarOverride = Keys.Visibility != Visibility.Visible;
+            ApplyChrome();
+        }
+
+        private void OnPageSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            ApplyChrome();
+        }
+
+        // ui/fix-pass：信息条/查找条/浮动菜单钮/键条显隐的唯一写入点（规则见 Core TerminalChromePolicy）。
+        private void ApplyChrome()
+        {
+            var input = new SshTool.Core.Terminal.TerminalChromeInput
+            {
+                Width = ActualWidth,
+                Height = ActualHeight,
+                FindOpen = _findOpen,
+                KeyBarSetting = _keyBarSetting,
+                MouseMode = InteractionModeHelper.IsMouseMode,
+                KeyBarOverride = _keyBarOverride,
+                WideBreakpoint = TokenDouble("WideBreakpoint"),
+                CompactHeightBreakpoint = TokenDouble("TerminalCompactHeightBreakpoint")
+            };
+            SshTool.Core.Terminal.TerminalChromeLayout layout = SshTool.Core.Terminal.TerminalChromePolicy.Compute(input);
+            InfoBar.Visibility = layout.ShowInfoBar ? Visibility.Visible : Visibility.Collapsed;
+            FindBar.Visibility = layout.ShowFindBar ? Visibility.Visible : Visibility.Collapsed;
+            CompactMenuButton.Visibility = layout.ShowCompactMenu ? Visibility.Visible : Visibility.Collapsed;
+            Visibility keys = layout.ShowKeyBar ? Visibility.Visible : Visibility.Collapsed;
+            if (Keys.Visibility != keys)
+            {
+                Keys.Visibility = keys;
+                UpdateKeyBarLift();
+            }
+        }
+
+        private static double TokenDouble(string key)
+        {
+            object value;
+            if (Application.Current.Resources.TryGetValue(key, out value) && value is double)
+            {
+                return (double)value;
+            }
+            return 0;
         }
 
         private void OnInputPaneOcclusionChanged(object sender, EventArgs e)
@@ -700,8 +743,17 @@ namespace SshTool.App.Views
 
         private void OpenFind()
         {
-            InfoBar.Visibility = Visibility.Collapsed;
-            FindBar.Visibility = Visibility.Visible;
+            bool wasOpen = _findOpen;
+            _findOpen = true;
+            ApplyChrome();
+            if (!wasOpen)
+            {
+                var enter = Resources["FindBarEnter"] as Windows.UI.Xaml.Media.Animation.Storyboard;
+                if (enter != null)
+                {
+                    enter.Begin();
+                }
+            }
             FindCount.Text = string.Empty;
             NavigationService nav;
             if (ServiceRegistry.TryGet(out nav))
@@ -723,13 +775,13 @@ namespace SshTool.App.Views
             {
                 nav.UnregisterBackHandler(this);
             }
-            if (FindBar.Visibility != Visibility.Visible)
+            if (!_findOpen)
             {
                 return;
             }
             Term.ClearFind();
-            FindBar.Visibility = Visibility.Collapsed;
-            InfoBar.Visibility = Visibility.Visible;
+            _findOpen = false;
+            ApplyChrome();
             if (restoreFocus)
             {
                 Term.RestoreInputFocus();
@@ -738,7 +790,7 @@ namespace SshTool.App.Views
 
         public bool HandleBack()
         {
-            if (FindBar.Visibility != Visibility.Visible)
+            if (!_findOpen)
             {
                 return false;
             }
@@ -761,7 +813,7 @@ namespace SshTool.App.Views
         private void OnFindTimerTick(object sender, object e)
         {
             _findTimer.Stop();
-            if (FindBar.Visibility != Visibility.Visible)
+            if (!_findOpen)
             {
                 return;
             }

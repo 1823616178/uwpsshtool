@@ -55,7 +55,7 @@ namespace SshTool.App.Infrastructure
             var dispatcher = Dispatcher;
             if (dispatcher == null)
             {
-                throw new InvalidOperationException("UI 线程尚未就绪：请在 OnLaunched 中先调用 DispatcherHelper.Initialize。");
+                throw new InvalidOperationException("UI thread not ready: call DispatcherHelper.Initialize in OnLaunched first.");
             }
             if (dispatcher.HasThreadAccess)
             {

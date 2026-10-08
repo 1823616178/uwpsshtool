@@ -1,12 +1,13 @@
 using System;
 using System.Windows.Input;
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Automation;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using SshTool.App.Infrastructure;
 
 namespace SshTool.App.Controls
 {
@@ -75,6 +76,8 @@ namespace SshTool.App.Controls
         public AppListRow()
         {
             this.InitializeComponent();
+            // ui/fix-pass：代码赋值的主题画刷随 ThemeService.ThemeChanged 重算。
+            ThemeRefreshHook.Attach(this, UpdateVisual);
             this.Loaded += (s, e) => UpdateVisual();
             this.IsEnabledChanged += (s, e) => UpdateVisual();
         }
@@ -207,7 +210,7 @@ namespace SshTool.App.Controls
                     Text = TitleBadgeGlyph,
                     FontFamily = (FontFamily)Application.Current.Resources["AppIconFontFamily"],
                     FontSize = (double)Application.Current.Resources["FontCaption"],
-                    Foreground = TitleBadgeBrush ?? (Brush)Application.Current.Resources["AppWarningBrush"]
+                    Foreground = TitleBadgeBrush ?? ThemeService.ResolveBrush("AppWarningBrush")
                 });
             }
             else
@@ -255,7 +258,7 @@ namespace SshTool.App.Controls
             {
                 Root.CornerRadius = (CornerRadius)res["RadiusLg"];
                 Root.BorderThickness = (Thickness)res["BorderThin"];
-                Root.BorderBrush = Banner.ResolveThemedBrush("AppCardStrokeBrush");
+                Root.BorderBrush = ThemeService.ResolveBrush("AppCardStrokeBrush");
                 Root.Margin = (Thickness)res["CardMargin"];
             }
             else
@@ -279,7 +282,7 @@ namespace SshTool.App.Controls
             {
                 brushKey = card ? "AppCardSelectedBrush" : "AppSurfaceAltBrush";
             }
-            Root.Background = Banner.ResolveThemedBrush(brushKey);
+            Root.Background = ThemeService.ResolveBrush(brushKey);
         }
 
         private void OnPointerPressed(object sender, PointerRoutedEventArgs e)

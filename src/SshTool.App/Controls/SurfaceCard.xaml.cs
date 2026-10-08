@@ -1,3 +1,5 @@
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 
@@ -28,6 +30,8 @@ namespace SshTool.App.Controls
         public SurfaceCard()
         {
             this.InitializeComponent();
+            // ui/fix-pass：代码赋值的主题画刷随 ThemeService.ThemeChanged 重算。
+            ThemeRefreshHook.Attach(this, UpdateVisual);
             this.Loaded += (s, e) => UpdateVisual();
         }
 
@@ -70,8 +74,8 @@ namespace SshTool.App.Controls
                     strokeKey = "AppDangerBrush";
                     break;
             }
-            Root.Background = Banner.ResolveThemedBrush(bgKey);
-            Root.BorderBrush = Banner.ResolveThemedBrush(strokeKey);
+            Root.Background = ThemeService.ResolveBrush(bgKey);
+            Root.BorderBrush = ThemeService.ResolveBrush(strokeKey);
 
             bool hasHeader = !string.IsNullOrEmpty(Header);
             HeaderText.Text = Header ?? string.Empty;

@@ -184,7 +184,7 @@ namespace SshTool.App.ViewModels.Sync
                 {
                     await _sync.LoginAsync(email, _password, deviceName).ConfigureAwait(true);
                 }
-                LogInfo(IsRegisterMode ? "注册成功" : "登录成功");
+                LogInfo(IsRegisterMode ? "registered" : "signed in");
                 EventHandler handler = LoginSucceeded;
                 if (handler != null)
                 {
@@ -193,7 +193,7 @@ namespace SshTool.App.ViewModels.Sync
             }
             catch (Exception ex)
             {
-                LogWarning("登录/注册失败 " + ex.GetType().Name);
+                LogWarning("login/register failed " + ex.GetType().Name);
                 ErrorMessage = Describe(ex, loader);
                 RaisePropertyChanged("HasError");
             }
@@ -214,7 +214,7 @@ namespace SshTool.App.ViewModels.Sync
             // AsyncCommand 兜底：SubmitAsync 内部已吞掉业务异常，此处只防资源加载等意外。
             try
             {
-                LogWarning("提交异常 " + ex.GetType().Name);
+                LogWarning("submit failed " + ex.GetType().Name);
             }
             catch (Exception)
             {

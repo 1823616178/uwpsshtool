@@ -194,7 +194,7 @@ namespace SshTool.App.Views.Sync
             LoginTabButton.IsEnabled = !register;
             RegisterTabButton.IsEnabled = register;
             BottomBar.PrimaryText = GetString(register ? "Login_SubmitRegister" : "Login_SubmitLogin",
-                register ? "注册" : "登录");
+                register ? "Register" : "Sign in");
             RefreshError();
             RefreshBusy();
         }
@@ -212,7 +212,7 @@ namespace SshTool.App.Views.Sync
             Working.IsActive = busy;
             Working.Message = busy
                 ? GetString(ViewModel.IsRegisterMode ? "Login_WorkingRegister" : "Login_WorkingLogin",
-                    ViewModel.IsRegisterMode ? "正在注册…" : "正在登录…")
+                    ViewModel.IsRegisterMode ? "Registering…" : "Signing in…")
                 : string.Empty;
             BottomBar.IsPrimaryEnabled = !busy && ViewModel.SubmitCommand.CanExecute(null);
         }

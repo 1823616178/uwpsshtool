@@ -126,13 +126,12 @@ namespace SshTool.App.Views.Main
         }
 
         // 折叠行点击 = 底栏「快速连接」命令：切换展开/折叠（态记忆在设置里）。
-        private void OnQuickConnectRowTapped(object sender, TappedRoutedEventArgs e)
+        private void OnQuickConnectRowClick(object sender, RoutedEventArgs e)
         {
             if (ViewModel != null && ViewModel.ToggleQuickConnectCommand.CanExecute(null))
             {
                 ViewModel.ToggleQuickConnectCommand.Execute(null);
             }
-            e.Handled = true;
         }
 
         private void OnQuickConnectTextChanged(object sender, TextChangedEventArgs e)

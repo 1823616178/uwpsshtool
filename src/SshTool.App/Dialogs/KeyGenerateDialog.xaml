@@ -24,6 +24,6 @@
                        Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
                        Visibility="Collapsed" Margin="{StaticResource GapXsTop}" />
         </StackPanel>
-        <controls:LoadingOverlay x:Name="Progress" Message="正在生成…" IsActive="False" />
+        <controls:LoadingOverlay x:Name="Progress" x:Uid="KeyGen_Progress" IsActive="False" />
     </Grid>
 </ContentDialog>

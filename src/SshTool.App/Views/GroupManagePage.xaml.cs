@@ -1,8 +1,9 @@
 using System;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
-using SshTool.Core.Common;
+using SshTool.App.Platform;
 using SshTool.App.ViewModels;
+using SshTool.Core.Common;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -96,7 +97,7 @@ namespace SshTool.App.Views
         // 取当前主题的 AppAccentBrush → #RRGGBB；解析不到时返回 null（选择器保留自身默认值）。
         private static string AccentColorHex()
         {
-            var brush = Banner.ResolveThemedBrush("AppAccentBrush") as SolidColorBrush;
+            var brush = ThemeService.ResolveBrush("AppAccentBrush") as SolidColorBrush;
             if (brush == null)
             {
                 return null;

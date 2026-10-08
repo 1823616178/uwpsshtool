@@ -319,7 +319,7 @@ namespace SshTool.App.Views
             {
             }
             Reload();
-            Toast.Show("已恢复默认布局");
+            Toast.Show(Localized.Get("KeyBarEditor_ResetDone", "Default layout restored"));
         }
 
         private void InsertAvailableSorted(KeyBarKeyItem item)

@@ -15,7 +15,6 @@
         </Grid.RowDefinitions>
 
         <controls:AppPageHeader x:Name="Header" x:Uid="Conflict_Header"
-                                Title="同步冲突"
                                 ShowBackButton="True"
                                 BackRequested="OnBackRequested" />
 

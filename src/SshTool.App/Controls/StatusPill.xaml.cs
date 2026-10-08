@@ -1,3 +1,5 @@
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Automation;
 using Windows.UI.Xaml.Controls;
@@ -24,6 +26,8 @@ namespace SshTool.App.Controls
         public StatusPill()
         {
             this.InitializeComponent();
+            // ui/fix-pass：代码赋值的主题画刷随 ThemeService.ThemeChanged 重算。
+            ThemeRefreshHook.Attach(this, UpdateVisual);
             this.Loaded += (s, e) => UpdateVisual();
         }
 
@@ -62,7 +66,7 @@ namespace SshTool.App.Controls
                     brushKey = "AppTextFaintBrush";
                     break;
             }
-            Dot.Fill = Banner.ResolveThemedBrush(brushKey);
+            Dot.Fill = ThemeService.ResolveBrush(brushKey);
             Label.Text = Text ?? string.Empty;
             // §7.2：状态不能只靠颜色——读屏内容取可见文本。
             AutomationProperties.SetName(this, Text ?? string.Empty);

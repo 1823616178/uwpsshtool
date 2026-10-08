@@ -92,7 +92,7 @@ namespace SshTool.App.ViewModels.Sync
                 }
                 var s = _conflict.RemoteSummary;
                 string baseText = GetString("Conflict_RemoteSummary",
-                    "云端：{0} 台主机 · {1} 条隧道 · {2} 分组",
+                    "Cloud: {0} hosts · {1} tunnels · {2} groups",
                     s.Servers.ToString(), s.Tunnels.ToString(), s.Groups.ToString());
                 var parts = new List<string>();
                 if (s.IncludesPasswords)
@@ -200,7 +200,7 @@ namespace SshTool.App.ViewModels.Sync
             catch (Exception ex)
             {
                 ErrorMessage = GetString("Conflict_ResolveFailed", "解决冲突失败，请稍后重试");
-                LogWarning("解决冲突失败 " + ex.GetType().Name);
+                LogWarning("resolve conflict failed " + ex.GetType().Name);
             }
             finally
             {
@@ -254,7 +254,7 @@ namespace SshTool.App.ViewModels.Sync
         private void OnCommandError(Exception ex)
         {
             ErrorMessage = GetString("Conflict_ResolveFailed", "解决冲突失败，请稍后重试");
-            LogWarning("解决冲突异常 " + ex.GetType().Name);
+            LogWarning("resolve conflict error " + ex.GetType().Name);
         }
 
         private void LogWarning(string message)

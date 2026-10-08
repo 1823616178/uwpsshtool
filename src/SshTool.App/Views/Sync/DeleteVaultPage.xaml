@@ -2,6 +2,7 @@
     x:Class="SshTool.App.Views.Sync.DeleteVaultPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:infra="using:SshTool.App.Infrastructure"
     xmlns:controls="using:SshTool.App.Controls"
     Background="{ThemeResource AppBgBrush}">
 
@@ -13,11 +14,10 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <controls:AppPageHeader x:Name="Header" x:Uid="DeleteVault_Header"
-                                Title="删除云端保险库"
                                 ShowBackButton="True"
                                 BackRequested="OnBackRequested" />
 
-        <ScrollViewer Grid.Row="1">
+        <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
@@ -25,17 +25,15 @@
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
                 <TextBlock x:Uid="DeleteVault_Explanation"
-                           Text="云端保险库和历史版本将被删除，本机配置仍保留。"
                            Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
                            Margin="{StaticResource GapSmTop}" />
 
                 <controls:FormSection x:Uid="DeleteVault_Section_Confirm" Margin="{StaticResource GapMdTop}">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
-                            <TextBlock x:Uid="DeleteVault_PasswordLabel" Text="登录密码"
+                            <TextBlock x:Uid="DeleteVault_PasswordLabel"
                                        Style="{StaticResource BodyTextStyle}" />
                             <PasswordBox x:Name="PasswordBox" x:Uid="DeleteVault_PasswordBox"
-                                         PlaceholderText="请输入登录密码"
                                          Margin="{StaticResource GapSmTop}"
                                          PasswordChanged="OnPasswordChanged" />
 

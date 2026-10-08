@@ -1,6 +1,9 @@
 using System;
 using System.Globalization;
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.Core.Appearance;
+using SshTool.Core.Common;
 using SshTool.Core.Validation;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -8,8 +11,6 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using SshTool.App.Infrastructure;
-using SshTool.Core.Common;
 
 namespace SshTool.App.Controls
 {
@@ -52,6 +53,8 @@ namespace SshTool.App.Controls
         public ColorSwatchPicker()
         {
             this.InitializeComponent();
+            // ui/fix-pass：代码赋值的主题画刷随 ThemeService.ThemeChanged 重算。
+            ThemeRefreshHook.Attach(this, SyncSelection);
             HueSlider.Minimum = 0;
             HueSlider.Maximum = 360;
             SaturationSlider.Minimum = 0;
@@ -146,7 +149,7 @@ namespace SshTool.App.Controls
         {
             // AppAccentBrush 只在 Tokens.*.xaml 的 ThemeDictionaries 里，
             // ResourceDictionary 索引器不查主题字典（恒 null）——走 Banner 的解析。
-            Brush accent = Banner.ResolveThemedBrush("AppAccentBrush");
+            Brush accent = ThemeService.ResolveBrush("AppAccentBrush");
             Thickness stroke = new Thickness(SwatchGap);
             Thickness noGap = (Thickness)Application.Current.Resources["BorderNone"];
             for (int i = 0; i < SwatchGrid.Children.Count; i++)

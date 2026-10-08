@@ -2,6 +2,7 @@
     x:Class="SshTool.App.Views.Sync.VaultSetupPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:infra="using:SshTool.App.Infrastructure"
     xmlns:controls="using:SshTool.App.Controls"
     Background="{ThemeResource AppBgBrush}">
 
@@ -17,7 +18,7 @@
         <controls:AppPageHeader x:Uid="VaultSetup_Title"
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
-        <ScrollViewer Grid.Row="1">
+        <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
@@ -28,22 +29,18 @@
                     <controls:FormSection.SectionContent>
                         <StackPanel>
                             <TextBlock x:Uid="VaultSetup_Explanation"
-                                       Text="同步密码用于加密你的配置，服务器无法解密；与登录密码可以不同。"
                                        Style="{StaticResource BodyTextStyle}"
                                        TextWrapping="Wrap" />
                             <PasswordBox x:Name="SyncPasswordBox" x:Uid="VaultSetup_PasswordBox"
-                                         Header="同步密码" PlaceholderText="设置同步密码（至少 8 位）"
                                          Margin="{StaticResource GapSmTop}"
                                          PasswordChanged="OnPasswordChanged" />
-                            <TextBlock x:Uid="VaultSetup_PasswordHint" Text="同步密码至少 8 位"
+                            <TextBlock x:Uid="VaultSetup_PasswordHint"
                                        Style="{StaticResource CaptionTextStyle}"
                                        Margin="{StaticResource GapXsTop}" />
                             <PasswordBox x:Name="ConfirmBox" x:Uid="VaultSetup_ConfirmBox"
-                                         Header="确认同步密码"
                                          Margin="{StaticResource GapSmTop}"
                                          PasswordChanged="OnConfirmChanged" />
                             <TextBlock x:Uid="VaultSetup_LocalNote"
-                                       Text="解锁后的保险库密钥加密保存在本机，重启无需再次输入。"
                                        Style="{StaticResource CaptionTextStyle}"
                                        TextWrapping="Wrap"
                                        Margin="{StaticResource GapSmTop}" />

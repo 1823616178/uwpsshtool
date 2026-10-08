@@ -137,7 +137,7 @@ namespace SshTool.App.ViewModels.Sync
             {
                 await _sync.ChangeAccountPasswordAsync(_currentPassword, _newPassword)
                     .ConfigureAwait(true);
-                LogInfo("登录密码已修改");
+                LogInfo("login password changed");
                 Succeeded = true;
                 IsBusy = false;
                 PasswordChanged?.Invoke(this, EventArgs.Empty);
@@ -145,7 +145,7 @@ namespace SshTool.App.ViewModels.Sync
             catch (Exception ex)
             {
                 IsBusy = false;
-                LogWarning("修改登录密码失败 " + ex.GetType().Name);
+                LogWarning("change login password failed " + ex.GetType().Name);
                 ShowError(DescribeError(ex));
             }
         }
@@ -165,7 +165,7 @@ namespace SshTool.App.ViewModels.Sync
         private void OnSubmitError(Exception ex)
         {
             ShowError("ChangeLogin_Failed");
-            LogWarning("提交异常 " + ex.GetType().Name);
+            LogWarning("submit failed " + ex.GetType().Name);
         }
 
         private string GetString(string key, string fallback)

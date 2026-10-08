@@ -160,22 +160,25 @@ namespace SshTool.App.Views
                 }
                 if (row.IsBuiltIn)
                 {
-                    await ConfirmDialog.ShowAsync("无法删除", "内置主题不能删除，可以「复制为新主题」后再改。", "确定", "关闭");
+                    await ConfirmDialog.ShowAsync(Localized.Get("AppearanceList_CannotDeleteTitle", "Cannot delete"),
+                        Localized.Get("AppearanceList_CannotDeleteMessage", "Built-in themes cannot be deleted. Duplicate it as a new theme and edit that instead."),
+                        Localized.Get("Common_Ok", "OK"), Localized.Get("Common_Close", "Close"));
                     return;
                 }
                 IReadOnlyList<Host> refs = await ViewModel.GetReferencingHostsAsync(row);
                 int count = refs == null ? 0 : refs.Count;
-                string message = "删除外观「" + (row.Name ?? string.Empty) + "」？";
+                string message = Localized.Format("AppearanceList_DeleteMessage", "Delete appearance \"{0}\"?", row.Name ?? string.Empty);
                 if (count > 0)
                 {
-                    message += "引用它的 " + count.ToString() + " 台主机将改回跟随默认。";
+                    message += " " + Localized.Format("AppearanceList_DeleteRefs", "{0} hosts using it will switch back to the default.", count);
                 }
                 if (row.IsDefault)
                 {
-                    message += "它还是全局默认，删除后默认回到内置主题。";
+                    message += " " + Localized.Get("AppearanceList_DeleteIsDefault", "It is also the global default; the default reverts to the built-in theme.");
                 }
                 ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
-                    "删除外观", message, "删除", "取消", true);
+                    Localized.Get("AppearanceList_DeleteTitle", "Delete appearance"), message,
+                    Localized.Get("Common_Delete", "Delete"), Localized.Get("Common_Cancel", "Cancel"), true);
                 if (!confirm.Confirmed)
                 {
                     return;
@@ -224,7 +227,8 @@ namespace SshTool.App.Views
                 var props = await file.GetBasicPropertiesAsync();
                 if (props.Size > 262144)
                 {
-                    await ConfirmDialog.ShowAsync("导入失败", "文件过大（超过 256 KiB），请选择配色文件。", "确定", "关闭");
+                    await ConfirmDialog.ShowAsync(Localized.Get("AppearanceList_ImportFailed", "Import failed"),
+                        Localized.Get("AppearanceList_ImportTooLarge", "The file is too large (over 256 KiB). Choose a color scheme file."), Localized.Get("Common_Ok", "OK"), Localized.Get("Common_Close", "Close"));
                     return;
                 }
                 string text = await FileIO.ReadTextAsync(file);
@@ -240,13 +244,15 @@ namespace SshTool.App.Views
                 }
                 else
                 {
-                    await ConfirmDialog.ShowAsync("导入失败", "不支持的文件类型，请选择 .itermcolors 或 .json 文件。", "确定", "关闭");
+                    await ConfirmDialog.ShowAsync(Localized.Get("AppearanceList_ImportFailed", "Import failed"),
+                        Localized.Get("AppearanceList_ImportBadType", "Unsupported file type. Choose a .itermcolors or .json file."), Localized.Get("Common_Ok", "OK"), Localized.Get("Common_Close", "Close"));
                     return;
                 }
                 if (!result.Ok || result.Profiles.Count == 0)
                 {
-                    await ConfirmDialog.ShowAsync("导入失败",
-                        result.Ok ? "文件中没有可导入的配色。" : result.Error, "确定", "关闭");
+                    await ConfirmDialog.ShowAsync(Localized.Get("AppearanceList_ImportFailed", "Import failed"),
+                        result.Ok ? Localized.Get("AppearanceList_ImportEmpty", "The file contains no color schemes to import.") : result.Error,
+                        Localized.Get("Common_Ok", "OK"), Localized.Get("Common_Close", "Close"));
                     return;
                 }
                 if (result.Profiles.Count == 1)
@@ -254,7 +260,7 @@ namespace SshTool.App.Views
                     bool saved = await ViewModel.ImportProfilesAsync(new List<AppearanceProfile> { result.Profiles[0] });
                     if (!saved)
                     {
-                        await ConfirmDialog.ShowAsync("导入失败", "保存导入的配色时出错，请重试。", "确定", "关闭");
+                        await ConfirmDialog.ShowAsync(Localized.Get("AppearanceList_ImportFailed", "Import failed"), Localized.Get("AppearanceList_ImportSaveError", "Could not save the imported color scheme. Please try again."), Localized.Get("Common_Ok", "OK"), Localized.Get("Common_Close", "Close"));
                         return;
                     }
                     ViewModel.OpenEdit(new AppearanceRow(result.Profiles[0], false));
@@ -268,7 +274,7 @@ namespace SshTool.App.Views
                 }
                 if (!await ViewModel.ImportProfilesAsync(selected))
                 {
-                    await ConfirmDialog.ShowAsync("导入失败", "保存导入的配色时出错，请重试。", "确定", "关闭");
+                    await ConfirmDialog.ShowAsync(Localized.Get("AppearanceList_ImportFailed", "Import failed"), Localized.Get("AppearanceList_ImportSaveError", "Could not save the imported color scheme. Please try again."), Localized.Get("Common_Ok", "OK"), Localized.Get("Common_Close", "Close"));
                     return;
                 }
                 await ViewModel.RefreshAsync();
@@ -288,7 +294,8 @@ namespace SshTool.App.Views
                     {
                     }
                 }
-                await ConfirmDialog.ShowAsync("导入失败", "读取或保存文件时出错，请重试。", "确定", "关闭");
+                await ConfirmDialog.ShowAsync(Localized.Get("AppearanceList_ImportFailed", "Import failed"),
+                    Localized.Get("AppearanceList_ImportIoError", "Could not read or save the file. Please try again."), Localized.Get("Common_Ok", "OK"), Localized.Get("Common_Close", "Close"));
             }
         }
     }

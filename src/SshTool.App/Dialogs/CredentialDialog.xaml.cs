@@ -23,7 +23,7 @@ namespace SshTool.App.Dialogs
         public static async Task<CredentialDialogResult> ShowAsync(string hostName, string errorMessage = null)
         {
             var dialog = new CredentialDialog();
-            dialog.PromptText.Text = hostName + " 的密码";
+            dialog.PromptText.Text = Localized.Format("Credential_PromptFor", "Password for {0}", hostName ?? string.Empty);
             if (!string.IsNullOrEmpty(errorMessage))
             {
                 dialog.ErrorText.Text = errorMessage;

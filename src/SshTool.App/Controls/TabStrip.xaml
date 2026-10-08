@@ -18,7 +18,7 @@
             <StackPanel x:Name="TabsPanel" Orientation="Horizontal" />
         </ScrollViewer>
         <!-- C-03：TerminalIconButtonStyle 统一焦点行为与触控宽；无障碍名经 x:Uid 走 resw；
-             高度受 TabStripHeight=36 行约束，显式 Height。 -->
+             高度受 TabStripHeight=40 行约束，显式 Height。 -->
         <Button x:Name="AddButton"
                 x:Uid="TabStrip_AddButton"
                 Grid.Column="1"

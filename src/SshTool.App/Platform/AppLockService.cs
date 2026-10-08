@@ -111,6 +111,9 @@ namespace SshTool.App.Platform
             try
             {
                 EnsureLayer();
+                // ui/fix-pass：层是缓存的，主题可能已切换——每次显示按有效主题重套背景与 RequestedTheme。
+                _layer.RequestedTheme = ThemeService.EffectiveElementTheme();
+                _layer.Background = ThemeService.ResolveBrush("AppBgBrush");
                 Rect bounds = Window.Current.Bounds;
                 _layer.Width = bounds.Width;
                 _layer.Height = bounds.Height;
@@ -162,7 +165,7 @@ namespace SshTool.App.Platform
             };
             button.Click += OnUnlockClick;
             panel.Children.Add(button);
-            _layer = new Grid { Background = (Windows.UI.Xaml.Media.Brush)app.Resources["AppBgBrush"] };
+            _layer = new Grid { Background = ThemeService.ResolveBrush("AppBgBrush") };
             _layer.Children.Add(panel);
             _popup = new Popup { Child = _layer, IsLightDismissEnabled = false };
             Window.Current.SizeChanged += OnWindowSizeChanged;

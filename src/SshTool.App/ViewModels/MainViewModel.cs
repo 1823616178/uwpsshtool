@@ -148,8 +148,17 @@ namespace SshTool.App.ViewModels
             DispatcherHelper.Post(() => RefreshSyncIcon(state));
         }
 
+        // ui/fix-pass：主题切换后由 MainPage 的 ThemeRefreshHook 调用，按新主题重解析同步图标画刷。
+        public void RefreshThemedVisuals()
+        {
+            RefreshSyncIcon(_lastSyncState);
+        }
+
+        private SyncState _lastSyncState;
+
         private void RefreshSyncIcon(SyncState state)
         {
+            _lastSyncState = state;
             SyncIconSpec spec;
             try
             {
@@ -191,14 +200,11 @@ namespace SshTool.App.ViewModels
             {
                 return null;
             }
+            // ui/fix-pass：App 级索引器不查 ThemeDictionaries（AppDangerBrush 等恒取不到 → 同步图标
+            // 前景为 null），统一走 ThemeService 按有效主题解析。
             try
             {
-                ResourceDictionary resources = Application.Current != null
-                    ? Application.Current.Resources : null;
-                if (resources != null && resources.ContainsKey(key))
-                {
-                    return resources[key] as Brush;
-                }
+                return SshTool.App.Platform.ThemeService.ResolveBrush(key);
             }
             catch (Exception)
             {

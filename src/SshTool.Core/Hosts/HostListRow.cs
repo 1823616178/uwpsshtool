@@ -17,6 +17,30 @@ namespace SshTool.Core.Hosts
         public bool ShowTunnel { get; set; }
         // W03：行菜单据此显示「收藏 / 取消收藏」。
         public bool IsFavorite { get; set; }
+
+        // ui/fix-pass：差量刷新判等——字段全同则保留旧实例（容器不重建）。
+        public static bool ContentEquals(HostListRow a, HostListRow b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+            if (a == null || b == null)
+            {
+                return false;
+            }
+            return a.HostId == b.HostId
+                && a.Name == b.Name
+                && a.AddressLine == b.AddressLine
+                && a.GroupId == b.GroupId
+                && a.GroupColor == b.GroupColor
+                && a.Status == b.Status
+                && a.ShowKey == b.ShowKey
+                && a.ShowTmux == b.ShowTmux
+                && a.ShowJump == b.ShowJump
+                && a.ShowTunnel == b.ShowTunnel
+                && a.IsFavorite == b.IsFavorite;
+        }
     }
 
     public sealed class HostListGroup
@@ -33,6 +57,25 @@ namespace SshTool.Core.Hosts
         public int HostCount { get; set; }
         public bool IsCollapsed { get; set; }
         public IReadOnlyList<HostListRow> Rows { get; set; }
+
+        // ui/fix-pass：分组头（GroupHeader 显示的字段）是否相同；相同则保留旧分组只差量同步 Rows。
+        public static bool HeaderEquals(HostListGroup a, HostListGroup b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+            if (a == null || b == null)
+            {
+                return false;
+            }
+            return a.GroupId == b.GroupId
+                && a.Name == b.Name
+                && a.Color == b.Color
+                && a.Order == b.Order
+                && a.HostCount == b.HostCount
+                && a.IsCollapsed == b.IsCollapsed;
+        }
     }
 
     public sealed class HostListSnapshot

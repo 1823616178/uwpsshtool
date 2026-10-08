@@ -26,7 +26,9 @@ $WatchedEvents = @(
     'Changed',
     'StateChanged',
     'SessionsChanged',
-    'StatusesChanged'
+    'StatusesChanged',
+    # ui/fix-pass：ThemeService.ThemeChanged 是静态事件，订阅方不解除就被永久拽住。
+    'ThemeChanged'
 )
 
 # 经 ServiceRegistry 共享的单例 VM：订阅它们的任何事件都必须解除。

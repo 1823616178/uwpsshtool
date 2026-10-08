@@ -18,7 +18,7 @@ namespace SshTool.App.Infrastructure
             object service;
             if (!Services.TryGetValue(typeof(T), out service))
             {
-                throw new InvalidOperationException("服务未注册：" + typeof(T).Name);
+                throw new InvalidOperationException("service not registered: " + typeof(T).Name);
             }
             return (T)service;
         }

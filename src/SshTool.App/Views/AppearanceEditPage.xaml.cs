@@ -3,6 +3,7 @@ using System.Globalization;
 using SshTool.App.Controls;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.App.Terminal;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;
@@ -133,7 +134,8 @@ namespace SshTool.App.Views
         private async System.Threading.Tasks.Task ConfirmAbandonAsync()
         {
             ConfirmDialogResult result = await ConfirmDialog.ShowAsync(
-                "放弃修改？", "未保存的更改将丢失，预览会还原。", "放弃", "继续编辑", isDanger: true);
+                Localized.Get("Common_DiscardTitle", "Discard changes?"), Localized.Get("AppearanceEdit_DiscardMessage", "Unsaved changes will be lost and the preview restored."),
+                Localized.Get("Common_Discard", "Discard"), Localized.Get("Common_KeepEditing", "Keep editing"), isDanger: true);
             if (result.Confirmed)
             {
                 _abandonConfirmed = true;
@@ -229,6 +231,47 @@ namespace SshTool.App.Views
             }
             button.Background = AppearanceBrushes.FromHex(hex);
             button.Content = hex ?? string.Empty;
+            // ui/fix-pass：按钮底就是所选颜色，十六进制文字按亮度取深/浅前景（≥4.5:1），
+            // 否则白底白字、黑底黑字看不见；读屏名 =「前景色 #RRGGBB」（旁边的标签读屏不会自动关联）。
+            Brush readable = ReadableOn(hex);
+            if (readable != null)
+            {
+                button.Foreground = readable;
+            }
+            string label = Localized.Get(LabelKeyFor(button), string.Empty);
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(button,
+                string.IsNullOrEmpty(label) ? (hex ?? string.Empty) : label + " " + (hex ?? string.Empty));
+        }
+
+        private string LabelKeyFor(Button button)
+        {
+            if (button == FgButton)
+            {
+                return "AppearanceEdit_FgLabel/Text";
+            }
+            if (button == BgButton)
+            {
+                return "AppearanceEdit_BgLabel/Text";
+            }
+            if (button == CursorButton)
+            {
+                return "AppearanceEdit_CursorLabel/Text";
+            }
+            return "AppearanceEdit_SelectionLabel/Text";
+        }
+
+        private static readonly SolidColorBrush DarkOnColor = new SolidColorBrush(
+            Windows.UI.Color.FromArgb(255, ContrastMath.DarkForeground.R, ContrastMath.DarkForeground.G, ContrastMath.DarkForeground.B));
+        private static readonly SolidColorBrush LightOnColor = new SolidColorBrush(Windows.UI.Colors.White);
+
+        private static Brush ReadableOn(string hex)
+        {
+            Rgb rgb;
+            if (!Rgb.TryParse(hex, out rgb))
+            {
+                return null;
+            }
+            return ContrastMath.PreferDarkForeground(rgb) ? DarkOnColor : LightOnColor;
         }
 
         private void RebuildPaletteButtons(AppearanceProfile draft)
@@ -243,7 +286,7 @@ namespace SshTool.App.Views
             CornerRadius radius = (CornerRadius)Application.Current.Resources["RadiusSm"];
             Thickness gap = new Thickness(ColorSwatchPicker.SwatchGap);
             // AppBorderBrush 在 ThemeDictionaries 里，索引器取不到（恒 null）→ 用 Banner 的解析。
-            Brush hairline = Banner.ResolveThemedBrush("AppBorderBrush");
+            Brush hairline = ThemeService.ResolveBrush("AppBorderBrush");
             for (int i = 0; i < draft.Palette.Count && i < 16; i++)
             {
                 int index = i;
@@ -257,8 +300,9 @@ namespace SshTool.App.Views
                     BorderBrush = hairline,
                     Child = new TextBlock
                     {
-                        // 不设字号/前景：沿用 Button 向下继承的正文样式，与原先 string 内容一致。
+                        // 不设字号：沿用 Button 向下继承的正文样式。ui/fix-pass：前景按色块亮度取深/浅。
                         Text = index.ToString(CultureInfo.InvariantCulture),
+                        Foreground = ReadableOn(draft.Palette[index]),
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center
                     }
@@ -275,6 +319,9 @@ namespace SshTool.App.Views
                     BorderThickness = (Thickness)Application.Current.Resources["BorderNone"],
                     Tag = index
                 };
+                Windows.UI.Xaml.Automation.AutomationProperties.SetName(button,
+                    Localized.Format("AppearanceEdit_PaletteSwatchName", "Color {0}: {1}",
+                        index.ToString(CultureInfo.InvariantCulture), draft.Palette[index]));
                 var picker = new ColorSwatchPicker
                 {
                     Color = draft.Palette[index],
@@ -289,6 +336,14 @@ namespace SshTool.App.Views
                     }
                     ViewModel.Draft.Palette[index] = picker.Color;
                     swatch.Background = AppearanceBrushes.FromHex(picker.Color);
+                    var number = swatch.Child as TextBlock;
+                    if (number != null)
+                    {
+                        number.Foreground = ReadableOn(picker.Color);
+                    }
+                    Windows.UI.Xaml.Automation.AutomationProperties.SetName(button,
+                        Localized.Format("AppearanceEdit_PaletteSwatchName", "Color {0}: {1}",
+                            index.ToString(CultureInfo.InvariantCulture), picker.Color));
                     OnDraftChanged();
                 };
                 button.Flyout = new Flyout { Content = picker };
@@ -376,7 +431,9 @@ namespace SshTool.App.Views
                     // 「save」里是 VM 兜到的原始异常（细节已入日志），不一句红字糊到用户脸上；
                     // 这里只给一句能照着做的中文。
                     await ConfirmDialog.ShowAsync(
-                        "保存失败", "这份配色没能保存，请检查名称与颜色设置后重试。", "确定", "关闭");
+                        Localized.Get("AppearanceEdit_SaveFailedTitle", "Save failed"),
+                        Localized.Get("AppearanceEdit_SaveFailedMessage", "This color scheme could not be saved. Check the name and colors, then try again."),
+                        Localized.Get("Common_Ok", "OK"), Localized.Get("Common_Close", "Close"));
                 }
             }
             catch (Exception ex)

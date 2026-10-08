@@ -114,9 +114,13 @@ namespace SshTool.App.Views
                 return;
             }
             ShortcutConflict first = map.Conflicts[0];
-            ConflictWarning.Text = Localized.Format("ShortcutEditor_Conflict", "冲突：{0} 被两个动作使用", first.Chord.ToDisplay())
-                + (map.Conflicts.Count > 1 ? "（等 " + map.Conflicts.Count + " 处）" : "")
-                + "，后匹配到的优先生效，请重新录制";
+            ConflictWarning.Text = map.Conflicts.Count > 1
+                ? Localized.Format("ShortcutEditor_ConflictMany",
+                    "Conflict: {0} is used by two actions (and {1} more). The later match wins; please record again.",
+                    first.Chord.ToDisplay(), map.Conflicts.Count)
+                : Localized.Format("ShortcutEditor_ConflictOne",
+                    "Conflict: {0} is used by two actions. The later match wins; please record again.",
+                    first.Chord.ToDisplay());
             ConflictWarning.Visibility = Visibility.Visible;
         }
 
@@ -156,7 +160,7 @@ namespace SshTool.App.Views
             }
             CancelListening();
             _listening = row;
-            row.ChordText = "请按键…（Esc 取消）";
+            row.ChordText = Localized.Get("ShortcutEditor_Listening", "Press keys… (Esc to cancel)");
             AttachCapture();
         }
 
@@ -170,7 +174,7 @@ namespace SshTool.App.Views
             {
             }
             Reload();
-            Toast.Show("已恢复默认快捷键");
+            Toast.Show(Localized.Get("ShortcutEditor_ResetDone", "Default shortcuts restored"));
         }
 
         private void AttachCapture()
@@ -286,7 +290,7 @@ namespace SshTool.App.Views
             if (vk == VirtualKey.Escape && !ctrl && !alt && !shift)
             {
                 CancelListening();
-                Toast.Show("已取消");
+                Toast.Show(Localized.Get("ShortcutEditor_Cancelled", "Cancelled"));
                 return true;
             }
             TerminalKey key;
@@ -305,11 +309,11 @@ namespace SshTool.App.Views
             RefreshRowText(row);
             if (!ctrl && !alt && !shift)
             {
-                Toast.Show("已保存（无修饰键会抢占终端输入，请谨慎）");
+                Toast.Show(Localized.Get("ShortcutEditor_SavedNoModifier", "Saved (a shortcut without modifiers takes keys from the terminal; use with care)"));
             }
             else
             {
-                Toast.Show("已保存 " + chord.ToDisplay());
+                Toast.Show(Localized.Format("ShortcutEditor_Saved", "Saved {0}", chord.ToDisplay()));
             }
             return true;
         }

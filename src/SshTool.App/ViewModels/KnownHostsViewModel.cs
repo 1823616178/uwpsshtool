@@ -122,9 +122,9 @@ namespace SshTool.App.ViewModels
                 return;
             }
             ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
-                "删除已知主机？",
-                "删除「" + _selected.Title + "」后，下次连接会重新校验主机密钥。",
-                "删除", "取消", true).ConfigureAwait(true);
+                Localized.Get("KnownHosts_DeleteTitle", "Delete known host?"),
+                Localized.Format("KnownHosts_DeleteMessage", "After deleting \"{0}\", the host key is verified again on next connect.", _selected.Title),
+                Localized.Get("Common_Delete", "Delete"), Localized.Get("Common_Cancel", "Cancel"), true).ConfigureAwait(true);
             if (!confirm.Confirmed)
             {
                 return;
