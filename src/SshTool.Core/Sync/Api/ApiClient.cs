@@ -522,6 +522,20 @@ namespace SshTool.Core.Sync.Api
             }
         }
 
+        // fix/persist-login：传输失败是否发生在「请求字节一定还没发出」的连接阶段
+        // （异常链上有 HttpConnectionFailedException，含 https→http 回退后重放仍连不上）。
+        internal static bool IsRequestNotSent(Exception error)
+        {
+            for (Exception current = error; current != null; current = current.InnerException)
+            {
+                if (current is HttpConnectionFailedException)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         // https 失败后能否在 http 上立即重发当次请求（见 SendOnceAsync 注释）。
         internal static bool IsSafeToReplay(string method, string idempotencyKey, Exception failure)
         {
@@ -626,11 +640,23 @@ namespace SshTool.Core.Sync.Api
             }
         }
 
-        // 刷新只发一次，绝不重试（§2.4.5）
+        // 刷新：每次刷新只发一次，绝不当场重试（§2.4.5）。
+        // fix/persist-login：「登录状态需要保存」——此前刷新只要遇到一次网络/超时失败就标
+        // refreshUncertain，之后下一次 401 不再发刷新、直接清空会话。accessToken 只有 15 分钟
+        // （docs api-v1 §1.2），前台 60 s 轮询下每 15 分钟就要刷新一次，Lumia 上一次信号抖动 /
+        // 挂起打断就等于被强制登出（保险库也随之上锁）。现在：
+        //   - 无 token → 清空并抛 AUTH_REFRESH_UNAVAILABLE（未变）；
+        //   - refreshUncertain 不再门控：仍用手里的 refreshToken 试一次，由服务端裁决——
+        //     上次请求其实没送达（最常见）→ 正常轮换、保持登录；确已被消耗 → 服务端回
+        //     401 AUTH_TOKEN_REUSED / AUTH_TOKEN_EXPIRED，按终端鉴权清空（与旧行为同一结局）。
+        //     重用检测撤销的 token family 只是本设备这次登录的那一串（logout-all 才动其他设备），
+        //     本地本来就要丢弃它，不会波及其他设备；
+        //   - 网络/超时失败一律不清会话；连接阶段失败（HttpConnectionFailedException：
+        //     DNS/建连/TLS，请求字节一定没发出）连 uncertain 都不标。
         private async Task PerformRefreshAsync()
         {
             var tokens = _tokens.GetTokens();
-            if (tokens == null || !_tokens.CanRefresh)
+            if (tokens == null || string.IsNullOrEmpty(tokens.RefreshToken))
             {
                 _tokens.Clear();
                 throw new ApiError(ApiErrorKind.Authentication, ApiError.CodeAuthRefreshUnavailable,
@@ -641,12 +667,16 @@ namespace SshTool.Core.Sync.Api
                 CancellationToken.None).ConfigureAwait(false);
             if (result.Error != null)
             {
-                // 网络/超时：refreshToken 可能已被服务端消耗，下次不能再用
-                _tokens.MarkRefreshUncertain();
                 var error = result.Error;
+                bool notSent = IsRequestNotSent(error);
+                if (!notSent)
+                {
+                    // 结果不明：refreshToken 可能已被服务端消耗（仅记录，下次照样由服务端裁决）
+                    _tokens.MarkRefreshUncertain();
+                }
                 throw new ApiError(error.Kind, error.Code, error.Message,
                     status: error.Status, requestId: error.RequestId,
-                    retryAfterMs: error.RetryAfterMs, ambiguous: true, inner: error);
+                    retryAfterMs: error.RetryAfterMs, ambiguous: !notSent, inner: error);
             }
             if (result.Response.StatusCode < 200 || result.Response.StatusCode > 299)
             {

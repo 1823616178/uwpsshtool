@@ -46,6 +46,13 @@ namespace SshTool.Core.Sync.Auth
         // null = 未登录
         private StoredSession _state;
 
+        // fix/persist-login：内存会话比磁盘新（写盘重试后仍失败），等 FlushAsync / 下一次写入补落盘。
+        private bool _persistPending;
+
+        // fix/persist-login：最近一次 LoadAsync 读文件时抛错（DPAPI/IO 暂时性错误，文件原样保留）。
+        // 为 true 时内存里的「未登录」并不可信：SyncCoordinator 会在回到前台 / 登录前再读一次。
+        private bool _lastLoadFailed;
+
         private sealed class StoredSession
         {
             public string UserId;
@@ -71,12 +78,41 @@ namespace SshTool.Core.Sync.Auth
 
         // 从 secure/auth.bin 读回内存并返回会话。文件缺失/为空 → 未登录；
         // 损坏 → 记警告（不含任何敏感内容）并清空文件，按未登录处理。
+        // 读文件本身抛错（暂时性 DPAPI/IO 错误）→ 记 LastLoadFailed 后原样上抛，内存与文件都不动。
         public async Task<AuthState> LoadAsync()
         {
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
-                byte[] bytes = await _file.ReadAsync().ConfigureAwait(false);
+                bool pending;
+                lock (_mutex)
+                {
+                    pending = _persistPending;
+                }
+                if (pending)
+                {
+                    // 内存比磁盘新：不能用旧文件覆盖内存，改为补一次落盘。
+                    await PersistCurrentLockedAsync("load").ConfigureAwait(false);
+                    lock (_mutex)
+                    {
+                        _lastLoadFailed = false;
+                        return SnapshotLocked();
+                    }
+                }
+                byte[] bytes;
+                try
+                {
+                    bytes = await _file.ReadAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    lock (_mutex)
+                    {
+                        _lastLoadFailed = true;
+                    }
+                    Warn("auth.bin 读取失败（" + ex.GetType().Name + "），保留文件，稍后重试");
+                    throw;
+                }
                 StoredSession parsed = null;
                 if (bytes != null && bytes.Length > 0)
                 {
@@ -100,12 +136,37 @@ namespace SshTool.Core.Sync.Auth
                 lock (_mutex)
                 {
                     _state = parsed;
+                    _lastLoadFailed = false;
                     return SnapshotLocked();
                 }
             }
             finally
             {
                 _gate.Release();
+            }
+        }
+
+        // fix/persist-login：见 _lastLoadFailed。
+        public bool LastLoadFailed
+        {
+            get
+            {
+                lock (_mutex)
+                {
+                    return _lastLoadFailed;
+                }
+            }
+        }
+
+        // fix/persist-login：内存会话尚未成功落盘（见 FlushAsync）。
+        public bool PersistPending
+        {
+            get
+            {
+                lock (_mutex)
+                {
+                    return _persistPending;
+                }
             }
         }
 
@@ -185,10 +246,16 @@ namespace SshTool.Core.Sync.Auth
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
-                await _file.WriteAsync(bytes).ConfigureAwait(false);
+                // fix/persist-login：写盘失败（重试一次后）也必须采用新会话——服务端此刻已签发
+                // （刷新时旧 refreshToken 已作废），丢掉它下次刷新就会撞重用检测被强制登出。
+                // 先保住本次运行，挂起时 FlushAsync / 下一次写入再补落盘。
+                bool persisted = await TryWriteAsync(bytes, "save").ConfigureAwait(false);
                 lock (_mutex)
                 {
                     _state = next;
+                    _persistPending = !persisted;
+                    // 文件（或内存）已是最新的权威会话，不再需要「重读」恢复。
+                    _lastLoadFailed = false;
                     return SnapshotLocked();
                 }
             }
@@ -216,10 +283,12 @@ namespace SshTool.Core.Sync.Auth
                     next.RefreshUncertain = true;
                 }
                 byte[] bytes = Serialize(next);
-                await _file.WriteAsync(bytes).ConfigureAwait(false);
+                bool persisted = await TryWriteAsync(bytes, "mark").ConfigureAwait(false);
                 lock (_mutex)
                 {
                     _state = next;
+                    // 写入的是完整的当前会话：成功即无待落盘内容。
+                    _persistPending = !persisted;
                 }
             }
             finally
@@ -228,20 +297,97 @@ namespace SshTool.Core.Sync.Auth
             }
         }
 
+        // 显式退出 / 终端鉴权错误。fix/persist-login：内存一律清空；写盘失败不抛
+        // （此前抛错会盖掉调用方真正的鉴权错误，且内存会话不清），记待落盘由 FlushAsync 补。
         public async Task ClearAsync()
         {
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
-                await _file.WriteAsync(new byte[0]).ConfigureAwait(false);
+                bool persisted = await TryWriteAsync(new byte[0], "clear").ConfigureAwait(false);
                 lock (_mutex)
                 {
                     _state = null;
+                    _persistPending = !persisted;
+                    _lastLoadFailed = false;
                 }
             }
             finally
             {
                 _gate.Release();
+            }
+        }
+
+        // fix/persist-login：把尚未落盘的内存会话写回 auth.bin（挂起前由 App 调用）。
+        // 无待落盘内容时直接返回 true；仍失败返回 false（不抛）。
+        public async Task<bool> FlushAsync()
+        {
+            await _gate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                lock (_mutex)
+                {
+                    if (!_persistPending)
+                    {
+                        return true;
+                    }
+                }
+                return await PersistCurrentLockedAsync("flush").ConfigureAwait(false);
+            }
+            finally
+            {
+                _gate.Release();
+            }
+        }
+
+        // 调用方已持有 _gate。
+        private async Task<bool> PersistCurrentLockedAsync(string phase)
+        {
+            StoredSession snapshot;
+            lock (_mutex)
+            {
+                snapshot = _state == null ? null : Clone(_state);
+            }
+            byte[] bytes = snapshot == null ? new byte[0] : Serialize(snapshot);
+            bool persisted = await TryWriteAsync(bytes, phase).ConfigureAwait(false);
+            if (persisted)
+            {
+                lock (_mutex)
+                {
+                    _persistPending = false;
+                }
+            }
+            return persisted;
+        }
+
+        // 写盘：失败立即重试一次（DPAPI/文件占用多为瞬时）；两次都失败记警告并返回 false。
+        // 日志只记阶段与异常类型，绝不记录内容。调用方已持有 _gate。
+        private async Task<bool> TryWriteAsync(byte[] bytes, string phase)
+        {
+            Exception last = null;
+            for (int attempt = 0; attempt < WriteAttempts; attempt++)
+            {
+                try
+                {
+                    await _file.WriteAsync(bytes).ConfigureAwait(false);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    last = ex;
+                }
+            }
+            Warn("auth.bin 写入失败（" + phase + "，" + (last == null ? "?" : last.GetType().Name) + "），稍后补写");
+            return false;
+        }
+
+        private const int WriteAttempts = 2;
+
+        private void Warn(string message)
+        {
+            if (_logger != null)
+            {
+                _logger.Log(LogLevel.Warning, "Auth", message);
             }
         }
 

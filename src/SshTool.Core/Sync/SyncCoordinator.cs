@@ -188,7 +188,7 @@ namespace SshTool.Core.Sync
         // 轮询在 S14 落地；登录/初始化成功后的首次同步由调用方显式 SyncNowAsync 触发。
         public async Task InitializeAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var session = await _auth.LoadAsync().ConfigureAwait(false);
+            var session = await LoadAuthWithRetryAsync().ConfigureAwait(false);
             await _vault.LoadAsync().ConfigureAwait(false);
             await _vault.BindToUserAsync(session.Authenticated ? session.UserId : null).ConfigureAwait(false);
             // O15：重建状态只需元数据，不克隆文档。
@@ -197,6 +197,59 @@ namespace SshTool.Core.Sync
             {
                 await ProbeVaultSafelyAsync(cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        // fix/persist-login：启动读 auth.bin 遇到暂时性错误（DPAPI/IO）时退避重试。此前一次失败就让
+        // 整个 InitializeAsync 抛出，本次运行一直显示「未登录」——用户只好再登录一次，
+        // 服务端又多建一台设备（配额 10）。重试仍失败照旧上抛，由 RecoverSessionIfLoadFailedAsync 兜底。
+        internal static readonly int[] AuthLoadRetryDelaysMs = { 300, 1000 };
+
+        private async Task<AuthState> LoadAuthWithRetryAsync()
+        {
+            for (int attempt = 0; ; attempt++)
+            {
+                try
+                {
+                    return await _auth.LoadAsync().ConfigureAwait(false);
+                }
+                catch (Exception ex) when (attempt < AuthLoadRetryDelaysMs.Length)
+                {
+                    Warn("读取登录状态失败，稍后重试 " + ex.GetType().Name);
+                    await _sleep(AuthLoadRetryDelaysMs[attempt]).ConfigureAwait(false);
+                }
+            }
+        }
+
+        // fix/persist-login：启动时登录状态没读出来（auth.bin 读文件抛错，文件原样保留）。
+        public bool SessionLoadFailed
+        {
+            get { return _auth.LastLoadFailed; }
+        }
+
+        // fix/persist-login：上次读 auth.bin 失败时重新初始化一次（回到前台、登录 / 注册前调用）。
+        // 不抛；返回是否因此恢复出已登录会话。登录过后 LastLoadFailed 即复位，不会用旧文件覆盖新会话。
+        public async Task<bool> RecoverSessionIfLoadFailedAsync(
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (!_auth.LastLoadFailed)
+            {
+                return false;
+            }
+            try
+            {
+                await InitializeAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                Warn("重新读取登录状态失败 " + ex.GetType().Name);
+                return false;
+            }
+            bool restored = _auth.Session.Authenticated;
+            if (restored)
+            {
+                Info("已恢复登录状态");
+            }
+            return restored;
         }
 
         // 注册 → AfterAuthenticated。已登录时拒绝（避免新建多余设备）。
@@ -209,6 +262,8 @@ namespace SshTool.Core.Sync
         {
             RequireCredential(email, nameof(email));
             RequireCredential(password, nameof(password));
+            // fix/persist-login：启动时没读出登录状态的话先再读一次——已有会话就不再新建设备。
+            await RecoverSessionIfLoadFailedAsync(cancellationToken).ConfigureAwait(false);
             EnsureNotSignedIn();
             var descriptor = _devices.GetDescriptor(deviceName);
             await _api.RegisterAsync(email, password, inviteCode, descriptor, cancellationToken)
@@ -227,6 +282,7 @@ namespace SshTool.Core.Sync
         {
             RequireCredential(email, nameof(email));
             RequireCredential(password, nameof(password));
+            await RecoverSessionIfLoadFailedAsync(cancellationToken).ConfigureAwait(false);
             EnsureNotSignedIn();
             var descriptor = _devices.GetDescriptor(deviceName);
             await _api.LoginAsync(email, password, descriptor, cancellationToken).ConfigureAwait(false);
@@ -775,16 +831,19 @@ namespace SshTool.Core.Sync
             }
         }
 
-        private static bool IsTerminalAuthError(ApiError error)
+        // fix/persist-login：401 只有带服务端业务码（data.code）时才算终端鉴权错误。我们的服务器
+        // 对每个 401 都给 data.code；没有 code 的 401（HEAD 无响应体在刷新后仍 401、或中间代理 /
+        // 认证网关返回的 401 页面）并不能证明会话失效，按普通错误处理，下次同步再试，不清会话。
+        internal static bool IsTerminalAuthError(ApiError error)
         {
-            if (error.Kind != ApiErrorKind.Authentication)
+            if (error == null || error.Kind != ApiErrorKind.Authentication)
             {
                 return false;
             }
             return error.Code == "AUTH_DEVICE_REVOKED"
                 || error.Code == "AUTH_TOKEN_REUSED"
                 || error.Code == "AUTH_REFRESH_UNAVAILABLE"
-                || error.Status == 401;
+                || (error.Status == 401 && !error.CodeUnknown);
         }
 
         private static string FormatErrorMessage(Exception error)
@@ -836,6 +895,14 @@ namespace SshTool.Core.Sync
             if (_logger != null)
             {
                 _logger.Log(LogLevel.Info, "Sync", message);
+            }
+        }
+
+        private void Warn(string message)
+        {
+            if (_logger != null)
+            {
+                _logger.Log(LogLevel.Warning, "Sync", message);
             }
         }
 

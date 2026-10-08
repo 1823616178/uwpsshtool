@@ -96,8 +96,9 @@ Kind 判定：status==401 → authentication；其他非 2xx → http；发送�
 3. 单次超时 15 s。
 4. **401 刷新**：鉴权请求得到 `status==401` 且（`code==AUTH_TOKEN_EXPIRED` 或 `CodeUnknown`）→ `RefreshTokens()`（单飞：并发请求共用同一个刷新任务）→ 原请求再走一遍发送策略；仍失败则抛出。
 5. **刷新本身**（`auth/refresh`，只发一次，绝不重试）：
-   - AuthStore 无 token 或 `refreshUncertain==true` → 清空 AuthStore，抛 `AUTH_REFRESH_UNAVAILABLE`；
-   - 发送异常（网络/超时）→ `AuthStore.MarkRefreshUncertain()`，抛 ambiguous 错误（刷新 token 可能已被服务端消耗，下次不能再用）；
+   - AuthStore 无 token → 清空 AuthStore，抛 `AUTH_REFRESH_UNAVAILABLE`；
+   - `refreshUncertain==true` **不再**直接清空（fix/persist-login）：仍用该 refreshToken 发一次，由服务端裁决——没被消耗 → 正常轮换；已被消耗 → 401 `AUTH_TOKEN_REUSED`/`AUTH_TOKEN_EXPIRED`，按第 6 条清空（与旧行为同一结局；被撤销的 token family 只属于本设备这次登录）；
+   - 发送异常（网络/超时）→ 抛错但**不清会话**；连接阶段失败（`HttpConnectionFailedException`，请求一定没发出）不标 uncertain、`ambiguous=false`，其余标 `MarkRefreshUncertain()`、`ambiguous=true`；
    - 非 2xx → 若为终端鉴权错误则清空 AuthStore，抛出；
    - 成功 → `AuthStore.Save(response)`（`expiresAt = now + expiresIn×1000`，`refreshUncertain=false`）。
 6. **终端鉴权错误**（任一请求最终失败时检查）：`AUTH_DEVICE_REVOKED`、`AUTH_TOKEN_REUSED`、或 `status==401 && code==AUTH_TOKEN_EXPIRED` → 清空 AuthStore。
@@ -453,7 +454,7 @@ MarkDirty(): !enabled → return；changeGeneration++；cache.dirty=true；autoS
 ### 7.4 HandleSyncError
 
 ```
-终端鉴权（kind==authentication 且 code ∈ {AUTH_DEVICE_REVOKED, AUTH_TOKEN_REUSED, AUTH_REFRESH_UNAVAILABLE} 或 status==401）：
+终端鉴权（kind==authentication 且 code ∈ {AUTH_DEVICE_REVOKED, AUTH_TOKEN_REUSED, AUTH_REFRESH_UNAVAILABLE} 或 status==401 且带服务端 data.code（无码 401 不算，fix/persist-login））：
    AuthStore.Clear；cache.Lock；phase=auth_error，vault = vaultId ? locked : missing，message，nextRetryAt=null
 AuthStore 已无会话：cache.Lock；phase=signed_out
 其他：
@@ -529,7 +530,7 @@ MergeEntityArray(ids = base∪local∪remote 排序)：
 4. HEAD `sync/document` 无响应体 404 → 通过 GET 得到 `SYNC_DOCUMENT_NOT_FOUND`
 5. 同上得到 `VAULT_NOT_FOUND`
 6. HEAD 无响应体 401 → 刷新而不是丢会话
-7. 刷新 POST 网络失败 → 不重试、标记 refreshUncertain、下次直接 `AUTH_REFRESH_UNAVAILABLE`
+7. 刷新 POST 网络失败 → 当次不重试、标记 refreshUncertain、不清会话；下次 401 仍用同一 refreshToken 试一次（fix/persist-login）
 8. 遵守 Retry-After 后重试安全请求；非幂等 POST 不重试
 9. 错误码与 request id 保持稳定
 
@@ -603,7 +604,7 @@ MergeEntityArray(ids = base∪local∪remote 排序)：
 8. revision 是 u64 字符串，不要转 double/int 比较。
 9. `Windows.Web.Http` 默认缓存 GET、会自动带 Cookie —— 必须关闭。
 10. login 每次新建设备：已登录状态下不要再 login；登录前检查 AuthState。
-11. 刷新请求网络失败后 refresh token 可能已被消耗，**不得重试刷新**（会触发 `AUTH_TOKEN_REUSED` 吊销整个 token family）。
+11. 刷新请求网络失败后 refresh token 可能已被消耗：**同一次刷新内不得重试**。fix/persist-login 起，下一次 401 时仍用它再试一次——若确已消耗，服务端回 `AUTH_TOKEN_REUSED` 吊销本设备这串 token family，客户端清空会话（与「直接清空」同一结局）；若其实没送达（Lumia 上更常见），就不会因一次网络抖动被强制登出。
 12. pendingUpload / pendingVaultSetup **先落盘再发请求**。
 13. 下行应用时来源标记为 Sync，不得再触发 MarkDirty（否则无限上传循环）。
 14. 同步密码 ≠ 登录密码；轮换接口的 `currentPassword` 是**账号登录密码**。

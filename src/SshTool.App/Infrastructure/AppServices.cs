@@ -276,8 +276,28 @@ namespace SshTool.App.Infrastructure
 
         private void OnSyncForeground(object sender, EventArgs e)
         {
+            // fix/persist-login：启动时 auth.bin 没读出来（暂时性 DPAPI/IO 错误）就回前台再读一次，
+            // 恢复后补一次前台同步；正常情况下这里什么都不做。
+            if (Sync != null && Sync.SessionLoadFailed)
+            {
+                RecoverSyncSessionAsync().Forget("AppServices.RecoverSyncSession", Logger);
+                return;
+            }
             if (SyncTriggers != null)
             {
+                SyncTriggers.NotifyForeground();
+            }
+        }
+
+        private async Task RecoverSyncSessionAsync()
+        {
+            bool restored = await Sync.RecoverSessionIfLoadFailedAsync().ConfigureAwait(true);
+            if (SyncTriggers != null)
+            {
+                if (restored)
+                {
+                    SyncTriggers.NotifyStartup();
+                }
                 SyncTriggers.NotifyForeground();
             }
         }
@@ -328,6 +348,12 @@ namespace SshTool.App.Infrastructure
             await FlushOneAsync("snippets", Snippets.FlushAsync).ConfigureAwait(false);
             await FlushOneAsync("appearances", Appearances.FlushAsync).ConfigureAwait(false);
             await FlushOneAsync("knownHosts", KnownHosts.FlushAsync).ConfigureAwait(false);
+            // fix/persist-login：登录状态写盘曾失败时，挂起前补写 auth.bin（无待写内容时立即返回）。
+            if (Auth != null)
+            {
+                AuthStore auth = Auth;
+                await FlushOneAsync("auth", () => auth.FlushAsync()).ConfigureAwait(false);
+            }
             await FileLogger.Instance.FlushAsync().ConfigureAwait(false);
         }
 
