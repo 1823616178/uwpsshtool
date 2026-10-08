@@ -13,7 +13,6 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <controls:AppPageHeader x:Name="Header" x:Uid="DeleteAccount_Header"
-                                Title="注销账号"
                                 ShowBackButton="True"
                                 BackRequested="OnBackRequested" />
 
@@ -30,21 +29,19 @@
                         Padding="{StaticResource PadMd}"
                         Margin="{StaticResource GapSmTop}">
                     <TextBlock x:Uid="DeleteAccount_Warning"
-                               Text="此操作将永久删除你的账号与云端保险库，且不可恢复。"
                                Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
                 </Border>
 
                 <controls:FormSection x:Uid="DeleteAccount_Section_Confirm" Margin="{StaticResource GapMdTop}">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
-                            <TextBlock x:Uid="DeleteAccount_PasswordLabel" Text="登录密码"
+                            <TextBlock x:Uid="DeleteAccount_PasswordLabel"
                                        Style="{StaticResource BodyTextStyle}" />
                             <PasswordBox x:Name="PasswordBox" x:Uid="DeleteAccount_PasswordBox"
-                                         PlaceholderText="请输入登录密码"
                                          Margin="{StaticResource GapSmTop}"
                                          PasswordChanged="OnPasswordChanged" />
 
-                            <TextBlock x:Uid="DeleteAccount_ConfirmLabel" Text="输入 DELETE 以确认"
+                            <TextBlock x:Uid="DeleteAccount_ConfirmLabel"
                                        Style="{StaticResource BodyTextStyle}"
                                        Margin="{StaticResource GapMdTop}" />
                             <TextBox x:Name="ConfirmBox" x:Uid="DeleteAccount_ConfirmBox"

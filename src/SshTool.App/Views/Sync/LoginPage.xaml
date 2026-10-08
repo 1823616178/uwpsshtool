@@ -33,9 +33,9 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <Button x:Name="LoginTabButton" x:Uid="Login_LoginTab" Content="登录"
+                    <Button x:Name="LoginTabButton" x:Uid="Login_LoginTab"
                             HorizontalAlignment="Stretch" Click="OnLoginTabClick" />
-                    <Button x:Name="RegisterTabButton" x:Uid="Login_RegisterTab" Content="注册"
+                    <Button x:Name="RegisterTabButton" x:Uid="Login_RegisterTab"
                             Grid.Column="1" HorizontalAlignment="Stretch"
                             Margin="{StaticResource GapSmLeft}" Click="OnRegisterTabClick" />
                 </Grid>
@@ -43,30 +43,24 @@
                     <controls:FormSection.SectionContent>
                         <StackPanel>
                             <TextBox x:Name="EmailBox" x:Uid="Login_EmailBox"
-                                     Header="邮箱" PlaceholderText="you@example.com"
                                      InputScope="EmailSmtpAddress"
                                      TextChanged="OnEmailChanged" />
                             <PasswordBox x:Name="PasswordBox" x:Uid="Login_PasswordBox"
-                                         Header="密码" PlaceholderText="请输入密码"
                                          Margin="{StaticResource GapSmTop}"
                                          PasswordChanged="OnPasswordChanged" />
                             <TextBlock x:Name="PasswordHint" x:Uid="Login_PasswordHint"
-                                       Text="注册密码至少 10 位"
                                        Style="{StaticResource CaptionTextStyle}"
                                        Margin="{StaticResource GapXsTop}"
                                        Visibility="Collapsed" />
                             <StackPanel x:Name="RegisterPanel" Visibility="Collapsed">
                                 <PasswordBox x:Name="ConfirmBox" x:Uid="Login_ConfirmBox"
-                                             Header="确认密码"
                                              Margin="{StaticResource GapSmTop}"
                                              PasswordChanged="OnConfirmChanged" />
                                 <TextBox x:Name="InviteBox" x:Uid="Login_InviteBox"
-                                         Header="邀请码（可选）" PlaceholderText="如需邀请码请填写"
                                          Margin="{StaticResource GapSmTop}"
                                          TextChanged="OnInviteChanged" />
                             </StackPanel>
-                            <TextBox x:Name="DeviceBox" x:Uid="Login_DeviceBox"
-                                     Header="设备名称" MaxLength="255"
+                            <TextBox x:Name="DeviceBox" x:Uid="Login_DeviceBox" MaxLength="255"
                                      Margin="{StaticResource GapSmTop}"
                                      TextChanged="OnDeviceChanged" />
                             <TextBlock x:Name="ErrorText"
@@ -79,7 +73,6 @@
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
                 <TextBlock x:Uid="Login_SharedNote"
-                           Text="与桌面端 SSH Tool、鸿蒙端使用同一账号，主机与隧道将自动在设备间同步。"
                            Style="{StaticResource CaptionTextStyle}"
                            TextWrapping="Wrap"
                            Margin="{StaticResource GapSmTop}" />

@@ -127,7 +127,7 @@
 
   <data name="Sftp_Title.Text" xml:space="preserve"><value>SFTP</value></data>
   <data name="Sftp_Connecting" xml:space="preserve"><value>Connecting to SFTP and initializing session…</value></data>
-  <data name="Sftp_UpButton.AutomationProperties.Name" xml:space="preserve"><value>Go to parent directory</value></data>
+  <data name="Sftp_UpButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Go to parent directory</value></data>
   <data name="Sftp_EmptyTitle.Text" xml:space="preserve"><value>Empty directory</value></data>
   <data name="Sftp_EmptyDescription.Text" xml:space="preserve"><value>Nothing in this directory</value></data>
   <data name="Sftp_LoadFailed.Text" xml:space="preserve"><value>Failed to load</value></data>
@@ -192,7 +192,7 @@
   <data name="Sftp_ErrCodeFallback" xml:space="preserve"><value>Transfer failed (error code {0})</value></data>
   <!-- §6.5: File row trailing "More" button accessibility name (provided by SftpRowVm.MoreButtonName). -->
   <data name="Sftp_RowMoreButton_A11yName" xml:space="preserve"><value>More options</value></data>
-  <data name="Terminal_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>More</value></data>
+  <data name="Terminal_MoreButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>More</value></data>
   <!-- V03a (C-06): Terminal menu item text (assembled in code, resw bilingual). -->
   <data name="Terminal_MenuSessions" xml:space="preserve"><value>Sessions</value></data>
   <data name="Terminal_MenuKeyBar" xml:space="preserve"><value>Key bar</value></data>
@@ -208,7 +208,7 @@
   <data name="Terminal_MenuClearScreen" xml:space="preserve"><value>Clear screen</value></data>
   <data name="Terminal_MenuSendSnippet" xml:space="preserve"><value>Send snippet</value></data>
   <data name="Terminal_CopiedToast" xml:space="preserve"><value>Copied</value></data>
-  <data name="TabStrip_AddButton.AutomationProperties.Name" xml:space="preserve"><value>New tab</value></data>
+  <data name="TabStrip_AddButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>New tab</value></data>
   <data name="TabStrip_CloseButton_A11yName" xml:space="preserve"><value>Close tab</value></data>
   <!-- V03b (C-06): TabStrip right-click menu item text (assembled in code, resw bilingual). -->
   <data name="TabStrip_MenuRename" xml:space="preserve"><value>Rename</value></data>
@@ -277,10 +277,10 @@
   <data name="Vault_WorkingSync" xml:space="preserve"><value>Syncing…</value></data>
 
   <!-- V01a: accessibility names for new components (doc/05 §5.3, §7.2) -->
-  <data name="AppPageHeader_BackButton.AutomationProperties.Name" xml:space="preserve"><value>Back</value></data>
-  <data name="Main_PaneToggleButton.AutomationProperties.Name" xml:space="preserve"><value>Show or hide the host list</value></data>
-  <data name="KeyBar_HideKeyboardButton.AutomationProperties.Name" xml:space="preserve"><value>Hide keyboard</value></data>
-  <data name="Selection_DismissButton.AutomationProperties.Name" xml:space="preserve"><value>Exit selection</value></data>
+  <data name="AppPageHeader_BackButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Back</value></data>
+  <data name="Main_PaneToggleButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Show or hide the host list</value></data>
+  <data name="KeyBar_HideKeyboardButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Hide keyboard</value></data>
+  <data name="Selection_DismissButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Exit selection</value></data>
   <!-- Quality review: accessibility suffix for the selected SegmentTabs segment ("label, selected"); unselected segments get no suffix. -->
   <data name="SegmentTabs_SelectedSuffix" xml:space="preserve"><value>, selected</value></data>
 
@@ -311,22 +311,22 @@
   <data name="Gallery_PillWarning.Text" xml:space="preserve"><value>Reconnecting</value></data>
   <data name="Gallery_PillDanger.Text" xml:space="preserve"><value>Error</value></data>
   <data name="Gallery_IconButtonDemo.Text" xml:space="preserve"><value>IconButtonStyle: normal / disabled (AutomationProperties.Name required)</value></data>
-  <data name="Gallery_DemoIconSettings.AutomationProperties.Name" xml:space="preserve"><value>Settings</value></data>
-  <data name="Gallery_DemoIconSync.AutomationProperties.Name" xml:space="preserve"><value>Sync (disabled demo)</value></data>
+  <data name="Gallery_DemoIconSettings.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Settings</value></data>
+  <data name="Gallery_DemoIconSync.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sync (disabled demo)</value></data>
 
   <!-- V01a review follow-up: semantic label for the hidekb editor row (Core key face has no text) + gallery icon-keys section title -->
   <data name="KeyBar_HideKeyboardLabel" xml:space="preserve"><value>Hide keyboard</value></data>
   <data name="Gallery_V2IconKeys.Text" xml:space="preserve"><value>New icon keys (V01a)</value></data>
 
   <!-- V01b: accessibility name for the BottomActionBar overflow button (doc/05 §7.2) -->
-  <data name="BottomActionBar_OverflowButton.AutomationProperties.Name" xml:space="preserve"><value>More actions</value></data>
+  <data name="BottomActionBar_OverflowButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>More actions</value></data>
 
   <!-- V01b: gallery additions — AppListRow four states (title/subtitle shared across rows,
        same precedent as Gallery_CardBody; status pill text reuses Gallery_PillSuccess.Text) -->
   <data name="Gallery_ListRowDemo.Text" xml:space="preserve"><value>AppListRow: normal / pressed / selected / disabled (status and trailing slots shown)</value></data>
   <data name="Gallery_ListRowTitle" xml:space="preserve"><value>Production (web-01)</value></data>
   <data name="Gallery_ListRowSubtitle" xml:space="preserve"><value>deploy@prod.example.com:22</value></data>
-  <data name="Gallery_ListRowMore.AutomationProperties.Name" xml:space="preserve"><value>More actions</value></data>
+  <data name="Gallery_ListRowMore.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>More actions</value></data>
 
   <!-- V01b: FormSection three states (Header/Description/input placeholder shared; error text reuses Validation_PortRange) -->
   <data name="Gallery_FormSectionDemo.Text" xml:space="preserve"><value>FormSection: normal / error / readonly (fixed order: header, description, content, error)</value></data>
@@ -356,11 +356,11 @@
 
   <!-- Q06: About / Licenses pages -->
   <data name="About_Header.Title" xml:space="preserve"><value>About</value></data>
-  <data name="About_AppName" xml:space="preserve"><value>Lumia SSH</value></data>
+  <data name="About_AppName.Text" xml:space="preserve"><value>Lumia SSH</value></data>
   <data name="About_DepsHeader.Title" xml:space="preserve"><value>Dependencies</value></data>
   <data name="About_LicenseHeader.Title" xml:space="preserve"><value>Licenses</value></data>
   <data name="About_LicensesButton.Content" xml:space="preserve"><value>View Open Source Licenses</value></data>
-  <data name="About_PrivacyLink" xml:space="preserve"><value>This app stores hosts, keys, and credentials locally only. Synced data is encrypted with Argon2id + AES before upload. See the privacy statement for server address and plain-HTTP risk details.</value></data>
+  <data name="About_PrivacyLink.Text" xml:space="preserve"><value>This app stores hosts, keys, and credentials locally only. Synced data is encrypted with Argon2id + AES before upload. See the privacy statement for server address and plain-HTTP risk details.</value></data>
   <data name="Licenses_Header.Title" xml:space="preserve"><value>Open Source Licenses</value></data>
   <data name="Licenses_OssHeader.Title" xml:space="preserve"><value>Open Source Components</value></data>
   <data name="Licenses_FontsHeader.Title" xml:space="preserve"><value>Font Licenses</value></data>
@@ -373,6 +373,7 @@
   <data name="KeyGen_TypeEd25519.Content" xml:space="preserve"><value>ED25519 (Recommended)</value></data>
   <data name="KeyGen_TypeRsa3072.Content" xml:space="preserve"><value>RSA 3072</value></data>
   <data name="KeyGen_TypeRsa4096.Content" xml:space="preserve"><value>RSA 4096</value></data>
+  <data name="KeyGen_Progress.Message" xml:space="preserve"><value>Generating…</value></data>
 
   <!-- V06 (C-06): KeyDetailPage hardcoded Chinese cleanup -->
   <data name="KeyDetail_Title.Title" xml:space="preserve"><value>Key Details</value></data>
@@ -439,7 +440,7 @@
   <data name="AppearanceList_ImportButton.Label" xml:space="preserve"><value>Import</value></data>
   <data name="AppearanceList_Title.Title" xml:space="preserve"><value>Appearance</value></data>
   <data name="AppearanceList_SetDefault.Content" xml:space="preserve"><value>Set as Default</value></data>
-  <data name="AppearanceList_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>More</value></data>
+  <data name="AppearanceList_MoreButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>More</value></data>
   <data name="AppearanceList_MenuEdit.Text" xml:space="preserve"><value>Edit</value></data>
   <data name="AppearanceList_MenuDuplicate.Text" xml:space="preserve"><value>Duplicate as New Theme</value></data>
   <data name="AppearanceList_MenuDelete.Text" xml:space="preserve"><value>Delete</value></data>
@@ -476,7 +477,7 @@
 
   <!-- V02 (05 §6.1): MainPage information architecture — header/pivot tabs/bottom bar/tunnel placeholder/load warning (Banner.Title set from code) -->
   <data name="Main_PageHeader.Title" xml:space="preserve"><value>Lumia SSH</value></data>
-  <data name="Main_SyncButton.AutomationProperties.Name" xml:space="preserve"><value>Sync</value></data>
+  <data name="Main_SyncButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sync</value></data>
   <data name="Main_PivotHosts.Header" xml:space="preserve"><value>Hosts</value></data>
   <data name="Main_PivotSessions.Header" xml:space="preserve"><value>Sessions</value></data>
   <data name="Main_PivotTunnels.Header" xml:space="preserve"><value>Tunnels</value></data>
@@ -492,8 +493,8 @@
   <!-- V02 (05 §6.1): HostsPivot — always-on search row, collapsible quick connect, two EmptyState kinds;
        the NoMatches title/primary text are composed in code (they embed the search term) via format keys. -->
   <data name="Hosts_SearchBox.PlaceholderText" xml:space="preserve"><value>Search hosts, addresses, users</value></data>
-  <data name="Hosts_NewHostButton.AutomationProperties.Name" xml:space="preserve"><value>New host</value></data>
-  <data name="Hosts_QuickConnectRow.AutomationProperties.Name" xml:space="preserve"><value>Expand or collapse quick connect</value></data>
+  <data name="Hosts_NewHostButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>New host</value></data>
+  <data name="Hosts_QuickConnectRow.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Expand or collapse quick connect</value></data>
   <data name="Hosts_QuickConnectRowText.Text" xml:space="preserve"><value>Quick connect</value></data>
   <data name="Hosts_QuickConnectBox.PlaceholderText" xml:space="preserve"><value>user@host[:port]</value></data>
   <data name="Hosts_QuickConnectGo.Content" xml:space="preserve"><value>Connect</value></data>
@@ -511,7 +512,7 @@
   <data name="HostRow_MenuDuplicate.Text" xml:space="preserve"><value>Duplicate as new host</value></data>
   <data name="HostRow_MenuSftp.Text" xml:space="preserve"><value>SFTP</value></data>
   <data name="HostRow_MenuDelete.Text" xml:space="preserve"><value>Delete</value></data>
-  <data name="HostRow_EditButton.AutomationProperties.Name" xml:space="preserve"><value>Edit host</value></data>
+  <data name="HostRow_EditButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Edit host</value></data>
 
   <!-- V02 (05 §6.1): DevToolsPage — developer-tool entries for DEBUG_PAGES builds (moved out of the main page overflow) -->
   <data name="DevTools_PageHeader.Title" xml:space="preserve"><value>Developer tools</value></data>
@@ -563,7 +564,7 @@
   <data name="Settings_Sync_Account_Desc.Text" xml:space="preserve"><value>Securely sync hosts, keys, themes, and snippets to your cloud vault across devices.</value></data>
   <data name="Settings_Sync_OpenAccountSync.Content" xml:space="preserve"><value>Manage Account &amp; Sync…</value></data>
   <data name="Settings_About_Section_Logging.Header" xml:space="preserve"><value>Logging</value></data>
-  <data name="Settings_ResetDefault" xml:space="preserve"><value>Reset to default</value></data>
+  <data name="Settings_ResetDefault.Content" xml:space="preserve"><value>Reset to default</value></data>
   <data name="Settings_Unit_Pt" xml:space="preserve"><value>{0} pt</value></data>
   <data name="Settings_Unit_Lines" xml:space="preserve"><value>{0} lines</value></data>
   <data name="Settings_Unit_Times" xml:space="preserve"><value>{0} times</value></data>
@@ -601,7 +602,7 @@
   <data name="Settings_General_Theme_System" xml:space="preserve"><value>System</value></data>
   <data name="Settings_General_Theme_Dark" xml:space="preserve"><value>Dark</value></data>
   <data name="Settings_General_Theme_Light" xml:space="preserve"><value>Light</value></data>
-  <data name="Settings_General_Theme_Note" xml:space="preserve"><value>Takes effect immediately, no restart needed</value></data>
+  <data name="Settings_General_Theme_Note.Text" xml:space="preserve"><value>Takes effect immediately, no restart needed</value></data>
   <data name="Settings_General_Accent.Header" xml:space="preserve"><value>Use system accent color</value></data>
   <data name="Settings_General_Sort.Header" xml:space="preserve"><value>Host sort order</value></data>
   <data name="Settings_General_Sort_Name" xml:space="preserve"><value>By name</value></data>
@@ -612,30 +613,30 @@
   <data name="Settings_General_Language_System" xml:space="preserve"><value>System</value></data>
   <data name="Settings_General_Language_Zh" xml:space="preserve"><value>Simplified Chinese</value></data>
   <data name="Settings_General_Language_En" xml:space="preserve"><value>English</value></data>
-  <data name="Settings_General_Language_Note" xml:space="preserve"><value>Restart the app to apply the new language</value></data>
+  <data name="Settings_General_Language_Note.Text" xml:space="preserve"><value>Restart the app to apply the new language</value></data>
 
   <!-- V04a: Terminal Pivot -->
   <data name="Settings_Terminal_Appearance_Header" xml:space="preserve"><value>Default appearance</value></data>
-  <data name="Settings_Terminal_Appearance_Select" xml:space="preserve"><value>Select appearance</value></data>
+  <data name="Settings_Terminal_Appearance_Select.Content" xml:space="preserve"><value>Select appearance</value></data>
   <data name="Settings_Terminal_FontSize_Header" xml:space="preserve"><value>Default font size</value></data>
   <data name="Settings_Terminal_Scrollback_Header" xml:space="preserve"><value>Scrollback lines</value></data>
-  <data name="Settings_Terminal_Scrollback_Note" xml:space="preserve"><value>1000–50000, more uses more memory</value></data>
-  <data name="Settings_Terminal_AltScroll_Header" xml:space="preserve"><value>Alt-screen scroll</value></data>
+  <data name="Settings_Terminal_Scrollback_Note.Text" xml:space="preserve"><value>1000–50000, more uses more memory</value></data>
+  <data name="Settings_Terminal_AltScroll.Header" xml:space="preserve"><value>Alt-screen scroll</value></data>
   <data name="Settings_Terminal_AltScroll_Arrows" xml:space="preserve"><value>Arrow keys</value></data>
   <data name="Settings_Terminal_AltScroll_Wheel" xml:space="preserve"><value>Scroll wheel</value></data>
   <data name="Settings_Terminal_PasteConfirm.Header" xml:space="preserve"><value>Confirm before pasting multiple lines</value></data>
   <data name="Settings_Terminal_CursorBlink_Header" xml:space="preserve"><value>Cursor blink follows appearance</value></data>
-  <data name="Settings_Terminal_CursorBlink_Note" xml:space="preserve"><value>Change in appearance page</value></data>
-  <data name="Settings_Terminal_CursorBlink_Link" xml:space="preserve"><value>Go to appearance</value></data>
+  <data name="Settings_Terminal_CursorBlink_Note.Text" xml:space="preserve"><value>Change in appearance page</value></data>
+  <data name="Settings_Terminal_CursorBlink_Link.Content" xml:space="preserve"><value>Go to appearance</value></data>
 
   <!-- V04a: Keyboard Pivot -->
   <data name="Settings_Keyboard_KeyBar.Header" xml:space="preserve"><value>Show key bar</value></data>
   <data name="Settings_Keyboard_KeyBarLayout_Header" xml:space="preserve"><value>Key bar layout</value></data>
-  <data name="Settings_Keyboard_KeyBarLayout_Edit" xml:space="preserve"><value>Edit key bar layout</value></data>
+  <data name="Settings_Keyboard_KeyBarLayout_Edit.Content" xml:space="preserve"><value>Edit key bar layout</value></data>
   <data name="Settings_Keyboard_Backspace_Header" xml:space="preserve"><value>Backspace default</value></data>
-  <data name="Settings_Keyboard_Backspace_Note" xml:space="preserve"><value>Backspace is set per host (Host edit → Terminal → Backspace sends Ctrl+H)</value></data>
+  <data name="Settings_Keyboard_Backspace_Note.Text" xml:space="preserve"><value>Backspace is set per host (Host edit → Terminal → Backspace sends Ctrl+H)</value></data>
   <data name="Settings_Keyboard_Shortcuts_Header" xml:space="preserve"><value>Shortcuts</value></data>
-  <data name="Settings_Keyboard_Shortcuts_Edit" xml:space="preserve"><value>Edit shortcuts</value></data>
+  <data name="Settings_Keyboard_Shortcuts_Edit.Content" xml:space="preserve"><value>Edit shortcuts</value></data>
 
   <!-- V04a: Connection Pivot -->
   <data name="Settings_Connection_KeepScreen.Header" xml:space="preserve"><value>Keep screen on</value></data>
@@ -643,7 +644,7 @@
   <data name="Settings_Connection_KeepScreen_Session" xml:space="preserve"><value>When connected</value></data>
   <data name="Settings_Connection_KeepScreen_Always" xml:space="preserve"><value>Always</value></data>
   <data name="Settings_Connection_KeepAlive.Header" xml:space="preserve"><value>Keep alive in background</value></data>
-  <data name="Settings_Connection_KeepAlive_Note" xml:space="preserve"><value>Disconnect immediately when app goes to background, auto-reconnect on return</value></data>
+  <data name="Settings_Connection_KeepAlive_Note.Text" xml:space="preserve"><value>Disconnect immediately when app goes to background, auto-reconnect on return</value></data>
   <data name="Settings_Connection_BgDisc.Header" xml:space="preserve"><value>Disconnect after N minutes in background</value></data>
   <data name="Settings_Connection_BgDisc_Off" xml:space="preserve"><value>Off</value></data>
   <data name="Settings_Connection_BgDisc_5" xml:space="preserve"><value>5 min</value></data>
@@ -651,30 +652,32 @@
   <data name="Settings_Connection_BgDisc_30" xml:space="preserve"><value>30 min</value></data>
   <data name="Settings_Connection_BgDisc_60" xml:space="preserve"><value>60 min</value></data>
   <data name="Settings_Connection_Reconnect_Header" xml:space="preserve"><value>Reconnect attempts</value></data>
-  <data name="Settings_Connection_Reconnect_Note" xml:space="preserve"><value>0 = no auto-reconnect</value></data>
+  <data name="Settings_Connection_Reconnect_Note.Text" xml:space="preserve"><value>0 = no auto-reconnect</value></data>
   <data name="Settings_Connection_Timeout_Header" xml:space="preserve"><value>Connection timeout</value></data>
   <data name="Settings_Connection_AgentTimeout_Header" xml:space="preserve"><value>Agent key retention</value></data>
-  <data name="Settings_Connection_AgentTimeout_Note" xml:space="preserve"><value>How long private keys stay in memory after unlock; cleared on suspend</value></data>
+  <data name="Settings_Connection_AgentTimeout_Note.Text" xml:space="preserve"><value>How long private keys stay in memory after unlock; cleared on suspend</value></data>
   <data name="Settings_Connection_Poll_Header" xml:space="preserve"><value>Sync poll interval</value></data>
+  <data name="Settings_Connection_Poll.Header" xml:space="preserve"><value>Sync poll interval</value></data>
   <data name="Settings_Connection_Poll_Off" xml:space="preserve"><value>Off</value></data>
   <data name="Settings_Connection_Poll_1" xml:space="preserve"><value>1 min</value></data>
   <data name="Settings_Connection_Poll_5" xml:space="preserve"><value>5 min</value></data>
   <data name="Settings_Connection_Poll_15" xml:space="preserve"><value>15 min</value></data>
-  <data name="Settings_Connection_Poll_Note" xml:space="preserve"><value>Poll in foreground, not in background</value></data>
+  <data name="Settings_Connection_Poll_Note.Text" xml:space="preserve"><value>Poll in foreground, not in background</value></data>
 
   <!-- V04a: About Pivot -->
   <data name="Settings_About_Version_Header" xml:space="preserve"><value>Version</value></data>
-  <data name="Settings_About_Licenses" xml:space="preserve"><value>Open source licenses</value></data>
+  <data name="Settings_About_Licenses.Content" xml:space="preserve"><value>Open source licenses</value></data>
   <data name="Settings_About_LogLevel.Header" xml:space="preserve"><value>Log level</value></data>
   <data name="Settings_About_LogLevel_Debug" xml:space="preserve"><value>Debug</value></data>
   <data name="Settings_About_LogLevel_Info" xml:space="preserve"><value>Info</value></data>
   <data name="Settings_About_LogLevel_Warn" xml:space="preserve"><value>Warning</value></data>
   <data name="Settings_About_LogLevel_Error" xml:space="preserve"><value>Error</value></data>
-  <data name="Settings_About_ExportLogs" xml:space="preserve"><value>Export logs</value></data>
+  <data name="Settings_About_ExportLogs.Content" xml:space="preserve"><value>Export logs</value></data>
   <data name="Settings_About_ClearLogs" xml:space="preserve"><value>Clear logs</value></data>
+  <data name="Settings_About_ClearLogs.Content" xml:space="preserve"><value>Clear logs</value></data>
   <data name="Settings_About_Diagnostics_Header" xml:space="preserve"><value>Diagnostics</value></data>
-  <data name="Settings_About_Refresh" xml:space="preserve"><value>Refresh</value></data>
-  <data name="Settings_About_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Settings_About_Refresh.Content" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Settings_About_Copy.Content" xml:space="preserve"><value>Copy</value></data>
 
   <!-- V04b (C-06 + §6.4): HostEditPage five-Section structure + BottomActionBar + collapsible advanced + all text via resw -->
   <data name="HostEdit_Section_Basic.Header" xml:space="preserve"><value>Connection</value></data>
@@ -749,7 +752,7 @@
   <data name="Keys_MenuDetail.Text" xml:space="preserve"><value>View Details</value></data>
   <data name="Keys_MenuDelete.Text" xml:space="preserve"><value>Delete</value></data>
   <data name="Keys_MoreButton_A11yName" xml:space="preserve"><value>More Actions</value></data>
-  <data name="Keys_MoreButton.AutomationProperties.Name" xml:space="preserve"><value>More Actions</value></data>
+  <data name="Keys_MoreButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>More Actions</value></data>
 
   <!-- V04b (C-06 + §6.4): SnippetsPage send button + group headers + all text via resw -->
   <data name="Snippets_Title.Title" xml:space="preserve"><value>Snippets</value></data>
@@ -757,9 +760,9 @@
   <data name="Snippets_Empty_Description" xml:space="preserve"><value>Save frequently used commands as snippets, send to terminal with one tap.</value></data>
   <data name="Snippets_Empty_Primary" xml:space="preserve"><value>New Snippet</value></data>
   <data name="Snippets_NoMatches_Title" xml:space="preserve"><value>No Matching Snippets</value></data>
-  <data name="Snippets_Search_Placeholder" xml:space="preserve"><value>Search Snippets</value></data>
+  <data name="Snippets_SearchBox.PlaceholderText" xml:space="preserve"><value>Search Snippets</value></data>
   <data name="Snippets_New.Label" xml:space="preserve"><value>New</value></data>
-  <data name="Snippets_SendButton.AutomationProperties.Name" xml:space="preserve"><value>Send</value></data>
+  <data name="Snippets_SendButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Send</value></data>
 
   <!-- V05b (U17~U20 sync pages): status / devices / history / conflict / security / delete -->
   <!-- SyncStatePresenter phase text keys -->
@@ -780,25 +783,28 @@
   <data name="AccountSync_TabDevices.Header" xml:space="preserve"><value>Devices</value></data>
   <data name="AccountSync_TabHistory.Header" xml:space="preserve"><value>History</value></data>
   <data name="AccountSync_LastSynced" xml:space="preserve"><value>Last synced {0}</value></data>
+  <data name="AccountSync_LastSynced.Text" xml:space="preserve"><value>Last synced {0}</value></data>
   <data name="AccountSync_LastSyncedNone" xml:space="preserve"><value>Never synced</value></data>
   <data name="AccountSync_NextRetry" xml:space="preserve"><value>Next retry {0}</value></data>
   <data name="AccountSync_Meta" xml:space="preserve"><value>Revision r{0} · key v{1}</value></data>
-  <data name="AccountSync_SyncNow" xml:space="preserve"><value>Sync now</value></data>
-  <data name="AccountSync_ResolveConflict" xml:space="preserve"><value>Resolve conflict</value></data>
-  <data name="AccountSync_SyncSettingsHeader" xml:space="preserve"><value>Sync settings</value></data>
-  <data name="AccountSync_EnableSync" xml:space="preserve"><value>Enable sync</value></data>
-  <data name="AccountSync_AutoSync" xml:space="preserve"><value>Auto-sync</value></data>
-  <data name="AccountSync_SyncPasswords" xml:space="preserve"><value>Sync passwords &amp; phrases</value></data>
-  <data name="AccountSync_SyncPrivateKeys" xml:space="preserve"><value>Sync private keys</value></data>
-  <data name="AccountSync_VaultHeader" xml:space="preserve"><value>Vault</value></data>
-  <data name="AccountSync_ChangeSyncPassword" xml:space="preserve"><value>Change sync password</value></data>
-  <data name="AccountSync_AccountHeader" xml:space="preserve"><value>Account</value></data>
-  <data name="AccountSync_ChangeLoginPassword" xml:space="preserve"><value>Change login password</value></data>
+  <data name="AccountSync_SyncNow.Content" xml:space="preserve"><value>Sync now</value></data>
+  <data name="AccountSync_ResolveConflict.Content" xml:space="preserve"><value>Resolve conflict</value></data>
+  <data name="AccountSync_SyncSettings.Header" xml:space="preserve"><value>Sync settings</value></data>
+  <data name="AccountSync_EnableSync.Text" xml:space="preserve"><value>Enable sync</value></data>
+  <data name="AccountSync_AutoSync.Text" xml:space="preserve"><value>Auto-sync</value></data>
+  <data name="AccountSync_SyncPasswords.Text" xml:space="preserve"><value>Sync passwords &amp; phrases</value></data>
+  <data name="AccountSync_SyncPrivateKeys.Text" xml:space="preserve"><value>Sync private keys</value></data>
+  <data name="AccountSync_Vault.Header" xml:space="preserve"><value>Vault</value></data>
+  <data name="AccountSync_ChangeSyncPassword.Content" xml:space="preserve"><value>Change sync password</value></data>
+  <data name="AccountSync_Account.Header" xml:space="preserve"><value>Account</value></data>
+  <data name="AccountSync_ChangeLoginPassword.Content" xml:space="preserve"><value>Change login password</value></data>
   <data name="AccountSync_Logout" xml:space="preserve"><value>Sign out</value></data>
+  <data name="AccountSync_Logout.Content" xml:space="preserve"><value>Sign out</value></data>
   <data name="AccountSync_LogoutAll" xml:space="preserve"><value>Sign out all devices</value></data>
-  <data name="AccountSync_DangerHeader" xml:space="preserve"><value>Danger zone</value></data>
-  <data name="AccountSync_DeleteVault" xml:space="preserve"><value>Delete cloud vault…</value></data>
-  <data name="AccountSync_DeleteAccount" xml:space="preserve"><value>Delete account…</value></data>
+  <data name="AccountSync_LogoutAll.Content" xml:space="preserve"><value>Sign out all devices</value></data>
+  <data name="AccountSync_Danger.Header" xml:space="preserve"><value>Danger zone</value></data>
+  <data name="AccountSync_DeleteVault.Content" xml:space="preserve"><value>Delete cloud vault…</value></data>
+  <data name="AccountSync_DeleteAccount.Content" xml:space="preserve"><value>Delete account…</value></data>
   <data name="AccountSync_DevicesEmpty" xml:space="preserve"><value>No devices</value></data>
   <data name="AccountSync_HistoryEmpty" xml:space="preserve"><value>No history</value></data>
   <data name="AccountSync_RenameDeviceTitle" xml:space="preserve"><value>Rename device</value></data>
@@ -828,7 +834,7 @@
 
   <!-- SyncConflictPage (U19) -->
   <data name="Conflict_Header.Title" xml:space="preserve"><value>Sync Conflict</value></data>
-  <data name="Conflict_FieldsHeader" xml:space="preserve"><value>Affected items</value></data>
+  <data name="Conflict_FieldsHeader.Text" xml:space="preserve"><value>Affected items</value></data>
   <data name="Conflict_Title_InitialImport" xml:space="preserve"><value>First sync, cloud already has settings</value></data>
   <data name="Conflict_Title_RemoteDeletion" xml:space="preserve"><value>Cloud deleted the following items</value></data>
   <data name="Conflict_Title_MergeConflict" xml:space="preserve"><value>These fields changed on both sides</value></data>
@@ -845,21 +851,21 @@
 
   <!-- SecurityRotatePage (U20) -->
   <data name="SecurityRotate_Header.Title" xml:space="preserve"><value>Security Rotation</value></data>
-  <data name="SecurityRotate_LoginPasswordLabel" xml:space="preserve"><value>Account password</value></data>
-  <data name="SecurityRotate_NewPasswordLabel" xml:space="preserve"><value>New sync password</value></data>
-  <data name="SecurityRotate_ConfirmLabel" xml:space="preserve"><value>Confirm new sync password</value></data>
-  <data name="SecurityRotate_PasswordHint" xml:space="preserve"><value>Sync password must be at least 8 characters.</value></data>
-  <data name="SecurityRotate_Submit" xml:space="preserve"><value>Rotate</value></data>
+  <data name="SecurityRotate_LoginPasswordLabel.Text" xml:space="preserve"><value>Account password</value></data>
+  <data name="SecurityRotate_NewPasswordLabel.Text" xml:space="preserve"><value>New sync password</value></data>
+  <data name="SecurityRotate_ConfirmLabel.Text" xml:space="preserve"><value>Confirm new sync password</value></data>
+  <data name="SecurityRotate_PasswordHint.Text" xml:space="preserve"><value>Sync password must be at least 8 characters.</value></data>
+  <data name="SecurityRotate_Submit.Content" xml:space="preserve"><value>Rotate</value></data>
   <data name="SecurityRotate_Working" xml:space="preserve"><value>Generating new key (a few seconds)…</value></data>
   <data name="SecurityRotate_Failed" xml:space="preserve"><value>Action failed, please try again</value></data>
 
   <!-- ChangeLoginPasswordPage (U20) -->
   <data name="ChangeLogin_Header.Title" xml:space="preserve"><value>Change Login Password</value></data>
   <data name="ChangeLogin_Section_Password.Header" xml:space="preserve"><value>Change Password</value></data>
-  <data name="ChangeLogin_CurrentLabel" xml:space="preserve"><value>Current password</value></data>
-  <data name="ChangeLogin_NewLabel" xml:space="preserve"><value>New password</value></data>
-  <data name="ChangeLogin_NewHint" xml:space="preserve"><value>New password must be at least 10 characters.</value></data>
-  <data name="ChangeLogin_ConfirmLabel" xml:space="preserve"><value>Confirm new password</value></data>
+  <data name="ChangeLogin_CurrentLabel.Text" xml:space="preserve"><value>Current password</value></data>
+  <data name="ChangeLogin_NewLabel.Text" xml:space="preserve"><value>New password</value></data>
+  <data name="ChangeLogin_NewHint.Text" xml:space="preserve"><value>New password must be at least 10 characters.</value></data>
+  <data name="ChangeLogin_ConfirmLabel.Text" xml:space="preserve"><value>Confirm new password</value></data>
   <data name="ChangeLogin_Submit" xml:space="preserve"><value>Change password</value></data>
   <data name="ChangeLogin_TooShort" xml:space="preserve"><value>New password must be at least 10 characters.</value></data>
   <data name="ChangeLogin_Failed" xml:space="preserve"><value>Could not change password, please try again</value></data>
@@ -867,9 +873,9 @@
   <!-- DeleteAccountPage (U20) -->
   <data name="DeleteAccount_Header.Title" xml:space="preserve"><value>Delete Account</value></data>
   <data name="DeleteAccount_Section_Confirm.Header" xml:space="preserve"><value>Confirm Deletion</value></data>
-  <data name="DeleteAccount_Warning" xml:space="preserve"><value>This permanently deletes your account and cloud vault. This cannot be undone.</value></data>
-  <data name="DeleteAccount_PasswordLabel" xml:space="preserve"><value>Login password</value></data>
-  <data name="DeleteAccount_ConfirmLabel" xml:space="preserve"><value>Type DELETE to confirm</value></data>
+  <data name="DeleteAccount_Warning.Text" xml:space="preserve"><value>This permanently deletes your account and cloud vault. This cannot be undone.</value></data>
+  <data name="DeleteAccount_PasswordLabel.Text" xml:space="preserve"><value>Login password</value></data>
+  <data name="DeleteAccount_ConfirmLabel.Text" xml:space="preserve"><value>Type DELETE to confirm</value></data>
   <data name="DeleteAccount_ConfirmBox.PlaceholderText" xml:space="preserve"><value>DELETE</value></data>
   <data name="DeleteAccount_Submit" xml:space="preserve"><value>Delete account</value></data>
   <data name="DeleteAccount_Failed" xml:space="preserve"><value>Could not delete account, please try again</value></data>
@@ -877,8 +883,8 @@
   <!-- DeleteVaultPage (U20) -->
   <data name="DeleteVault_Header.Title" xml:space="preserve"><value>Delete Cloud Vault</value></data>
   <data name="DeleteVault_Section_Confirm.Header" xml:space="preserve"><value>Confirm Deletion</value></data>
-  <data name="DeleteVault_Explanation" xml:space="preserve"><value>The cloud vault and history will be deleted; local settings are kept.</value></data>
-  <data name="DeleteVault_PasswordLabel" xml:space="preserve"><value>Login password</value></data>
+  <data name="DeleteVault_Explanation.Text" xml:space="preserve"><value>The cloud vault and history will be deleted; local settings are kept.</value></data>
+  <data name="DeleteVault_PasswordLabel.Text" xml:space="preserve"><value>Login password</value></data>
   <data name="DeleteVault_Submit" xml:space="preserve"><value>Delete cloud vault</value></data>
   <data name="DeleteVault_Failed" xml:space="preserve"><value>Could not delete vault, please try again</value></data>
 
@@ -1020,7 +1026,7 @@
   <data name="SessionsPivot_Button1.Content" xml:space="preserve"><value>Restore all</value></data>
   <data name="SessionsPivot_Empty.Title" xml:space="preserve"><value>No open sessions</value></data>
   <data name="SessionsPivot_Empty.Description" xml:space="preserve"><value>Tap a host to connect.</value></data>
-  <data name="SessionsPivot_CloseButton.AutomationProperties.Name" xml:space="preserve"><value>Close session</value></data>
+  <data name="SessionsPivot_CloseButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Close session</value></data>
 
   <!-- O13：主机编辑环境变量占位符 -->
   <data name="HostEdit_EnvKeyBox.PlaceholderText" xml:space="preserve"><value>KEY</value></data>
@@ -1238,10 +1244,10 @@
   <data name="Terminal_MenuOpenLink" xml:space="preserve"><value>Open link</value></data>
   <data name="Terminal_MenuCopyLink" xml:space="preserve"><value>Copy link</value></data>
   <data name="Terminal_FindBox.PlaceholderText" xml:space="preserve"><value>Find in output</value></data>
-  <data name="Terminal_FindBox.AutomationProperties.Name" xml:space="preserve"><value>Find in output</value></data>
-  <data name="Terminal_FindPrev.AutomationProperties.Name" xml:space="preserve"><value>Previous (older)</value></data>
-  <data name="Terminal_FindNext.AutomationProperties.Name" xml:space="preserve"><value>Next (newer)</value></data>
-  <data name="Terminal_FindClose.AutomationProperties.Name" xml:space="preserve"><value>Close find</value></data>
+  <data name="Terminal_FindBox.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Find in output</value></data>
+  <data name="Terminal_FindPrev.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Previous (older)</value></data>
+  <data name="Terminal_FindNext.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Next (newer)</value></data>
+  <data name="Terminal_FindClose.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Close find</value></data>
   <data name="Terminal_FindNone" xml:space="preserve"><value>No matches</value></data>
   <data name="Terminal_FindCount" xml:space="preserve"><value>{0}/{1}</value></data>
   <data name="Hosts_SectionFavorites" xml:space="preserve"><value>Favorites</value></data>
@@ -1309,5 +1315,17 @@
   <data name="AppearanceList_EmptyPrimary" xml:space="preserve"><value>New Scheme</value></data>
   <data name="GroupManage_EmptyTitle" xml:space="preserve"><value>No groups</value></data>
   <data name="GroupManage_EmptyDescription" xml:space="preserve"><value>Create groups to organize hosts with custom colors.</value></data>
+  <data name="AccountSync_ClearHistory.Content" xml:space="preserve"><value>Clear history</value></data>
+  <data name="ChangeLogin_CurrentBox.PlaceholderText" xml:space="preserve"><value>Enter current password</value></data>
+  <data name="ChangeLogin_NewBox.PlaceholderText" xml:space="preserve"><value>New password (at least 10 characters)</value></data>
+  <data name="ChangeLogin_ConfirmBox.PlaceholderText" xml:space="preserve"><value>Re-enter new password</value></data>
+  <data name="ChangeLoginPasswordPage_BusyText.Text" xml:space="preserve"><value>Changing login password…</value></data>
+  <data name="DeleteAccount_PasswordBox.PlaceholderText" xml:space="preserve"><value>Enter login password</value></data>
+  <data name="DeleteAccountPage_TextBlock1.Text" xml:space="preserve"><value>Deleting account…</value></data>
+  <data name="DeleteVault_PasswordBox.PlaceholderText" xml:space="preserve"><value>Enter login password</value></data>
+  <data name="DeleteVaultPage_TextBlock1.Text" xml:space="preserve"><value>Deleting cloud vault…</value></data>
+  <data name="SecurityRotate_LoginPasswordBox.PlaceholderText" xml:space="preserve"><value>Enter account login password</value></data>
+  <data name="SecurityRotate_NewPasswordBox.PlaceholderText" xml:space="preserve"><value>New sync password (at least 8 characters)</value></data>
+  <data name="SecurityRotate_ConfirmBox.PlaceholderText" xml:space="preserve"><value>Re-enter new sync password</value></data>
 </root>
 

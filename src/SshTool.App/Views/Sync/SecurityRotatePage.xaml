@@ -16,37 +16,33 @@
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
                 <controls:AppPageHeader x:Name="Header" x:Uid="SecurityRotate_Header"
-                                        Title="安全清理"
                                         ShowBackButton="True"
                                         BackRequested="OnBackRequested" />
 
                 <TextBlock x:Name="ExplanationText" Style="{StaticResource BodyTextStyle}"
                            TextWrapping="Wrap" Margin="{StaticResource GapSmTop}" />
 
-                <TextBlock x:Uid="SecurityRotate_LoginPasswordLabel" Text="账号登录密码"
+                <TextBlock x:Uid="SecurityRotate_LoginPasswordLabel"
                            Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource GapMdTop}" />
                 <PasswordBox x:Name="LoginPasswordBox" x:Uid="SecurityRotate_LoginPasswordBox"
-                             PlaceholderText="请输入账号登录密码"
                              Margin="{StaticResource GapSmTop}"
                              PasswordChanged="OnLoginPasswordChanged" />
 
-                <TextBlock x:Uid="SecurityRotate_NewPasswordLabel" Text="新同步密码"
+                <TextBlock x:Uid="SecurityRotate_NewPasswordLabel"
                            Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource GapMdTop}" />
                 <PasswordBox x:Name="SyncPasswordBox" x:Uid="SecurityRotate_NewPasswordBox"
-                             PlaceholderText="设置新同步密码（至少 8 位）"
                              Margin="{StaticResource GapSmTop}"
                              PasswordChanged="OnSyncPasswordChanged" />
-                <TextBlock x:Uid="SecurityRotate_PasswordHint" Text="同步密码至少 8 位"
+                <TextBlock x:Uid="SecurityRotate_PasswordHint"
                            Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapXsTop}" />
 
-                <TextBlock x:Uid="SecurityRotate_ConfirmLabel" Text="确认新同步密码"
+                <TextBlock x:Uid="SecurityRotate_ConfirmLabel"
                            Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource GapMdTop}" />
                 <PasswordBox x:Name="ConfirmBox" x:Uid="SecurityRotate_ConfirmBox"
-                             PlaceholderText="再次输入新同步密码"
                              Margin="{StaticResource GapSmTop}"
                              PasswordChanged="OnConfirmChanged" />
 
@@ -58,7 +54,6 @@
                            Visibility="Collapsed" />
 
                 <Button x:Name="SubmitButton" x:Uid="SecurityRotate_Submit"
-                        Content="执行"
                         Style="{StaticResource PrimaryButtonStyle}"
                         Margin="{StaticResource GapMdTop}"
                         HorizontalAlignment="Stretch"
