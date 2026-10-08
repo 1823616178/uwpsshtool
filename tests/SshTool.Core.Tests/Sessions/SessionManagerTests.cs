@@ -47,7 +47,7 @@ namespace SshTool.Core.Tests.Sessions
             public int PasswordCount;
             public IReadOnlyList<string> KiAnswers = new[] { "token" };
 
-            public Task<PasswordPromptResult> PromptPasswordAsync(string hostDisplay, string errorMessage)
+            public Task<PasswordPromptResult> PromptPasswordAsync(string hostDisplay, int retriesLeft)
             {
                 PasswordCount++;
                 if (Cancel)
@@ -57,9 +57,9 @@ namespace SshTool.Core.Tests.Sessions
                 return Task.FromResult(new PasswordPromptResult { Password = Password, Remember = Remember });
             }
 
-            public Task<string> PromptPassphraseAsync(string keyName)
+            public Task<PassphrasePromptResult> PromptPassphraseAsync(string keyName, bool previousWrong)
             {
-                return Task.FromResult("ph");
+                return Task.FromResult(new PassphrasePromptResult { Passphrase = "ph" });
             }
 
             public Task<IReadOnlyList<string>> PromptKeyboardInteractiveAsync(AuthPromptEventArgs args)

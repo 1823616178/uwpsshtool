@@ -416,6 +416,24 @@ void SshSession::driveAuthMethodsQuery()
             updateSocketInterest();
             return;
         }
+        if (::libssh2_userauth_authenticated(session_) != 0) {
+            // fix/functional-pass: "none" auth succeeded (libssh2 returns NULL
+            // and marks the session authenticated). Mirror the success path of
+            // driveAuth so callers do not attempt a second authentication.
+            authFailedAttempts_ = 0;
+            {
+                std::lock_guard<std::mutex> lock(errorMutex_);
+                error_ = SshSessionError::None;
+                errorMessage_.clear();
+            }
+            authBusy_.store(false, std::memory_order_release);
+            transitionTo(SshSessionState::Established);
+            AuthMethodSet none;
+            none.authenticated = true;
+            none.raw = "none";
+            finishAuthMethodsQuery(std::move(none));
+            return;
+        }
         char* errmsg = nullptr;
         int errmsgLen = 0;
         ::libssh2_session_last_error(session_, &errmsg, &errmsgLen, 0);

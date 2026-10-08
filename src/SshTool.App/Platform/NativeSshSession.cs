@@ -168,6 +168,20 @@ namespace SshTool.App.Platform
             return (SshErrorCode)code;
         }
 
+        // fix/functional-pass：认证方式探测（KI 选择依据，见 Core AuthMethodsInfo）。异常/未受理 = Unknown。
+        public async Task<AuthMethodsInfo> QueryAuthMethodsAsync()
+        {
+            try
+            {
+                string raw = await _native.QueryAuthMethodsAsync().AsTask().ConfigureAwait(false);
+                return AuthMethodsInfo.Parse(raw);
+            }
+            catch (Exception)
+            {
+                return AuthMethodsInfo.Unknown;
+            }
+        }
+
         // K03：agent 认证——只传 keyId，私钥材料由 core 直接从 agent 托管内存
         // 中取，不经过 C# 层。未注入 agent 或 native 未受理时返回 InternalError。
         public async Task<SshErrorCode> AuthenticateAgentAsync(string keyId)

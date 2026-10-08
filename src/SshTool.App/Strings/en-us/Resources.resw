@@ -1423,5 +1423,7 @@
   <data name="AppearanceEdit_BgButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Background</value></data>
   <data name="AppearanceEdit_CursorButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Cursor</value></data>
   <data name="AppearanceEdit_SelectionButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Selection</value></data>
+  <data name="Auth_PasswordWrongRetries" xml:space="preserve"><value>Wrong password. {0} attempt(s) left</value></data>
+  <data name="Auth_PassphraseWrong" xml:space="preserve"><value>Wrong passphrase. Please try again</value></data>
 </root>
 

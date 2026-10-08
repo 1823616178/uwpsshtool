@@ -47,6 +47,8 @@ namespace SshTool.Core.Sessions
         // 拒绝受理，返回 InternalError（上层按不可用处理，换下一个密钥）。
         Task<SshErrorCode> AuthenticateAgentAsync(string keyId);
         Task<SshErrorCode> AuthenticateKeyboardInteractiveAsync();
+        // fix/functional-pass：服务器声明的认证方式（只在 Authenticating 态有效；失败返回 Unknown）。
+        Task<AuthMethodsInfo> QueryAuthMethodsAsync();
         Task<SshErrorCode> OpenShellAsync(int cols, int rows);
         Task<SshExecResult> ExecAsync(string command);
 

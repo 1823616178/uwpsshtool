@@ -148,6 +148,10 @@ namespace SshTool
                 Windows::Foundation::IAsyncOperation<int>^ AuthenticateAgentAsync(
                     SshAgent^ agent, Platform::String^ keyId);
                 Windows::Foundation::IAsyncOperation<int>^ AuthenticateKeyboardInteractiveAsync();
+                // fix/functional-pass：查询服务器声明的认证方式（libssh2_userauth_list，发一次 "none"）。
+                // 返回原始逗号分隔串（如 "publickey,keyboard-interactive"）；探测失败/未受理返回空串；
+                // 服务器接受 "none"（无需认证，会话已 Established）返回 "+authenticated"。
+                Windows::Foundation::IAsyncOperation<Platform::String^>^ QueryAuthMethodsAsync();
                 Windows::Foundation::IAsyncOperation<int>^ OpenShellAsync(int cols, int rows);
                 Windows::Foundation::IAsyncOperation<ExecResult^>^ ExecAsync(Platform::String^ command);
 

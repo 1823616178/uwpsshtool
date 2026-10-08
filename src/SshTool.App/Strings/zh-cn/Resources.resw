@@ -1424,5 +1424,7 @@
   <data name="AppearanceEdit_BgButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>背景</value></data>
   <data name="AppearanceEdit_CursorButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>光标</value></data>
   <data name="AppearanceEdit_SelectionButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>选区</value></data>
+  <data name="Auth_PasswordWrongRetries" xml:space="preserve"><value>密码错误，还可尝试 {0} 次</value></data>
+  <data name="Auth_PassphraseWrong" xml:space="preserve"><value>短语错误，请重新输入</value></data>
 </root>
 

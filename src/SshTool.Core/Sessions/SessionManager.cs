@@ -827,6 +827,17 @@ namespace SshTool.Core.Sessions
             try
             {
                 AuthType type = host == null ? AuthType.Password : host.AuthType;
+                // fix/functional-pass：先问服务器支持哪些方式。主方式不在列表、KI 在 → 直接 KI
+                // （只开 keyboard-interactive 的 2FA/PAM 服务器）；服务器接受 "none" → 已认证。
+                AuthMethodsInfo methods = await QueryAuthMethodsSafeAsync(native).ConfigureAwait(false);
+                if (methods.Authenticated)
+                {
+                    return SshErrorCode.None;
+                }
+                if (AuthMethodsInfo.ShouldStartWithKeyboardInteractive(methods, type))
+                {
+                    return await native.AuthenticateKeyboardInteractiveAsync().ConfigureAwait(false);
+                }
                 if (type == AuthType.Key)
                 {
                     return await AuthenticateKeyAsync(host, native).ConfigureAwait(false);
@@ -841,6 +852,41 @@ namespace SshTool.Core.Sessions
             {
                 native.AuthPrompt -= onPrompt;
             }
+        }
+
+        private async Task<AuthMethodsInfo> QueryAuthMethodsSafeAsync(ISshSession native)
+        {
+            try
+            {
+                AuthMethodsInfo methods = await native.QueryAuthMethodsAsync().ConfigureAwait(false);
+                return methods ?? AuthMethodsInfo.Unknown;
+            }
+            catch (Exception)
+            {
+                return AuthMethodsInfo.Unknown;
+            }
+        }
+
+        // fix/functional-pass：主方式被服务器拒绝后重查方法列表。刚用过的方式已不在列表、
+        // keyboard-interactive 在 → 部分成功（如 AuthenticationMethods publickey,keyboard-interactive），
+        // 继续 KI。返回 null = 不适用，调用方按原失败处理。
+        private async Task<SshErrorCode?> TryKeyboardInteractiveContinuationAsync(
+            ISshSession native, AuthType type, SshErrorCode code)
+        {
+            if (!AuthMethodsInfo.IsServerRejection(code))
+            {
+                return null;
+            }
+            AuthMethodsInfo after = await QueryAuthMethodsSafeAsync(native).ConfigureAwait(false);
+            if (after.Authenticated)
+            {
+                return SshErrorCode.None;
+            }
+            if (AuthMethodsInfo.ShouldContinueWithKeyboardInteractive(after, type))
+            {
+                return await native.AuthenticateKeyboardInteractiveAsync().ConfigureAwait(false);
+            }
+            return null;
         }
 
         private async Task AnswerKiAsync(AuthPromptEventArgs e)
@@ -877,13 +923,21 @@ namespace SshTool.Core.Sessions
                 {
                     return storedCode;
                 }
+                SshErrorCode? storedContinuation =
+                    await TryKeyboardInteractiveContinuationAsync(native, AuthType.Password, storedCode).ConfigureAwait(false);
+                if (storedContinuation.HasValue)
+                {
+                    return storedContinuation.Value;
+                }
             }
 
-            string error = null;
+            // fix/functional-pass：重试提示只传剩余次数，文案由 App 走 resw（Core 不出中文）。
+            int retriesLeft = attempts > 0 ? 3 - attempts : -1;
             while (attempts < 3)
             {
+                int left = retriesLeft;
                 PasswordPromptResult prompt = await _ui.RunAsync(
-                    () => _credentials.PromptPasswordAsync(titleOverride ?? info.Title, error)).ConfigureAwait(false);
+                    () => _credentials.PromptPasswordAsync(titleOverride ?? info.Title, left)).ConfigureAwait(false);
                 if (prompt == null || prompt.Cancelled)
                 {
                     return SshErrorCode.NoLocalCredential;
@@ -906,9 +960,25 @@ namespace SshTool.Core.Sessions
                 {
                     return code;
                 }
-                error = "密码错误，还可尝试 " + (3 - attempts).ToString() + " 次";
+                SshErrorCode? continuation =
+                    await TryKeyboardInteractiveContinuationAsync(native, AuthType.Password, code).ConfigureAwait(false);
+                if (continuation.HasValue)
+                {
+                    return continuation.Value;
+                }
+                retriesLeft = 3 - attempts;
             }
             return SshErrorCode.AuthPasswordFailed;
+        }
+
+        // fix/functional-pass：私钥短语输错可重输（最多 MaxPassphraseAttempts 次，受 native
+        // authMaxAttempts=3 约束），对话框「保存短语」勾选后认证成功才写入 DPAPI 凭据表。
+        // 已存的短语错误（换过短语）同样转为重输。
+        private const int MaxPassphraseAttempts = 3;
+
+        private async Task<PassphrasePromptResult> PromptPassphraseAsync(string keyName, bool previousWrong)
+        {
+            return await _ui.RunAsync(() => _credentials.PromptPassphraseAsync(keyName, previousWrong)).ConfigureAwait(false);
         }
 
         private async Task<SshErrorCode> AuthenticateKeyAsync(Host host, ISshSession native)
@@ -928,10 +998,48 @@ namespace SshTool.Core.Sessions
                 return SshErrorCode.NoLocalCredential;
             }
             string pass = await _secrets.GetAsync(SecretKeys.KeyPassphrase(key.Id)).ConfigureAwait(false);
+            bool remember = false;
             if (key.Encrypted && string.IsNullOrEmpty(pass))
             {
-                pass = await _ui.RunAsync(() => _credentials.PromptPassphraseAsync(key.Name)).ConfigureAwait(false);
+                PassphrasePromptResult first = await PromptPassphraseAsync(key.Name, false).ConfigureAwait(false);
+                if (first == null || first.Cancelled)
+                {
+                    return SshErrorCode.NoLocalCredential;
+                }
+                pass = first.Passphrase;
+                remember = first.Remember;
             }
+            for (int attempt = 1; ; attempt++)
+            {
+                SshErrorCode code = await AuthenticateKeyOnceAsync(native, pem, pass).ConfigureAwait(false);
+                if (code == SshErrorCode.None)
+                {
+                    if (remember && !string.IsNullOrEmpty(pass))
+                    {
+                        await _secrets.SetAsync(SecretKeys.KeyPassphrase(key.Id), pass).ConfigureAwait(false);
+                    }
+                    return code;
+                }
+                if (code == SshErrorCode.PrivateKeyLoadFailed && attempt < MaxPassphraseAttempts
+                    && native.State == SessionStateKind.Authenticating)
+                {
+                    PassphrasePromptResult retry = await PromptPassphraseAsync(key.Name, true).ConfigureAwait(false);
+                    if (retry == null || retry.Cancelled)
+                    {
+                        return code;
+                    }
+                    pass = retry.Passphrase;
+                    remember = retry.Remember;
+                    continue;
+                }
+                SshErrorCode? continuation =
+                    await TryKeyboardInteractiveContinuationAsync(native, AuthType.Key, code).ConfigureAwait(false);
+                return continuation ?? code;
+            }
+        }
+
+        private static async Task<SshErrorCode> AuthenticateKeyOnceAsync(ISshSession native, string pem, string pass)
+        {
             // 评审（PR #1）：私钥字节数组归调用方所有，认证结束（含异常）后立即清零，
             // 不让私钥明文在托管堆上多留一份（桥接层在同步阶段已复制到自擦除的 SecretString）。
             byte[] bytes = Encoding.UTF8.GetBytes(pem);
@@ -981,6 +1089,7 @@ namespace SshTool.Core.Sessions
                 }
             }
 
+            bool rejected = false;
             for (int i = 0; i < candidates.Count; i++)
             {
                 string keyId = candidates[i];
@@ -1004,9 +1113,21 @@ namespace SshTool.Core.Sessions
                 }
                 if (code == SshErrorCode.AuthPublicKeyFailed)
                 {
+                    rejected = true;
                     continue;
                 }
                 return code;
+            }
+            // fix/functional-pass：服务器拒过密钥 → 循环结束后重查一次（不逐把重查，避免每把
+            // 多消耗一次 MaxAuthTries）；部分成功/只剩 KI 时转 keyboard-interactive。
+            if (rejected)
+            {
+                SshErrorCode? afterLoop = await TryKeyboardInteractiveContinuationAsync(
+                    native, AuthType.Agent, SshErrorCode.AuthPublicKeyFailed).ConfigureAwait(false);
+                if (afterLoop.HasValue)
+                {
+                    return afterLoop.Value;
+                }
             }
 
             AgentUnlockAttempt attempt =
@@ -1016,16 +1137,51 @@ namespace SshTool.Core.Sessions
                 return attempt.Cancelled ? SshErrorCode.NoLocalCredential : SshErrorCode.PrivateKeyLoadFailed;
             }
             string unlockedId = attempt.KeyId;
-            SshErrorCode finalCode = await native.AuthenticateAgentAsync(unlockedId).ConfigureAwait(false);
-            if (finalCode == SshErrorCode.PrivateKeyLoadFailed)
+            for (int round = 1; ; round++)
             {
-                agent.Lock(unlockedId);
+                SshErrorCode finalCode = await native.AuthenticateAgentAsync(unlockedId).ConfigureAwait(false);
+                if (finalCode == SshErrorCode.None)
+                {
+                    if (attempt.RememberPassphrase && !string.IsNullOrEmpty(attempt.Passphrase))
+                    {
+                        await _secrets.SetAsync(SecretKeys.KeyPassphrase(unlockedId), attempt.Passphrase).ConfigureAwait(false);
+                    }
+                    return finalCode;
+                }
+                if (finalCode == SshErrorCode.AuthKeyboardInteractiveFailed)
+                {
+                    return await native.AuthenticateKeyboardInteractiveAsync().ConfigureAwait(false);
+                }
+                if (finalCode == SshErrorCode.PrivateKeyLoadFailed)
+                {
+                    agent.Lock(unlockedId);
+                    // fix/functional-pass：短语错误 → 提示重输（native 仍在认证态且未超次数）。
+                    if (attempt.Encrypted && round < MaxPassphraseAttempts
+                        && native.State == SessionStateKind.Authenticating)
+                    {
+                        PassphrasePromptResult retry = await PromptPassphraseAsync(attempt.KeyName, true).ConfigureAwait(false);
+                        if (retry == null || retry.Cancelled)
+                        {
+                            return finalCode;
+                        }
+                        string pem = await _secrets.GetAsync(SecretKeys.KeyPrivate(unlockedId)).ConfigureAwait(false);
+                        bool ok = !string.IsNullOrEmpty(pem)
+                            && await agent.UnlockAsync(unlockedId, pem, retry.Passphrase ?? string.Empty).ConfigureAwait(false);
+                        pem = null;
+                        if (!ok)
+                        {
+                            return SshErrorCode.PrivateKeyLoadFailed;
+                        }
+                        attempt.Passphrase = retry.Passphrase;
+                        attempt.RememberPassphrase = retry.Remember;
+                        continue;
+                    }
+                    return finalCode;
+                }
+                SshErrorCode? continuation =
+                    await TryKeyboardInteractiveContinuationAsync(native, AuthType.Agent, finalCode).ConfigureAwait(false);
+                return continuation ?? finalCode;
             }
-            else if (finalCode == SshErrorCode.AuthKeyboardInteractiveFailed)
-            {
-                return await native.AuthenticateKeyboardInteractiveAsync().ConfigureAwait(false);
-            }
-            return finalCode;
         }
 
         // K03：无可用密钥时的解锁流程（见 AgentUnlockAttempt 注释）。
@@ -1038,6 +1194,11 @@ namespace SshTool.Core.Sessions
         {
             public string KeyId;
             public bool Cancelled;
+            // fix/functional-pass：短语重输 / 「保存短语」所需（认证成功后才写入凭据表）。
+            public string KeyName;
+            public bool Encrypted;
+            public string Passphrase;
+            public bool RememberPassphrase;
         }
 
         private async Task<AgentUnlockAttempt> PromptUnlockAndStoreAsync(
@@ -1099,14 +1260,16 @@ namespace SshTool.Core.Sessions
                 return new AgentUnlockAttempt { Cancelled = true };
             }
             string pass = await _secrets.GetAsync(SecretKeys.KeyPassphrase(picked.Id)).ConfigureAwait(false);
+            bool remember = false;
             if (picked.Encrypted && string.IsNullOrEmpty(pass))
             {
-                pass = await _ui.RunAsync(
-                    () => _credentials.PromptPassphraseAsync(picked.Name)).ConfigureAwait(false);
-                if (pass == null)
+                PassphrasePromptResult prompted = await PromptPassphraseAsync(picked.Name, false).ConfigureAwait(false);
+                if (prompted == null || prompted.Cancelled)
                 {
                     return new AgentUnlockAttempt { Cancelled = true };
                 }
+                pass = prompted.Passphrase;
+                remember = prompted.Remember;
             }
             bool ok = await agent.UnlockAsync(picked.Id, pem, pass ?? string.Empty).ConfigureAwait(false);
             if (_logger != null)
@@ -1117,7 +1280,14 @@ namespace SshTool.Core.Sessions
             {
                 return new AgentUnlockAttempt { Cancelled = false };
             }
-            return new AgentUnlockAttempt { KeyId = picked.Id };
+            return new AgentUnlockAttempt
+            {
+                KeyId = picked.Id,
+                KeyName = picked.Name,
+                Encrypted = picked.Encrypted,
+                Passphrase = remember ? pass : null,
+                RememberPassphrase = remember
+            };
         }
 
         private static void AddChoiceIfExists(

@@ -1,14 +1,19 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SshTool.App.Dialogs;
+using SshTool.App.Infrastructure;
 using SshTool.Core.Sessions;
 
 namespace SshTool.App.Platform
 {
     public sealed class UwpCredentialPrompter : ICredentialPrompter
     {
-        public async Task<PasswordPromptResult> PromptPasswordAsync(string hostDisplay, string errorMessage)
+        public async Task<PasswordPromptResult> PromptPasswordAsync(string hostDisplay, int retriesLeft)
         {
+            // fix/functional-pass：Core 只给剩余次数，文案在此本地化。
+            string errorMessage = retriesLeft < 0
+                ? null
+                : Localized.Format("Auth_PasswordWrongRetries", "密码错误，还可尝试 {0} 次", retriesLeft);
             CredentialDialogResult r = await CredentialDialog.ShowAsync(hostDisplay, errorMessage).ConfigureAwait(true);
             return new PasswordPromptResult
             {
@@ -18,10 +23,18 @@ namespace SshTool.App.Platform
             };
         }
 
-        public async Task<string> PromptPassphraseAsync(string keyName)
+        public async Task<PassphrasePromptResult> PromptPassphraseAsync(string keyName, bool previousWrong)
         {
-            PassphraseDialogResult r = await PassphraseDialog.ShowAsync(keyName).ConfigureAwait(true);
-            return r.Cancelled ? null : r.Passphrase;
+            string error = previousWrong
+                ? Localized.Get("Auth_PassphraseWrong", "短语错误，请重新输入")
+                : null;
+            PassphraseDialogResult r = await PassphraseDialog.ShowAsync(keyName, error).ConfigureAwait(true);
+            return new PassphrasePromptResult
+            {
+                Passphrase = r.Cancelled ? null : r.Passphrase,
+                Remember = !r.Cancelled && r.Remember,
+                Cancelled = r.Cancelled
+            };
         }
 
         public async Task<IReadOnlyList<string>> PromptKeyboardInteractiveAsync(AuthPromptEventArgs args)
