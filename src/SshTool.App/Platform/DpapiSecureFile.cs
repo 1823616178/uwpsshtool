@@ -37,8 +37,12 @@ namespace SshTool.App.Platform
             _relativePath = string.IsNullOrEmpty(relativePath) ? DefaultRelativePath : relativePath;
         }
 
+        // fix/functional-pass（P2-3）：见 ISecureFileQuarantine.DiscardedOnLastRead。
+        public bool DiscardedOnLastRead { get; private set; }
+
         public async Task<byte[]> ReadAsync()
         {
+            DiscardedOnLastRead = false;
             StorageFile file = await TryGetFileAsync().ConfigureAwait(false);
             if (file == null)
             {
@@ -74,6 +78,7 @@ namespace SshTool.App.Platform
             if (SecureFileFailurePolicy.ShouldQuarantine(failures))
             {
                 await QuarantineAsync("decrypt 0x" + failures[failures.Count - 1].ToString("X8")).ConfigureAwait(false);
+                DiscardedOnLastRead = true;
                 return new byte[0];
             }
             ILogger log = AppLog.Logger;

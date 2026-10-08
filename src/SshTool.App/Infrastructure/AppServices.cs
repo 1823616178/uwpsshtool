@@ -34,7 +34,8 @@ namespace SshTool.App.Infrastructure
             Snippets = new SnippetRepository(FileSystem, Logger);
             Appearances = new AppearanceRepository(FileSystem, Logger);
             KnownHosts = new KnownHostRepository(FileSystem, Logger);
-            Secrets = new DpapiSecretStore();
+            _secretStore = new DpapiSecretStore();
+            Secrets = _secretStore;
             Config = new ConfigService(Hosts, Groups, Tunnels, Keys, Secrets);
             LoadWarnings = new List<string>();
         }
@@ -121,6 +122,7 @@ namespace SshTool.App.Infrastructure
             CollectWarnings(Snippets.LoadWarnings);
             CollectWarnings(Appearances.LoadWarnings);
             CollectWarnings(KnownHosts.LoadWarnings);
+            await TimeAsync("Secrets", () => PreloadSecretsAsync()).ConfigureAwait(true);
             Time("Appearance", () =>
             {
                 AppearanceService = new AppearanceService(Appearances, Hosts, Settings, BuiltInThemes.All);
@@ -373,6 +375,43 @@ namespace SshTool.App.Infrastructure
             catch (Exception)
             {
                 return 15;
+            }
+        }
+
+        private readonly DpapiSecretStore _secretStore;
+
+        // fix/functional-pass（P2-3）：凭据表被隔离 / 丢弃时放在 Banner 第一条（比 JSON 存量告警更要紧）。
+        // DPAPI 暂时性错误照旧上抛：这里只记日志，之后首次取凭据时会再试。
+        private async Task PreloadSecretsAsync()
+        {
+            try
+            {
+                await _secretStore.PreloadAsync().ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Warning, "Secrets", "preload failed " + ex.GetType().Name + " 0x" + ex.HResult.ToString("X8"));
+                return;
+            }
+            string text = SecretIssueText(_secretStore.LoadIssue);
+            if (!string.IsNullOrEmpty(text))
+            {
+                LoadWarnings.Insert(0, text);
+            }
+        }
+
+        internal static string SecretIssueText(SecretLoadIssue issue)
+        {
+            switch (issue)
+            {
+                case SecretLoadIssue.ContentCorruptQuarantined:
+                    return Localized.Get("Main_SecretsIssue_ContentCorruptQuarantined", "Saved credentials were damaged and moved aside; re-enter passwords and passphrases");
+                case SecretLoadIssue.ContentCorruptNotQuarantined:
+                    return Localized.Get("Main_SecretsIssue_ContentCorruptNotQuarantined", "Saved credentials were damaged and will be overwritten; re-enter passwords and passphrases");
+                case SecretLoadIssue.DecryptFailedQuarantined:
+                    return Localized.Get("Main_SecretsIssue_DecryptFailedQuarantined", "Saved credentials could not be decrypted and were moved aside; re-enter passwords and passphrases");
+                default:
+                    return null;
             }
         }
 

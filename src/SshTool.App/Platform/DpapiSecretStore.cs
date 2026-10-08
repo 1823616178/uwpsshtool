@@ -148,16 +148,34 @@ namespace SshTool.App.Platform
             // opt/full-pass：内容损坏时隔离并从空表开始（SecretMapCodec）；解密失败由
             // DpapiSecureFile.ReadAsync 隔离后返回空。旧实现两种情况都每次抛异常，
             // 所有依赖凭据的功能永久不可用。
-            _map = await SecretMapCodec.LoadAsync(_file, Warn).ConfigureAwait(false);
+            _map = await SecretMapCodec.LoadAsync(_file, OnLoadIssue).ConfigureAwait(false);
             _loaded = true;
         }
 
-        private static void Warn(string message)
+        // fix/functional-pass（P2-3）：启动时预加载（AppServices.StartAsync），让凭据表损坏 /
+        // 解密失败被隔离的情况在主页 Banner 提示，而不是等到连接时才静默「密码丢了」。
+        public SecretLoadIssue LoadIssue { get; private set; }
+
+        public async Task PreloadAsync()
         {
+            await _gate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                await EnsureLoadedAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                _gate.Release();
+            }
+        }
+
+        private void OnLoadIssue(SecretLoadIssue issue)
+        {
+            LoadIssue = issue;
             ILogger log = AppLog.Logger;
             if (log != null)
             {
-                log.Log(LogLevel.Warning, "Secrets", message);
+                log.Log(LogLevel.Warning, "Secrets", "secret map discarded: " + issue);
             }
         }
 

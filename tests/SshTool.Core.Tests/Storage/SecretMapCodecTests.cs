@@ -18,6 +18,12 @@ namespace SshTool.Core.Tests.Storage
             public bool QuarantineThrows;
             public int QuarantineCalls;
             public string LastReason;
+            public bool Discarded;
+
+            public bool DiscardedOnLastRead
+            {
+                get { return Discarded; }
+            }
 
             public Task<byte[]> ReadAsync()
             {
@@ -73,22 +79,22 @@ namespace SshTool.Core.Tests.Storage
         public async Task Corrupt_QuarantinesAndStartsEmpty(string content)
         {
             var file = new FakeFile { Data = Encoding.UTF8.GetBytes(content) };
-            var warnings = new List<string>();
+            var warnings = new List<SecretLoadIssue>();
             Dictionary<string, string> map = await SecretMapCodec.LoadAsync(file, warnings.Add);
             Assert.Empty(map);
             Assert.Equal(1, file.QuarantineCalls);
             Assert.Equal("parse", file.LastReason);
-            Assert.Single(warnings);
+            Assert.Equal(SecretLoadIssue.ContentCorruptQuarantined, Assert.Single(warnings));
         }
 
         [Fact]
         public async Task Corrupt_QuarantineFailure_StillStartsEmpty()
         {
             var file = new FakeFile { Data = new byte[] { 0xFF, 0xFE, 0x00 }, QuarantineThrows = true };
-            var warnings = new List<string>();
+            var warnings = new List<SecretLoadIssue>();
             Dictionary<string, string> map = await SecretMapCodec.LoadAsync(file, warnings.Add);
             Assert.Empty(map);
-            Assert.Single(warnings);
+            Assert.Equal(SecretLoadIssue.ContentCorruptNotQuarantined, Assert.Single(warnings));
         }
 
         [Fact]
@@ -98,6 +104,27 @@ namespace SshTool.Core.Tests.Storage
             await file.WriteAsync(Encoding.UTF8.GetBytes("garbage"));
             Dictionary<string, string> map = await SecretMapCodec.LoadAsync(file, null);
             Assert.Empty(map);
+        }
+
+        // fix/functional-pass（P2-3）：解密失败已由文件层隔离并返回空 → 回报 DecryptFailedQuarantined。
+        [Fact]
+        public async Task DecryptDiscarded_ReportsIssue()
+        {
+            var file = new FakeFile { Discarded = true };
+            var issues = new List<SecretLoadIssue>();
+            Dictionary<string, string> map = await SecretMapCodec.LoadAsync(file, issues.Add);
+            Assert.Empty(map);
+            Assert.Equal(SecretLoadIssue.DecryptFailedQuarantined, Assert.Single(issues));
+            Assert.Equal(0, file.QuarantineCalls);
+        }
+
+        [Fact]
+        public async Task EmptyFile_NotDiscarded_ReportsNothing()
+        {
+            var file = new FakeFile();
+            var issues = new List<SecretLoadIssue>();
+            await SecretMapCodec.LoadAsync(file, issues.Add);
+            Assert.Empty(issues);
         }
 
         [Fact]

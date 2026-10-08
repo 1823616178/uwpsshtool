@@ -31,7 +31,6 @@ namespace SshTool.Core.Tests.Gates
             { "Models/Defaults.cs", 1 },
             { "Spikes/JsonSpike.cs", 6 },
             { "Storage/JsonStore.cs", 7 },
-            { "Storage/SecretMapCodec.cs", 2 },
             { "Sync/Api/Dtos/DtoReader.cs", 1 },
         };
 
