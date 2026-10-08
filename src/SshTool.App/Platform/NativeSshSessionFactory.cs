@@ -1,4 +1,5 @@
 using SshTool.Core.Sessions;
+using SshTool.Core.Storage;
 
 namespace SshTool.App.Platform
 {
@@ -8,20 +9,41 @@ namespace SshTool.App.Platform
     public sealed class NativeSshSessionFactory : ISshSessionFactory
     {
         private readonly NativeSshAgent _agent;
+        private readonly SettingsRepository _settings;
 
         public NativeSshSessionFactory()
-            : this(null)
+            : this(null, null)
         {
         }
 
         public NativeSshSessionFactory(NativeSshAgent agent)
+            : this(agent, null)
+        {
+        }
+
+        // fix/functional-pass（P1-4）：settings 非空时每个新会话按 scrollbackLines 设定回滚容量
+        // （此前设置项只存不用，native 恒为默认 5000 行）。
+        public NativeSshSessionFactory(NativeSshAgent agent, SettingsRepository settings)
         {
             _agent = agent;
+            _settings = settings;
         }
 
         public ISshSession Create()
         {
-            return new NativeSshSession(_agent);
+            int scrollback = 0;
+            if (_settings != null)
+            {
+                try
+                {
+                    scrollback = _settings.ScrollbackLines;
+                }
+                catch (System.Exception)
+                {
+                    scrollback = 0;
+                }
+            }
+            return new NativeSshSession(_agent, scrollback);
         }
     }
 }

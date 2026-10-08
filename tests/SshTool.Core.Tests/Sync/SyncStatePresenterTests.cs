@@ -130,9 +130,26 @@ namespace SshTool.Core.Tests.Sync
 
         private readonly DateTimeOffset _now = new DateTimeOffset(2026, 1, 15, 12, 0, 0, TimeSpan.Zero);
 
+        // 偏移为 0 的「本地」时区：与旧用例的 UTC 日判定一致。
+        private RelativeTime Rel(string iso)
+        {
+            return new SyncStatePresenter(() => _now, d => d.ToOffset(TimeSpan.Zero)).ComputeRelativeTime(iso);
+        }
+
         private string Relative(string iso)
         {
-            return new SyncStatePresenter(() => _now).FormatRelativeTime(iso);
+            RelativeTime r = Rel(iso);
+            switch (r.Kind)
+            {
+                case RelativeTimeKind.None: return string.Empty;
+                case RelativeTimeKind.JustNow: return "now";
+                case RelativeTimeKind.Minutes: return r.Value + "m";
+                case RelativeTimeKind.Hours: return r.Value + "h";
+                case RelativeTimeKind.Yesterday: return "yesterday";
+                case RelativeTimeKind.DayBeforeYesterday: return "day-before";
+                case RelativeTimeKind.Days: return r.Value + "d";
+                default: return r.Local.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+            }
         }
 
         [Fact]
@@ -150,42 +167,42 @@ namespace SshTool.Core.Tests.Sync
         [Fact]
         public void FormatRelativeTime_JustNow()
         {
-            Assert.Equal("刚刚", Relative("2026-01-15T12:00:00.000Z"));
-            Assert.Equal("刚刚", Relative("2026-01-15T11:59:30.000Z"));
+            Assert.Equal("now", Relative("2026-01-15T12:00:00.000Z"));
+            Assert.Equal("now", Relative("2026-01-15T11:59:30.000Z"));
         }
 
         [Fact]
         public void FormatRelativeTime_MinutesAgo()
         {
-            Assert.Equal("5 分钟前", Relative("2026-01-15T11:55:00.000Z"));
+            Assert.Equal("5m", Relative("2026-01-15T11:55:00.000Z"));
             // 61 秒前 → 超过「刚刚」阈值（60 s），进分钟档。
-            Assert.Equal("1 分钟前", Relative("2026-01-15T11:58:59.000Z"));
+            Assert.Equal("1m", Relative("2026-01-15T11:58:59.000Z"));
         }
 
         [Fact]
         public void FormatRelativeTime_HoursAgo()
         {
-            Assert.Equal("3 小时前", Relative("2026-01-15T09:00:00.000Z"));
+            Assert.Equal("3h", Relative("2026-01-15T09:00:00.000Z"));
             // 61 分钟前 → 超过小时阈值（3600 s），进小时档。
-            Assert.Equal("1 小时前", Relative("2026-01-15T10:58:59.000Z"));
+            Assert.Equal("1h", Relative("2026-01-15T10:58:59.000Z"));
         }
 
         [Fact]
         public void FormatRelativeTime_Yesterday()
         {
-            Assert.Equal("昨天", Relative("2026-01-14T10:00:00.000Z"));
+            Assert.Equal("yesterday", Relative("2026-01-14T10:00:00.000Z"));
         }
 
         [Fact]
         public void FormatRelativeTime_DayBeforeYesterday()
         {
-            Assert.Equal("前天", Relative("2026-01-13T10:00:00.000Z"));
+            Assert.Equal("day-before", Relative("2026-01-13T10:00:00.000Z"));
         }
 
         [Fact]
         public void FormatRelativeTime_SeveralDaysAgo()
         {
-            Assert.Equal("5 天前", Relative("2026-01-10T10:00:00.000Z"));
+            Assert.Equal("5d", Relative("2026-01-10T10:00:00.000Z"));
         }
 
         [Fact]
@@ -197,7 +214,21 @@ namespace SshTool.Core.Tests.Sync
         [Fact]
         public void FormatRelativeTime_Future_ClampedToJustNow()
         {
-            Assert.Equal("刚刚", Relative("2026-01-15T14:00:00.000Z"));
+            Assert.Equal("now", Relative("2026-01-15T14:00:00.000Z"));
+        }
+
+        // fix/functional-pass：按本地日历日判定。东八区：now = 01-15 07:00 本地（UTC 01-14 23:00），
+        // 同步于 UTC 01-13 17:00 = 本地 01-14 01:00 → 本地是「昨天」（UTC 日判定会给出「前天」）。
+        [Fact]
+        public void FormatRelativeTime_UsesLocalCalendarDay()
+        {
+            var now = new DateTimeOffset(2026, 1, 14, 23, 0, 0, TimeSpan.Zero);
+            var p = new SyncStatePresenter(() => now, d => d.ToOffset(TimeSpan.FromHours(8)));
+            RelativeTime r = p.ComputeRelativeTime("2026-01-13T17:00:00.000Z");
+            Assert.Equal(RelativeTimeKind.Yesterday, r.Kind);
+            RelativeTime old = p.ComputeRelativeTime("2025-12-31T20:00:00.000Z");
+            Assert.Equal(RelativeTimeKind.Date, old.Kind);
+            Assert.Equal(new DateTime(2026, 1, 1), old.Local.Date);
         }
     }
 }

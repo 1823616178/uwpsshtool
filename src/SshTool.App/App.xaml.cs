@@ -117,8 +117,7 @@ namespace SshTool.App
                     {
                         services.Lifecycle.Start();
                     }
-                    // W04：应用锁与后台断线通知（与应用同寿命）。
-                    Platform.AppLockService.Instance.Start(services.Settings);
+                    // W04：后台断线通知（与应用同寿命）。应用锁见下方 finally。
                     Platform.LifecycleService lifecycle = services.Lifecycle;
                     _disconnectNotifier = new Platform.DisconnectNotifier(
                         services.Sessions, services.Settings,
@@ -132,6 +131,21 @@ namespace SshTool.App
                 {
                     Platform.FileLogger.Instance.Log(SshTool.Core.Common.LogLevel.Error, "App",
                         "启动失败 " + ex.GetType().Name);
+                }
+                finally
+                {
+                    // fix/functional-pass（P2-5）：应用锁必须与启动成败无关——此前放在 try 里，
+                    // StartAsync 中途抛错（如某个数据文件读失败）就不会挂上应用锁，
+                    // 开了「应用锁」的用户冷启动可直接进入。设置仓库在 Initialize 里已就绪。
+                    try
+                    {
+                        Platform.AppLockService.Instance.Start(services.Settings);
+                    }
+                    catch (Exception lockEx)
+                    {
+                        Platform.FileLogger.Instance.Log(SshTool.Core.Common.LogLevel.Error, "App",
+                            "app lock start failed " + lockEx.GetType().Name);
+                    }
                 }
             }
             navigation.Initialize(rootFrame);

@@ -23,7 +23,11 @@ namespace SshTool
             struct TerminalScreen::Impl
             {
                 explicit Impl(int cols, int rows) : bridge(cols, rows) {}
+                Impl(int cols, int rows, size_t scrollbackCapacity)
+                    : bridge(cols, rows, VtermBridge::kDefaultFgArgb, VtermBridge::kDefaultBgArgb,
+                             scrollbackCapacity) {}
                 VtermBridge bridge;
+                bool fed = false; // fix/functional-pass：喂过数据后不再重建（不丢内容）
             };
 
             static int mouseModeDec(MouseMode mode)
@@ -202,7 +206,26 @@ namespace SshTool
                 if (data == nullptr || len == 0)
                     return;
                 std::lock_guard<std::mutex> lock(mutex_);
+                impl_->fed = true;
                 impl_->bridge.feed(data, len);
+            }
+
+            bool TerminalScreen::ConfigureScrollback(int lines)
+            {
+                if (lines <= 0)
+                    return false;
+                std::lock_guard<std::mutex> lock(mutex_);
+                if (impl_->fed)
+                    return false;
+                const size_t capacity = static_cast<size_t>(lines);
+                if (impl_->bridge.scrollback().capacity() == capacity)
+                    return true;
+                const int cols = impl_->bridge.grid().cols();
+                const int rows = impl_->bridge.grid().rows();
+                Impl *next = new Impl(cols, rows, capacity); // ScrollbackBuffer 构造钳制到 [1, kMaxCapacity]
+                delete impl_;
+                impl_ = next;
+                return true;
             }
 
             void TerminalScreen::FeedBytes(const Platform::Array<uint8>^ data)

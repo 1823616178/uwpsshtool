@@ -38,11 +38,25 @@ namespace SshTool.Core.Keys
         Rsa = 1
     }
 
+    // fix/functional-pass（P2-2）：生成失败原因码（文案由 App 查 resw：KeyGenerate_Err_*）。
+    public enum KeyGenerateError
+    {
+        None = 0,
+        UnsupportedBits,
+        GenerateFailed,
+        VerifyFailed,
+        DuplicateFingerprint,
+        // App 侧校验（名称等），Error 为已本地化文案。
+        Validation
+    }
+
     public sealed class KeyGenerateOutcome
     {
         public bool Success { get; set; }
         public KeyEntry Entry { get; set; }
         public string PrivateKeyText { get; set; }
+        public KeyGenerateError ErrorCode { get; set; }
+        // 诊断文本（ErrorCode=Validation 时为 App 已本地化的文案）。
         public string Error { get; set; }
     }
 
@@ -213,27 +227,27 @@ namespace SshTool.Core.Keys
             {
                 if (bits != 3072 && bits != 4096)
                 {
-                    return new KeyGenerateOutcome { Success = false, Error = "RSA 只支持 3072 / 4096 位" };
+                    return new KeyGenerateOutcome { Success = false, ErrorCode = KeyGenerateError.UnsupportedBits, Error = "rsa bits must be 3072 or 4096" };
                 }
                 text = await _tool.GenerateRsaAsync(bits, cleanComment).ConfigureAwait(false);
             }
             if (string.IsNullOrEmpty(text))
             {
                 Log("生成失败");
-                return new KeyGenerateOutcome { Success = false, Error = "生成失败，请重试" };
+                return new KeyGenerateOutcome { Success = false, ErrorCode = KeyGenerateError.GenerateFailed, Error = "generate failed" };
             }
             InspectedKeyInfo info = await _tool.InspectAsync(text, string.Empty).ConfigureAwait(false);
             if (info == null || string.IsNullOrEmpty(info.FingerprintSha256))
             {
                 Log("生成后解析失败");
-                return new KeyGenerateOutcome { Success = false, Error = "生成后校验失败，请重试" };
+                return new KeyGenerateOutcome { Success = false, ErrorCode = KeyGenerateError.VerifyFailed, Error = "verify after generate failed" };
             }
             KeyEntry existing = await FindByFingerprintAsync(info.FingerprintSha256).ConfigureAwait(false);
             if (existing != null)
             {
                 // 生成碰撞（指纹重复）概率可忽略；真发生时拒绝，避免两条元数据指向同一密钥。
                 Log("生成碰撞：指纹重复");
-                return new KeyGenerateOutcome { Success = false, Error = "生成的密钥与已有密钥指纹相同，请重试" };
+                return new KeyGenerateOutcome { Success = false, ErrorCode = KeyGenerateError.DuplicateFingerprint, Error = "duplicate fingerprint" };
             }
             KeyEntry entry = await SaveAsync(text, name, info, null).ConfigureAwait(false);
             return new KeyGenerateOutcome { Success = true, Entry = entry, PrivateKeyText = text };

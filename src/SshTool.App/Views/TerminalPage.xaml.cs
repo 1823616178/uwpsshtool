@@ -163,6 +163,10 @@ namespace SshTool.App.Views
                     AppServices.Current.AppearanceService.Changed += OnAppearanceChanged;
                     _lifetime.Track(UnsubscribeAppearance);
                 }
+                // fix/functional-pass（P1-4）：双指缩放结束后持久化字号（内置外观 → 设置项，
+                // 自定义外观 → 更新该外观），下次打开终端不再回到默认值。
+                Term.FontSizeCommitted += OnTermFontSizeCommitted;
+                _lifetime.Track(UnsubscribeFontSize);
                 // P02：省电模式 Banner（事件在系统线程触发，handler 内封送回 UI）。
                 _energySaver.Changed += OnEnergySaverChanged;
                 _lifetime.Track(UnsubscribeEnergySaver);
@@ -207,6 +211,24 @@ namespace SshTool.App.Views
             {
                 AppServices.Current.AppearanceService.Changed -= OnAppearanceChanged;
             }
+        }
+
+        private void UnsubscribeFontSize()
+        {
+            Term.FontSizeCommitted -= OnTermFontSizeCommitted;
+        }
+
+        private void OnTermFontSizeCommitted(object sender, EventArgs e)
+        {
+            PersistFontSize();
+        }
+
+        private void PersistFontSize()
+        {
+            SessionInfo info = ViewModel.Session;
+            string hostId = info == null ? null : info.HostId;
+            AppearanceApplier.PersistFontSizeAsync(hostId, Term.CurrentFontSize)
+                .Forget("TerminalPage.PersistFontSize", AppLog.Logger);
         }
 
         private void UnsubscribeEnergySaver()
@@ -614,10 +636,17 @@ namespace SshTool.App.Views
         // ui/fix-pass：信息条/查找条/浮动菜单钮/键条显隐的唯一写入点（规则见 Core TerminalChromePolicy）。
         private void ApplyChrome()
         {
+            // fix/functional-pass（P2-8）：SIP 弹出把页面压矮时按「没有 SIP 的高度」判紧凑，
+            // 竖屏弹键盘不再误收信息条（规则见 TerminalChromePolicy.EffectiveHeight）。
+            Rect occluded = Term.InputPaneOccludedRect;
+            bool sipVisible = occluded.Height > 0;
             var input = new SshTool.Core.Terminal.TerminalChromeInput
             {
                 Width = ActualWidth,
                 Height = ActualHeight,
+                SipVisible = sipVisible,
+                HeightBeforeSip = sipVisible ? HeightWithoutSip(occluded) : ActualHeight,
+                WidthBeforeSip = ActualWidth,
                 FindOpen = _findOpen,
                 KeyBarSetting = _keyBarSetting,
                 MouseMode = InteractionModeHelper.IsMouseMode,
@@ -637,6 +666,26 @@ namespace SshTool.App.Views
             }
         }
 
+        private double HeightWithoutSip(Rect occluded)
+        {
+            try
+            {
+                UIElement root = Window.Current != null ? Window.Current.Content : null;
+                if (root == null)
+                {
+                    return ActualHeight;
+                }
+                Point origin = TransformToVisual(root).TransformPoint(new Point(0, 0));
+                return SshTool.Core.Terminal.TerminalChromePolicy.HeightWithoutSip(
+                    origin.Y, ActualHeight, occluded.Y, occluded.Height);
+            }
+            catch (Exception)
+            {
+                // 未上树/离场时 TransformToVisual 会抛：按当前高度判定。
+                return ActualHeight;
+            }
+        }
+
         private static double TokenDouble(string key)
         {
             object value;
@@ -650,6 +699,7 @@ namespace SshTool.App.Views
         private void OnInputPaneOcclusionChanged(object sender, EventArgs e)
         {
             UpdateKeyBarLift();
+            ApplyChrome();
         }
 
         private void OnKeyBarSizeChanged(object sender, SizeChangedEventArgs e)
@@ -718,14 +768,17 @@ namespace SshTool.App.Views
                     break;
                 case SshTool.Core.Terminal.ShortcutAction.FontIncrease:
                     Term.Renderer.FontSize = Term.Renderer.FontSize + 1;
+                    PersistFontSize();
                     break;
                 case SshTool.Core.Terminal.ShortcutAction.FontDecrease:
                     Term.Renderer.FontSize = Term.Renderer.FontSize - 1;
+                    PersistFontSize();
                     break;
                 case SshTool.Core.Terminal.ShortcutAction.FontReset:
                     try
                     {
-                        Term.Renderer.FontSize = (float)SshTool.Core.Models.Defaults.DefaultAppearance().FontSize;
+                        Term.Renderer.FontSize = TerminalFontSizePolicy.DefaultSize;
+                        PersistFontSize();
                     }
                     catch (Exception ex)
                     {

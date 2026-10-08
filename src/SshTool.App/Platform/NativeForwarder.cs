@@ -24,29 +24,73 @@ namespace SshTool.App.Platform
     {
         private sealed class ActiveTunnel : IDisposable
         {
+            private readonly object _gate = new object();
+            private EventHandler<SessionStateChangedEventArgs> _onState;
+
             public string TunnelId { get; set; }
-            public NativeSshSession Session { get; set; }
+            // 目标会话 + 跳板会话（fix/functional-pass：跳板链随隧道一起持有、一起释放）。
+            public TunnelConnectResult Connection { get; set; }
             public NativeBridge.Forwarder Forwarder { get; set; }
             public int BoundPort { get; set; }
             public string RouteDescription { get; set; }
             public int DroppedFired;
 
+            public void Subscribe(EventHandler<SessionStateChangedEventArgs> onState)
+            {
+                lock (_gate)
+                {
+                    _onState = onState;
+                    ForEachSession(s => s.StateChanged += onState);
+                }
+            }
+
             public void Dispose()
             {
-                if (Forwarder != null)
+                NativeBridge.Forwarder forwarder;
+                TunnelConnectResult connection;
+                lock (_gate)
                 {
-                    try { Forwarder.Stop(); } catch { }
-                    try { Forwarder.Dispose(); } catch { }
+                    if (_onState != null)
+                    {
+                        EventHandler<SessionStateChangedEventArgs> handler = _onState;
+                        ForEachSession(s => s.StateChanged -= handler);
+                        _onState = null;
+                    }
+                    forwarder = Forwarder;
                     Forwarder = null;
+                    connection = Connection;
+                    Connection = null;
                 }
-                if (Session != null)
+                if (forwarder != null)
                 {
-                    try { Session.Close(); } catch { }
-                    try { Session.Dispose(); } catch { }
-                    Session = null;
+                    try { forwarder.Stop(); } catch { }
+                    try { forwarder.Dispose(); } catch { }
+                }
+                TunnelConnector.Close(connection);
+            }
+
+            private void ForEachSession(Action<ISshSession> action)
+            {
+                TunnelConnectResult c = Connection;
+                if (c == null)
+                {
+                    return;
+                }
+                if (c.Session != null)
+                {
+                    action(c.Session);
+                }
+                if (c.JumpSessions != null)
+                {
+                    for (int i = 0; i < c.JumpSessions.Count; i++)
+                    {
+                        action(c.JumpSessions[i]);
+                    }
                 }
             }
         }
+
+        private const int DefaultConnectTimeoutMs = 15000;
 
         private readonly HostRepository _hosts;
         private readonly KnownHostRepository _knownHosts;
@@ -134,121 +178,45 @@ namespace SshTool.App.Platform
 
             cancellation.ThrowIfCancellationRequested();
 
-            var session = new NativeSshSession(_agent);
+            // fix/functional-pass（P1-3）：建链交给 Core TunnelConnector——与终端一致复用跳板链
+            // （JumpChainPlanner + ConnectJumpAsync），每跳非交互主机密钥校验，agent 遍历密钥；
+            // 失败按类别本地化（TunnelText）。
+            int timeoutMs = _settings != null ? _settings.ConnectTimeoutSeconds * 1000 : DefaultConnectTimeoutMs;
+            if (timeoutMs < 1000)
+            {
+                timeoutMs = DefaultConnectTimeoutMs;
+            }
+            var connector = new TunnelConnector(
+                _hosts, _knownHosts, _keys, _secrets, _agent, new NativeSshSessionFactory(_agent), _logger);
+
+            TunnelConnectResult connection = null;
+            NativeBridge.Forwarder forwarder = null;
             ActiveTunnel active = null;
             try
             {
-                int port = host.Port > 0 ? host.Port : 22;
-                KnownHost known = await FindKnownAsync(host.HostName, port).ConfigureAwait(false);
-                string hostFp = host.HostFingerprint;
-                bool acceptedKeyShouldSave = false;
-                bool rejectedUnknownKey = false;
-                HostKeyInfo acceptedKey = null;
-
-                EventHandler<HostKeyCheckEventArgs> onKey = (s, args) =>
+                connection = await connector.ConnectAsync(host, timeoutMs, cancellation).ConfigureAwait(false);
+                if (!connection.Success)
                 {
-                    try
-                    {
-                        // 评审（PR #1）：后台隧道无交互，走 VerifyNonInteractive——未知主机
-                        // （无 known_hosts、无钉住指纹）直接拒绝、不保存，不再 TOFU 静默信任。
-                        HostKeyVerdict verdict = HostKeyVerifier.VerifyNonInteractive(known, hostFp, args.Info);
-                        if (verdict.Kind == HostKeyVerdictKind.Accept)
-                        {
-                            if (verdict.WriteKnownHost)
-                            {
-                                acceptedKeyShouldSave = true;
-                                acceptedKey = args.Info;
-                            }
-                            args.Accept();
-                            return;
-                        }
-                        if (verdict.Kind == HostKeyVerdictKind.RejectMismatch)
-                        {
-                            args.Reject();
-                            return;
-                        }
-                        // RejectUnknown（以及任何未来新增的判定）一律拒绝：用户须先在前台
-                        // 终端连接该主机并确认信任（写入 known_hosts），隧道才会放行。
-                        rejectedUnknownKey = verdict.Kind == HostKeyVerdictKind.RejectUnknown;
-                        args.Reject();
-                    }
-                    catch (Exception ex)
-                    {
-                        AppLog.Error("NativeForwarder", "host key check error", ex);
-                        args.Reject();
-                    }
-                };
-
-                session.HostKeyCheck += onKey;
-
-                // 2. 建立网络连接
-                int timeoutMs = _settings != null ? _settings.ConnectTimeoutSeconds * 1000 : 15000;
-                if (timeoutMs < 1000)
-                {
-                    timeoutMs = 15000;
-                }
-
-                var connectReq = new SshConnectRequest
-                {
-                    Host = host.HostName,
-                    Port = port,
-                    Username = host.Username ?? string.Empty,
-                    ConnectTimeoutMs = timeoutMs,
-                    KeepaliveSeconds = host.Keepalive,
-                    Cols = 80,
-                    Rows = 24,
-                    TermType = "none"
-                };
-
-                cancellation.ThrowIfCancellationRequested();
-
-                SshErrorCode connectCode = await session.ConnectAsync(connectReq).ConfigureAwait(false);
-                session.HostKeyCheck -= onKey;
-
-                if (connectCode != SshErrorCode.None)
-                {
-                    session.Close();
-                    session.Dispose();
-                    if (rejectedUnknownKey)
-                    {
-                        return new TunnelRuntimeStartResult
-                        {
-                            Code = SshErrorCode.UnknownHostKey,
-                            Message = Localized.Get("Tunnel_UnknownHostKey",
-                                "Unknown host key: connect to this host in a terminal and trust it first.")
-                        };
-                    }
                     return new TunnelRuntimeStartResult
                     {
-                        Code = connectCode,
-                        Message = Localized.Format("Forwarder_ConnectFailed", "Failed to connect to server ({0})", (int)connectCode)
+                        Code = connection.Code,
+                        Message = TunnelText.ConnectFailure(connection)
                     };
                 }
-
-                if (acceptedKeyShouldSave && acceptedKey != null)
+                var session = connection.Session as NativeSshSession;
+                if (session == null)
                 {
-                    await SaveKnownHostAsync(host.HostName, port, acceptedKey).ConfigureAwait(false);
-                }
-
-                cancellation.ThrowIfCancellationRequested();
-
-                // 3. 认证
-                SshErrorCode authCode = await AuthenticateAsync(session, host).ConfigureAwait(false);
-                if (authCode != SshErrorCode.None)
-                {
-                    session.Close();
-                    session.Dispose();
+                    TunnelConnector.Close(connection);
                     return new TunnelRuntimeStartResult
                     {
-                        Code = authCode,
-                        Message = Localized.Format("Forwarder_AuthFailed", "Authentication failed ({0})", (int)authCode)
+                        Code = SshErrorCode.InternalError,
+                        Message = Localized.Get("Tunnel_StartFailed", "Failed to start")
                     };
                 }
 
                 cancellation.ThrowIfCancellationRequested();
 
-                // 4. 挂载转发监听
-                var forwarder = new NativeBridge.Forwarder(session.Native);
+                // 挂载转发监听
                 NativeBridge.ForwardKind kind;
                 switch (tunnel.Type)
                 {
@@ -262,15 +230,14 @@ namespace SshTool.App.Platform
                         kind = NativeBridge.ForwardKind.Dynamic;
                         break;
                     default:
-                        forwarder.Dispose();
-                        session.Close();
-                        session.Dispose();
+                        TunnelConnector.Close(connection);
                         return new TunnelRuntimeStartResult
                         {
                             Code = SshErrorCode.InternalError,
                             Message = Localized.Get("Forwarder_UnsupportedType", "Unsupported tunnel type")
                         };
                 }
+                forwarder = new NativeBridge.Forwarder(session.Native);
 
                 string listenHost = string.IsNullOrEmpty(tunnel.ListenHost) ? "127.0.0.1" : tunnel.ListenHost;
                 int listenPort = tunnel.ListenPort;
@@ -288,8 +255,8 @@ namespace SshTool.App.Platform
                 if (fwdResult.Code != 0)
                 {
                     forwarder.Dispose();
-                    session.Close();
-                    session.Dispose();
+                    forwarder = null;
+                    TunnelConnector.Close(connection);
                     return new TunnelRuntimeStartResult
                     {
                         Code = (SshErrorCode)fwdResult.Code,
@@ -305,31 +272,40 @@ namespace SshTool.App.Platform
                 active = new ActiveTunnel
                 {
                     TunnelId = tunnel.Id,
-                    Session = session,
+                    Connection = connection,
                     Forwarder = forwarder,
                     BoundPort = boundPort,
                     RouteDescription = routeDesc
                 };
+                forwarder = null;
 
-                // 5. 订阅链路异常中断（StateChanged 抛出）
-                session.StateChanged += (s, args) =>
+                // 订阅链路异常中断：目标会话或任一跳板断开都算隧道掉线。
+                ActiveTunnel owner = active;
+                string tunnelId = tunnel.Id;
+                EventHandler<SessionStateChangedEventArgs> onState = (s, args) =>
                 {
-                    if (args.State == SessionStateKind.Disconnected
-                        || args.State == SessionStateKind.Error)
+                    if (args.State != SessionStateKind.Disconnected && args.State != SessionStateKind.Error)
                     {
-                        if (Interlocked.Exchange(ref active.DroppedFired, 1) == 0)
-                        {
-                            ActiveTunnel removed;
-                            _activeTunnels.TryRemove(tunnel.Id, out removed);
-                            Dropped?.Invoke(this, new TunnelRuntimeDroppedEventArgs
-                            {
-                                TunnelId = tunnel.Id,
-                                Reason = Localized.Get("Forwarder_LinkLost", "Session link lost"),
-                                ErrorCode = args.ErrorCode != SshErrorCode.None ? args.ErrorCode : SshErrorCode.SocketError
-                            });
-                        }
+                        return;
                     }
+                    if (Interlocked.Exchange(ref owner.DroppedFired, 1) != 0)
+                    {
+                        return;
+                    }
+                    ActiveTunnel removed;
+                    if (_activeTunnels.TryRemove(tunnelId, out removed) && removed != null)
+                    {
+                        // 跳板先断时目标会话可能还挂着：一并收尾，不留半截链路。
+                        var ignoreTeardown = Task.Run(() => removed.Dispose());
+                    }
+                    Dropped?.Invoke(this, new TunnelRuntimeDroppedEventArgs
+                    {
+                        TunnelId = tunnelId,
+                        Reason = Localized.Get("Forwarder_LinkLost", "Session link lost"),
+                        ErrorCode = args.ErrorCode != SshErrorCode.None ? args.ErrorCode : SshErrorCode.SocketError
+                    });
                 };
+                active.Subscribe(onState);
 
                 _activeTunnels[tunnel.Id] = active;
 
@@ -343,39 +319,35 @@ namespace SshTool.App.Platform
             }
             catch (OperationCanceledException)
             {
-                if (active != null)
-                {
-                    ActiveTunnel removed;
-                    _activeTunnels.TryRemove(tunnel.Id, out removed);
-                    active.Dispose();
-                }
-                else
-                {
-                    session.Close();
-                    session.Dispose();
-                }
+                CleanupFailedStart(tunnel.Id, active, forwarder, connection);
                 throw;
             }
             catch (Exception ex)
             {
                 AppLog.Error("NativeForwarder", "StartAsync exception", ex);
-                if (active != null)
-                {
-                    ActiveTunnel removed;
-                    _activeTunnels.TryRemove(tunnel.Id, out removed);
-                    active.Dispose();
-                }
-                else
-                {
-                    session.Close();
-                    session.Dispose();
-                }
+                CleanupFailedStart(tunnel.Id, active, forwarder, connection);
                 return new TunnelRuntimeStartResult
                 {
                     Code = SshErrorCode.InternalError,
                     Message = Localized.Format("Forwarder_StartException", "Tunnel failed to start: {0}", ex.GetType().Name)
                 };
             }
+        }
+
+        private void CleanupFailedStart(string tunnelId, ActiveTunnel active, NativeBridge.Forwarder forwarder, TunnelConnectResult connection)
+        {
+            if (active != null)
+            {
+                ActiveTunnel removed;
+                _activeTunnels.TryRemove(tunnelId, out removed);
+                active.Dispose();
+                return;
+            }
+            if (forwarder != null)
+            {
+                try { forwarder.Dispose(); } catch (Exception) { }
+            }
+            TunnelConnector.Close(connection);
         }
 
         public void Stop(string tunnelId)
@@ -428,146 +400,6 @@ namespace SshTool.App.Platform
             catch
             {
                 return null;
-            }
-        }
-
-        private async Task<KnownHost> FindKnownAsync(string hostName, int port)
-        {
-            if (_knownHosts == null)
-            {
-                return null;
-            }
-            try
-            {
-                IReadOnlyList<KnownHost> all = await _knownHosts.GetAllAsync().ConfigureAwait(false);
-                for (int i = 0; i < all.Count; i++)
-                {
-                    if (string.Equals(all[i].Host, hostName, StringComparison.OrdinalIgnoreCase)
-                        && all[i].Port == port)
-                    {
-                        return all[i];
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                AppLog.Error("NativeForwarder", "FindKnownAsync failed", ex);
-            }
-            return null;
-        }
-
-        private async Task SaveKnownHostAsync(string hostName, int port, HostKeyInfo info)
-        {
-            if (_knownHosts == null || info == null)
-            {
-                return;
-            }
-            try
-            {
-                KnownHost existing = await FindKnownAsync(hostName, port).ConfigureAwait(false);
-                string now = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
-                if (existing == null)
-                {
-                    await _knownHosts.AddAsync(new KnownHost
-                    {
-                        Id = IdGenerator.NewId(),
-                        Host = hostName,
-                        Port = port,
-                        KeyType = info.KeyType ?? "unknown",
-                        FingerprintSha256 = info.FingerprintSha256,
-                        AddedAt = now,
-                        LastSeenAt = now
-                    }, ChangeOrigin.User).ConfigureAwait(false);
-                }
-                else
-                {
-                    existing.LastSeenAt = now;
-                    existing.FingerprintSha256 = info.FingerprintSha256;
-                    await _knownHosts.UpdateAsync(existing, ChangeOrigin.User).ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                AppLog.Error("NativeForwarder", "SaveKnownHost failed", ex);
-            }
-        }
-
-        private async Task<SshErrorCode> AuthenticateAsync(NativeSshSession session, Host host)
-        {
-            switch (host.AuthType)
-            {
-                case AuthType.Password:
-                {
-                    string password = null;
-                    if (_secrets != null)
-                    {
-                        password = await _secrets.GetAsync(SecretKeys.HostPassword(host.Id)).ConfigureAwait(false);
-                    }
-                    if (password == null)
-                    {
-                        return SshErrorCode.NoLocalCredential;
-                    }
-                    return await session.AuthenticatePasswordAsync(password).ConfigureAwait(false);
-                }
-                case AuthType.Key:
-                {
-                    if (string.IsNullOrEmpty(host.KeyId))
-                    {
-                        return SshErrorCode.NoLocalCredential;
-                    }
-                    string privateKey = null;
-                    string passphrase = null;
-                    if (_secrets != null)
-                    {
-                        privateKey = await _secrets.GetAsync(SecretKeys.KeyPrivate(host.KeyId)).ConfigureAwait(false);
-                        passphrase = await _secrets.GetAsync(SecretKeys.KeyPassphrase(host.KeyId)).ConfigureAwait(false);
-                        if (string.IsNullOrEmpty(passphrase))
-                        {
-                            passphrase = await _secrets.GetAsync(SecretKeys.HostPassphrase(host.Id)).ConfigureAwait(false);
-                        }
-                    }
-                    if (string.IsNullOrEmpty(privateKey))
-                    {
-                        return SshErrorCode.NoLocalCredential;
-                    }
-                    // 评审（PR #1）：私钥字节数组认证后（含异常）立即清零。
-                    byte[] pemBytes = Encoding.UTF8.GetBytes(privateKey);
-                    try
-                    {
-                        return await session.AuthenticatePublicKeyAsync(pemBytes, passphrase ?? string.Empty).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        Array.Clear(pemBytes, 0, pemBytes.Length);
-                    }
-                }
-                case AuthType.Agent:
-                {
-                    if (_agent == null)
-                    {
-                        return SshErrorCode.InternalError;
-                    }
-                    if (string.IsNullOrEmpty(host.KeyId))
-                    {
-                        return SshErrorCode.NoLocalCredential;
-                    }
-                    if (_agent.IsLocked(host.KeyId))
-                    {
-                        // 如果在 agent 中已锁定，尝试从 SecretStore 加载并解锁进 agent
-                        if (_secrets != null)
-                        {
-                            string pem = await _secrets.GetAsync(SecretKeys.KeyPrivate(host.KeyId)).ConfigureAwait(false);
-                            string pass = await _secrets.GetAsync(SecretKeys.KeyPassphrase(host.KeyId)).ConfigureAwait(false);
-                            if (!string.IsNullOrEmpty(pem))
-                            {
-                                await _agent.UnlockAsync(host.KeyId, pem, pass ?? string.Empty).ConfigureAwait(false);
-                            }
-                        }
-                    }
-                    return await session.AuthenticateAgentAsync(host.KeyId).ConfigureAwait(false);
-                }
-                default:
-                    return SshErrorCode.AuthPasswordFailed;
             }
         }
 

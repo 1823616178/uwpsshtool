@@ -138,6 +138,7 @@
     <Compile Include="Platform\Haptics.cs" />
     <Compile Include="Platform\ClipboardService.cs" />
     <Compile Include="Platform\NativeSshSessionFactory.cs" />
+    <Compile Include="Platform\LanguageOverride.cs" />
     <Compile Include="Platform\UwpHostKeyPrompter.cs" />
     <Compile Include="Platform\UwpCredentialPrompter.cs" />
     <Compile Include="Platform\UwpDeviceDescriptorProvider.cs" />
@@ -153,6 +154,7 @@
     <Compile Include="Infrastructure\LaunchRequests.cs" />
     <Compile Include="Infrastructure\InputPaneScroll.cs" />
     <Compile Include="Infrastructure\Localized.cs" />
+    <Compile Include="Infrastructure\TunnelText.cs" />
     <Compile Include="Infrastructure\ThemeRefreshHook.cs" />
     <Compile Include="Infrastructure\AppServices.cs" />
     <Compile Include="Infrastructure\DispatcherHelper.cs" />
@@ -297,6 +299,7 @@
     <Compile Include="ViewModels\Sync\LoginViewModel.cs" />
     <Compile Include="ViewModels\Sync\SecurityRotateViewModel.cs" />
     <Compile Include="ViewModels\Sync\SyncConflictViewModel.cs" />
+    <Compile Include="ViewModels\Sync\SyncText.cs" />
     <Compile Include="ViewModels\Sync\VaultErrorText.cs" />
     <Compile Include="ViewModels\Sync\VaultSetupViewModel.cs" />
     <Compile Include="ViewModels\Sync\VaultUnlockViewModel.cs" />

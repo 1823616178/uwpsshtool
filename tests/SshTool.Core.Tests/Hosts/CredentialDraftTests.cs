@@ -63,6 +63,7 @@ namespace SshTool.Core.Tests.Hosts
             draft.HasSavedPassword = true;
             AuthSwitchPreview preview = draft.PreviewSwitch(AuthType.Key);
             Assert.True(preview.NeedsConfirm);
+            Assert.Equal(AuthSwitchDrop.Password, preview.Drop);
             draft.ApplySwitch(AuthType.Key);
             Assert.Equal(AuthType.Key, draft.AuthType);
             Assert.Equal(string.Empty, draft.Password);
@@ -79,6 +80,7 @@ namespace SshTool.Core.Tests.Hosts
             draft.HasSavedPassphrase = true;
             AuthSwitchPreview preview = draft.PreviewSwitch(AuthType.Password);
             Assert.True(preview.NeedsConfirm);
+            Assert.Equal(AuthSwitchDrop.KeyAndPassphrase, preview.Drop);
             draft.ApplySwitch(AuthType.Password);
             Assert.Null(draft.KeyId);
             Assert.Equal(CredentialFieldState.Cleared, draft.PassphraseState);

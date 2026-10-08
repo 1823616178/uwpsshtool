@@ -15,9 +15,10 @@ namespace SshTool.App.Platform
 
         public async Task<bool> PromptMismatchAsync(HostKeyInfo info, string hostDisplay, string previousFingerprint)
         {
-            await HostKeyMismatchDialog.ShowAsync(
+            // fix/functional-pass：把「移除旧记录并重试」的选择交回 SessionManager（旧实现恒返回 false，按钮无效）。
+            HostKeyMismatchDialogResult r = await HostKeyMismatchDialog.ShowAsync(
                 hostDisplay, previousFingerprint ?? string.Empty, info.FingerprintSha256).ConfigureAwait(true);
-            return false;
+            return r != null && r.RemoveAndRetry;
         }
     }
 }

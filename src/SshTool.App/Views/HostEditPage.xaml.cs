@@ -444,7 +444,9 @@ namespace SshTool.App.Views
             {
                 ConfirmDialogResult confirm = await ConfirmDialog.ShowAsync(
                     _loader.GetString("HostEdit_SwitchAuthTitle"),
-                    preview.Message,
+                    _loader.GetString(preview.Drop == AuthSwitchDrop.Password
+                        ? "HostEdit_SwitchAuthDropPassword"
+                        : "HostEdit_SwitchAuthDropKey"),
                     _loader.GetString("HostEdit_SwitchAuthConfirm"),
                     _loader.GetString("HostEdit_SwitchAuthCancel"),
                     isDanger: true);

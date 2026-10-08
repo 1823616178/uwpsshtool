@@ -117,6 +117,8 @@ namespace SshTool.App.Views.Keys
             catch (Exception ex)
             {
                 AppLog.Error("KeyDetailPage", "OnRenameClick failed", ex);
+                // fix/functional-pass（P2-6）：失败要给用户反馈，不能只写日志。
+                StatusText.Text = Localized.Get("KeyDetail_RenameFailed", "Could not save the name. Try again");
             }
         }
 
@@ -127,8 +129,25 @@ namespace SshTool.App.Views.Keys
                 StatusText.Text = Localized.Get("KeyDetail_NoPublicKeyToCopy", "没有可复制的公钥");
                 return;
             }
-            ViewModel.CopyPublicKey();
-            StatusText.Text = Localized.Get("KeyDetail_PublicKeyCopied", "已复制公钥");
+            StatusText.Text = TryCopyPublicKey()
+                ? Localized.Get("KeyDetail_PublicKeyCopied", "已复制公钥")
+                : Localized.Get("KeyDetail_CopyFailed", "Could not copy to the clipboard. Try again");
+        }
+
+        // fix/functional-pass（P2-6）：剪贴板可能被占用（SetContent 抛 COMException）；
+        // 失败时不崩溃，由调用方显示失败文案。
+        private bool TryCopyPublicKey()
+        {
+            try
+            {
+                ViewModel.CopyPublicKey();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error("KeyDetailPage", "CopyPublicKey failed", ex);
+                return false;
+            }
         }
 
         private void OnShareClick(object sender, RoutedEventArgs e)
@@ -147,8 +166,9 @@ namespace SshTool.App.Views.Keys
                     || !ApiInformation.IsMethodPresent(
                         "Windows.ApplicationModel.DataTransfer.DataTransferManager", "ShowShareUI"))
                 {
-                    ViewModel.CopyPublicKey();
-                    StatusText.Text = Localized.Get("KeyDetail_ShareUnavailable", "分享不可用，已复制公钥");
+                    StatusText.Text = TryCopyPublicKey()
+                        ? Localized.Get("KeyDetail_ShareUnavailable", "分享不可用，已复制公钥")
+                        : Localized.Get("KeyDetail_CopyFailed", "Could not copy to the clipboard. Try again");
                     return;
                 }
                 DataTransferManager manager = DataTransferManager.GetForCurrentView();
@@ -161,8 +181,9 @@ namespace SshTool.App.Views.Keys
             catch (Exception)
             {
                 UnsubscribeShare();
-                ViewModel.CopyPublicKey();
-                StatusText.Text = Localized.Get("KeyDetail_ShareFailed", "分享失败，已复制公钥");
+                StatusText.Text = TryCopyPublicKey()
+                    ? Localized.Get("KeyDetail_ShareFailed", "分享失败，已复制公钥")
+                    : Localized.Get("KeyDetail_CopyFailed", "Could not copy to the clipboard. Try again");
             }
         }
 
@@ -206,6 +227,7 @@ namespace SshTool.App.Views.Keys
             catch (Exception ex)
             {
                 AppLog.Error("KeyDetailPage", "OnExportClick failed", ex);
+                StatusText.Text = Localized.Get("KeyDetail_ExportFailed", "Export failed. Try again");
             }
         }
 
@@ -227,6 +249,7 @@ namespace SshTool.App.Views.Keys
             catch (Exception ex)
             {
                 AppLog.Error("KeyDetailPage", "OnDeleteClick failed", ex);
+                StatusText.Text = Localized.Get("KeyDetail_DeleteFailed", "Could not delete the key. Try again");
             }
         }
     }

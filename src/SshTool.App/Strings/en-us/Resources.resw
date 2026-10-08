@@ -489,6 +489,9 @@
   <data name="Main_SignInItem.Label" xml:space="preserve"><value>Sign in</value></data>
   <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>Developer tools</value></data>
   <data name="Main_LoadWarningTitle" xml:space="preserve"><value>Data file warnings</value></data>
+  <data name="Main_SecretsIssue_ContentCorruptQuarantined" xml:space="preserve"><value>Saved credentials were damaged and moved aside; re-enter passwords and passphrases</value></data>
+  <data name="Main_SecretsIssue_ContentCorruptNotQuarantined" xml:space="preserve"><value>Saved credentials were damaged and will be overwritten; re-enter passwords and passphrases</value></data>
+  <data name="Main_SecretsIssue_DecryptFailedQuarantined" xml:space="preserve"><value>Saved credentials could not be decrypted and were moved aside; re-enter passwords and passphrases</value></data>
 
   <!-- V02 (05 §6.1): HostsPivot — always-on search row, collapsible quick connect, two EmptyState kinds;
        the NoMatches title/primary text are composed in code (they embed the search term) via format keys. -->
@@ -734,6 +737,8 @@
   <data name="HostEdit_SwitchAuthTitle" xml:space="preserve"><value>Switch Authentication Method?</value></data>
   <data name="HostEdit_SwitchAuthConfirm" xml:space="preserve"><value>Switch</value></data>
   <data name="HostEdit_SwitchAuthCancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="HostEdit_SwitchAuthDropPassword" xml:space="preserve"><value>Switching the sign-in method clears the entered or saved password.</value></data>
+  <data name="HostEdit_SwitchAuthDropKey" xml:space="preserve"><value>Switching the sign-in method clears the selected private key and passphrase.</value></data>
   <data name="HostEdit_TestMessage" xml:space="preserve"><value>Testing Connection…</value></data>
   <data name="HostEdit_TestTitle" xml:space="preserve"><value>Test Connection</value></data>
   <data name="HostEdit_TestFailedTitle" xml:space="preserve"><value>Test Failed</value></data>
@@ -775,6 +780,38 @@
   <data name="Sync_Offline" xml:space="preserve"><value>Offline, will retry later</value></data>
   <data name="Sync_Conflict" xml:space="preserve"><value>Conflict needs resolving</value></data>
   <data name="Sync_Error" xml:space="preserve"><value>Sync failed</value></data>
+  <data name="Sync_Relative_JustNow" xml:space="preserve"><value>Just now</value></data>
+  <data name="Sync_Relative_Minutes" xml:space="preserve"><value>{0} min ago</value></data>
+  <data name="Sync_Relative_Hours" xml:space="preserve"><value>{0} h ago</value></data>
+  <data name="Sync_Relative_Yesterday" xml:space="preserve"><value>Yesterday</value></data>
+  <data name="Sync_Relative_DayBeforeYesterday" xml:space="preserve"><value>2 days ago</value></data>
+  <data name="Sync_Relative_Days" xml:space="preserve"><value>{0} days ago</value></data>
+  <data name="Sync_Msg_VaultDeletedLocalKept" xml:space="preserve"><value>Cloud vault and history deleted; local configuration kept</value></data>
+  <data name="Sync_Msg_LoginPasswordChanged" xml:space="preserve"><value>Password changed. Sign in again with the new password</value></data>
+  <data name="Sync_Msg_RemoteVaultDeleted" xml:space="preserve"><value>The cloud vault was deleted. Create a new sync vault</value></data>
+  <data name="Sync_Msg_RemoteKeyRotated" xml:space="preserve"><value>The cloud key was rotated. Enter the sync password or recovery key again</value></data>
+  <data name="Sync_Msg_RotateResultUnknown" xml:space="preserve"><value>Rotation result unknown. If the cloud was rotated, unlock the vault with the new sync password</value></data>
+  <data name="Sync_Msg_SensitiveCleared" xml:space="preserve"><value>Sensitive fields cleared; key and history rotated</value></data>
+  <data name="Sync_Msg_SyncPasswordChanged" xml:space="preserve"><value>Sync password updated. Save the new recovery key</value></data>
+  <data name="Sync_Msg_ConflictInitialImport" xml:space="preserve"><value>Cloud configuration unlocked. Choose how to do the first sync</value></data>
+  <data name="Sync_Msg_ConflictRemoteDeletion" xml:space="preserve"><value>The cloud contains deletions. Confirm before applying</value></data>
+  <data name="Sync_Msg_ConflictGeneric" xml:space="preserve"><value>A sync conflict needs your confirmation</value></data>
+  <data name="Sync_Err_SyncPasswordWrong" xml:space="preserve"><value>Incorrect sync password</value></data>
+  <data name="Sync_Err_RecoveryKeyInvalid" xml:space="preserve"><value>Invalid recovery key</value></data>
+  <data name="Sync_Err_RotateRequired" xml:space="preserve"><value>Turning off sensitive sync requires a key rotation. Enter your account password in Security cleanup</value></data>
+  <data name="Sync_Err_SignInRequired" xml:space="preserve"><value>Sign in first</value></data>
+  <data name="Sync_Err_AlreadySignedIn" xml:space="preserve"><value>Already signed in. Sign out first</value></data>
+  <data name="Sync_Err_RemoteRevisionBehind" xml:space="preserve"><value>The cloud revision is older than the local baseline; upload stopped to avoid overwriting</value></data>
+  <data name="Sync_Err_VaultLocked" xml:space="preserve"><value>The sync vault is locked</value></data>
+  <data name="Sync_Err_EncryptFailed" xml:space="preserve"><value>Could not encrypt the sync document. Try again</value></data>
+  <data name="Sync_Err_DecryptFailed" xml:space="preserve"><value>Could not decrypt the cloud document</value></data>
+  <data name="Sync_Err_DocumentTooNew" xml:space="preserve"><value>The cloud document is newer. Update the app</value></data>
+  <data name="Sync_Err_NoPendingConflict" xml:space="preserve"><value>No pending sync conflict</value></data>
+  <data name="Sync_Err_RotateOnlyDisables" xml:space="preserve"><value>Key rotation is only for turning off enabled sensitive sync</value></data>
+  <data name="Sync_Err_VaultCreateFailed" xml:space="preserve"><value>Could not create the vault. Try again</value></data>
+  <data name="Sync_Err_UnexpectedKeyVersion" xml:space="preserve"><value>The server returned an unexpected key version</value></data>
+  <data name="Sync_Err_EnvelopeInvalid" xml:space="preserve"><value>The vault envelope is invalid</value></data>
+  <data name="Api_HttpStatusFailed" xml:space="preserve"><value>Server request failed ({0})</value></data>
   <data name="Sync_AuthError" xml:space="preserve"><value>Sign-in expired</value></data>
 
   <!-- AccountSyncPage -->
@@ -1055,6 +1092,10 @@
   <data name="KeyDetail_NoPublicKeyToShare" xml:space="preserve"><value>No public key to share</value></data>
   <data name="KeyDetail_ShareUnavailable" xml:space="preserve"><value>Sharing unavailable; public key copied</value></data>
   <data name="KeyDetail_ShareFailed" xml:space="preserve"><value>Sharing failed; public key copied</value></data>
+  <data name="KeyDetail_CopyFailed" xml:space="preserve"><value>Could not copy to the clipboard. Try again</value></data>
+  <data name="KeyDetail_RenameFailed" xml:space="preserve"><value>Could not save the name. Try again</value></data>
+  <data name="KeyDetail_ExportFailed" xml:space="preserve"><value>Export failed. Try again</value></data>
+  <data name="KeyDetail_DeleteFailed" xml:space="preserve"><value>Could not delete the key. Try again</value></data>
   <data name="SessionsPivot_Restore" xml:space="preserve"><value>{0} sessions left open last time</value></data>
   <data name="ShortcutEditor_Conflict" xml:space="preserve"><value>Conflict: {0} is used by two actions</value></data>
   <data name="AccountSync_Title" xml:space="preserve"><value>Account and sync</value></data>
@@ -1224,6 +1265,9 @@
   <data name="KeyImport_ErrPickFailed" xml:space="preserve"><value>File picker failed: {0}</value></data>
   <data name="KeyImport_ErrReadFailed" xml:space="preserve"><value>File read failed: {0}</value></data>
   <data name="KeyGenerate_ErrFallback" xml:space="preserve"><value>Generation failed, try again</value></data>
+  <data name="KeyGenerate_Err_UnsupportedBits" xml:space="preserve"><value>RSA supports 3072 / 4096 bits only</value></data>
+  <data name="KeyGenerate_Err_VerifyFailed" xml:space="preserve"><value>Verification after generation failed. Try again</value></data>
+  <data name="KeyGenerate_Err_DuplicateFingerprint" xml:space="preserve"><value>The generated key matches an existing key. Try again</value></data>
   <data name="Main_ToolsItem.Label" xml:space="preserve"><value>Tools &amp; settings</value></data>
   <data name="Main_PlaceholderNewHost" xml:space="preserve"><value>New host</value></data>
   <data name="Main_PlaceholderSync" xml:space="preserve"><value>Sync</value></data>
@@ -1423,5 +1467,20 @@
   <data name="AppearanceEdit_BgButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Background</value></data>
   <data name="AppearanceEdit_CursorButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Cursor</value></data>
   <data name="AppearanceEdit_SelectionButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Selection</value></data>
+  <data name="Auth_PasswordWrongRetries" xml:space="preserve"><value>Wrong password. {0} attempt(s) left</value></data>
+  <data name="Auth_PassphraseWrong" xml:space="preserve"><value>Wrong passphrase. Please try again</value></data>
+  <data name="Tunnel_ErrorCodeFallback" xml:space="preserve"><value>Error code {0}</value></data>
+  <data name="Tunnel_StartFailed" xml:space="preserve"><value>Failed to start</value></data>
+  <data name="Tunnel_JumpPlanInvalid" xml:space="preserve"><value>Invalid jump host chain (loop or more than 5 hops)</value></data>
+  <data name="Tunnel_HostKeyMismatch" xml:space="preserve"><value>Host key does not match the trusted record: connect to this host in a terminal to verify it first.</value></data>
+  <data name="Tunnel_NoSavedCredential" xml:space="preserve"><value>No saved credential: tunnels cannot prompt, so save the password or passphrase first.</value></data>
+  <data name="Tunnel_AuthFailedDetail" xml:space="preserve"><value>Authentication failed: {0}</value></data>
+  <data name="Tunnel_ConnectFailedDetail" xml:space="preserve"><value>Failed to connect to server: {0}</value></data>
+  <data name="Tunnel_HopPrefix" xml:space="preserve"><value>Jump host {0}: {1}</value></data>
+  <data name="Tunnel_Established" xml:space="preserve"><value>Tunnel established</value></data>
+  <data name="Tunnel_StoppedManually" xml:space="preserve"><value>Stopped manually</value></data>
+  <data name="Tunnel_ConfigDeleted" xml:space="preserve"><value>Configuration deleted</value></data>
+  <data name="Tunnel_ManagerDisposed" xml:space="preserve"><value>Tunnel service released</value></data>
+  <data name="Tunnel_ReconnectIn" xml:space="preserve"><value>{0}, reconnecting in {1}s</value></data>
 </root>
 

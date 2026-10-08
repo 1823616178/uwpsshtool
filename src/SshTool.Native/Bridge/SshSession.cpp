@@ -656,6 +656,44 @@ namespace SshTool
                     });
             }
 
+            Windows::Foundation::IAsyncOperation<Platform::String^>^ SshSession::QueryAuthMethodsAsync()
+            {
+                SshSession^ self = this;
+                return concurrency::create_async([self]() -> task<Platform::String^> {
+                    if (self->closed_.load())
+                    {
+                        return concurrency::task_from_result(ToPlatform(std::string()));
+                    }
+                    auto tce = std::make_shared<task_completion_event<std::string>>();
+                    ssh::AuthMethodsCallback callback = [tce](std::optional<ssh::AuthMethodSet> methods) {
+                        if (!methods)
+                        {
+                            tce->set(std::string());
+                        }
+                        else if (methods->authenticated)
+                        {
+                            tce->set(std::string("+authenticated"));
+                        }
+                        else
+                        {
+                            tce->set(methods->raw);
+                        }
+                    };
+                    bool admitted = false;
+                    {
+                        std::lock_guard<std::mutex> lock(self->sessionMutex_);
+                        admitted = self->session_ != nullptr && self->session_->queryAuthMethods(callback);
+                    }
+                    if (!admitted)
+                    {
+                        return concurrency::task_from_result(ToPlatform(std::string()));
+                    }
+                    return concurrency::create_task(*tce).then([](std::string raw) -> Platform::String^ {
+                        return ToPlatform(raw);
+                    });
+                });
+            }
+
             Windows::Foundation::IAsyncOperation<int>^ SshSession::AuthenticateKeyboardInteractiveAsync()
             {
                 SshSession^ self = this;

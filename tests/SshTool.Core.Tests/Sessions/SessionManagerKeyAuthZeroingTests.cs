@@ -37,14 +37,14 @@ namespace SshTool.Core.Tests.Sessions
 
         private sealed class NoCredentialPrompter : ICredentialPrompter
         {
-            public Task<PasswordPromptResult> PromptPasswordAsync(string hostDisplay, string errorMessage)
+            public Task<PasswordPromptResult> PromptPasswordAsync(string hostDisplay, int retriesLeft)
             {
                 return Task.FromResult(new PasswordPromptResult { Cancelled = true });
             }
 
-            public Task<string> PromptPassphraseAsync(string keyName)
+            public Task<PassphrasePromptResult> PromptPassphraseAsync(string keyName, bool previousWrong)
             {
-                return Task.FromResult(string.Empty);
+                return Task.FromResult(new PassphrasePromptResult { Passphrase = string.Empty });
             }
 
             public Task<IReadOnlyList<string>> PromptKeyboardInteractiveAsync(AuthPromptEventArgs args)

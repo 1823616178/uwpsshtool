@@ -818,7 +818,7 @@ namespace SshTool.Core.Tests.Sync
             Assert.Equal(VaultStatus.Ready, state.Vault);
             Assert.Equal(2, state.KeyVersion);
             Assert.Equal("2", state.Revision);
-            Assert.Equal("敏感字段已清理，密钥和历史版本已轮换", state.Message);
+            Assert.Equal(SyncMessageCode.SensitiveCleared, state.MessageCode);
         }
 
         [Fact]
@@ -828,7 +828,7 @@ namespace SshTool.Core.Tests.Sync
             await h.SeedLoginAsync();
             await h.SeedVaultAsync("1", NewDoc("Base"), dirty: false);
 
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.RotateSensitiveSyncAsync(
                     SyncPreferences.Defaults(), "account-password", "new-sync-password"));
             Assert.Equal("密钥轮换只用于关闭已启用的敏感同步", error.Message);
@@ -898,7 +898,7 @@ namespace SshTool.Core.Tests.Sync
             Assert.True(h.Vault.State.Preferences.SyncPasswords);
             var state = h.Coordinator.State;
             Assert.Equal(SyncPhase.Error, state.Phase);
-            Assert.Equal("轮换结果未知，若云端已经轮换，请用新的同步密码重新解锁保险库", state.Message);
+            Assert.Equal(SyncMessageCode.RotateResultUnknown, state.MessageCode);
         }
 
         // ---------- §10.1 Coordinator 12：修改同步密码使旧凭据失效 ----------
@@ -926,17 +926,17 @@ namespace SshTool.Core.Tests.Sync
             Assert.NotNull(uploaded);
             Assert.Equal("Base", uploaded.Servers[0].Profile.Name);
             Assert.Null(await h.ReadServerDocumentAsync(keyBefore));
-            Assert.Equal("同步密码已更新，请保存新的恢复密钥", h.Coordinator.State.Message);
+            Assert.Equal(SyncMessageCode.SyncPasswordChanged, h.Coordinator.State.MessageCode);
             Assert.Equal(SyncPhase.Synced, h.Coordinator.State.Phase);
 
             // 旧同步密码与旧恢复密钥失效，新凭据可解锁。
             await h.Coordinator.LockVaultAsync();
-            var wrongPassword = await Assert.ThrowsAsync<InvalidOperationException>(
+            var wrongPassword = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.UnlockVaultAsync("sync-password", VaultUnlockMethod.Password));
-            Assert.Equal("同步密码不正确", wrongPassword.Message);
-            var wrongRecovery = await Assert.ThrowsAsync<InvalidOperationException>(
+            Assert.Equal(SyncErrorCode.SyncPasswordWrong, Assert.IsType<SyncOperationException>(wrongPassword).Code);
+            var wrongRecovery = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.UnlockVaultAsync(oldRecovery, VaultUnlockMethod.Recovery));
-            Assert.Equal("恢复密钥无效", wrongRecovery.Message);
+            Assert.Equal(SyncErrorCode.RecoveryKeyInvalid, Assert.IsType<SyncOperationException>(wrongRecovery).Code);
             await h.Coordinator.UnlockVaultAsync("new-sync-password", VaultUnlockMethod.Password);
             Assert.Equal(VaultStatus.Ready, h.Coordinator.State.Vault);
             await h.Coordinator.LockVaultAsync();
@@ -954,7 +954,7 @@ namespace SshTool.Core.Tests.Sync
             await h.SeedVaultAsync("1", NewDoc("Base"), dirty: false);
             await h.Coordinator.LockVaultAsync();
 
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.ChangeSyncPasswordAsync("account-password", "new-sync-password"));
             Assert.Equal("同步保险库未解锁", error.Message);
             Assert.Empty(h.Server.RotateRequests);
@@ -968,7 +968,7 @@ namespace SshTool.Core.Tests.Sync
             await h.SeedVaultAsync("1", NewDoc("Base"), dirty: false);
             await h.Coordinator.LockVaultAsync();
 
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.RotateSensitiveSyncAsync(
                     SyncPreferences.Defaults(), "account-password", "new-sync-password"));
             Assert.Equal("同步保险库未解锁", error.Message);

@@ -337,7 +337,7 @@ namespace SshTool.App.ViewModels.Sync
                             Name = item.Name ?? string.Empty,
                             Platform = item.AppVersion ?? item.Platform ?? string.Empty,
                             IsCurrent = item.Current,
-                            LastSeenRelative = _presenter.FormatRelativeTime(item.LastSeenAt)
+                            LastSeenRelative = FormatRelative(item.LastSeenAt)
                         });
                     }
                 }
@@ -411,7 +411,7 @@ namespace SshTool.App.ViewModels.Sync
                         {
                             Revision = item.Revision ?? string.Empty,
                             KeyVersion = item.KeyVersion,
-                            CreatedAtRelative = _presenter.FormatRelativeTime(item.CreatedAt),
+                            CreatedAtRelative = FormatRelative(item.CreatedAt),
                             DeviceName = deviceName,
                             DevicePlatform = item.CreatedByDevice != null
                                 ? (item.CreatedByDevice.Platform ?? string.Empty) : string.Empty
@@ -487,9 +487,9 @@ namespace SshTool.App.ViewModels.Sync
             _statusIconKey = spec.IconKey;
             _statusSpin = spec.Spin;
             _isSyncing = _state != null && _state.Phase == SyncPhase.Syncing;
-            _lastSyncedRelative = _presenter.FormatRelativeTime(
+            _lastSyncedRelative = FormatRelative(
                 _state == null ? null : _state.LastSyncedAt);
-            _nextRetryRelative = _presenter.FormatRelativeTime(
+            _nextRetryRelative = FormatRelative(
                 _state == null ? null : _state.NextRetryAt);
 
             RaisePropertyChanged("Screen");
@@ -521,7 +521,8 @@ namespace SshTool.App.ViewModels.Sync
             {
                 return string.Empty;
             }
-            string message = _state.Message;
+            // fix/functional-pass（P2-2）：按 MessageCode / MessageError 本地化，不直接显示 Core 诊断文本。
+            string message = SyncText.StateMessage(_state, _loader);
             if (string.IsNullOrEmpty(message))
             {
                 return string.Empty;
@@ -584,6 +585,11 @@ namespace SshTool.App.ViewModels.Sync
             {
                 target.Add(item);
             }
+        }
+
+        private string FormatRelative(string isoUtc)
+        {
+            return SyncText.Relative(_presenter.ComputeRelativeTime(isoUtc), _loader);
         }
 
         private string GetString(string key, string fallback)

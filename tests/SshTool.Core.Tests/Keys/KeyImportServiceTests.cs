@@ -195,6 +195,7 @@ namespace SshTool.Core.Tests.Keys
             KeyGenerateOutcome o = await f.Service.GenerateAsync(KeyGenerateKind.Rsa, 2048, "c", "gen");
             Assert.False(o.Success);
             Assert.False(string.IsNullOrEmpty(o.Error));
+            Assert.Equal(KeyGenerateError.UnsupportedBits, o.ErrorCode);
         }
 
         [Fact]

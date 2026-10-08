@@ -8,6 +8,7 @@ using SshTool.Core.Common;
 using SshTool.Core.Hosts;
 using SshTool.Core.Models;
 using SshTool.Core.Mvvm;
+using SshTool.Core.Sessions;
 using SshTool.Core.Storage;
 
 namespace SshTool.App.ViewModels
@@ -129,7 +130,11 @@ namespace SshTool.App.ViewModels
             {
                 return;
             }
-            await _services.KnownHosts.RemoveAsync(_selected.Id, ChangeOrigin.User).ConfigureAwait(true);
+            KnownHost doomed = _selected;
+            await _services.KnownHosts.RemoveAsync(doomed.Id, ChangeOrigin.User).ConfigureAwait(true);
+            // fix/functional-pass：同地址主机上的钉住指纹一并清掉——否则 HostKeyVerifier 仍按钉住指纹
+            // 判定，「下次连接重新验证」的说明不成立（换过密钥的服务器会继续报不匹配）。
+            await HostKeyReset.ClearPinsAsync(_services.Hosts, doomed.Host, doomed.Port, null).ConfigureAwait(true);
             Selected = null;
             await RefreshAsync().ConfigureAwait(true);
         }

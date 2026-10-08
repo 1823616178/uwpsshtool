@@ -490,6 +490,9 @@
   <data name="Main_SignInItem.Label" xml:space="preserve"><value>登录</value></data>
   <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>开发工具</value></data>
   <data name="Main_LoadWarningTitle" xml:space="preserve"><value>数据文件有告警</value></data>
+  <data name="Main_SecretsIssue_ContentCorruptQuarantined" xml:space="preserve"><value>已保存的凭据文件已损坏，已隔离旧文件；请重新输入密码与密码短语</value></data>
+  <data name="Main_SecretsIssue_ContentCorruptNotQuarantined" xml:space="preserve"><value>已保存的凭据文件已损坏且无法隔离，下次保存将覆盖；请重新输入密码与密码短语</value></data>
+  <data name="Main_SecretsIssue_DecryptFailedQuarantined" xml:space="preserve"><value>已保存的凭据无法解密（系统密钥已变化），已隔离旧文件；请重新输入密码与密码短语</value></data>
 
   <!-- V02（05 §6.1）：HostsPivot——常驻搜索行、可折叠快速连接、空状态双 Kind；
        NoMatches 标题/主按钮由代码拼装（含搜索词），走格式化键。 -->
@@ -735,6 +738,8 @@
   <data name="HostEdit_SwitchAuthTitle" xml:space="preserve"><value>切换认证方式？</value></data>
   <data name="HostEdit_SwitchAuthConfirm" xml:space="preserve"><value>切换</value></data>
   <data name="HostEdit_SwitchAuthCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="HostEdit_SwitchAuthDropPassword" xml:space="preserve"><value>切换认证方式将清除已填写或已保存的密码。</value></data>
+  <data name="HostEdit_SwitchAuthDropKey" xml:space="preserve"><value>切换认证方式将清除已选私钥与密码短语。</value></data>
   <data name="HostEdit_TestMessage" xml:space="preserve"><value>测试连接…</value></data>
   <data name="HostEdit_TestTitle" xml:space="preserve"><value>测试连接</value></data>
   <data name="HostEdit_TestFailedTitle" xml:space="preserve"><value>测试失败</value></data>
@@ -776,6 +781,38 @@
   <data name="Sync_Offline" xml:space="preserve"><value>离线，稍后重试</value></data>
   <data name="Sync_Conflict" xml:space="preserve"><value>需要处理冲突</value></data>
   <data name="Sync_Error" xml:space="preserve"><value>同步失败</value></data>
+  <data name="Sync_Relative_JustNow" xml:space="preserve"><value>刚刚</value></data>
+  <data name="Sync_Relative_Minutes" xml:space="preserve"><value>{0} 分钟前</value></data>
+  <data name="Sync_Relative_Hours" xml:space="preserve"><value>{0} 小时前</value></data>
+  <data name="Sync_Relative_Yesterday" xml:space="preserve"><value>昨天</value></data>
+  <data name="Sync_Relative_DayBeforeYesterday" xml:space="preserve"><value>前天</value></data>
+  <data name="Sync_Relative_Days" xml:space="preserve"><value>{0} 天前</value></data>
+  <data name="Sync_Msg_VaultDeletedLocalKept" xml:space="preserve"><value>云端保险库和历史版本已删除，本机配置仍保留</value></data>
+  <data name="Sync_Msg_LoginPasswordChanged" xml:space="preserve"><value>密码已修改，请使用新密码重新登录</value></data>
+  <data name="Sync_Msg_RemoteVaultDeleted" xml:space="preserve"><value>云端保险库已被删除，请重新创建同步保险库</value></data>
+  <data name="Sync_Msg_RemoteKeyRotated" xml:space="preserve"><value>云端密钥已轮换，请重新输入同步密码或恢复密钥</value></data>
+  <data name="Sync_Msg_RotateResultUnknown" xml:space="preserve"><value>轮换结果未知，若云端已经轮换，请用新的同步密码重新解锁保险库</value></data>
+  <data name="Sync_Msg_SensitiveCleared" xml:space="preserve"><value>敏感字段已清理，密钥和历史版本已轮换</value></data>
+  <data name="Sync_Msg_SyncPasswordChanged" xml:space="preserve"><value>同步密码已更新，请保存新的恢复密钥</value></data>
+  <data name="Sync_Msg_ConflictInitialImport" xml:space="preserve"><value>已解锁云端配置，请选择首次同步方式</value></data>
+  <data name="Sync_Msg_ConflictRemoteDeletion" xml:space="preserve"><value>云端包含删除操作，请确认后再应用</value></data>
+  <data name="Sync_Msg_ConflictGeneric" xml:space="preserve"><value>检测到需要确认的同步冲突</value></data>
+  <data name="Sync_Err_SyncPasswordWrong" xml:space="preserve"><value>同步密码不正确</value></data>
+  <data name="Sync_Err_RecoveryKeyInvalid" xml:space="preserve"><value>恢复密钥无效</value></data>
+  <data name="Sync_Err_RotateRequired" xml:space="preserve"><value>关闭敏感同步需要执行密钥轮换，请在“安全清理”流程中输入账号密码</value></data>
+  <data name="Sync_Err_SignInRequired" xml:space="preserve"><value>请先登录</value></data>
+  <data name="Sync_Err_AlreadySignedIn" xml:space="preserve"><value>已登录，请先退出登录后再继续</value></data>
+  <data name="Sync_Err_RemoteRevisionBehind" xml:space="preserve"><value>云端 revision 低于本机基线，已停止上传以避免覆盖</value></data>
+  <data name="Sync_Err_VaultLocked" xml:space="preserve"><value>同步保险库未解锁</value></data>
+  <data name="Sync_Err_EncryptFailed" xml:space="preserve"><value>同步文档加密失败，请重试</value></data>
+  <data name="Sync_Err_DecryptFailed" xml:space="preserve"><value>云端文档解密失败</value></data>
+  <data name="Sync_Err_DocumentTooNew" xml:space="preserve"><value>云端文档版本更高，请升级应用</value></data>
+  <data name="Sync_Err_NoPendingConflict" xml:space="preserve"><value>没有待处理的同步冲突</value></data>
+  <data name="Sync_Err_RotateOnlyDisables" xml:space="preserve"><value>密钥轮换只用于关闭已启用的敏感同步</value></data>
+  <data name="Sync_Err_VaultCreateFailed" xml:space="preserve"><value>保险库创建失败，请重试</value></data>
+  <data name="Sync_Err_UnexpectedKeyVersion" xml:space="preserve"><value>服务端返回了意外的密钥版本</value></data>
+  <data name="Sync_Err_EnvelopeInvalid" xml:space="preserve"><value>保险库信封无效</value></data>
+  <data name="Api_HttpStatusFailed" xml:space="preserve"><value>服务器请求失败（{0}）</value></data>
   <data name="Sync_AuthError" xml:space="preserve"><value>登录已失效</value></data>
 
   <!-- AccountSyncPage -->
@@ -1056,6 +1093,10 @@
   <data name="KeyDetail_NoPublicKeyToShare" xml:space="preserve"><value>没有可分享的公钥</value></data>
   <data name="KeyDetail_ShareUnavailable" xml:space="preserve"><value>分享不可用，已复制公钥</value></data>
   <data name="KeyDetail_ShareFailed" xml:space="preserve"><value>分享失败，已复制公钥</value></data>
+  <data name="KeyDetail_CopyFailed" xml:space="preserve"><value>无法写入剪贴板，请重试</value></data>
+  <data name="KeyDetail_RenameFailed" xml:space="preserve"><value>名称保存失败，请重试</value></data>
+  <data name="KeyDetail_ExportFailed" xml:space="preserve"><value>导出失败，请重试</value></data>
+  <data name="KeyDetail_DeleteFailed" xml:space="preserve"><value>删除密钥失败，请重试</value></data>
   <data name="SessionsPivot_Restore" xml:space="preserve"><value>上次未关闭 {0} 个会话</value></data>
   <data name="ShortcutEditor_Conflict" xml:space="preserve"><value>冲突：{0} 被两个动作使用</value></data>
   <data name="AccountSync_Title" xml:space="preserve"><value>账号与同步</value></data>
@@ -1225,6 +1266,9 @@
   <data name="KeyImport_ErrPickFailed" xml:space="preserve"><value>文件选择失败：{0}</value></data>
   <data name="KeyImport_ErrReadFailed" xml:space="preserve"><value>文件读取失败：{0}</value></data>
   <data name="KeyGenerate_ErrFallback" xml:space="preserve"><value>生成失败，请重试</value></data>
+  <data name="KeyGenerate_Err_UnsupportedBits" xml:space="preserve"><value>RSA 只支持 3072 / 4096 位</value></data>
+  <data name="KeyGenerate_Err_VerifyFailed" xml:space="preserve"><value>生成后校验失败，请重试</value></data>
+  <data name="KeyGenerate_Err_DuplicateFingerprint" xml:space="preserve"><value>生成的密钥与已有密钥指纹相同，请重试</value></data>
   <data name="Main_ToolsItem.Label" xml:space="preserve"><value>工具与设置</value></data>
   <data name="Main_PlaceholderNewHost" xml:space="preserve"><value>新建主机</value></data>
   <data name="Main_PlaceholderSync" xml:space="preserve"><value>同步</value></data>
@@ -1424,5 +1468,20 @@
   <data name="AppearanceEdit_BgButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>背景</value></data>
   <data name="AppearanceEdit_CursorButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>光标</value></data>
   <data name="AppearanceEdit_SelectionButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>选区</value></data>
+  <data name="Auth_PasswordWrongRetries" xml:space="preserve"><value>密码错误，还可尝试 {0} 次</value></data>
+  <data name="Auth_PassphraseWrong" xml:space="preserve"><value>短语错误，请重新输入</value></data>
+  <data name="Tunnel_ErrorCodeFallback" xml:space="preserve"><value>错误码 {0}</value></data>
+  <data name="Tunnel_StartFailed" xml:space="preserve"><value>启动失败</value></data>
+  <data name="Tunnel_JumpPlanInvalid" xml:space="preserve"><value>跳板链配置无效（存在循环或超过 5 跳）</value></data>
+  <data name="Tunnel_HostKeyMismatch" xml:space="preserve"><value>主机密钥与已信任的记录不一致：请先在终端里连接该主机核实</value></data>
+  <data name="Tunnel_NoSavedCredential" xml:space="preserve"><value>没有已保存的凭据：隧道无法弹框询问，请先保存密码/短语</value></data>
+  <data name="Tunnel_AuthFailedDetail" xml:space="preserve"><value>认证失败：{0}</value></data>
+  <data name="Tunnel_ConnectFailedDetail" xml:space="preserve"><value>连接服务器失败：{0}</value></data>
+  <data name="Tunnel_HopPrefix" xml:space="preserve"><value>跳板 {0}：{1}</value></data>
+  <data name="Tunnel_Established" xml:space="preserve"><value>隧道已建立</value></data>
+  <data name="Tunnel_StoppedManually" xml:space="preserve"><value>已手动停止</value></data>
+  <data name="Tunnel_ConfigDeleted" xml:space="preserve"><value>配置已删除</value></data>
+  <data name="Tunnel_ManagerDisposed" xml:space="preserve"><value>隧道服务已释放</value></data>
+  <data name="Tunnel_ReconnectIn" xml:space="preserve"><value>{0}，{1} 秒后重连</value></data>
 </root>
 

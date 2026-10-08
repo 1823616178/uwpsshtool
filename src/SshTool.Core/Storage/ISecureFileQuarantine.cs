@@ -8,5 +8,9 @@ namespace SshTool.Core.Storage
     public interface ISecureFileQuarantine
     {
         Task<bool> QuarantineAsync(string reason);
+
+        // fix/functional-pass（P2-3）：最近一次 ReadAsync 是否因永久性损坏（如解密失败）丢弃了
+        // 内容并返回空——调用方据此在启动时提示用户「已保存的凭据已丢失」。
+        bool DiscardedOnLastRead { get; }
     }
 }

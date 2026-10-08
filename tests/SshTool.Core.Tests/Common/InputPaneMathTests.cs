@@ -51,5 +51,41 @@ namespace SshTool.Core.Tests.Common
         {
             Assert.Null(InputPaneMath.ScrollTarget(0, 10, 40, 0, 12));
         }
+
+        // fix/functional-pass（P2-8）：已补底部 Padding（ViewportHeight 已缩短）时不得再扣一遍遮挡。
+        // 窗高 640，SIP 遮 300 → SIP 顶 340；滚动区顶 60、高 580（底 640）；补了 overlap=300 的 Padding。
+        [Fact]
+        public void VisibleHeight_WithPaddingApplied_NotDoubleSubtracted()
+        {
+            double overlap = InputPaneMath.Overlap(640, 640, 300);
+            Assert.Equal(300, overlap);
+            double visible = InputPaneMath.VisibleHeight(60, 580, overlap, 640, 300);
+            Assert.Equal(280, visible); // = SIP 顶 340 − 滚动区顶 60；旧算法 (580−300)−300 = −20
+        }
+
+        [Fact]
+        public void VisibleHeight_BeforePaddingApplied_UsesSipTop()
+        {
+            Assert.Equal(280, InputPaneMath.VisibleHeight(60, 580, 0, 640, 300));
+        }
+
+        [Fact]
+        public void VisibleHeight_NoSip_IsViewerMinusPadding()
+        {
+            Assert.Equal(568, InputPaneMath.VisibleHeight(60, 580, 12, 640, 0));
+        }
+
+        [Fact]
+        public void VisibleHeight_ViewerAboveSip_Unaffected()
+        {
+            // 滚动区底 300 在 SIP 顶 340 之上：不受遮挡。
+            Assert.Equal(240, InputPaneMath.VisibleHeight(60, 240, 0, 640, 300));
+        }
+
+        [Fact]
+        public void VisibleHeight_NeverNegative()
+        {
+            Assert.Equal(0, InputPaneMath.VisibleHeight(500, 100, 0, 640, 300));
+        }
     }
 }

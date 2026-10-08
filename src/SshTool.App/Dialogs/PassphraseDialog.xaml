@@ -9,5 +9,8 @@
         <TextBlock x:Name="PromptText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
         <PasswordBox x:Name="PassphraseBox" x:Uid="PassphraseDialog_PassphraseBox" Margin="{StaticResource GapXsTop}" />
         <ToggleSwitch x:Uid="PassphraseDialog_RememberSwitch" x:Name="RememberSwitch" Margin="{StaticResource GapSmTop}" />
+        <TextBlock x:Name="ErrorText" Style="{StaticResource CaptionTextStyle}"
+                   Foreground="{ThemeResource AppDangerBrush}" TextWrapping="Wrap"
+                   Visibility="Collapsed" Margin="{StaticResource GapSmTop}" />
     </StackPanel>
 </ContentDialog>

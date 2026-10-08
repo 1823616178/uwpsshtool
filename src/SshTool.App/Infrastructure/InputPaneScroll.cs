@@ -170,11 +170,25 @@ namespace SshTool.App.Infrastructure
             Point top = focused.TransformToVisual(_viewer).TransformPoint(new Point(0, 0));
             double margin = TokenDouble("SpaceLg");
             double? target = InputPaneMath.ScrollTarget(_viewer.VerticalOffset, top.Y, focused.ActualHeight,
-                _viewer.ViewportHeight - _overlap, margin);
+                VisibleHeight(), margin);
             if (target.HasValue)
             {
                 _viewer.ChangeView(null, target.Value, null, false);
             }
+        }
+
+        // fix/functional-pass（P2-8）：按几何算未遮挡高度（旧实现 ViewportHeight − overlap 在 Padding
+        // 生效后重复扣减，见 InputPaneMath.VisibleHeight）。
+        private double VisibleHeight()
+        {
+            var root = Window.Current != null ? Window.Current.Content as UIElement : null;
+            if (root == null)
+            {
+                return _viewer.ViewportHeight;
+            }
+            Point origin = _viewer.TransformToVisual(root).TransformPoint(new Point(0, 0));
+            return InputPaneMath.VisibleHeight(origin.Y, _viewer.ActualHeight, _viewer.Padding.Bottom,
+                Window.Current.Bounds.Height, _occluded);
         }
 
         private bool ContainsFocus()

@@ -24,9 +24,19 @@ namespace SshTool.Core.Hosts
         public string Value { get; private set; }
     }
 
+    // fix/functional-pass（P2-2）：切换将丢弃的内容（文案由 App 查 resw：HostEdit_SwitchAuthDrop*）。
+    public enum AuthSwitchDrop
+    {
+        None = 0,
+        Password,
+        KeyAndPassphrase
+    }
+
     public sealed class AuthSwitchPreview
     {
         public bool NeedsConfirm { get; set; }
+        public AuthSwitchDrop Drop { get; set; }
+        // 诊断文本（英文）；面向用户的文案按 Drop 本地化。
         public string Message { get; set; }
         public AuthType From { get; set; }
         public AuthType To { get; set; }
@@ -116,9 +126,8 @@ namespace SshTool.Core.Hosts
             if (dropPassword || dropKey)
             {
                 preview.NeedsConfirm = true;
-                preview.Message = dropPassword
-                    ? "切换认证方式将清除已填写或已保存的密码。"
-                    : "切换认证方式将清除已选私钥与密码短语。";
+                preview.Drop = dropPassword ? AuthSwitchDrop.Password : AuthSwitchDrop.KeyAndPassphrase;
+                preview.Message = preview.Drop.ToString();
             }
             return preview;
         }

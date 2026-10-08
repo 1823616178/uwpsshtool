@@ -47,7 +47,7 @@ namespace SshTool.Core.Tests.Sessions
             public int PasswordCount;
             public IReadOnlyList<string> KiAnswers = new[] { "token" };
 
-            public Task<PasswordPromptResult> PromptPasswordAsync(string hostDisplay, string errorMessage)
+            public Task<PasswordPromptResult> PromptPasswordAsync(string hostDisplay, int retriesLeft)
             {
                 PasswordCount++;
                 if (Cancel)
@@ -57,9 +57,9 @@ namespace SshTool.Core.Tests.Sessions
                 return Task.FromResult(new PasswordPromptResult { Password = Password, Remember = Remember });
             }
 
-            public Task<string> PromptPassphraseAsync(string keyName)
+            public Task<PassphrasePromptResult> PromptPassphraseAsync(string keyName, bool previousWrong)
             {
-                return Task.FromResult("ph");
+                return Task.FromResult(new PassphrasePromptResult { Passphrase = "ph" });
             }
 
             public Task<IReadOnlyList<string>> PromptKeyboardInteractiveAsync(AuthPromptEventArgs args)
@@ -198,6 +198,60 @@ namespace SshTool.Core.Tests.Sessions
             Assert.Empty(await fx.Known.GetAllAsync());
             Host saved = await fx.Hosts.GetByIdAsync(host.Id);
             Assert.Equal("SHA256:pinned-from-sync", saved.HostFingerprint);
+        }
+
+        // fix/functional-pass：不匹配对话框选「移除旧记录并重试」→ 清 known_hosts + 钉住指纹，
+        // 重连走首次连接确认，信任后写入新指纹。
+        [Fact]
+        public async Task Open_MismatchRemoveAndRetry_ClearsTrustAndRepromptsAsUnknown()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            host.HostFingerprint = "SHA256:old";
+            await fx.Hosts.UpdateAsync(host);
+            await fx.Known.AddAsync(new KnownHost
+            {
+                Id = "kh1", Host = host.HostName, Port = 22, KeyType = "ssh-ed25519", FingerprintSha256 = "SHA256:old"
+            });
+            fx.Enqueue(ReadySession());
+            fx.Enqueue(ReadySession());
+            fx.HostKeys.AcceptMismatch = true;
+            fx.HostKeys.AcceptUnknown = true;
+
+            SessionInfo info = await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            for (int i = 0; i < 200 && info.State != SessionUiState.Connected; i++)
+            {
+                await Task.Delay(10);
+            }
+
+            Assert.Equal(SessionUiState.Connected, info.State);
+            Assert.Equal(1, fx.HostKeys.MismatchCount);
+            Assert.Equal(1, fx.HostKeys.UnknownCount);
+            KnownHost kh = await fx.Known.FindAsync(host.HostName, 22);
+            Assert.NotNull(kh);
+            Assert.Equal(SampleKey.FingerprintSha256, kh.FingerprintSha256);
+            Host saved = await fx.Hosts.GetByIdAsync(host.Id);
+            Assert.Equal(SampleKey.FingerprintSha256, saved.HostFingerprint);
+        }
+
+        [Fact]
+        public async Task Open_MismatchCancelled_KeepsTrustRecords()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+            await fx.Known.AddAsync(new KnownHost
+            {
+                Id = "kh1", Host = host.HostName, Port = 22, KeyType = "ssh-ed25519", FingerprintSha256 = "SHA256:old"
+            });
+            fx.Enqueue(ReadySession());
+            fx.HostKeys.AcceptMismatch = false;
+
+            SessionInfo info = await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id });
+            await Task.Delay(30);
+
+            Assert.Equal(SessionUiState.Error, info.State);
+            Assert.Equal(1, fx.Factory.Created.Count);
+            Assert.NotNull(await fx.Known.FindAsync(host.HostName, 22));
         }
 
         [Fact]

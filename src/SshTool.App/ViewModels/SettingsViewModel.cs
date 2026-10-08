@@ -145,6 +145,8 @@ namespace SshTool.App.ViewModels
             {
                 string normalized = SettingDefinitions.Require("language").NormalizeString(value);
                 _settings.Set("language", normalized);
+                // fix/functional-pass（P1-4）：写入语言覆盖（重启后完整生效）。
+                LanguageOverride.Apply(normalized);
                 RaisePropertyChanged(nameof(Language));
             }
         }

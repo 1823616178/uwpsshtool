@@ -23,6 +23,11 @@ namespace SshTool.Core.Tests.Fakes
         public readonly Dictionary<string, SshErrorCode> AgentResults =
             new Dictionary<string, SshErrorCode>(StringComparer.Ordinal);
         public readonly List<string> AgentAttempts = new List<string>();
+        // fix/functional-pass：公钥认证按序结果（取完回落 PublicKeyResult）与每次收到的短语。
+        public readonly Queue<SshErrorCode> PublicKeyResultSequence = new Queue<SshErrorCode>();
+        public readonly List<string> Passphrases = new List<string>();
+        // fix/functional-pass：agent 认证按序结果（优先于 AgentResults 表，取完回落）。
+        public readonly Queue<SshErrorCode> AgentResultSequence = new Queue<SshErrorCode>();
         public SshErrorCode OpenShellResult = SshErrorCode.None;
         public SshExecResult ExecResult = new SshExecResult(0, string.Empty, string.Empty);
         public string Id { get; set; } = "fake-1";
@@ -66,6 +71,8 @@ namespace SshTool.Core.Tests.Fakes
         public HostKeyInfo HostKeyOnConnect;
         public IReadOnlyList<string> KiPrompts;
         public TaskCompletionSource<SshErrorCode> ConnectHold;
+        public bool HostKeyOnJump;
+        public ISshSession LastJumpSession;
 
         public async Task<SshErrorCode> ConnectAsync(SshConnectRequest request)
         {
@@ -102,6 +109,21 @@ namespace SshTool.Core.Tests.Fakes
         {
             Calls.Add("ConnectJump");
             LastConnectRequest = request;
+            LastJumpSession = jumpSession;
+            // fix/functional-pass：opt-in——经跳板连接也走主机密钥校验（隧道跳板链用例）。
+            if (HostKeyOnJump && HostKeyOnConnect != null && HostKeyCheck != null)
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                var args = new HostKeyCheckEventArgs(HostKeyOnConnect, accept => tcs.TrySetResult(accept));
+                HostKeyCheck.Invoke(this, args);
+                bool accepted = await tcs.Task.ConfigureAwait(false);
+                HostKeyDecision = accepted;
+                if (!accepted)
+                {
+                    FireStateChanged(SessionStateKind.Error, SshErrorCode.HostKeyMismatch);
+                    return SshErrorCode.HostKeyMismatch;
+                }
+            }
             if (ConnectResult != SshErrorCode.None)
             {
                 FireStateChanged(SessionStateKind.Error, ConnectResult);
@@ -123,6 +145,11 @@ namespace SshTool.Core.Tests.Fakes
             Calls.Add("AuthPublicKey");
             LastPrivateKey = privateKeyPem;
             LastPassphrase = passphrase;
+            Passphrases.Add(passphrase);
+            if (PublicKeyResultSequence.Count > 0)
+            {
+                return Task.FromResult(PublicKeyResultSequence.Dequeue());
+            }
             return Task.FromResult(PublicKeyResult);
         }
 
@@ -132,11 +159,31 @@ namespace SshTool.Core.Tests.Fakes
             Calls.Add("AuthAgent:" + keyId);
             AgentAttempts.Add(keyId);
             SshErrorCode code;
+            if (AgentResultSequence.Count > 0)
+            {
+                return Task.FromResult(AgentResultSequence.Dequeue());
+            }
             if (!AgentResults.TryGetValue(keyId, out code))
             {
                 code = DefaultAgentResult;
             }
             return Task.FromResult(code);
+        }
+
+        // fix/functional-pass：按序返回的方法列表（取完后一直返回最后一个；空 = Unknown）。
+        public readonly Queue<string> AuthMethodsSequence = new Queue<string>();
+        public string AuthMethodsRaw = string.Empty;
+        public int AuthMethodsQueries;
+
+        public Task<AuthMethodsInfo> QueryAuthMethodsAsync()
+        {
+            // 不进 Calls：既有用例断言的调用序列保持不变。
+            AuthMethodsQueries++;
+            if (AuthMethodsSequence.Count > 0)
+            {
+                AuthMethodsRaw = AuthMethodsSequence.Dequeue();
+            }
+            return Task.FromResult(AuthMethodsInfo.Parse(AuthMethodsRaw));
         }
 
         public async Task<SshErrorCode> AuthenticateKeyboardInteractiveAsync()

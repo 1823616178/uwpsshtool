@@ -308,9 +308,9 @@ namespace SshTool.Core.Tests.Sync
             var fresh = new Harness();
             fresh.Server.VaultEnvelope = (JObject)owner.Server.VaultEnvelope.DeepClone();
             await RegisteredAsync(fresh);
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => fresh.Coordinator.UnlockVaultAsync("wrong-password", VaultUnlockMethod.Password));
-            Assert.Equal("同步密码不正确", error.Message);
+            Assert.Equal(SyncErrorCode.SyncPasswordWrong, Assert.IsType<SyncOperationException>(error).Code);
             Assert.Equal(VaultStatus.Locked, fresh.Coordinator.State.Vault);
             Assert.Null(fresh.Vault.State.VaultKeyBase64);
         }
@@ -510,7 +510,7 @@ namespace SshTool.Core.Tests.Sync
                 KdfParallelism = 1
             };
             h.Server.ServeEnvelope(bad.ToJson());
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.UnlockVaultAsync("sync-password", VaultUnlockMethod.Password));
             Assert.Equal("保险库信封无效", error.Message);
         }
@@ -541,7 +541,7 @@ namespace SshTool.Core.Tests.Sync
             Assert.Equal(MockSyncServer.UserId, cache.UserId);
             Assert.Equal(SyncPhase.Disabled, h.Coordinator.State.Phase);
             Assert.Equal(VaultStatus.Missing, h.Coordinator.State.Vault);
-            Assert.Equal("云端保险库和历史版本已删除，本机配置仍保留", h.Coordinator.State.Message);
+            Assert.Equal(SyncMessageCode.VaultDeletedLocalKept, h.Coordinator.State.MessageCode);
             Assert.Null(h.Server.VaultEnvelope);
         }
 
@@ -560,7 +560,7 @@ namespace SshTool.Core.Tests.Sync
             });
             Assert.True(h.Vault.State.Preferences.SyncPasswords);
 
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.SetPreferencesAsync(new SyncPreferences
                 {
                     Enabled = true,
@@ -588,7 +588,7 @@ namespace SshTool.Core.Tests.Sync
             });
             Assert.True(h.Vault.State.Preferences.SyncPrivateKeys);
 
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.SetPreferencesAsync(new SyncPreferences
                 {
                     Enabled = true,
@@ -666,7 +666,7 @@ namespace SshTool.Core.Tests.Sync
             Assert.False(h.Auth.Session.Authenticated);
             Assert.Null(h.Vault.State.VaultKeyBase64);
             Assert.Equal(SyncPhase.SignedOut, h.Coordinator.State.Phase);
-            Assert.Equal("密码已修改，请使用新密码重新登录", h.Coordinator.State.Message);
+            Assert.Equal(SyncMessageCode.LoginPasswordChanged, h.Coordinator.State.MessageCode);
         }
 
         [Fact]
@@ -689,7 +689,7 @@ namespace SshTool.Core.Tests.Sync
             // 踩坑 #10：已登录不再重复登录（每次登录新建设备）。
             var h = new Harness();
             await RegisteredAsync(h);
-            await Assert.ThrowsAsync<InvalidOperationException>(
+            await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.LoginAsync("a@b.c", "login-password"));
         }
 

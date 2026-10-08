@@ -82,6 +82,7 @@ namespace SshTool.Core.Tests.Forwarding
             AssertState(TunnelStateKind.Running, manager.GetStatus("t1"));
             Assert.True(manager.IsBusy("t1"));
             Assert.Equal("route t1", manager.GetStatus("t1").Message);
+            Assert.Equal(TunnelMessageCode.Established, manager.GetStatus("t1").MessageCode);
             Assert.True(manager.GetStatus("t1").Stats.Since != null);
             Assert.Equal(0, manager.GetStatus("t1").Attempt);
         }
@@ -98,7 +99,7 @@ namespace SshTool.Core.Tests.Forwarding
             TunnelStartResult result = await manager.StartAsync(relay);
 
             Assert.False(result.Success);
-            Assert.Contains("桌面端", result.Message);
+            Assert.Equal(TunnelMessageCode.RelayDisabled, result.MessageCode);
             // 与桌面端一致：拒绝发生在建实例之前，状态保持 Idle。
             AssertState(TunnelStateKind.Idle, manager.GetStatus("r1"));
             Assert.False(manager.IsBusy("r1"));
@@ -145,6 +146,10 @@ namespace SshTool.Core.Tests.Forwarding
             AssertState(TunnelStateKind.Reconnecting, reconnecting);
             Assert.Equal(1, reconnecting.Attempt);
             Assert.Equal(1, reconnecting.RetryInSeconds);
+            // fix/functional-pass：消息以类别 + 原因 + 延迟秒数给出，文案由 App 本地化。
+            Assert.Equal(TunnelMessageCode.ReconnectScheduled, reconnecting.MessageCode);
+            Assert.Equal("连接被重置", reconnecting.Message);
+            Assert.Equal(1, reconnecting.ReconnectDelaySeconds);
             Assert.True(reconnecting.Stats.Since == null);
             Assert.Contains("t1", runtime.StoppedIds);
 
@@ -235,9 +240,10 @@ namespace SshTool.Core.Tests.Forwarding
             manager.ApplyConfig(new[] { tunnel });
 
             var ignore = manager.StartAsync(tunnel);
-            manager.Stop("t1", "已手动停止");
+            manager.Stop("t1");
 
             AssertState(TunnelStateKind.Idle, manager.GetStatus("t1"));
+            Assert.Equal(TunnelMessageCode.StoppedManually, manager.GetStatus("t1").MessageCode);
             Assert.False(manager.IsBusy("t1"));
             // 迟到的 Dropped 不回跳。
             runtime.Drop("t1", "late", SshErrorCode.SocketError);
@@ -300,13 +306,14 @@ namespace SshTool.Core.Tests.Forwarding
                 MakeTunnel("bad", autoStart: true)
             });
 
-            IReadOnlyList<string> errors = await manager.StartAutoStartAsync();
+            IReadOnlyList<TunnelStartFailure> errors = await manager.StartAutoStartAsync();
 
             Assert.Equal(2, runtime.Started.Count(t => t.AutoStart && t.Enabled));
             Assert.DoesNotContain("start:notmarked", runtime.Calls);
             Assert.DoesNotContain("start:disabled", runtime.Calls);
             Assert.Single(errors);
-            Assert.StartsWith("t-bad：", errors[0]);
+            Assert.Equal("t-bad", errors[0].Name);
+            Assert.Equal(TunnelMessageCode.Detail, errors[0].Result.MessageCode);
         }
 
         [Fact]

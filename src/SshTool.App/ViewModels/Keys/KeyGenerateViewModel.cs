@@ -64,13 +64,31 @@ namespace SshTool.App.ViewModels.Keys
             return null;
         }
 
+        // fix/functional-pass（P2-2）：Core 失败码 → resw。
+        internal static string ErrorText(KeyGenerateOutcome outcome)
+        {
+            switch (outcome == null ? KeyGenerateError.GenerateFailed : outcome.ErrorCode)
+            {
+                case KeyGenerateError.Validation:
+                    return outcome.Error;
+                case KeyGenerateError.UnsupportedBits:
+                    return Localized.Get("KeyGenerate_Err_UnsupportedBits", "RSA supports 3072 / 4096 bits only");
+                case KeyGenerateError.VerifyFailed:
+                    return Localized.Get("KeyGenerate_Err_VerifyFailed", "Verification after generation failed. Try again");
+                case KeyGenerateError.DuplicateFingerprint:
+                    return Localized.Get("KeyGenerate_Err_DuplicateFingerprint", "The generated key matches an existing key. Try again");
+                default:
+                    return Localized.Get("KeyGenerate_ErrFallback", "Generation failed. Try again");
+            }
+        }
+
         public async Task<KeyGenerateOutcome> GenerateAsync()
         {
             string nameError = ValidateName();
             if (nameError != null)
             {
                 Error = nameError;
-                return new KeyGenerateOutcome { Success = false, Error = nameError };
+                return new KeyGenerateOutcome { Success = false, ErrorCode = KeyGenerateError.Validation, Error = nameError };
             }
             KeyGenerateKind kind = KeyGenerateKind.Ed25519;
             int bits = 0;
@@ -94,7 +112,8 @@ namespace SshTool.App.ViewModels.Keys
                     .ConfigureAwait(true);
                 if (!outcome.Success)
                 {
-                    Error = outcome.Error;
+                    Error = ErrorText(outcome);
+                    outcome.Error = Error;
                 }
                 return outcome;
             }

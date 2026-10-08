@@ -49,17 +49,42 @@ namespace SshTool.App.Terminal
                 {
                     host = await services.Hosts.GetByIdAsync(hostId).ConfigureAwait(false);
                 }
-                ResolvedAppearance resolved = await services.AppearanceService.ResolveAsync(host).ConfigureAwait(false);
-                if (resolved == null || resolved.Profile == null)
-                {
-                    return Defaults.DefaultAppearance();
-                }
-                return resolved.Profile;
+                // fix/functional-pass（P1-4）：内置外观的字号跟随设置项 terminalFontSize，
+                // 自定义外观用自身字号（TerminalFontSizePolicy）。
+                AppearanceProfile profile = await TerminalFontSizePolicy.ResolveAsync(
+                    services.AppearanceService, services.Settings, host).ConfigureAwait(false);
+                return profile ?? Defaults.DefaultAppearance();
             }
             catch (Exception)
             {
                 return Defaults.DefaultAppearance();
             }
+        }
+
+        // fix/functional-pass（P1-4）：双指缩放 / 快捷键改字号后的持久化（UI 线程调用）：
+        // 内置外观 → 设置项 terminalFontSize；自定义外观 → 更新该外观（经 Changed 刷新其他终端）。
+        public static async Task PersistFontSizeAsync(string hostId, int size)
+        {
+            AppServices services = AppServices.Current;
+            if (services == null || services.AppearanceService == null || services.Settings == null)
+            {
+                return;
+            }
+            Host host = string.IsNullOrEmpty(hostId)
+                ? null
+                : await services.Hosts.GetByIdAsync(hostId).ConfigureAwait(true);
+            TerminalFontSizePolicy.PersistPlan plan = await TerminalFontSizePolicy
+                .PlanPersistAsync(services.AppearanceService, host, size).ConfigureAwait(true);
+            if (plan.NoChange)
+            {
+                return;
+            }
+            if (plan.AppearanceToUpdate != null)
+            {
+                await services.AppearanceService.UpdateAsync(plan.AppearanceToUpdate).ConfigureAwait(true);
+                return;
+            }
+            services.Settings.TerminalFontSize = plan.Size;
         }
 
         public static bool NeedsRefresh(AppearanceChangedEventArgs change, string hostId)

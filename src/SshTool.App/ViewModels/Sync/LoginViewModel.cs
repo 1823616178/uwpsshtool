@@ -229,6 +229,10 @@ namespace SshTool.App.ViewModels.Sync
             {
                 return string.Empty;
             }
+            if (ex is SshTool.Core.Sync.SyncOperationException)
+            {
+                return VaultErrorText.Describe(ex, loader);
+            }
             ApiError api = ex as ApiError;
             if (api == null)
             {
@@ -255,7 +259,7 @@ namespace SshTool.App.ViewModels.Sync
             string text = loader.GetString(ApiErrorCatalog.ResourceKey(api.Code));
             if (string.IsNullOrEmpty(text))
             {
-                text = api.Message;
+                text = VaultErrorText.FallbackText(api, loader);
             }
             return AppendRequestId(text, api.RequestId, loader);
         }

@@ -36,7 +36,7 @@ namespace SshTool.Core.Tests.Sessions
             public bool CancelPassword;
             public int PasswordCount;
 
-            public Task<PasswordPromptResult> PromptPasswordAsync(string hostDisplay, string errorMessage)
+            public Task<PasswordPromptResult> PromptPasswordAsync(string hostDisplay, int retriesLeft)
             {
                 PasswordCount++;
                 if (CancelPassword)
@@ -46,9 +46,9 @@ namespace SshTool.Core.Tests.Sessions
                 return Task.FromResult(new PasswordPromptResult { Password = "pw", Remember = true });
             }
 
-            public Task<string> PromptPassphraseAsync(string keyName)
+            public Task<PassphrasePromptResult> PromptPassphraseAsync(string keyName, bool previousWrong)
             {
-                return Task.FromResult("ph");
+                return Task.FromResult(new PassphrasePromptResult { Passphrase = "ph" });
             }
 
             public Task<IReadOnlyList<string>> PromptKeyboardInteractiveAsync(AuthPromptEventArgs args)

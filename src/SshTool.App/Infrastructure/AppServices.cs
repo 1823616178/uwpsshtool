@@ -34,7 +34,8 @@ namespace SshTool.App.Infrastructure
             Snippets = new SnippetRepository(FileSystem, Logger);
             Appearances = new AppearanceRepository(FileSystem, Logger);
             KnownHosts = new KnownHostRepository(FileSystem, Logger);
-            Secrets = new DpapiSecretStore();
+            _secretStore = new DpapiSecretStore();
+            Secrets = _secretStore;
             Config = new ConfigService(Hosts, Groups, Tunnels, Keys, Secrets);
             LoadWarnings = new List<string>();
         }
@@ -90,7 +91,7 @@ namespace SshTool.App.Infrastructure
             // 挂起清除走 LifecycleService→SessionManager.LockAgentKeys）。
             services.Agent = new NativeSshAgent(services.Logger);
             services.Agent.SetTimeout(ReadAgentTimeout(services.Settings));
-            var sshFactory = new NativeSshSessionFactory(services.Agent);
+            var sshFactory = new NativeSshSessionFactory(services.Agent, services.Settings);
             ServiceRegistry.Register(sshFactory);
             ServiceRegistry.Register<SshTool.Core.Sessions.ISshSessionFactory>(sshFactory);
             return services;
@@ -101,6 +102,8 @@ namespace SshTool.App.Infrastructure
             var total = Stopwatch.StartNew();
             await TimeAsync("AppConfig", () => AppConfig.LoadAsync()).ConfigureAwait(true);
             Time("Settings", () => Settings.EnsureDefaults());
+            // fix/functional-pass（P1-4）：首个页面创建前应用界面语言设置。
+            LanguageOverride.Apply(Settings.Language);
             // 修（2026-09-29 排查真机输入问题时发现）：AppConfig.LoadAsync 刚把 MinLevel 设成
             // 打包默认值（info），而用户在设置页选的日志级别只在当场生效、重启即被上面这行盖掉——
             // 「调成调试、重启、日志里还是什么都没有」。设置是用户的显式选择，启动时必须复原。
@@ -119,6 +122,7 @@ namespace SshTool.App.Infrastructure
             CollectWarnings(Snippets.LoadWarnings);
             CollectWarnings(Appearances.LoadWarnings);
             CollectWarnings(KnownHosts.LoadWarnings);
+            await TimeAsync("Secrets", () => PreloadSecretsAsync()).ConfigureAwait(true);
             Time("Appearance", () =>
             {
                 AppearanceService = new AppearanceService(Appearances, Hosts, Settings, BuiltInThemes.All);
@@ -371,6 +375,43 @@ namespace SshTool.App.Infrastructure
             catch (Exception)
             {
                 return 15;
+            }
+        }
+
+        private readonly DpapiSecretStore _secretStore;
+
+        // fix/functional-pass（P2-3）：凭据表被隔离 / 丢弃时放在 Banner 第一条（比 JSON 存量告警更要紧）。
+        // DPAPI 暂时性错误照旧上抛：这里只记日志，之后首次取凭据时会再试。
+        private async Task PreloadSecretsAsync()
+        {
+            try
+            {
+                await _secretStore.PreloadAsync().ConfigureAwait(true);
+            }
+            catch (Exception ex)
+            {
+                Logger.Log(LogLevel.Warning, "Secrets", "preload failed " + ex.GetType().Name + " 0x" + ex.HResult.ToString("X8"));
+                return;
+            }
+            string text = SecretIssueText(_secretStore.LoadIssue);
+            if (!string.IsNullOrEmpty(text))
+            {
+                LoadWarnings.Insert(0, text);
+            }
+        }
+
+        internal static string SecretIssueText(SecretLoadIssue issue)
+        {
+            switch (issue)
+            {
+                case SecretLoadIssue.ContentCorruptQuarantined:
+                    return Localized.Get("Main_SecretsIssue_ContentCorruptQuarantined", "Saved credentials were damaged and moved aside; re-enter passwords and passphrases");
+                case SecretLoadIssue.ContentCorruptNotQuarantined:
+                    return Localized.Get("Main_SecretsIssue_ContentCorruptNotQuarantined", "Saved credentials were damaged and will be overwritten; re-enter passwords and passphrases");
+                case SecretLoadIssue.DecryptFailedQuarantined:
+                    return Localized.Get("Main_SecretsIssue_DecryptFailedQuarantined", "Saved credentials could not be decrypted and were moved aside; re-enter passwords and passphrases");
+                default:
+                    return null;
             }
         }
 

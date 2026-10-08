@@ -189,7 +189,63 @@ namespace SshTool.App.Terminal
             set { _hardwareKeyboard.Shortcuts = value ?? ShortcutMap.Default; }
         }
 
-        public bool PasteConfirmMultiline { get; set; } = true;
+        // fix/functional-pass（P1-4）：粘贴确认在粘贴当下读设置项 pasteConfirmMultiline；
+        // 对话框勾选「不再询问」写回设置项（此前只改本实例字段，重开终端又会问，且设置页开关无效）。
+        public bool PasteConfirmMultiline
+        {
+            get
+            {
+                SshTool.Core.Storage.SettingsRepository settings;
+                if (ServiceRegistry.TryGet(out settings) && settings != null)
+                {
+                    try
+                    {
+                        return settings.PasteConfirmMultiline;
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+                return _pasteConfirmFallback;
+            }
+            set
+            {
+                _pasteConfirmFallback = value;
+                SshTool.Core.Storage.SettingsRepository settings;
+                if (ServiceRegistry.TryGet(out settings) && settings != null)
+                {
+                    try
+                    {
+                        settings.PasteConfirmMultiline = value;
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+            }
+        }
+
+        private bool _pasteConfirmFallback = true;
+
+        private static int SettingFontSizeOr(int fallback)
+        {
+            SshTool.Core.Storage.SettingsRepository settings;
+            if (ServiceRegistry.TryGet(out settings) && settings != null)
+            {
+                try
+                {
+                    int size = settings.TerminalFontSize;
+                    if (size > 0)
+                    {
+                        return size;
+                    }
+                }
+                catch (Exception)
+                {
+                }
+            }
+            return fallback;
+        }
 
         public string AltScreenScroll
         {
@@ -1540,7 +1596,8 @@ namespace SshTool.App.Terminal
                 _renderer.CursorBlink = appearance.CursorBlink;
                 _renderer.BoldAsBright = appearance.BoldAsBright;
                 _renderer.FontWeightBold = appearance.FontWeightBold;
-                _renderer.FontSize = appearance.FontSize;
+                // fix/functional-pass（P1-4）：无会话外观时字号取设置项 terminalFontSize。
+                _renderer.FontSize = ClampFontSize(SettingFontSizeOr(appearance.FontSize));
                 _renderer.LineHeightFactor = (float)appearance.LineHeight;
                 TerminalPadding = appearance.Padding;
             }

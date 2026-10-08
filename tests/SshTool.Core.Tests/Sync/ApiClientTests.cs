@@ -226,7 +226,8 @@ namespace SshTool.Core.Tests.Sync
             Assert.Equal(ApiErrorKind.Http, error.Kind);
             Assert.Equal("HTTP_500", error.Code);
             Assert.True(error.CodeUnknown);
-            Assert.Equal("服务器请求失败（500）", error.Message);
+            Assert.Equal("HTTP 500", error.Message);
+            Assert.False(error.MessageFromServer);
             Assert.Null(error.RetryAfterMs);
         }
 
@@ -234,7 +235,7 @@ namespace SshTool.Core.Tests.Sync
         [InlineData(@"{""message"":""顶层消息""}", "顶层消息")]
         [InlineData(@"{""statusMessage"":""状态消息""}", "状态消息")]
         [InlineData(@"{""data"":{""message"":""数据消息""}}", "数据消息")]
-        [InlineData("这不是 JSON", "服务器请求失败（400）")]
+        [InlineData("这不是 JSON", "HTTP 400")]
         public async Task Error_MessageFallback(string body, string expected)
         {
             var transport = new FakeHttpTransport();
@@ -245,6 +246,7 @@ namespace SshTool.Core.Tests.Sync
 
             Assert.Equal(expected, error.Message);
             Assert.True(error.CodeUnknown); // 这些 body 都没有 data.code
+            Assert.Equal(expected != "HTTP 400", error.MessageFromServer);
         }
 
         [Fact]

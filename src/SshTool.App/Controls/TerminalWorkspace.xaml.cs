@@ -218,6 +218,7 @@ namespace SshTool.App.Controls
             {
                 view = new TerminalView();
                 view.Shortcut += OnPaneShortcut;
+                view.FontSizeCommitted += OnPaneFontSizeCommitted;
                 _views[sessionId] = view;
             }
             Border frame;
@@ -239,6 +240,7 @@ namespace SshTool.App.Controls
                 if (view != null)
                 {
                     view.Shortcut -= OnPaneShortcut;
+                    view.FontSizeCommitted -= OnPaneFontSizeCommitted;
                     view.Session = null;
                     // R03：视图拆除后其在途的外观解析随之失效（查不到世代即丢弃）。
                     _appearanceGenerations.Remove(view);
@@ -419,6 +421,31 @@ namespace SshTool.App.Controls
                     AppLog.Error("TerminalWorkspace", "应用外观失败", ex);
                 }
             });
+        }
+
+        private void OnPaneFontSizeCommitted(object sender, EventArgs e)
+        {
+            PersistFontSize(sender as TerminalView);
+        }
+
+        // fix/functional-pass（P1-4）：字号变化持久化（见 AppearanceApplier.PersistFontSizeAsync）。
+        private void PersistFontSize(TerminalView view)
+        {
+            if (view == null)
+            {
+                return;
+            }
+            string hostId = null;
+            foreach (KeyValuePair<string, TerminalView> pair in _views)
+            {
+                if (ReferenceEquals(pair.Value, view))
+                {
+                    hostId = HostIdOf(pair.Key);
+                    break;
+                }
+            }
+            AppearanceApplier.PersistFontSizeAsync(hostId, view.CurrentFontSize)
+                .Forget("TerminalWorkspace.PersistFontSize", AppLog.Logger);
         }
 
         private string HostIdOf(string sessionId)
@@ -937,14 +964,17 @@ namespace SshTool.App.Controls
                     break;
                 case ShortcutAction.FontIncrease:
                     view.Renderer.FontSize = view.Renderer.FontSize + 1;
+                    PersistFontSize(view);
                     break;
                 case ShortcutAction.FontDecrease:
                     view.Renderer.FontSize = view.Renderer.FontSize - 1;
+                    PersistFontSize(view);
                     break;
                 case ShortcutAction.FontReset:
                     try
                     {
-                        view.Renderer.FontSize = (float)Defaults.DefaultAppearance().FontSize;
+                        view.Renderer.FontSize = TerminalFontSizePolicy.DefaultSize;
+                        PersistFontSize(view);
                     }
                     catch (Exception ex)
                     {

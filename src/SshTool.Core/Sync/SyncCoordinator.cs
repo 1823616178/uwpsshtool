@@ -308,7 +308,7 @@ namespace SshTool.Core.Sync
                     || string.IsNullOrEmpty(setup.VaultKeyBase64)
                     || string.IsNullOrEmpty(setup.RecoveryKey))
                 {
-                    throw new InvalidOperationException("保险库创建失败，请重试");
+                    throw new SyncOperationException(SyncErrorCode.VaultCreateFailed, "保险库创建失败，请重试");
                 }
                 var fresh = new PendingVaultSetup
                 {
@@ -354,7 +354,7 @@ namespace SshTool.Core.Sync
                 next.Dirty = true;
                 next.Preferences = preferences;
                 next.Conflict = null;
-                next.Message = "";
+                SetMessage(next, SyncMessageCode.None);
             });
             Info("保险库已创建");
             return recoveryKey;
@@ -374,8 +374,9 @@ namespace SshTool.Core.Sync
                 : await _crypto.UnwrapWithRecoveryKeyAsync(domain, secret).ConfigureAwait(false);
             if (string.IsNullOrEmpty(key))
             {
-                throw new InvalidOperationException(
-                    method == VaultUnlockMethod.Password ? "同步密码不正确" : "恢复密钥无效");
+                throw method == VaultUnlockMethod.Password
+                    ? new SyncOperationException(SyncErrorCode.SyncPasswordWrong, "同步密码不正确")
+                    : new SyncOperationException(SyncErrorCode.RecoveryKeyInvalid, "恢复密钥无效");
             }
             await _vault.UpdateAsync(next =>
             {
@@ -392,7 +393,7 @@ namespace SshTool.Core.Sync
                 next.Vault = VaultStatus.Ready;
                 next.KeyVersion = response.Envelope.KeyVersion;
                 next.Preferences = preferences;
-                next.Message = "";
+                SetMessage(next, SyncMessageCode.None);
             });
             Info("保险库已解锁");
         }
@@ -405,7 +406,7 @@ namespace SshTool.Core.Sync
             {
                 next.Vault = VaultStatus.Locked;
                 next.Phase = SyncPhase.Locked;
-                next.Message = "";
+                SetMessage(next, SyncMessageCode.None);
             });
         }
 
@@ -435,7 +436,7 @@ namespace SshTool.Core.Sync
                 next.LastSyncedAt = null;
                 next.NextRetryAt = null;
                 next.Conflict = null;
-                next.Message = "云端保险库和历史版本已删除，本机配置仍保留";
+                SetMessage(next, SyncMessageCode.VaultDeletedLocalKept);
             });
             Info("云端保险库已删除");
         }
@@ -452,7 +453,7 @@ namespace SshTool.Core.Sync
             if ((previous.SyncPasswords && !preferences.SyncPasswords)
                 || (previous.SyncPrivateKeys && !preferences.SyncPrivateKeys))
             {
-                throw new InvalidOperationException("关闭敏感同步需要执行密钥轮换，请在“安全清理”流程中输入账号密码");
+                throw new SyncOperationException(SyncErrorCode.RotateRequired, "关闭敏感同步需要执行密钥轮换，请在“安全清理”流程中输入账号密码");
             }
             var snapshot = preferences.Clone();
             await _vault.UpdateAsync(next =>
@@ -505,7 +506,7 @@ namespace SshTool.Core.Sync
                 {
                     next.Phase = SyncPhase.SignedOut;
                     next.Vault = logoutVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
-                    next.Message = "";
+                    SetMessage(next, SyncMessageCode.None);
                 });
             }
         }
@@ -528,7 +529,7 @@ namespace SshTool.Core.Sync
             {
                 next.Phase = SyncPhase.SignedOut;
                 next.Vault = changePassVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
-                next.Message = "密码已修改，请使用新密码重新登录";
+                SetMessage(next, SyncMessageCode.LoginPasswordChanged);
             });
             Info("登录密码已修改，需重新登录");
         }
@@ -553,7 +554,7 @@ namespace SshTool.Core.Sync
                 next.LastSyncedAt = null;
                 next.NextRetryAt = null;
                 next.Conflict = null;
-                next.Message = "";
+                SetMessage(next, SyncMessageCode.None);
             });
             Info("账号已注销");
         }
@@ -606,7 +607,7 @@ namespace SshTool.Core.Sync
                 {
                     next.Phase = SyncPhase.AuthError;
                     next.Vault = termVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
-                    next.Message = FormatErrorMessage(apiError);
+                    SetErrorMessage(next, apiError);
                     next.NextRetryAt = null;
                 });
                 return;
@@ -620,7 +621,7 @@ namespace SshTool.Core.Sync
                 {
                     next.Phase = SyncPhase.SignedOut;
                     next.Vault = signedOutVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
-                    next.Message = FormatErrorMessage(error);
+                    SetErrorMessage(next, error);
                     next.NextRetryAt = null;
                 });
                 return;
@@ -650,7 +651,7 @@ namespace SshTool.Core.Sync
             PatchState(next =>
             {
                 next.Phase = offline ? SyncPhase.Offline : SyncPhase.Error;
-                next.Message = FormatErrorMessage(error);
+                SetErrorMessage(next, error);
                 next.NextRetryAt = nextRetryAt;
             });
         }
@@ -715,7 +716,7 @@ namespace SshTool.Core.Sync
                 next.LastSyncedAt = rebuilt.LastSyncedAt;
                 next.NextRetryAt = null;
                 next.Conflict = rebuilt.Conflict;
-                next.Message = "";
+                SetMessage(next, SyncMessageCode.None);
             });
         }
 
@@ -791,20 +792,20 @@ namespace SshTool.Core.Sync
             var apiError = error as ApiError;
             if (apiError != null && !string.IsNullOrEmpty(apiError.RequestId))
             {
-                return apiError.Message + "（请求 ID：" + apiError.RequestId + "）";
+                return apiError.Message + " (request id: " + apiError.RequestId + ")";
             }
             if (error != null && error.Message != null)
             {
                 return error.Message;
             }
-            return "同步请求失败";
+            return "sync request failed";
         }
 
         private void EnsureAuthenticated()
         {
             if (!_auth.Session.Authenticated)
             {
-                throw new InvalidOperationException("请先登录");
+                throw new SyncOperationException(SyncErrorCode.SignInRequired, "请先登录");
             }
         }
 
@@ -812,7 +813,7 @@ namespace SshTool.Core.Sync
         {
             if (_auth.Session.Authenticated)
             {
-                throw new InvalidOperationException("已登录，请先退出登录后再继续");
+                throw new SyncOperationException(SyncErrorCode.AlreadySignedIn, "已登录，请先退出登录后再继续");
             }
         }
 
@@ -948,7 +949,7 @@ namespace SshTool.Core.Sync
             PatchState(next =>
             {
                 next.Phase = SyncPhase.Syncing;
-                next.Message = "";
+                SetMessage(next, SyncMessageCode.None);
                 next.NextRetryAt = null;
             });
             Info("开始同步");
@@ -989,7 +990,7 @@ namespace SshTool.Core.Sync
                     {
                         next.Phase = SyncPhase.Disabled;
                         next.Vault = VaultStatus.Missing;
-                        next.Message = "云端保险库已被删除，请重新创建同步保险库";
+                        SetMessage(next, SyncMessageCode.RemoteVaultDeleted);
                         next.NextRetryAt = null;
                     });
                     Info("云端保险库已被删除");
@@ -1003,7 +1004,7 @@ namespace SshTool.Core.Sync
                         next.Phase = SyncPhase.Locked;
                         next.Vault = VaultStatus.Locked;
                         next.KeyVersion = head.KeyVersion;
-                        next.Message = "云端密钥已轮换，请重新输入同步密码或恢复密钥";
+                        SetMessage(next, SyncMessageCode.RemoteKeyRotated);
                         next.NextRetryAt = null;
                     });
                     Info("云端密钥版本不一致，已锁定");
@@ -1011,7 +1012,7 @@ namespace SshTool.Core.Sync
                 }
                 if (CompareRevisions(head.Revision, active.Revision) < 0)
                 {
-                    throw new InvalidOperationException("云端 revision 低于本机基线，已停止上传以避免覆盖");
+                    throw new SyncOperationException(SyncErrorCode.RemoteRevisionBehind, "云端 revision 低于本机基线，已停止上传以避免覆盖");
                 }
                 // ③ 云端没有新版本
                 if (string.Equals(head.Revision, active.Revision, StringComparison.Ordinal))
@@ -1028,7 +1029,7 @@ namespace SshTool.Core.Sync
                         PatchState(next =>
                         {
                             next.Phase = SyncPhase.Synced;
-                            next.Message = "";
+                            SetMessage(next, SyncMessageCode.None);
                         });
                     }
                     return;
@@ -1129,7 +1130,7 @@ namespace SshTool.Core.Sync
                 next.Revision = resumed.Revision;
                 next.Dirty = !stillCurrent;
                 next.LastSyncedAt = resumed.UpdatedAt;
-                next.Message = "";
+                SetMessage(next, SyncMessageCode.None);
             });
             if (stillCurrent)
             {
@@ -1163,14 +1164,14 @@ namespace SshTool.Core.Sync
             string vaultKey = _vault.ReadVaultKeyBase64();
             if (string.IsNullOrEmpty(vaultKey))
             {
-                throw new InvalidOperationException("保险库未解锁");
+                throw new SyncOperationException(SyncErrorCode.VaultLocked, "保险库未解锁");
             }
             byte[] plaintext = SyncDocumentWriter.WriteUtf8(doc);
             EncryptedDocumentEnvelope encrypted = await _crypto.EncryptDocumentAsync(
                 vaultKey, vaultId, SyncConstants.SchemaVersion, keyVersion, plaintext).ConfigureAwait(false);
             if (encrypted == null)
             {
-                throw new InvalidOperationException("同步文档加密失败，请重试");
+                throw new SyncOperationException(SyncErrorCode.EncryptFailed, "同步文档加密失败，请重试");
             }
             string body = encrypted.ToJson().ToString(Formatting.None);
             string idempotencyKey = _guid();
@@ -1235,7 +1236,7 @@ namespace SshTool.Core.Sync
                 next.Dirty = changed;
                 next.LastSyncedAt = syncedAt;
                 next.Conflict = null;
-                next.Message = "";
+                SetMessage(next, SyncMessageCode.None);
             });
             Info("上传完成 revision=" + response.Revision);
             // O15：只读 AutoSync 标量，不克隆文档。
@@ -1266,7 +1267,7 @@ namespace SshTool.Core.Sync
                 next.Dirty = false;
                 next.LastSyncedAt = syncedAt;
                 next.Conflict = null;
-                next.Message = "";
+                SetMessage(next, SyncMessageCode.None);
             });
         }
 
@@ -1288,7 +1289,7 @@ namespace SshTool.Core.Sync
                 .ConfigureAwait(false);
             if (plaintext == null)
             {
-                throw new InvalidOperationException("云端文档解密失败");
+                throw new SyncOperationException(SyncErrorCode.DecryptFailed, "云端文档解密失败");
             }
             return DecodeRemoteDocument(plaintext);
         }
@@ -1309,7 +1310,7 @@ namespace SshTool.Core.Sync
             if (version != null && version.Type == JTokenType.Integer
                 && (long)version != SyncConstants.SchemaVersion)
             {
-                throw new InvalidOperationException("云端文档版本更高，请升级应用");
+                throw new SyncOperationException(SyncErrorCode.DocumentTooNew, "云端文档版本更高，请升级应用");
             }
             return SyncDocumentReader.Read(json);
         }
@@ -1374,7 +1375,7 @@ namespace SshTool.Core.Sync
             string revision = cache.ConflictRemoteRevision;
             if (remote == null || string.IsNullOrEmpty(revision))
             {
-                throw new InvalidOperationException("没有待处理的同步冲突");
+                throw new SyncOperationException(SyncErrorCode.NoPendingConflict, "没有待处理的同步冲突");
             }
             if (strategy == SyncNowStrategy.UseRemote)
             {
@@ -1397,7 +1398,7 @@ namespace SshTool.Core.Sync
                 next.Revision = revision;
                 next.Dirty = true;
                 next.Conflict = null;
-                next.Message = "";
+                SetMessage(next, SyncMessageCode.None);
             });
             Info("冲突已解决（keep-local），以远端 revision 为基准上传 revision=" + revision);
             await SyncNowAsync(
@@ -1439,23 +1440,38 @@ namespace SshTool.Core.Sync
             {
                 next.Phase = SyncPhase.Conflict;
                 next.Conflict = stateSummary;
-                next.Message = ConflictMessage(reason);
+                SetMessage(next, ConflictMessage(reason));
             });
             Info("检测到同步冲突 reason=" + SyncConflictSummary.ReasonToJson(reason)
                 + " fields=" + fields.Count.ToString(CultureInfo.InvariantCulture));
         }
 
-        private static string ConflictMessage(SyncConflictReason reason)
+        private static SyncMessageCode ConflictMessage(SyncConflictReason reason)
         {
             switch (reason)
             {
                 case SyncConflictReason.InitialImport:
-                    return "已解锁云端配置，请选择首次同步方式";
+                    return SyncMessageCode.ConflictInitialImport;
                 case SyncConflictReason.RemoteDeletion:
-                    return "云端包含删除操作，请确认后再应用";
+                    return SyncMessageCode.ConflictRemoteDeletion;
                 default:
-                    return "检测到需要确认的同步冲突";
+                    return SyncMessageCode.ConflictGeneric;
             }
+        }
+
+        // fix/functional-pass（P2-2）：状态卡消息只给码，Message 为英文诊断（App 按码查 resw）。
+        private static void SetMessage(SyncState next, SyncMessageCode code)
+        {
+            next.MessageCode = code;
+            next.MessageError = null;
+            next.Message = code == SyncMessageCode.None ? "" : code.ToString();
+        }
+
+        private static void SetErrorMessage(SyncState next, Exception error)
+        {
+            next.MessageCode = SyncMessageCode.Error;
+            next.MessageError = error;
+            next.Message = FormatErrorMessage(error);
         }
 
         // §7.3 RemoteDeletionConflicts：base 中有、remote 中没有的 server/tunnel/group。
@@ -1649,18 +1665,18 @@ namespace SshTool.Core.Sync
                 || string.IsNullOrEmpty(cache.VaultKeyBase64)
                 || cache.KeyVersion < 1)
             {
-                throw new InvalidOperationException("同步保险库未解锁");
+                throw new SyncOperationException(SyncErrorCode.VaultLocked, "同步保险库未解锁");
             }
             SyncPreferences current = cache.Preferences ?? SyncPreferences.Defaults();
             bool disablesPassword = current.SyncPasswords && !preferences.SyncPasswords;
             bool disablesPrivateKey = current.SyncPrivateKeys && !preferences.SyncPrivateKeys;
             if (!disablesPassword && !disablesPrivateKey)
             {
-                throw new InvalidOperationException("密钥轮换只用于关闭已启用的敏感同步");
+                throw new SyncOperationException(SyncErrorCode.RotateOnlyDisables, "密钥轮换只用于关闭已启用的敏感同步");
             }
             return RotateVaultKeyAsync(
                 preferences, currentPassword, syncPassword,
-                "敏感字段已清理，密钥和历史版本已轮换", cancellationToken);
+                SyncMessageCode.SensitiveCleared, cancellationToken);
         }
 
         // §7.2 ChangeSyncPassword：轮换整个 vaultKey，旧同步密码与旧恢复密钥一起失效。
@@ -1678,14 +1694,14 @@ namespace SshTool.Core.Sync
                 || string.IsNullOrEmpty(cache.VaultKeyBase64)
                 || cache.KeyVersion < 1)
             {
-                throw new InvalidOperationException("同步保险库未解锁");
+                throw new SyncOperationException(SyncErrorCode.VaultLocked, "同步保险库未解锁");
             }
             SyncPreferences unchanged = cache.Preferences == null
                 ? SyncPreferences.Defaults()
                 : cache.Preferences.Clone();
             return RotateVaultKeyAsync(
                 unchanged, currentPassword, syncPassword,
-                "同步密码已更新，请保存新的恢复密钥", cancellationToken);
+                SyncMessageCode.SyncPasswordChanged, cancellationToken);
         }
 
         // §7.2 RotateVaultKey：生成新 vaultKey → 新同步密码重新包装 →
@@ -1698,7 +1714,7 @@ namespace SshTool.Core.Sync
             SyncPreferences preferences,
             string currentPassword,
             string syncPassword,
-            string successMessage,
+            SyncMessageCode successMessage,
             CancellationToken cancellationToken)
         {
             // O15：读取 vaultId/revision/keyVersion 等元数据，不克隆文档。
@@ -1707,7 +1723,7 @@ namespace SshTool.Core.Sync
                 || string.IsNullOrEmpty(cache.VaultKeyBase64)
                 || cache.KeyVersion < 1)
             {
-                throw new InvalidOperationException("同步保险库未解锁");
+                throw new SyncOperationException(SyncErrorCode.VaultLocked, "同步保险库未解锁");
             }
             string vaultId = cache.VaultId;
             string baseRevision = cache.Revision;
@@ -1718,7 +1734,7 @@ namespace SshTool.Core.Sync
                 || string.IsNullOrEmpty(setup.VaultKeyBase64)
                 || string.IsNullOrEmpty(setup.RecoveryKey))
             {
-                throw new InvalidOperationException("保险库创建失败，请重试");
+                throw new SyncOperationException(SyncErrorCode.VaultCreateFailed, "保险库创建失败，请重试");
             }
             SyncPreferences previous = cache.Preferences == null
                 ? SyncPreferences.Defaults()
@@ -1738,14 +1754,14 @@ namespace SshTool.Core.Sync
                     .ConfigureAwait(false);
                 if (encrypted == null)
                 {
-                    throw new InvalidOperationException("同步文档加密失败，请重试");
+                    throw new SyncOperationException(SyncErrorCode.EncryptFailed, "同步文档加密失败，请重试");
                 }
                 RotateVaultResponse response = await _api.RotateVaultAsync(
                     currentPassword, ToData(setup.Envelope), ToDocumentData(encrypted),
                     baseRevision, _guid(), cancellationToken).ConfigureAwait(false);
                 if (response.KeyVersion != nextVersion)
                 {
-                    throw new InvalidOperationException("服务端返回了意外的密钥版本");
+                    throw new SyncOperationException(SyncErrorCode.UnexpectedKeyVersion, "服务端返回了意外的密钥版本");
                 }
                 // Lumia 的本地端口无 lockSecrets（凭据只在 SecretStore，无内存明文缓存）；
                 // 新基线直接应用（ChangeOrigin.Sync，不再标脏）。
@@ -1778,7 +1794,7 @@ namespace SshTool.Core.Sync
                     next.Dirty = false;
                     next.LastSyncedAt = syncedAt;
                     next.Conflict = null;
-                    next.Message = successMessage;
+                    SetMessage(next, successMessage);
                 });
                 Info("保险库密钥已轮换 keyVersion="
                     + response.KeyVersion.ToString(CultureInfo.InvariantCulture));
@@ -1797,7 +1813,7 @@ namespace SshTool.Core.Sync
                     PatchState(next =>
                     {
                         next.Phase = SyncPhase.Error;
-                        next.Message = "轮换结果未知，若云端已经轮换，请用新的同步密码重新解锁保险库";
+                        SetMessage(next, SyncMessageCode.RotateResultUnknown);
                     });
                 }
                 throw;
@@ -1994,7 +2010,7 @@ namespace SshTool.Core.Sync
         {
             if (data == null || data.KdfParameters == null)
             {
-                throw new InvalidOperationException("保险库信封无效");
+                throw new SyncOperationException(SyncErrorCode.EnvelopeInvalid, "保险库信封无效");
             }
             var envelope = new VaultKeyEnvelope
             {
@@ -2016,7 +2032,7 @@ namespace SshTool.Core.Sync
                 || string.IsNullOrEmpty(envelope.RecoveryWrapNonce)
                 || string.IsNullOrEmpty(envelope.KdfSalt))
             {
-                throw new InvalidOperationException("保险库信封无效");
+                throw new SyncOperationException(SyncErrorCode.EnvelopeInvalid, "保险库信封无效");
             }
             return envelope;
         }

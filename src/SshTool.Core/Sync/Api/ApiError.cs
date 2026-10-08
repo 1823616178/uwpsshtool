@@ -14,7 +14,8 @@ namespace SshTool.Core.Sync.Api
             long? retryAfterMs = null,
             bool ambiguous = false,
             bool codeUnknown = false,
-            Exception inner = null)
+            Exception inner = null,
+            bool messageFromServer = false)
             : base(message, inner)
         {
             Kind = kind;
@@ -24,6 +25,7 @@ namespace SshTool.Core.Sync.Api
             RetryAfterMs = retryAfterMs;
             Ambiguous = ambiguous;
             CodeUnknown = codeUnknown;
+            MessageFromServer = messageFromServer;
         }
 
         public ApiErrorKind Kind { get; private set; }
@@ -37,6 +39,9 @@ namespace SshTool.Core.Sync.Api
 
         // 响应体里没有 data.code（HEAD 无响应体、或代理返回 HTML），code 是按状态码推的
         public bool CodeUnknown { get; private set; }
+
+        // fix/functional-pass：Message 是否为服务端原文（false=客户端诊断文本，App 应显示本地化文案）。
+        public bool MessageFromServer { get; private set; }
 
         // 客户端自产错误码（§2.3 末）
         public const string CodeAuthRequired = "AUTH_REQUIRED";

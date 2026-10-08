@@ -136,6 +136,10 @@ struct AuthMethodSet {
     bool keyboardInteractive = false;
     std::vector<std::string> unsupported; // declared but unrecognized (hostbased etc.)
     std::string raw;                      // raw comma-separated list (diagnostics)
+    // fix/functional-pass: the server accepted the "none" probe itself (no
+    // authentication required). The session has moved to Established and no
+    // further auth call is needed; the method flags are all false.
+    bool authenticated = false;
 };
 // nullopt = the probe itself failed (see lastErrorMessage / logs).
 using AuthMethodsCallback = std::function<void(std::optional<AuthMethodSet> methods)>;

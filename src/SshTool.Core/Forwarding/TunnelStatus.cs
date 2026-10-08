@@ -13,12 +13,33 @@ namespace SshTool.Core.Forwarding
         Error
     }
 
+    // fix/functional-pass：状态消息的类别（App 按类别本地化；Core 不产出界面文案）。
+    // Detail = Message 是运行时（App 层 NativeForwarder，已本地化）给出的原文，原样展示；
+    // ReconnectScheduled 时 Message 为中断原因，延迟秒数见 ReconnectDelaySeconds。
+    public enum TunnelMessageCode
+    {
+        None = 0,
+        Detail,
+        Connecting,
+        Established,
+        StartFailed,
+        StoppedManually,
+        ConfigDeleted,
+        ManagerDisposed,
+        LinkLost,
+        RelayDisabled,
+        ReconnectScheduled
+    }
+
     // 单条隧道的对外状态快照（与桌面端 manager.ts statuses() 返回项同构）。
     public sealed class TunnelStatusSnapshot
     {
         public string TunnelId { get; set; }
         public TunnelStateKind State { get; set; }
+        public TunnelMessageCode MessageCode { get; set; }
+        // 运行时原文（MessageCode = Detail / Established 路由 / ReconnectScheduled 原因）。
         public string Message { get; set; }
+        public int ReconnectDelaySeconds { get; set; }
         public int RetryInSeconds { get; set; }
         public int Attempt { get; set; }
         public TunnelStats Stats { get; set; }
@@ -28,6 +49,7 @@ namespace SshTool.Core.Forwarding
     public sealed class TunnelStartResult
     {
         public bool Success { get; set; }
+        public TunnelMessageCode MessageCode { get; set; }
         public string Message { get; set; }
 
         public static TunnelStartResult Ok()
@@ -37,7 +59,20 @@ namespace SshTool.Core.Forwarding
 
         public static TunnelStartResult Fail(string message)
         {
-            return new TunnelStartResult { Success = false, Message = message ?? string.Empty };
+            return Fail(TunnelMessageCode.Detail, message);
         }
+
+        public static TunnelStartResult Fail(TunnelMessageCode code, string message)
+        {
+            return new TunnelStartResult { Success = false, MessageCode = code, Message = message ?? string.Empty };
+        }
+    }
+
+    // StartGroupAsync / StartAutoStartAsync 的单条失败。
+    public sealed class TunnelStartFailure
+    {
+        public string TunnelId { get; set; }
+        public string Name { get; set; }
+        public TunnelStartResult Result { get; set; }
     }
 }
