@@ -101,8 +101,8 @@ namespace SshTool.App.Controls
             bool compact = width > 0 && width < wideBreakpoint;
 
             RootGrid.Padding = wide
-                ? (Thickness)Application.Current.Resources["PagePaddingWide"]
-                : (Thickness)Application.Current.Resources["PagePadding"];
+                ? (Thickness)Application.Current.Resources["PageHeaderPaddingWide"]
+                : (Thickness)Application.Current.Resources["PageHeaderPadding"];
 
             double size;
             if (Level == AppPageHeaderLevel.Primary)

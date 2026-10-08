@@ -13,7 +13,7 @@
         </Grid.RowDefinitions>
 
         <!-- 顶栏操作区：标题 + 全部停止 + 添加隧道 -->
-        <Grid Margin="{StaticResource PagePadding}">
+        <Grid Margin="{StaticResource ListTopRowMargin}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />

@@ -35,7 +35,7 @@
              opt/full-pass 竖屏重设计：搜索框收进圆角卡片胶囊（卡底渐变 + 发丝描边），
              新建按钮改强调色叠层圆块。ui/fix-pass：框内文本框改用 PillAutoSuggestTextBoxStyle（透明无边）——
              原先的 TextControl* 轻量覆盖在 15063 的 TextBox 模板里不生效。 -->
-        <Grid Margin="{StaticResource PagePadding}">
+        <Grid Margin="{StaticResource ListTopRowMargin}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
