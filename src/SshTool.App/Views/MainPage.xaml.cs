@@ -131,6 +131,12 @@ namespace SshTool.App.Views
                 nav.RegisterBackHandler(this);
             }
             ConsumeLaunchRequest();
+            // 菜单项随登录状态切换：已登录显示「账号与同步」，未登录显示「登录」。
+            if (ViewModel.Hosts != null)
+            {
+                ViewModel.Hosts.PropertyChanged += OnHostsPropertyChanged;
+            }
+            UpdateSignInItem();
             OfferSharedUploadsAsync().Forget("MainPage.OfferSharedUploads", AppLog.Logger);
         }
 
@@ -226,6 +232,10 @@ namespace SshTool.App.Views
             // 与仓库/同步协调器都是应用级单例。不在这里拆，单例的订阅表就会按
             // 访问次数累积死页面与死 VM。Workspace 由控件自己的 Unloaded 拆。
             SessionsPivotCtl.Detach();
+            if (ViewModel.Hosts != null)
+            {
+                ViewModel.Hosts.PropertyChanged -= OnHostsPropertyChanged;
+            }
             ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
             ViewModel.Detach();
             base.OnNavigatedFrom(e);
@@ -369,7 +379,37 @@ namespace SshTool.App.Views
 
         private void OnSignInClick(object sender, RoutedEventArgs e)
         {
+            if (IsSignedIn())
+            {
+                Frame.Navigate(typeof(SshTool.App.Views.Sync.AccountSyncPage));
+                return;
+            }
             ViewModel.SignInCommand.Execute(null);
+        }
+
+        private bool IsSignedIn()
+        {
+            return ViewModel.Hosts != null && ViewModel.Hosts.IsSignedIn;
+        }
+
+        // HostListViewModel 已把 StateChanged 封送回 UI 线程，这里可直接改控件。
+        private void OnHostsPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e == null || string.IsNullOrEmpty(e.PropertyName)
+                || string.Equals(e.PropertyName, "IsSignedIn", StringComparison.Ordinal))
+            {
+                UpdateSignInItem();
+            }
+        }
+
+        private void UpdateSignInItem()
+        {
+            string key = IsSignedIn() ? "Main_AccountItemText" : "Main_SignInItemText";
+            string text = Loader.GetString(key);
+            if (!string.IsNullOrEmpty(text))
+            {
+                SignInItem.Label = text;
+            }
         }
 
         private void OnDevToolsClick(object sender, RoutedEventArgs e)

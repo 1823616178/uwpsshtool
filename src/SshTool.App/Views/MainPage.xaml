@@ -35,7 +35,7 @@
             <CommandBar.SecondaryCommands>
                 <AppBarButton x:Uid="Main_ToolsItem" Click="OnToolsClick" />
                 <AppBarButton x:Uid="Main_AboutItem" Click="OnAboutClick" />
-                <AppBarButton x:Uid="Main_SignInItem" Click="OnSignInClick" />
+                <AppBarButton x:Name="SignInItem" x:Uid="Main_SignInItem" Click="OnSignInClick" />
                 <AppBarButton x:Name="DevToolsItem" x:Uid="Main_DevToolsItem" Click="OnDevToolsClick" Visibility="Collapsed" />
             </CommandBar.SecondaryCommands>
         </CommandBar>

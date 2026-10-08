@@ -488,6 +488,8 @@
   <data name="Main_NewButton.Label" xml:space="preserve"><value>新建</value></data>
   <data name="Main_AboutItem.Label" xml:space="preserve"><value>关于</value></data>
   <data name="Main_SignInItem.Label" xml:space="preserve"><value>登录</value></data>
+  <data name="Main_SignInItemText" xml:space="preserve"><value>登录</value></data>
+  <data name="Main_AccountItemText" xml:space="preserve"><value>账号与同步</value></data>
   <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>开发工具</value></data>
   <data name="Main_LoadWarningTitle" xml:space="preserve"><value>数据文件有告警</value></data>
   <data name="Main_SecretsIssue_ContentCorruptQuarantined" xml:space="preserve"><value>已保存的凭据文件已损坏，已隔离旧文件；请重新输入密码与密码短语</value></data>
