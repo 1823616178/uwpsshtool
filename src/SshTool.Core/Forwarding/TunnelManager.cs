@@ -66,7 +66,6 @@ namespace SshTool.Core.Forwarding
     {
         public const int TickPeriodMs = 1000;
         public const int DefaultMaxBackoffSeconds = 30;
-        public const string RelayDisabledMessage = "中转隧道仅在桌面端运行";
 
         // 桌面端 tunnel.ts 的 BACKOFF_STEPS。
         public static readonly int[] BackoffSeconds = { 1, 2, 5, 10, 20, 30, 60 };
@@ -173,8 +172,8 @@ namespace SshTool.Core.Forwarding
             }
             if (tunnel.Type == TunnelType.Relay)
             {
-                Log(LogLevel.Info, "relay 拒绝启动 " + tunnel.Id);
-                return TunnelStartResult.Fail(RelayDisabledMessage);
+                Log(LogLevel.Info, "relay rejected " + tunnel.Id);
+                return TunnelStartResult.Fail(TunnelMessageCode.RelayDisabled, string.Empty);
             }
             TunnelInstance instance = EnsureInstance(tunnel);
             lock (_gate)
@@ -196,6 +195,18 @@ namespace SshTool.Core.Forwarding
         // 停止一条隧道（幂等）：取消重连计时、停运行时、回 Idle。
         public void Stop(string tunnelId, string reason = null)
         {
+            if (reason == null)
+            {
+                StopCore(tunnelId, TunnelMessageCode.StoppedManually, string.Empty);
+            }
+            else
+            {
+                StopCore(tunnelId, TunnelMessageCode.Detail, reason);
+            }
+        }
+
+        private void StopCore(string tunnelId, TunnelMessageCode code, string detail)
+        {
             if (tunnelId == null)
             {
                 return;
@@ -209,7 +220,7 @@ namespace SshTool.Core.Forwarding
                 }
                 instance.ManualStop = true;
                 CancelRetryTimerLocked(instance);
-                StopRuntimeLocked(instance, reason ?? "已手动停止");
+                StopRuntimeLocked(instance, code, detail);
             }
             RaiseStatuses();
         }
@@ -225,6 +236,18 @@ namespace SshTool.Core.Forwarding
 
         public void StopAll(string reason = null)
         {
+            if (reason == null)
+            {
+                StopAllCore(TunnelMessageCode.StoppedManually, string.Empty);
+            }
+            else
+            {
+                StopAllCore(TunnelMessageCode.Detail, reason);
+            }
+        }
+
+        private void StopAllCore(TunnelMessageCode code, string detail)
+        {
             TunnelInstance[] all;
             lock (_gate)
             {
@@ -233,15 +256,15 @@ namespace SshTool.Core.Forwarding
             }
             for (int i = 0; i < all.Length; i++)
             {
-                Stop(all[i].Config.Id, reason ?? "已手动停止");
+                StopCore(all[i].Config.Id, code, detail);
             }
         }
 
         // 分组启动：只启动 Enabled 且未在运行的隧道（与桌面端 startGroup 一致），
-        // 返回「名称：消息」错误列表（空列表 = 全部成功）。
-        public async Task<IReadOnlyList<string>> StartGroupAsync(string groupId)
+        // 返回失败列表（空列表 = 全部成功）。
+        public async Task<IReadOnlyList<TunnelStartFailure>> StartGroupAsync(string groupId)
         {
-            var errors = new List<string>();
+            var errors = new List<TunnelStartFailure>();
             Tunnel[] targets = GroupTargets(groupId);
             for (int i = 0; i < targets.Length; i++)
             {
@@ -257,7 +280,7 @@ namespace SshTool.Core.Forwarding
                 TunnelStartResult result = await StartAsync(config).ConfigureAwait(false);
                 if (!result.Success)
                 {
-                    errors.Add((config.Name ?? config.Id) + "：" + result.Message);
+                    errors.Add(new TunnelStartFailure { TunnelId = config.Id, Name = config.Name ?? config.Id, Result = result });
                 }
             }
             return errors;
@@ -265,9 +288,9 @@ namespace SshTool.Core.Forwarding
 
         // 程序启动后自动开启标记了 AutoStart 的隧道（桌面端 startAutoStart）。
         // 单条失败只记日志、不中断其余隧道；返回错误列表。
-        public async Task<IReadOnlyList<string>> StartAutoStartAsync()
+        public async Task<IReadOnlyList<TunnelStartFailure>> StartAutoStartAsync()
         {
-            var errors = new List<string>();
+            var errors = new List<TunnelStartFailure>();
             Tunnel[] configs;
             lock (_gate)
             {
@@ -283,7 +306,7 @@ namespace SshTool.Core.Forwarding
                 TunnelStartResult result = await StartAsync(config).ConfigureAwait(false);
                 if (!result.Success)
                 {
-                    errors.Add((config.Name ?? config.Id) + "：" + result.Message);
+                    errors.Add(new TunnelStartFailure { TunnelId = config.Id, Name = config.Name ?? config.Id, Result = result });
                 }
             }
             return errors;
@@ -329,7 +352,7 @@ namespace SshTool.Core.Forwarding
                     TunnelInstance instance = _instances[removed[i]];
                     instance.ManualStop = true;
                     CancelRetryTimerLocked(instance);
-                    StopRuntimeLocked(instance, "配置已删除");
+                    StopRuntimeLocked(instance, TunnelMessageCode.ConfigDeleted, string.Empty);
                     _instances.Remove(removed[i]);
                 }
             }
@@ -346,7 +369,7 @@ namespace SshTool.Core.Forwarding
                     _tickTimer = null;
                 }
             }
-            StopAll("管理器已释放");
+            StopAllCore(TunnelMessageCode.ManagerDisposed, string.Empty);
             lock (_gate)
             {
                 _configs.Clear();
@@ -418,7 +441,7 @@ namespace SshTool.Core.Forwarding
                 instance.State = instance.Attempt > 0
                     ? TunnelStateKind.Reconnecting
                     : TunnelStateKind.Connecting;
-                instance.Message = "正在连接…";
+                SetMessageLocked(instance, TunnelMessageCode.Connecting, string.Empty);
             }
             RaiseStatuses();
             try
@@ -446,7 +469,7 @@ namespace SshTool.Core.Forwarding
                 if (instance.ManualStop)
                 {
                     // 启动期间被手动停止：回收运行时并回 Idle。
-                    StopRuntimeLocked(instance, "已手动停止");
+                    StopRuntimeLocked(instance, TunnelMessageCode.StoppedManually, string.Empty);
                     RaiseStatuses();
                     return TunnelStartResult.Ok();
                 }
@@ -457,9 +480,7 @@ namespace SshTool.Core.Forwarding
                     CancelRetryTimerLocked(instance);
                     instance.Stats.Since = DateTime.UtcNow;
                     instance.State = TunnelStateKind.Running;
-                    instance.Message = string.IsNullOrEmpty(result.RouteDescription)
-                        ? "隧道已建立"
-                        : result.RouteDescription;
+                    SetMessageLocked(instance, TunnelMessageCode.Established, result.RouteDescription ?? string.Empty);
                     RaiseStatuses();
                     return TunnelStartResult.Ok();
                 }
@@ -468,21 +489,28 @@ namespace SshTool.Core.Forwarding
                 if (result != null && instance.Attempt == 0)
                 {
                     instance.State = TunnelStateKind.Error;
-                    instance.Message = message;
+                    SetMessageLocked(instance, TunnelMessageCode.Detail, message);
                     RaiseStatuses();
-                    return TunnelStartResult.Fail(message);
+                    return TunnelStartResult.Fail(TunnelMessageCode.Detail, message);
                 }
                 if (result != null && instance.Config.AutoReconnect)
                 {
                     // 重试失败：继续退避链（消息已由 ScheduleRetryLocked 改写）。
                     ScheduleRetryLocked(instance, message);
                     RaiseStatuses();
-                    return TunnelStartResult.Fail(message);
+                    return TunnelStartResult.Fail(TunnelMessageCode.Detail, message);
                 }
                 instance.State = TunnelStateKind.Error;
-                instance.Message = result == null ? "启动失败" : message;
+                if (result == null)
+                {
+                    SetMessageLocked(instance, TunnelMessageCode.StartFailed, string.Empty);
+                }
+                else
+                {
+                    SetMessageLocked(instance, TunnelMessageCode.Detail, message);
+                }
                 RaiseStatuses();
-                return TunnelStartResult.Fail(instance.Message);
+                return TunnelStartResult.Fail(instance.MessageCode, instance.Message);
             }
         }
 
@@ -505,8 +533,9 @@ namespace SshTool.Core.Forwarding
                 {
                     return; // 用户已停/启动失败路径自会收敛/终态不回跳
                 }
-                string reason = e.Reason ?? "隧道中断";
-                StopRuntimeLocked(instance, reason);
+                string reason = e.Reason ?? string.Empty;
+                TunnelMessageCode reasonCode = e.Reason == null ? TunnelMessageCode.LinkLost : TunnelMessageCode.Detail;
+                StopRuntimeLocked(instance, reasonCode, reason);
                 if (instance.Config.AutoReconnect)
                 {
                     ScheduleRetryLocked(instance, reason);
@@ -514,7 +543,7 @@ namespace SshTool.Core.Forwarding
                 else
                 {
                     instance.State = TunnelStateKind.Error;
-                    instance.Message = reason;
+                    SetMessageLocked(instance, reasonCode, reason);
                 }
             }
             RaiseStatuses();
@@ -530,8 +559,8 @@ namespace SshTool.Core.Forwarding
             instance.Attempt += 1;
             instance.RetryInSeconds = delay;
             instance.State = TunnelStateKind.Reconnecting;
-            instance.Message = reason + "，" + delay.ToString(CultureInfo.InvariantCulture)
-                + " 秒后重连";
+            SetMessageLocked(instance, TunnelMessageCode.ReconnectScheduled, reason ?? string.Empty);
+            instance.ReconnectDelaySeconds = delay;
             instance.RetryTimer = null;
             IDisposable timer = null;
             timer = _timers.Schedule(
@@ -566,17 +595,24 @@ namespace SshTool.Core.Forwarding
             TunnelStartResult outcome = FinalizeStart(instance, result);
             if (!outcome.Success)
             {
-                Log(LogLevel.Debug, "重连失败 " + outcome.Message);
+                Log(LogLevel.Debug, "reconnect failed " + outcome.MessageCode);
             }
         }
 
         // 停运行时并回 Idle（累计统计保留）。约定 ITunnelRuntime.Stop 快速返回。
-        private void StopRuntimeLocked(TunnelInstance instance, string reason)
+        private void StopRuntimeLocked(TunnelInstance instance, TunnelMessageCode code, string detail)
         {
             instance.State = TunnelStateKind.Idle;
-            instance.Message = reason ?? string.Empty;
+            SetMessageLocked(instance, code, detail);
             instance.Stats.MarkStopped();
             _runtime.Stop(instance.Config.Id);
+        }
+
+        private static void SetMessageLocked(TunnelInstance instance, TunnelMessageCode code, string detail)
+        {
+            instance.MessageCode = code;
+            instance.Message = detail ?? string.Empty;
+            instance.ReconnectDelaySeconds = 0;
         }
 
         private void CancelRetryTimerLocked(TunnelInstance instance)
@@ -626,7 +662,9 @@ namespace SshTool.Core.Forwarding
                 {
                     TunnelId = tunnelId,
                     State = instance.State,
+                    MessageCode = instance.MessageCode,
                     Message = instance.Message ?? string.Empty,
+                    ReconnectDelaySeconds = instance.ReconnectDelaySeconds,
                     RetryInSeconds = instance.RetryInSeconds,
                     Attempt = instance.Attempt,
                     Stats = instance.Stats
@@ -677,7 +715,9 @@ namespace SshTool.Core.Forwarding
 
             public Tunnel Config;
             public TunnelStateKind State = TunnelStateKind.Idle;
+            public TunnelMessageCode MessageCode;
             public string Message = string.Empty;
+            public int ReconnectDelaySeconds;
             public int Attempt;
             public int RetryInSeconds;
             public readonly TunnelStats Stats = new TunnelStats();

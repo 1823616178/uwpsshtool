@@ -1425,5 +1425,18 @@
   <data name="AppearanceEdit_SelectionButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Selection</value></data>
   <data name="Auth_PasswordWrongRetries" xml:space="preserve"><value>Wrong password. {0} attempt(s) left</value></data>
   <data name="Auth_PassphraseWrong" xml:space="preserve"><value>Wrong passphrase. Please try again</value></data>
+  <data name="Tunnel_ErrorCodeFallback" xml:space="preserve"><value>Error code {0}</value></data>
+  <data name="Tunnel_StartFailed" xml:space="preserve"><value>Failed to start</value></data>
+  <data name="Tunnel_JumpPlanInvalid" xml:space="preserve"><value>Invalid jump host chain (loop or more than 5 hops)</value></data>
+  <data name="Tunnel_HostKeyMismatch" xml:space="preserve"><value>Host key does not match the trusted record: connect to this host in a terminal to verify it first.</value></data>
+  <data name="Tunnel_NoSavedCredential" xml:space="preserve"><value>No saved credential: tunnels cannot prompt, so save the password or passphrase first.</value></data>
+  <data name="Tunnel_AuthFailedDetail" xml:space="preserve"><value>Authentication failed: {0}</value></data>
+  <data name="Tunnel_ConnectFailedDetail" xml:space="preserve"><value>Failed to connect to server: {0}</value></data>
+  <data name="Tunnel_HopPrefix" xml:space="preserve"><value>Jump host {0}: {1}</value></data>
+  <data name="Tunnel_Established" xml:space="preserve"><value>Tunnel established</value></data>
+  <data name="Tunnel_StoppedManually" xml:space="preserve"><value>Stopped manually</value></data>
+  <data name="Tunnel_ConfigDeleted" xml:space="preserve"><value>Configuration deleted</value></data>
+  <data name="Tunnel_ManagerDisposed" xml:space="preserve"><value>Tunnel service released</value></data>
+  <data name="Tunnel_ReconnectIn" xml:space="preserve"><value>{0}, reconnecting in {1}s</value></data>
 </root>
 

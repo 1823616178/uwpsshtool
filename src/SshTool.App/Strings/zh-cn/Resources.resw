@@ -1426,5 +1426,18 @@
   <data name="AppearanceEdit_SelectionButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>选区</value></data>
   <data name="Auth_PasswordWrongRetries" xml:space="preserve"><value>密码错误，还可尝试 {0} 次</value></data>
   <data name="Auth_PassphraseWrong" xml:space="preserve"><value>短语错误，请重新输入</value></data>
+  <data name="Tunnel_ErrorCodeFallback" xml:space="preserve"><value>错误码 {0}</value></data>
+  <data name="Tunnel_StartFailed" xml:space="preserve"><value>启动失败</value></data>
+  <data name="Tunnel_JumpPlanInvalid" xml:space="preserve"><value>跳板链配置无效（存在循环或超过 5 跳）</value></data>
+  <data name="Tunnel_HostKeyMismatch" xml:space="preserve"><value>主机密钥与已信任的记录不一致：请先在终端里连接该主机核实</value></data>
+  <data name="Tunnel_NoSavedCredential" xml:space="preserve"><value>没有已保存的凭据：隧道无法弹框询问，请先保存密码/短语</value></data>
+  <data name="Tunnel_AuthFailedDetail" xml:space="preserve"><value>认证失败：{0}</value></data>
+  <data name="Tunnel_ConnectFailedDetail" xml:space="preserve"><value>连接服务器失败：{0}</value></data>
+  <data name="Tunnel_HopPrefix" xml:space="preserve"><value>跳板 {0}：{1}</value></data>
+  <data name="Tunnel_Established" xml:space="preserve"><value>隧道已建立</value></data>
+  <data name="Tunnel_StoppedManually" xml:space="preserve"><value>已手动停止</value></data>
+  <data name="Tunnel_ConfigDeleted" xml:space="preserve"><value>配置已删除</value></data>
+  <data name="Tunnel_ManagerDisposed" xml:space="preserve"><value>隧道服务已释放</value></data>
+  <data name="Tunnel_ReconnectIn" xml:space="preserve"><value>{0}，{1} 秒后重连</value></data>
 </root>
 

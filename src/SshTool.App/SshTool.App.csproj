@@ -153,6 +153,7 @@
     <Compile Include="Infrastructure\LaunchRequests.cs" />
     <Compile Include="Infrastructure\InputPaneScroll.cs" />
     <Compile Include="Infrastructure\Localized.cs" />
+    <Compile Include="Infrastructure\TunnelText.cs" />
     <Compile Include="Infrastructure\ThemeRefreshHook.cs" />
     <Compile Include="Infrastructure\AppServices.cs" />
     <Compile Include="Infrastructure\DispatcherHelper.cs" />

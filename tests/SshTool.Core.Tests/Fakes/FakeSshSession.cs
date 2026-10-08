@@ -71,6 +71,8 @@ namespace SshTool.Core.Tests.Fakes
         public HostKeyInfo HostKeyOnConnect;
         public IReadOnlyList<string> KiPrompts;
         public TaskCompletionSource<SshErrorCode> ConnectHold;
+        public bool HostKeyOnJump;
+        public ISshSession LastJumpSession;
 
         public async Task<SshErrorCode> ConnectAsync(SshConnectRequest request)
         {
@@ -107,6 +109,21 @@ namespace SshTool.Core.Tests.Fakes
         {
             Calls.Add("ConnectJump");
             LastConnectRequest = request;
+            LastJumpSession = jumpSession;
+            // fix/functional-pass：opt-in——经跳板连接也走主机密钥校验（隧道跳板链用例）。
+            if (HostKeyOnJump && HostKeyOnConnect != null && HostKeyCheck != null)
+            {
+                var tcs = new TaskCompletionSource<bool>();
+                var args = new HostKeyCheckEventArgs(HostKeyOnConnect, accept => tcs.TrySetResult(accept));
+                HostKeyCheck.Invoke(this, args);
+                bool accepted = await tcs.Task.ConfigureAwait(false);
+                HostKeyDecision = accepted;
+                if (!accepted)
+                {
+                    FireStateChanged(SessionStateKind.Error, SshErrorCode.HostKeyMismatch);
+                    return SshErrorCode.HostKeyMismatch;
+                }
+            }
             if (ConnectResult != SshErrorCode.None)
             {
                 FireStateChanged(SessionStateKind.Error, ConnectResult);

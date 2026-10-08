@@ -180,7 +180,8 @@ namespace SshTool.App.ViewModels
             }
             else
             {
-                _statusMessage = status.Message ?? string.Empty;
+                // fix/functional-pass：Core 只给类别码 + 运行时原文，这里本地化。
+                _statusMessage = TunnelText.Status(status.MessageCode, status.Message, status.ReconnectDelaySeconds);
                 State = status.State;
                 if (status.Stats != null)
                 {

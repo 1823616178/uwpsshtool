@@ -160,7 +160,7 @@ namespace SshTool.App.ViewModels
                 }
 
                 var result = await mgr.StartAsync(item.Tunnel).ConfigureAwait(true);
-                if (!result.Success && !string.IsNullOrEmpty(result.Message))
+                if (!result.Success)
                 {
                     item.ApplyStatus(mgr.GetStatus(item.Id));
                 }
