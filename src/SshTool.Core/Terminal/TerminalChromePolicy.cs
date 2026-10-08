@@ -18,6 +18,12 @@ namespace SshTool.Core.Terminal
         public double WideBreakpoint { get; set; }
         // 低于该窗高（手机横屏 ≈360 epx）收起信息条，把行数让给终端。
         public double CompactHeightBreakpoint { get; set; }
+        // fix/functional-pass（P2-8）：软键盘弹出时页面可能被系统压矮（竖屏 640 − SIP ≈ 340 < 断点），
+        // 不能因此误判成「横屏矮窗」收起信息条。SIP 弹出期间按弹出前的高度判定——
+        // 仅当宽度没变（没转屏）时才可信，转屏后按当前高度。
+        public bool SipVisible { get; set; }
+        public double HeightBeforeSip { get; set; }
+        public double WidthBeforeSip { get; set; }
     }
 
     public struct TerminalChromeLayout
@@ -44,13 +50,43 @@ namespace SshTool.Core.Terminal
             }
             layout.IsWide = input.WideBreakpoint > 0 && input.Width >= input.WideBreakpoint;
             // 尚未布局（高度 0）时不判紧凑，避免首帧闪一下。
-            layout.IsCompactHeight = input.Height > 0 && input.Height < input.CompactHeightBreakpoint;
+            double height = EffectiveHeight(input);
+            layout.IsCompactHeight = height > 0 && height < input.CompactHeightBreakpoint;
             layout.ShowFindBar = input.FindOpen;
             layout.ShowInfoBar = !input.FindOpen && !layout.IsCompactHeight;
             layout.ShowCompactMenu = !input.FindOpen && layout.IsCompactHeight;
             bool keyBarDefault = input.KeyBarSetting && !input.MouseMode && !layout.IsWide;
             layout.ShowKeyBar = input.KeyBarOverride.HasValue ? input.KeyBarOverride.Value : keyBarDefault;
             return layout;
+        }
+
+        // 估算「没有 SIP 时」的页面高度：页面底边落在 SIP 顶边之上（被系统压矮让位）→ 加回遮挡高；
+        // 页面仍延伸到 SIP 下面（系统只是覆盖/上推）→ 当前高度就是完整高度。坐标均为窗口坐标。
+        public static double HeightWithoutSip(double pageTop, double pageHeight, double occludedTop, double occludedHeight)
+        {
+            if (occludedHeight <= 0 || pageHeight <= 0)
+            {
+                return pageHeight;
+            }
+            double pageBottom = pageTop + pageHeight;
+            return pageBottom <= occludedTop + SqueezeTolerance ? pageHeight + occludedHeight : pageHeight;
+        }
+
+        private const double SqueezeTolerance = 1.0;
+
+        // 判定紧凑高度用的窗高（见 TerminalChromeInput.SipVisible）。
+        public static double EffectiveHeight(TerminalChromeInput input)
+        {
+            if (input == null)
+            {
+                return 0;
+            }
+            if (input.SipVisible && input.HeightBeforeSip > input.Height
+                && System.Math.Abs(input.WidthBeforeSip - input.Width) < 1.0)
+            {
+                return input.HeightBeforeSip;
+            }
+            return input.Height;
         }
     }
 }
