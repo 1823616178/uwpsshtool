@@ -1,7 +1,7 @@
-using SshTool.App.Platform;
 using System;
 using System.Globalization;
 using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.Core.Common;
 using SshTool.Core.Hosts;
 using Windows.UI;

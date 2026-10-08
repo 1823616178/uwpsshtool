@@ -85,6 +85,8 @@
     <x:Double x:Key="SegmentHeight">40</x:Double>
     <!-- 禁用态不透明度（SegmentTabs、IconButtonStyle 的 Disabled 视觉）。 -->
     <x:Double x:Key="DisabledOpacity">0.5</x:Double>
+    <!-- ui/fix-pass：PlainRowButtonStyle 按压态内容不透明度。 -->
+    <x:Double x:Key="PressedOpacity">0.7</x:Double>
     <x:Double x:Key="KeyBarHeight">40</x:Double>
     <x:Double x:Key="KeyBarKeyMinWidth">44</x:Double>
     <Thickness x:Key="KeyBarLockedBorder">0,0,0,2</Thickness>

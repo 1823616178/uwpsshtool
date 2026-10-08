@@ -33,22 +33,16 @@
         <!-- V02（05 §6.1）：搜索行常驻（原 CommandBar 搜索按钮的职责由底栏「快速连接」取代）；
              右侧 ＋ 新建主机图标按钮，命令与底栏「新建主机」一致。
              opt/full-pass 竖屏重设计：搜索框收进圆角卡片胶囊（卡底渐变 + 发丝描边），
-             框内 TextControl 画刷就地改透明（14393+ 轻量样式覆盖），新建按钮改强调色叠层圆块。 -->
+             新建按钮改强调色叠层圆块。ui/fix-pass：框内文本框改用 PillAutoSuggestTextBoxStyle（透明无边）——
+             原先的 TextControl* 轻量覆盖在 15063 的 TextBox 模板里不生效。 -->
         <Grid Margin="{StaticResource PagePadding}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Border Style="{StaticResource PillFieldBorderStyle}">
-                <Border.Resources>
-                    <SolidColorBrush x:Key="TextControlBackground" Color="Transparent" />
-                    <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="Transparent" />
-                    <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="Transparent" />
-                    <SolidColorBrush x:Key="TextControlBorderBrush" Color="Transparent" />
-                    <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="Transparent" />
-                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="Transparent" />
-                </Border.Resources>
                 <AutoSuggestBox x:Name="SearchBox" x:Uid="Hosts_SearchBox"
+                                TextBoxStyle="{StaticResource PillAutoSuggestTextBoxStyle}"
                                 QueryIcon="Find"
                                 TextChanged="OnSearchTextChanged" />
             </Border>
@@ -62,11 +56,12 @@
         <!-- V02（05 §6.1）：快速连接默认折叠为一行，点击（或底栏「快速连接」命令）展开为表单；
              展开态记忆 hostQuickConnectExpanded。Chevron 方向跟随展开态（code-behind 赋值）。 -->
         <!-- opt/full-pass：快速连接折叠行改为强调色叠层圆角条（图标着强调色），与主机卡片同宽同圆角。 -->
-        <Grid x:Name="QuickConnectRow" x:Uid="Hosts_QuickConnectRow" Grid.Row="1"
-              Background="Transparent"
-              Margin="{StaticResource CardMargin}"
-              Tapped="OnQuickConnectRowTapped"
-              Visibility="Collapsed">
+        <!-- ui/fix-pass：Grid+Tapped 改为 Button（PlainRowButtonStyle）：可获焦、读屏报按钮、键盘可触发。 -->
+        <Button x:Name="QuickConnectRow" x:Uid="Hosts_QuickConnectRow" Grid.Row="1"
+                Style="{StaticResource PlainRowButtonStyle}"
+                Margin="{StaticResource CardMargin}"
+                Click="OnQuickConnectRowClick"
+                Visibility="Collapsed">
             <Border Background="{ThemeResource AppAccentSoftBrush}"
                     CornerRadius="{StaticResource RadiusLg}"
                     MinHeight="{StaticResource ListRowCompactHeight}"
@@ -92,7 +87,7 @@
                               VerticalAlignment="Center" />
                 </Grid>
             </Border>
-        </Grid>
+        </Button>
 
         <!-- opt/full-pass：展开表单为卡片（与主机卡片同材质）；展开时自下而上淡入。 -->
         <Border x:Name="QuickConnectCard" Grid.Row="2"

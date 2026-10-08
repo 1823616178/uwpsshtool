@@ -364,7 +364,7 @@ namespace SshTool.App.ViewModels
                     }
                 }
             }
-            Groups.Clear();
+            var incoming = new List<HostListGroup>();
             if (snap.Groups != null)
             {
                 for (int i = 0; i < snap.Groups.Count; i++)
@@ -383,9 +383,14 @@ namespace SshTool.App.ViewModels
                     {
                         group.Name = Localized.Get("Hosts_SectionUngrouped", group.Name);
                     }
-                    Groups.Add(group);
+                    // 行集合换成可观察集合，保留下来的分组才能逐行差量更新。
+                    group.Rows = new ObservableCollection<HostListRow>(group.Rows ?? new HostListRow[0]);
+                    incoming.Add(group);
                 }
             }
+            // ui/fix-pass：差量同步代替 Clear()+Add——分组头不变的分组保留旧实例，只同步其中的行；
+            // 行内容不变保留旧行（HostRow 容器不重建），变了才 Replace。状态点刷新不再让整表闪烁/重放进场动画。
+            KeyedListSync.Sync(Groups, incoming, GroupKey, HostListGroup.HeaderEquals, Groups.Move, SyncRows);
             IsEmpty = snap.IsEmpty;
             HasNoMatches = snap.HasNoMatches;
             QuickConnectTarget ignored;
@@ -393,6 +398,27 @@ namespace SshTool.App.ViewModels
             ShowQuickConnect = _settings.ShowQuickConnect;
             QuickConnectExpanded = _settings.HostQuickConnectExpanded;
             IsListVisible = !snap.IsEmpty && !snap.HasNoMatches;
+        }
+
+        private static string GroupKey(HostListGroup group)
+        {
+            return group.GroupId;
+        }
+
+        private static string RowKey(HostListRow row)
+        {
+            return row.HostId;
+        }
+
+        private static void SyncRows(HostListGroup kept, HostListGroup fresh)
+        {
+            var rows = kept.Rows as ObservableCollection<HostListRow>;
+            if (rows == null)
+            {
+                kept.Rows = fresh.Rows;
+                return;
+            }
+            KeyedListSync.Sync(rows, fresh.Rows, RowKey, HostListRow.ContentEquals, rows.Move);
         }
 
         private void QuickConnect()

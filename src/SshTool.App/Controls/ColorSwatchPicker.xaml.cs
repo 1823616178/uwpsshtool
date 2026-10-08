@@ -1,7 +1,9 @@
-using SshTool.App.Platform;
 using System;
 using System.Globalization;
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.Core.Appearance;
+using SshTool.Core.Common;
 using SshTool.Core.Validation;
 using Windows.UI;
 using Windows.UI.Xaml;
@@ -9,8 +11,6 @@ using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using SshTool.App.Infrastructure;
-using SshTool.Core.Common;
 
 namespace SshTool.App.Controls
 {

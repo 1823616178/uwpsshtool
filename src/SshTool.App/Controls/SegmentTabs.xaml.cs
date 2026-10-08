@@ -1,8 +1,8 @@
-using SshTool.App.Infrastructure;
-using SshTool.App.Platform;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using Windows.ApplicationModel.Resources;
 using Windows.UI;
 using Windows.UI.Xaml;

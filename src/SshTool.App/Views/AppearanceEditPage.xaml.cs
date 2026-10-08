@@ -1,9 +1,9 @@
-using SshTool.App.Platform;
 using System;
 using System.Globalization;
 using SshTool.App.Controls;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.App.Terminal;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;

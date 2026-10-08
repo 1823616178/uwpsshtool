@@ -1,7 +1,7 @@
-using SshTool.App.Platform;
 using System;
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using SshTool.App.ViewModels;
 using SshTool.Core.Common;
 using SshTool.Core.Terminal;

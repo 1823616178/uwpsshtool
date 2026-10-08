@@ -1,13 +1,13 @@
-using SshTool.App.Platform;
 using System;
 using System.Windows.Input;
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Automation;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Documents;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
-using SshTool.App.Infrastructure;
 
 namespace SshTool.App.Controls
 {

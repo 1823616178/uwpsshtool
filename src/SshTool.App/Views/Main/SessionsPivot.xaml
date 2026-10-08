@@ -9,7 +9,7 @@
          英文枚举名甩到屏幕上；改走转换器出中文（说法与 StatusDot 无障碍名一致）。 -->
     <UserControl.Resources>
         <local:SessionStateTextConverter x:Key="SessionStateText" />
-        <local:SessionStateBrushConverter x:Key="SessionStateBrush" />
+        <local:SessionStateDotConverter x:Key="SessionStateDot" />
     </UserControl.Resources>
 
     <Grid>
@@ -67,10 +67,11 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <Border Width="{StaticResource CardAccentStripWidth}"
-                                        CornerRadius="{StaticResource CardAccentStripRadius}"
-                                        Margin="{StaticResource CardAccentStripMargin}"
-                                        Background="{Binding State, Converter={StaticResource SessionStateBrush}}" />
+                                <!-- ui/fix-pass：状态色条（转换器一次性取画刷，换主题不刷新、只靠颜色区分）换成
+                                     StatusDot：颜色走 ThemeResource 跟随主题，连接中/重连中脉动，自带无障碍名。 -->
+                                <controls:StatusDot State="{Binding State, Converter={StaticResource SessionStateDot}}"
+                                                    Margin="{StaticResource GapMdLeft}"
+                                                    VerticalAlignment="Center" />
                                 <Border Grid.Column="1"
                                         Width="{StaticResource AvatarSize}"
                                         Height="{StaticResource AvatarSize}"
@@ -87,7 +88,7 @@
                                     <TextBlock Text="{Binding Title}" Style="{StaticResource BodyTextStyle}"
                                                TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
                                     <TextBlock Text="{Binding State, Converter={StaticResource SessionStateText}}"
-                                               Foreground="{Binding State, Converter={StaticResource SessionStateBrush}}"
+                                               Foreground="{ThemeResource AppTextDimBrush}"
                                                Style="{StaticResource CaptionTextStyle}" />
                                 </StackPanel>
                                 <!-- UI 走查：✕ 换 IconClose 字形（Segoe MDL2），补触控；无障碍名走 resw。 -->

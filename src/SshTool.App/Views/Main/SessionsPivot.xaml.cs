@@ -1,7 +1,7 @@
-using SshTool.App.Platform;
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
 using SshTool.Core.Common;
@@ -140,13 +140,16 @@ namespace SshTool.App.Views.Main
         }
     }
 
-    // opt/full-pass 竖屏重设计：会话卡片状态色条 / 状态文字颜色（键映射在 Core SessionStateVisuals）。
-    public sealed class SessionStateBrushConverter : IValueConverter
+    // ui/fix-pass：会话卡片状态 → StatusDot 形态（映射在 Core SessionStateVisuals.DotKind，按名称对应）。
+    public sealed class SessionStateDotConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             SessionUiState state = value is SessionUiState ? (SessionUiState)value : SessionUiState.Disconnected;
-            return ThemeService.ResolveBrush(SessionStateVisuals.BrushKey(state));
+            StatusDotState dot;
+            return Enum.TryParse(SessionStateVisuals.DotKind(state).ToString(), out dot)
+                ? dot
+                : StatusDotState.Disconnected;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

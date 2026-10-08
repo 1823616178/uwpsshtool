@@ -1,14 +1,14 @@
-using SshTool.App.Infrastructure;
-using SshTool.App.Platform;
 using System;
 using System.Globalization;
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
+using SshTool.Core.Common;
 using SshTool.Core.Hosts;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Media;
-using SshTool.Core.Common;
 
 namespace SshTool.App.Controls
 {

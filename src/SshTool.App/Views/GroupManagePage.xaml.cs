@@ -1,9 +1,9 @@
-using SshTool.App.Platform;
 using System;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
-using SshTool.Core.Common;
+using SshTool.App.Platform;
 using SshTool.App.ViewModels;
+using SshTool.Core.Common;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;

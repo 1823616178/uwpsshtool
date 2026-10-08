@@ -1,6 +1,6 @@
 using System;
-using System.ComponentModel;
 using System.Collections.Generic;
+using System.ComponentModel;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
@@ -8,6 +8,7 @@ using SshTool.App.ViewModels;
 using SshTool.App.Views.Debug;
 using SshTool.Core;
 using SshTool.Core.Common;
+using SshTool.Core.Hosts;
 using SshTool.Native;
 using Windows.ApplicationModel.Resources;
 using Windows.Foundation.Metadata;
@@ -31,24 +32,15 @@ namespace SshTool.App.Views
             if (ViewModel.Hosts != null)
             {
                 HostsPane.Attach(ViewModel.Hosts);
-                HostsPaneWide.Attach(ViewModel.Hosts);
-                // U12 宽屏：左侧选主机即在右侧开标签，不跳页。
-                HostsPaneWide.WorkspaceOpen = row =>
-                {
-                    WorkspaceViewModel workspace = EnsureWorkspace();
-                    if (workspace != null)
-                    {
-                        workspace.OpenHostInNewTabAsync(row.HostId).Forget("MainPage.OpenHostInNewTab", AppLog.Logger);
-                    }
-                    return true;
-                };
             }
             if (ViewModel.Sessions != null)
             {
                 SessionsPivotCtl.Attach(ViewModel.Sessions);
                 SessionsPivotCtl.ViewHostsRequested += (s, e) => MainPivot.SelectedIndex = 0;
             }
-            Workspace.Attach(EnsureWorkspace());
+            // ui/fix-pass：宽屏主从区延迟实例化（见 XAML WideGrid 注释）。
+            LayoutStates.CurrentStateChanged += OnLayoutStateChanged;
+            this.Loaded += OnPageLoaded;
             ApplyStatusBar();
             ShowLoadWarnings();
             LogBuildInfo();
@@ -62,6 +54,59 @@ namespace SshTool.App.Views
         }
 
         public MainViewModel ViewModel { get; private set; }
+
+        private bool _wideRealized;
+
+        private void OnPageLoaded(object sender, RoutedEventArgs e)
+        {
+            if (LayoutStates.CurrentState == WideState)
+            {
+                RealizeWide();
+            }
+        }
+
+        private void OnLayoutStateChanged(object sender, VisualStateChangedEventArgs e)
+        {
+            if (e.NewState == WideState)
+            {
+                RealizeWide();
+            }
+        }
+
+        // 首次进入宽屏时实例化 WideGrid 并接线（只做一次；之后的显隐仍由 WideState 的 Setter 管）。
+        private void RealizeWide()
+        {
+            if (_wideRealized)
+            {
+                return;
+            }
+            if (WideGrid == null)
+            {
+                FindName("WideGrid");
+            }
+            if (WideGrid == null || HostsPaneWide == null || Workspace == null)
+            {
+                return;
+            }
+            _wideRealized = true;
+            if (ViewModel.Hosts != null)
+            {
+                HostsPaneWide.Attach(ViewModel.Hosts);
+                // U12 宽屏：左侧选主机即在右侧开标签，不跳页。
+                HostsPaneWide.WorkspaceOpen = OpenHostInWorkspace;
+            }
+            Workspace.Attach(EnsureWorkspace());
+        }
+
+        private static bool OpenHostInWorkspace(HostListRow row)
+        {
+            WorkspaceViewModel workspace = EnsureWorkspace();
+            if (workspace != null)
+            {
+                workspace.OpenHostInNewTabAsync(row.HostId).Forget("MainPage.OpenHostInNewTab", AppLog.Logger);
+            }
+            return true;
+        }
 
         // U12：工作区单例经 ServiceRegistry 共享：切到终端页再回来 MainPage 重建，
         // 标签与窗格树不能丢（会话在 SessionManager 里，标签/树在这里）。
@@ -301,7 +346,10 @@ namespace SshTool.App.Views
         // U12：宽屏主机列表折叠（§5.7 SplitView Inline）。
         private void OnPaneToggleClick(object sender, RoutedEventArgs e)
         {
-            WideSplit.IsPaneOpen = !WideSplit.IsPaneOpen;
+            if (WideSplit != null)
+            {
+                WideSplit.IsPaneOpen = !WideSplit.IsPaneOpen;
+            }
         }
 
         private void OnSyncClick(object sender, RoutedEventArgs e)

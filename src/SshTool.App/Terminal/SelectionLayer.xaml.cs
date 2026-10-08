@@ -1,5 +1,5 @@
-using SshTool.App.Platform;
 using System;
+using SshTool.App.Platform;
 using SshTool.Core.Terminal;
 using Windows.Foundation;
 using Windows.UI.Xaml;
