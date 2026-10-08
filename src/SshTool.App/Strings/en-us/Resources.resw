@@ -487,6 +487,8 @@
   <data name="Main_NewButton.Label" xml:space="preserve"><value>New</value></data>
   <data name="Main_AboutItem.Label" xml:space="preserve"><value>About</value></data>
   <data name="Main_SignInItem.Label" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Main_SignInItemText" xml:space="preserve"><value>Sign in</value></data>
+  <data name="Main_AccountItemText" xml:space="preserve"><value>Account &amp; sync</value></data>
   <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>Developer tools</value></data>
   <data name="Main_LoadWarningTitle" xml:space="preserve"><value>Data file warnings</value></data>
   <data name="Main_SecretsIssue_ContentCorruptQuarantined" xml:space="preserve"><value>Saved credentials were damaged and moved aside; re-enter passwords and passphrases</value></data>
