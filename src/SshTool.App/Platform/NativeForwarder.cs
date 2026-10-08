@@ -215,7 +215,7 @@ namespace SshTool.App.Platform
                         {
                             Code = SshErrorCode.UnknownHostKey,
                             Message = Localized.Get("Tunnel_UnknownHostKey",
-                                "未知主机密钥：请先在终端里连接该主机并确认信任，再启动隧道")
+                                "Unknown host key: connect to this host in a terminal and trust it first.")
                         };
                     }
                     return new TunnelRuntimeStartResult

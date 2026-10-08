@@ -70,7 +70,7 @@ namespace SshTool.App.Platform
                     {
                         // 评审（PR #1）：DNS/连接/TLS 握手阶段失败——请求必然没发出去，
                         // 标记出来，ApiClient 才允许在 https→http 回退后重发非幂等请求。
-                        throw new HttpConnectionFailedException("连接阶段失败（请求未发出）", ex);
+                        throw new HttpConnectionFailedException("connect phase failed (request not sent)", ex);
                     }
                 }
                 using (response)
