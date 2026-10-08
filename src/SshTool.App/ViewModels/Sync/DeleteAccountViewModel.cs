@@ -4,6 +4,7 @@ using SshTool.App.Infrastructure;
 using SshTool.Core.Common;
 using SshTool.Core.Mvvm;
 using SshTool.Core.Sync;
+using SshTool.Core.Sync.Auth;
 using Windows.ApplicationModel.Resources;
 
 namespace SshTool.App.ViewModels.Sync
@@ -88,14 +89,11 @@ namespace SshTool.App.ViewModels.Sync
             private set { SetProperty(ref _succeeded, value); }
         }
 
+        // fix/auth-audit：只在执行中 / 已成功时禁用。此前密码为空或确认词不完全等于 "DELETE"
+        // （输入法常自动补尾随空格）时按钮静默变灰；现在由 AccountFormValidator 给出具体提示。
         private bool CanSubmit()
         {
-            if (_isBusy || _succeeded || _sync == null)
-            {
-                return false;
-            }
-            return !string.IsNullOrEmpty(_password)
-                && string.Equals(_confirmText, "DELETE", StringComparison.Ordinal);
+            return !_isBusy && !_succeeded;
         }
 
         private async Task SubmitAsync()
@@ -103,6 +101,12 @@ namespace SshTool.App.ViewModels.Sync
             if (_sync == null)
             {
                 ShowError("Vault_SyncUnavailable");
+                return;
+            }
+            string invalidKey = AccountFormValidator.ValidateDeleteAccount(_password, _confirmText);
+            if (invalidKey != null)
+            {
+                ShowError(invalidKey);
                 return;
             }
             ErrorMessage = null;
@@ -119,13 +123,21 @@ namespace SshTool.App.ViewModels.Sync
             {
                 IsBusy = false;
                 LogWarning("delete account failed " + ex.GetType().Name);
-                ShowError(DescribeError(ex));
+                ShowText(DescribeError(ex));
             }
         }
 
         private string DescribeError(Exception ex)
         {
             return VaultErrorText.Describe(ex, _loader);
+        }
+
+        // 已本地化的文案直接显示（此前把文案当 resw 键再查一遍，靠查不到时的回退才显示出来）。
+        private void ShowText(string text)
+        {
+            ErrorMessage = string.IsNullOrWhiteSpace(text) ? GetString("DeleteAccount_Failed", "DeleteAccount_Failed") : text;
+            RaisePropertyChanged("HasError");
+            RaisePropertyChanged("ErrorMessage");
         }
 
         private void ShowError(string errorKey)

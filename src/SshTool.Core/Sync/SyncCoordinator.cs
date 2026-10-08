@@ -98,6 +98,7 @@ namespace SshTool.Core.Sync
         // S13：重试退避与防抖定时（复用 SessionManager 的 ITimerFactory，见 §7.4/§7.3）。
         // 未注入时用 Task.Delay 内建实现（单测默认）；生产由 S14 注入 DispatcherTimerFactory。
         private readonly ITimerFactory _timers;
+        private readonly ILastDeviceStore _lastDevice;
         private readonly object _timerLock = new object();
         private IDisposable _debounceTimer;
         private IDisposable _retryTimer;
@@ -126,7 +127,8 @@ namespace SshTool.Core.Sync
             Func<string> newGuid = null,
             ISyncLocalPort local = null,
             Func<long, Task> sleep = null,
-            ITimerFactory timers = null)
+            ITimerFactory timers = null,
+            ILastDeviceStore lastDevice = null)
         {
             if (auth == null)
             {
@@ -159,6 +161,7 @@ namespace SshTool.Core.Sync
             _local = local;
             _sleep = sleep ?? (ms => Task.Delay((int)ms));
             _timers = timers ?? new TaskDelayTimerFactory();
+            _lastDevice = lastDevice;
             lock (_stateLock)
             {
                 // O15：构建状态只需元数据，不克隆文档。
@@ -193,6 +196,8 @@ namespace SshTool.Core.Sync
             await _vault.BindToUserAsync(session.Authenticated ? session.UserId : null).ConfigureAwait(false);
             // O15：重建状态只需元数据，不克隆文档。
             ApplySessionState(_auth.Session, _vault.CloneWithoutDocuments());
+            // fix/auth-audit：已登录（含升级前登录的会话）就记下本机设备，下次重新登录时可撤销它。
+            RememberDevice(_auth.Session);
             if (_auth.Session.Authenticated && _vault.ReadVaultId() == null)
             {
                 await ProbeVaultSafelyAsync(cancellationToken).ConfigureAwait(false);
@@ -268,6 +273,7 @@ namespace SshTool.Core.Sync
             var descriptor = _devices.GetDescriptor(deviceName);
             await _api.RegisterAsync(email, password, inviteCode, descriptor, cancellationToken)
                 .ConfigureAwait(false);
+            await RetirePreviousDeviceAsync(cancellationToken).ConfigureAwait(false);
             await AfterAuthenticatedAsync(cancellationToken).ConfigureAwait(false);
             Info("注册成功");
             return _auth.Session;
@@ -286,6 +292,7 @@ namespace SshTool.Core.Sync
             EnsureNotSignedIn();
             var descriptor = _devices.GetDescriptor(deviceName);
             await _api.LoginAsync(email, password, descriptor, cancellationToken).ConfigureAwait(false);
+            await RetirePreviousDeviceAsync(cancellationToken).ConfigureAwait(false);
             await AfterAuthenticatedAsync(cancellationToken).ConfigureAwait(false);
             Info("登录成功");
             return _auth.Session;
@@ -536,6 +543,7 @@ namespace SshTool.Core.Sync
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var session = _auth.Session;
+            bool clearLocal = true;
             try
             {
                 if (session.Authenticated)
@@ -543,6 +551,8 @@ namespace SshTool.Core.Sync
                     if (all)
                     {
                         await _api.LogoutAllAsync(cancellationToken).ConfigureAwait(false);
+                        // 所有设备记录都已撤销，不必再记着本机旧记录。
+                        ForgetDevice();
                     }
                     else
                     {
@@ -551,20 +561,48 @@ namespace SshTool.Core.Sync
                 }
                 Info("已退出登录");
             }
+            catch (Exception ex) when (all && ShouldKeepSessionAfterLogoutAllFailure(ex))
+            {
+                // fix/auth-audit：「退出所有设备」没送达服务端（离线/超时/5xx）时保留本机登录并上抛。
+                // 此前照样清掉本机——界面回到登录页，用户以为其他设备都已下线，实际它们仍可同步；
+                // 本机也失去了重试的会话。单设备退出仍按原语义：失败也清本地。
+                clearLocal = false;
+                Warn("退出所有设备失败，保留本机登录以便重试 " + ex.GetType().Name);
+                throw;
+            }
             finally
             {
-                // 服务端失败也清本地（patchState 必须在 finally 内：失败时状态同样回到 signed_out）。
-                await _auth.ClearAsync().ConfigureAwait(false);
-                await _vault.LockAsync().ConfigureAwait(false);
-                // O15：只读 VaultId 标量，不克隆文档。
-                string logoutVaultId = _vault.ReadVaultId();
-                PatchState(next =>
+                if (clearLocal)
                 {
-                    next.Phase = SyncPhase.SignedOut;
-                    next.Vault = logoutVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
-                    SetMessage(next, SyncMessageCode.None);
-                });
+                    await ClearLocalAfterLogoutAsync().ConfigureAwait(false);
+                }
             }
+        }
+
+        // 已无会话（终端鉴权错误时 ApiClient 已清）就没什么可保留的；其余失败保留会话。
+        private bool ShouldKeepSessionAfterLogoutAllFailure(Exception error)
+        {
+            if (!_auth.Session.Authenticated)
+            {
+                return false;
+            }
+            var apiError = error as ApiError;
+            return apiError == null || !IsTerminalAuthError(apiError);
+        }
+
+        // 服务端失败也清本地（由 LogoutAsync 的 finally 调用：失败时状态同样回到 signed_out）。
+        private async Task ClearLocalAfterLogoutAsync()
+        {
+            await _auth.ClearAsync().ConfigureAwait(false);
+            await _vault.LockAsync().ConfigureAwait(false);
+            // O15：只读 VaultId 标量，不克隆文档。
+            string logoutVaultId = _vault.ReadVaultId();
+            PatchState(next =>
+            {
+                next.Phase = SyncPhase.SignedOut;
+                next.Vault = logoutVaultId != null ? VaultStatus.Locked : VaultStatus.Missing;
+                SetMessage(next, SyncMessageCode.None);
+            });
         }
 
         // §7.1 ChangeAccountPassword：成功后清本地（用新密码重登），失败不清。
@@ -597,6 +635,7 @@ namespace SshTool.Core.Sync
         {
             RequireCredential(currentPassword, nameof(currentPassword));
             await _api.DeleteAccountAsync(currentPassword, cancellationToken).ConfigureAwait(false);
+            ForgetDevice();
             await _auth.ClearAsync().ConfigureAwait(false);
             await _vault.ClearAsync().ConfigureAwait(false);
             PatchState(next =>
@@ -616,6 +655,112 @@ namespace SshTool.Core.Sync
         }
 
         // ---------- 内部流程 ----------
+
+        // fix/auth-audit：登录 / 注册成功后撤销本机上一条设备记录（同一账号、不同设备 id 时）。
+        // 先记下新设备再撤销旧的：撤销失败（离线、已被撤销 DEVICE_NOT_FOUND 等）只记警告，
+        // 绝不影响本次登录；该条旧记录不再重试（最多漏一条，不会再无限堆积）。
+        internal async Task RetirePreviousDeviceAsync(CancellationToken cancellationToken)
+        {
+            if (_lastDevice == null)
+            {
+                return;
+            }
+            var session = _auth.Session;
+            if (!session.Authenticated)
+            {
+                return;
+            }
+            string previousUser;
+            string previousDevice;
+            bool hadPrevious = TryDecodeDevice(ReadDeviceRecord(), out previousUser, out previousDevice);
+            RememberDevice(session);
+            if (!hadPrevious
+                || !string.Equals(previousUser, session.UserId, StringComparison.Ordinal)
+                || string.Equals(previousDevice, session.DeviceId, StringComparison.Ordinal))
+            {
+                return;
+            }
+            try
+            {
+                await _api.DeleteDeviceAsync(previousDevice, cancellationToken).ConfigureAwait(false);
+                Info("已撤销本机上一次登录留下的设备记录");
+            }
+            catch (Exception ex)
+            {
+                var apiError = ex as ApiError;
+                Warn("撤销本机旧设备记录失败 " + (apiError != null && apiError.Code != null
+                    ? apiError.Code
+                    : ex.GetType().Name));
+            }
+        }
+
+        private void RememberDevice(AuthState session)
+        {
+            if (_lastDevice == null || session == null || !session.Authenticated
+                || string.IsNullOrEmpty(session.UserId) || string.IsNullOrEmpty(session.DeviceId))
+            {
+                return;
+            }
+            WriteDeviceRecord(EncodeDevice(session.UserId, session.DeviceId));
+        }
+
+        private void ForgetDevice()
+        {
+            if (_lastDevice != null)
+            {
+                WriteDeviceRecord(null);
+            }
+        }
+
+        private string ReadDeviceRecord()
+        {
+            try
+            {
+                return _lastDevice.Read();
+            }
+            catch (Exception ex)
+            {
+                Warn("读取本机设备记录失败 " + ex.GetType().Name);
+                return null;
+            }
+        }
+
+        private void WriteDeviceRecord(string value)
+        {
+            try
+            {
+                _lastDevice.Write(value);
+            }
+            catch (Exception ex)
+            {
+                Warn("写入本机设备记录失败 " + ex.GetType().Name);
+            }
+        }
+
+        private const char DeviceRecordSeparator = '\n';
+
+        internal static string EncodeDevice(string userId, string deviceId)
+        {
+            return userId + DeviceRecordSeparator + deviceId;
+        }
+
+        internal static bool TryDecodeDevice(string value, out string userId, out string deviceId)
+        {
+            userId = null;
+            deviceId = null;
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+            int split = value.IndexOf(DeviceRecordSeparator);
+            if (split <= 0 || split >= value.Length - 1)
+            {
+                return false;
+            }
+            userId = value.Substring(0, split);
+            deviceId = value.Substring(split + 1);
+            return true;
+        }
 
         private async Task AfterAuthenticatedAsync(CancellationToken cancellationToken)
         {

@@ -20,6 +20,32 @@ namespace SshTool.Core.Sync
             return new SyncStatePresenter().DetermineScreen(auth, state);
         }
 
+        // fix/auth-audit：登录页是否要说明「为什么回到了这里」。被动登出（会话被服务端吊销 /
+        // 过期 / 本机被撤销 / 其他设备改了密码等终端鉴权错误）与本机修改登录密码之后，此前登录页
+        // 只是一张空表单，用户不知道发生了什么。主动退出登录（MessageCode=None）不提示。
+        public static bool ShouldShowSignedOutNotice(SyncState state)
+        {
+            if (state == null)
+            {
+                return false;
+            }
+            if (state.MessageCode == SyncMessageCode.LoginPasswordChanged)
+            {
+                return true;
+            }
+            if (state.Phase == SyncPhase.AuthError)
+            {
+                return true;
+            }
+            // 刷新失败时 ApiClient 先清了会话，HandleSyncError 随后落到 signed_out + 该鉴权错误。
+            if (state.Phase == SyncPhase.SignedOut && state.MessageCode == SyncMessageCode.Error)
+            {
+                var api = state.MessageError as SshTool.Core.Sync.Api.ApiError;
+                return api != null && api.Status == 401;
+            }
+            return false;
+        }
+
         // 目标就是当前页时不导航：同页重入会在 OnNavigatedTo 里再次判定并再次导航，形成循环。
         // current 为 null 表示当前页不属于同步流程（主页、设置页等），总是导航。
         public static bool ShouldNavigate(SyncScreenKind? current, SyncScreenKind target)

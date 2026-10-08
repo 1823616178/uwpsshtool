@@ -103,15 +103,11 @@ namespace SshTool.App.ViewModels.Sync
             private set { SetProperty(ref _succeeded, value); }
         }
 
+        // fix/auth-audit：只在执行中 / 已成功时禁用。此前任一字段为空就静默禁用按钮，
+        // 真机上禁用态不显眼、点了毫无反馈；现在由 AccountFormValidator 给出具体提示。
         private bool CanSubmit()
         {
-            if (_isBusy || _succeeded)
-            {
-                return false;
-            }
-            return !string.IsNullOrEmpty(_currentPassword)
-                && !string.IsNullOrEmpty(_newPassword)
-                && !string.IsNullOrEmpty(_confirmPassword);
+            return !_isBusy && !_succeeded;
         }
 
         private async Task SubmitAsync()
@@ -121,14 +117,11 @@ namespace SshTool.App.ViewModels.Sync
                 ShowError("Vault_SyncUnavailable");
                 return;
             }
-            if (_newPassword.Length < LoginFormValidator.MinRegisterPasswordLength)
+            string invalidKey = AccountFormValidator.ValidateChangePassword(
+                _currentPassword, _newPassword, _confirmPassword);
+            if (invalidKey != null)
             {
-                ShowError("ChangeLogin_TooShort");
-                return;
-            }
-            if (!string.Equals(_newPassword, _confirmPassword, StringComparison.Ordinal))
-            {
-                ShowError("Login_PasswordMismatch");
+                ShowError(invalidKey);
                 return;
             }
             ErrorMessage = null;
@@ -146,13 +139,21 @@ namespace SshTool.App.ViewModels.Sync
             {
                 IsBusy = false;
                 LogWarning("change login password failed " + ex.GetType().Name);
-                ShowError(DescribeError(ex));
+                ShowText(DescribeError(ex));
             }
         }
 
         private string DescribeError(Exception ex)
         {
             return VaultErrorText.Describe(ex, _loader);
+        }
+
+        // 已本地化的文案直接显示（此前把文案当 resw 键再查一遍，靠查不到时的回退才显示出来）。
+        private void ShowText(string text)
+        {
+            ErrorMessage = string.IsNullOrWhiteSpace(text) ? GetString("ChangeLogin_Failed", "ChangeLogin_Failed") : text;
+            RaisePropertyChanged("HasError");
+            RaisePropertyChanged("ErrorMessage");
         }
 
         private void ShowError(string errorKey)

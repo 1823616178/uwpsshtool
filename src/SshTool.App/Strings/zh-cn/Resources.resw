@@ -799,7 +799,7 @@
   <data name="Sync_Msg_ConflictInitialImport" xml:space="preserve"><value>已解锁云端配置，请选择首次同步方式</value></data>
   <data name="Sync_Msg_ConflictRemoteDeletion" xml:space="preserve"><value>云端包含删除操作，请确认后再应用</value></data>
   <data name="Sync_Msg_ConflictGeneric" xml:space="preserve"><value>检测到需要确认的同步冲突</value></data>
-  <data name="Sync_Err_SyncPasswordWrong" xml:space="preserve"><value>同步密码不正确</value></data>
+  <data name="Sync_Err_SyncPasswordWrong" xml:space="preserve"><value>同步密码不正确（同步密码是创建保险库时设置的，不是登录密码）</value></data>
   <data name="Sync_Err_RecoveryKeyInvalid" xml:space="preserve"><value>恢复密钥无效</value></data>
   <data name="Sync_Err_RotateRequired" xml:space="preserve"><value>关闭敏感同步需要执行密钥轮换，请在“安全清理”流程中输入账号密码</value></data>
   <data name="Sync_Err_SignInRequired" xml:space="preserve"><value>请先登录</value></data>
@@ -902,7 +902,7 @@
   <!-- ChangeLoginPasswordPage (U20) -->
   <data name="ChangeLogin_Header.Title" xml:space="preserve"><value>修改登录密码</value></data>
   <data name="ChangeLogin_Section_Password.Header" xml:space="preserve"><value>修改密码</value></data>
-  <data name="ChangeLogin_CurrentLabel.Text" xml:space="preserve"><value>当前密码</value></data>
+  <data name="ChangeLogin_CurrentLabel.Text" xml:space="preserve"><value>当前登录密码</value></data>
   <data name="ChangeLogin_NewLabel.Text" xml:space="preserve"><value>新密码</value></data>
   <data name="ChangeLogin_NewHint.Text" xml:space="preserve"><value>新密码至少 10 位</value></data>
   <data name="ChangeLogin_ConfirmLabel.Text" xml:space="preserve"><value>确认新密码</value></data>
@@ -1102,7 +1102,7 @@
   <data name="SessionsPivot_Restore" xml:space="preserve"><value>上次未关闭 {0} 个会话</value></data>
   <data name="ShortcutEditor_Conflict" xml:space="preserve"><value>冲突：{0} 被两个动作使用</value></data>
   <data name="AccountSync_Title" xml:space="preserve"><value>账号与同步</value></data>
-  <data name="ChangeLoginPassword_Explanation" xml:space="preserve"><value>修改密码后需要重新登录。</value></data>
+  <data name="ChangeLoginPassword_Explanation" xml:space="preserve"><value>修改后所有设备（包括本机）都会退出登录，需要用新密码重新登录。同步密码不受影响。</value></data>
   <data name="SyncConflict_Title" xml:space="preserve"><value>同步冲突</value></data>
   <data name="SyncConflict_Empty" xml:space="preserve"><value>暂无待处理的冲突</value></data>
   <data name="SyncConflict_UpdatedBoth" xml:space="preserve"><value>云端更新于 {0} · 本机更新于 {1}</value></data>
@@ -1485,5 +1485,12 @@
   <data name="Tunnel_ConfigDeleted" xml:space="preserve"><value>配置已删除</value></data>
   <data name="Tunnel_ManagerDisposed" xml:space="preserve"><value>隧道服务已释放</value></data>
   <data name="Tunnel_ReconnectIn" xml:space="preserve"><value>{0}，{1} 秒后重连</value></data>
+  <!-- fix/auth-audit -->
+  <data name="Api_VALIDATION_ERROR_Detail" xml:space="preserve"><value>请求参数无效：{0}</value></data>
+  <data name="AccountSync_LoggingOut" xml:space="preserve"><value>正在退出登录…</value></data>
+  <data name="ChangeLogin_CurrentRequired" xml:space="preserve"><value>请输入当前登录密码</value></data>
+  <data name="ChangeLogin_NewRequired" xml:space="preserve"><value>请输入新密码</value></data>
+  <data name="DeleteAccount_PasswordRequired" xml:space="preserve"><value>请输入登录密码</value></data>
+  <data name="DeleteAccount_ConfirmRequired" xml:space="preserve"><value>请输入 DELETE（大写）以确认</value></data>
 </root>
 

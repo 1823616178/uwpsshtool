@@ -57,7 +57,32 @@ namespace SshTool.App.Views.Sync
             }
             ViewModel.PropertyChanged += OnViewModelChanged;
             ViewModel.LoginSucceeded += OnLoginSucceeded;
+            ShowSignedOutNotice();
             RefreshMode();
+        }
+
+        // fix/auth-audit：会话被服务端吊销 / 过期、或刚修改了登录密码时，说明为什么回到了登录页
+        // （此前只是一张空表单）。判定在 Core（SyncRouting.ShouldShowSignedOutNotice，有单测）。
+        private void ShowSignedOutNotice()
+        {
+            try
+            {
+                AppServices services = AppServices.Current;
+                if (services == null || services.Sync == null)
+                {
+                    return;
+                }
+                SyncState state = services.Sync.State;
+                if (!SyncRouting.ShouldShowSignedOutNotice(state))
+                {
+                    return;
+                }
+                ViewModel.ShowNotice(SyncText.StateMessage(state, _loader));
+            }
+            catch (Exception)
+            {
+                // 提示是锦上添花：取不到状态 / 文案时照常显示登录表单。
+            }
         }
 
         protected override void OnNavigatedFrom(NavigationEventArgs e)
@@ -249,6 +274,9 @@ namespace SshTool.App.Views.Sync
 
         private void OnLoginSucceeded(object sender, EventArgs e)
         {
+            // fix/auth-audit：登录已成功，清掉输入框里的密码再离开。
+            PasswordBox.Password = string.Empty;
+            ConfirmBox.Password = string.Empty;
             // 路由器拒绝导航（只会在同步栈缺失 / 会话与登录结果不一致时发生）不能静默：
             // 抛出后由 LoginViewModel.RaiseSucceeded 兜住并显示通用失败文案。
             if (!GoStatusPlaceholder())

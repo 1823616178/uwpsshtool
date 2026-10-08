@@ -13,6 +13,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -20,7 +21,34 @@
                                 ShowBackButton="True"
                                 BackRequested="OnBackRequested" />
 
-        <Grid Grid.Row="1">
+        <!-- fix/auth-audit：错误条放在页头下方、Pivot 之外——设备 / 历史页签上的失败
+             （改名、撤销、恢复、清空）此前写进状态页签底部的文本，切到别的页签根本看不到。 -->
+        <Border x:Name="ErrorPanel" Grid.Row="1"
+                Background="{ThemeResource AppSurfaceAltBrush}"
+                BorderBrush="{ThemeResource AppDangerBrush}"
+                BorderThickness="{StaticResource BorderThinBottom}"
+                Padding="{StaticResource PadInlineError}"
+                Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <FontIcon Glyph="{StaticResource IconError}"
+                          FontSize="{StaticResource FontSubtitle}"
+                          Foreground="{ThemeResource AppDangerBrush}"
+                          VerticalAlignment="Top" />
+                <TextBlock x:Name="ErrorText" Grid.Column="1"
+                           Foreground="{ThemeResource AppDangerBrush}"
+                           Style="{StaticResource BodyTextStyle}"
+                           TextWrapping="Wrap"
+                           IsTextSelectionEnabled="True"
+                           AutomationProperties.LiveSetting="Assertive"
+                           Margin="{StaticResource GapSmLeft}" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2">
             <Grid.ChildrenTransitions>
                 <TransitionCollection>
                     <EntranceThemeTransition />
@@ -170,13 +198,6 @@
                                 </StackPanel>
                             </controls:FormSection.SectionContent>
                         </controls:FormSection>
-
-                        <TextBlock x:Name="ErrorText"
-                                   Foreground="{ThemeResource AppDangerBrush}"
-                                   Style="{StaticResource CaptionTextStyle}"
-                                   Margin="{StaticResource GapMdTop}"
-                                   TextWrapping="Wrap"
-                                   Visibility="Collapsed" />
                     </StackPanel>
                 </ScrollViewer>
             </PivotItem>
@@ -245,5 +266,7 @@
             </PivotItem>
         </Pivot>
         </Grid>
+
+        <controls:LoadingOverlay x:Name="Working" Grid.RowSpan="3" />
     </Grid>
 </Page>

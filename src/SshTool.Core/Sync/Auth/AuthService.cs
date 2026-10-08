@@ -166,9 +166,23 @@ namespace SshTool.Core.Sync.Auth
             {
                 throw new ArgumentException("设备名称不能为空", nameof(name));
             }
-            await _api.RenameDeviceAsync(deviceId, name, cancellationToken).ConfigureAwait(false);
+            // fix/auth-audit：去掉首尾空白并截到服务端上限（超长会被拒为 VALIDATION_ERROR）。
+            string trimmed = name.Trim();
+            if (trimmed.Length > MaxDeviceNameLength)
+            {
+                int cut = char.IsHighSurrogate(trimmed[MaxDeviceNameLength - 1])
+                    ? MaxDeviceNameLength - 1
+                    : MaxDeviceNameLength;
+                trimmed = trimmed.Substring(0, cut).TrimEnd();
+            }
+            await _api.RenameDeviceAsync(deviceId, trimmed, cancellationToken).ConfigureAwait(false);
+            // 改的是本机：同步本地会话里的设备名，状态页不再显示旧名字。
+            await _store.UpdateDeviceNameAsync(deviceId, trimmed).ConfigureAwait(false);
             Info("设备已改名");
         }
+
+        // 与 api-v1 设备名校验上限一致（UwpDeviceDescriptorProvider.MaxNameLength 同值）。
+        public const int MaxDeviceNameLength = 255;
 
         // 拒绝撤销本机（与桌面端 revokeDevice 一致：本机请用退出登录）。
         public async Task RevokeDeviceAsync(

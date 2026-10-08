@@ -15,11 +15,35 @@ namespace SshTool.Core.Sync.Auth
         public const string UnexpectedKey = "Login_UnexpectedError";
         public const string HttpFallbackRetryKey = "Login_HttpFallbackRetry";
 
+        // fix/auth-audit：VALIDATION_ERROR 带上服务端给出的具体原因（如「请输入有效邮箱」）。
+        public const string ValidationDetailKey = "Api_VALIDATION_ERROR_Detail";
+
+        // 服务端原因过长时不拼接（防止把整段诊断信息塞进错误条）。
+        public const int MaxServerDetailLength = 120;
+
         public static readonly string[] AllKeys = new string[]
         {
             UnexpectedKey,
             HttpFallbackRetryKey,
+            ValidationDetailKey,
         };
+
+        // VALIDATION_ERROR 且服务端给了非空、长度合理的 message 时返回它（去首尾空白），否则 null。
+        public static string ValidationDetail(ApiError api)
+        {
+            if (api == null
+                || !api.MessageFromServer
+                || !string.Equals(api.Code, ApiErrorCatalog.ValidationError, StringComparison.Ordinal))
+            {
+                return null;
+            }
+            string detail = (api.Message ?? string.Empty).Trim();
+            if (detail.Length == 0 || detail.Length > MaxServerDetailLength)
+            {
+                return null;
+            }
+            return detail;
+        }
 
         // 返回需要直接显示的 resw 键；null 表示交给 ApiError / SyncOperationException 的既有映射。
         public static string OverrideKey(Exception ex)

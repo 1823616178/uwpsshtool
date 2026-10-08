@@ -10,6 +10,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -17,7 +18,34 @@
                                 ShowBackButton="True"
                                 BackRequested="OnBackRequested" />
 
-        <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
+        <!-- fix/auth-audit：错误条在页头下方（始终可见）。此前错误文本在表单底部，
+             软键盘弹出时被挡住，提交失败看起来像没反应。 -->
+        <Border x:Name="ErrorPanel" Grid.Row="1"
+                Background="{ThemeResource AppSurfaceAltBrush}"
+                BorderBrush="{ThemeResource AppDangerBrush}"
+                BorderThickness="{StaticResource BorderThinBottom}"
+                Padding="{StaticResource PadInlineError}"
+                Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <FontIcon Glyph="{StaticResource IconError}"
+                          FontSize="{StaticResource FontSubtitle}"
+                          Foreground="{ThemeResource AppDangerBrush}"
+                          VerticalAlignment="Top" />
+                <TextBlock x:Name="ErrorText" Grid.Column="1"
+                           Foreground="{ThemeResource AppDangerBrush}"
+                           Style="{StaticResource BodyTextStyle}"
+                           TextWrapping="Wrap"
+                           IsTextSelectionEnabled="True"
+                           AutomationProperties.LiveSetting="Assertive"
+                           Margin="{StaticResource GapSmLeft}" />
+            </Grid>
+        </Border>
+
+        <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="2">
             <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
@@ -41,21 +69,19 @@
                                        Style="{StaticResource BodyTextStyle}" />
                             <PasswordBox x:Name="PasswordBox" x:Uid="DeleteAccount_PasswordBox"
                                          Margin="{StaticResource GapSmTop}"
-                                         PasswordChanged="OnPasswordChanged" />
+                                         PasswordChanged="OnPasswordChanged"
+                                         KeyDown="OnPasswordKeyDown" />
 
                             <TextBlock x:Uid="DeleteAccount_ConfirmLabel"
                                        Style="{StaticResource BodyTextStyle}"
                                        Margin="{StaticResource GapMdTop}" />
                             <TextBox x:Name="ConfirmBox" x:Uid="DeleteAccount_ConfirmBox"
                                      Margin="{StaticResource GapSmTop}"
-                                     TextChanged="OnConfirmChanged" />
+                                     IsSpellCheckEnabled="False"
+                                     IsTextPredictionEnabled="False"
+                                     TextChanged="OnConfirmChanged"
+                                     KeyDown="OnConfirmKeyDown" />
 
-                            <TextBlock x:Name="ErrorText"
-                                       Foreground="{ThemeResource AppDangerBrush}"
-                                       Style="{StaticResource BodyTextStyle}"
-                                       Margin="{StaticResource GapSmTop}"
-                                       TextWrapping="Wrap"
-                                       Visibility="Collapsed" />
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
@@ -63,12 +89,12 @@
         </ScrollViewer>
 
         <!-- 底部固定操作条：主操作（注销账号） -->
-        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="3"
                                   PrimaryButtonStyle="{StaticResource DangerButtonStyle}"
                                   PrimaryClick="OnSubmitClick" />
 
         <Grid x:Name="BusyOverlay"
-              Grid.RowSpan="3"
+              Grid.RowSpan="4"
               Background="{ThemeResource AppBgBrush}"
               Visibility="Collapsed">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">

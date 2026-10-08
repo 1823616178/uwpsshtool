@@ -36,6 +36,7 @@ namespace SshTool.App.ViewModels.Sync
         private bool _isLoadingDevices;
         private bool _isLoadingHistory;
         private string _errorMessage = string.Empty;
+        private bool _isLoggingOut;
 
         public AccountSyncViewModel(SyncCoordinator sync, AuthService auth)
         {
@@ -203,6 +204,14 @@ namespace SshTool.App.ViewModels.Sync
             get { return !string.IsNullOrEmpty(_errorMessage); }
         }
 
+        // fix/auth-audit：退出登录 / 退出所有设备进行中（服务端无响应时最长等到请求超时）。
+        // 此前页面没有任何忙碌提示，用户以为没点上会反复点。
+        public bool IsLoggingOut
+        {
+            get { return _isLoggingOut; }
+            private set { SetProperty(ref _isLoggingOut, value); }
+        }
+
         // ---------------- 设备与历史（U18） ----------------
 
         public ObservableCollection<DeviceRow> Devices { get; private set; }
@@ -244,7 +253,7 @@ namespace SshTool.App.ViewModels.Sync
                 : _state.Preferences.Clone();
             next.Enabled = value;
             next.AutoSync = value && next.AutoSync;
-            return RunSafe("SetPreferences", () => _sync.SetPreferencesAsync(next));
+            return RunSafe("SetPreferences", () => _sync.SetPreferencesAsync(next), onFailed: RefreshAll);
         }
 
         public Task SetAutoSyncAsync(bool value)
@@ -257,7 +266,7 @@ namespace SshTool.App.ViewModels.Sync
                 ? SyncPreferences.Defaults()
                 : _state.Preferences.Clone();
             next.AutoSync = value;
-            return RunSafe("SetPreferences", () => _sync.SetPreferencesAsync(next));
+            return RunSafe("SetPreferences", () => _sync.SetPreferencesAsync(next), onFailed: RefreshAll);
         }
 
         // 同步密码开关：开→关必须走 U20 安全清理（轮换密钥），此处触发事件；关→开直接写入。
@@ -277,7 +286,8 @@ namespace SshTool.App.ViewModels.Sync
                 ? SyncPreferences.Defaults()
                 : _state.Preferences.Clone();
             next.SyncPasswords = true;
-            RunSafe("SetPreferences", () => _sync.SetPreferencesAsync(next)).Forget("AccountSyncViewModel.SetPreferences", AppLog.Logger);
+            RunSafe("SetPreferences", () => _sync.SetPreferencesAsync(next), onFailed: RefreshAll)
+                .Forget("AccountSyncViewModel.SetPreferences", AppLog.Logger);
         }
 
         // ---------------- 路由 ----------------
@@ -307,7 +317,8 @@ namespace SshTool.App.ViewModels.Sync
                 return;
             }
             ErrorMessage = null;
-            await RunSafe("SyncNow", () => _sync.SyncNowAsync());
+            // 同步失败已由 Coordinator 写进状态卡（离线 / 错误 / 冲突文案），这里不再重复显示。
+            await RunSafe("SyncNow", () => _sync.SyncNowAsync(), showError: false);
         }
 
         // ---------------- 设备（U18） ----------------
@@ -362,9 +373,16 @@ namespace SshTool.App.ViewModels.Sync
             {
                 return Task.CompletedTask;
             }
+            string name = (newName ?? string.Empty).Trim();
+            if (name.Length == 0)
+            {
+                return Task.CompletedTask;
+            }
             return RunSafe("RenameDevice", async () =>
             {
-                await _auth.RenameDeviceAsync(deviceId, newName).ConfigureAwait(true);
+                await _auth.RenameDeviceAsync(deviceId, name).ConfigureAwait(true);
+                // 改的若是本机，AuthService 已同步本地会话里的设备名：刷新状态卡的「邮箱 · 设备名」。
+                RaisePropertyChanged("DeviceName");
                 await LoadDevicesAsync().ConfigureAwait(true);
             });
         }
@@ -454,22 +472,41 @@ namespace SshTool.App.ViewModels.Sync
 
         // ---------------- 退出登录 ----------------
 
+        // 单设备退出：服务端失败也会清本地并转去登录页，错误不必显示。
         private async Task LogoutAsync()
         {
             if (_sync == null)
             {
                 return;
             }
-            await RunSafe("Logout", () => _sync.LogoutAsync(all: false));
+            IsLoggingOut = true;
+            try
+            {
+                await RunSafe("Logout", () => _sync.LogoutAsync(all: false), showError: false);
+            }
+            finally
+            {
+                IsLoggingOut = false;
+            }
         }
 
+        // fix/auth-audit：退出所有设备没送达服务端时 Coordinator 保留本机登录并上抛，
+        // 这里必须显示原因（此前被吞掉，用户以为其他设备都已下线）。
         private async Task LogoutAllAsync()
         {
             if (_sync == null)
             {
                 return;
             }
-            await RunSafe("LogoutAll", () => _sync.LogoutAsync(all: true));
+            IsLoggingOut = true;
+            try
+            {
+                await RunSafe("LogoutAll", () => _sync.LogoutAsync(all: true));
+            }
+            finally
+            {
+                IsLoggingOut = false;
+            }
         }
 
         // ---------------- 状态刷新 ----------------
@@ -541,29 +578,59 @@ namespace SshTool.App.ViewModels.Sync
 
         // ---------------- 工具 ----------------
 
-        // 安全运行业务操作：捕获异常、记日志（tag 走 "Sync.<Action>"），返回已完成的 Task。
-        private Task RunSafe(string action, Func<Task> work)
+        // 安全运行业务操作：等待完成；失败记日志（只记异常类型名）并显示本地化原因，不向外抛。
+        // fix/auth-audit：此前用 ContinueWith(OnlyOnFaulted) 包装——操作成功时这个延续任务是
+        // 「已取消」，await 它抛 TaskCanceledException，于是立即同步 / 退出登录成功后反而显示
+        // 「操作失败，请稍后重试」；操作真失败时延续正常完成，改名 / 撤销设备 / 开关 / 恢复历史
+        // 的错误全被吞掉，界面毫无反应。onFailed 用于把开关等界面状态拨回真实值。
+        private async Task RunSafe(string action, Func<Task> work, bool showError = true, Action onFailed = null)
         {
+            if (showError)
+            {
+                ErrorMessage = null;
+            }
             try
             {
-                var task = work();
-                if (task == null)
+                Task task = work();
+                if (task != null)
                 {
-                    return Task.CompletedTask;
+                    await task.ConfigureAwait(true);
                 }
-                return task.ContinueWith(t =>
-                {
-                    if (t.IsFaulted && t.Exception != null)
-                    {
-                        LogWarning(action + " failed " + (t.Exception.InnerException ?? t.Exception).GetType().Name);
-                    }
-                }, TaskContinuationOptions.OnlyOnFaulted);
             }
             catch (Exception ex)
             {
                 LogWarning(action + " failed " + ex.GetType().Name);
-                return Task.CompletedTask;
+                if (onFailed != null)
+                {
+                    try
+                    {
+                        onFailed();
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+                if (showError)
+                {
+                    ErrorMessage = DescribeError(ex);
+                }
             }
+        }
+
+        private string DescribeError(Exception ex)
+        {
+            try
+            {
+                string text = VaultErrorText.Describe(ex, _loader);
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    return text;
+                }
+            }
+            catch (Exception)
+            {
+            }
+            return GetString("Sync_CommandFailed", "操作失败，请稍后重试");
         }
 
         private void OnCommandError(Exception ex)
