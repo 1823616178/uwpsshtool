@@ -27,6 +27,37 @@ namespace SshTool.Core.Sync
         public bool Spin { get; set; }
     }
 
+    // fix/functional-pass：相对时间类别（文案在 App resw：Sync_Relative_*）。
+    public enum RelativeTimeKind
+    {
+        None = 0,
+        JustNow,
+        Minutes,
+        Hours,
+        Yesterday,
+        DayBeforeYesterday,
+        Days,
+        Date
+    }
+
+    public struct RelativeTime
+    {
+        public static readonly RelativeTime None = new RelativeTime(RelativeTimeKind.None, 0, default(DateTimeOffset));
+
+        public RelativeTime(RelativeTimeKind kind, int value, DateTimeOffset local)
+        {
+            Kind = kind;
+            Value = value;
+            Local = local;
+        }
+
+        public RelativeTimeKind Kind { get; private set; }
+        // Minutes / Hours / Days 的数量。
+        public int Value { get; private set; }
+        // 本地时间（Kind=Date 时显示其日期）。
+        public DateTimeOffset Local { get; private set; }
+    }
+
     // U17 SyncStatePresenter（纯逻辑，可单测）。
     // 根据 AuthState / VaultStatus / SyncPhase 决定页面路由、状态卡文案与相对时间。
     // 时钟经注入便于单测；默认使用 DateTimeOffset.UtcNow。
@@ -41,10 +72,13 @@ namespace SshTool.Core.Sync
         public const int SecondsPerDay = 86400;
 
         private readonly Func<DateTimeOffset> _clock;
+        private readonly Func<DateTimeOffset, DateTimeOffset> _toLocal;
 
-        public SyncStatePresenter(Func<DateTimeOffset> clock = null)
+        // toLocal：UTC → 本地时间（默认 ToLocalTime，即设备时区；单测注入固定偏移）。
+        public SyncStatePresenter(Func<DateTimeOffset> clock = null, Func<DateTimeOffset, DateTimeOffset> toLocal = null)
         {
             _clock = clock ?? (() => DateTimeOffset.UtcNow);
+            _toLocal = toLocal ?? (d => d.ToLocalTime());
         }
 
         // 屏幕判定：未登录 → Login；已登录按 Vault 状态路由。
@@ -66,13 +100,15 @@ namespace SshTool.Core.Sync
             }
         }
 
-        // 相对时间："刚刚"/"5 分钟前"/"3 小时前"/"昨天"/"前天"/日期。
-        // 入参为 ISO 8601 UTC（yyyy-MM-ddTHH:mm:ss...Z）；解析失败返回空字符串。
-        public string FormatRelativeTime(string isoUtc)
+        // fix/functional-pass（P2-2）：相对时间只给类别 + 数值，文案由 App 走 resw（此前 Core 直接
+        // 返回中文「刚刚 / 5 分钟前 / 昨天」，英文界面也显示中文）；「昨天 / 前天 / N 天前」按
+        // **本地**日历日判定（此前按 UTC 日，东八区凌晨 0–8 点会把今天的同步算成昨天）。
+        // 入参为 ISO 8601 UTC（yyyy-MM-ddTHH:mm:ss...Z）；解析失败返回 Kind=None。
+        public RelativeTime ComputeRelativeTime(string isoUtc)
         {
             if (string.IsNullOrEmpty(isoUtc))
             {
-                return string.Empty;
+                return RelativeTime.None;
             }
             DateTimeOffset parsed;
             if (!DateTimeOffset.TryParseExact(
@@ -91,10 +127,12 @@ namespace SshTool.Core.Sync
                 if (!DateTimeOffset.TryParse(isoUtc, CultureInfo.InvariantCulture,
                         DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out parsed))
                 {
-                    return string.Empty;
+                    return RelativeTime.None;
                 }
             }
-            TimeSpan diff = _clock() - parsed;
+            DateTimeOffset now = _clock();
+            DateTimeOffset localParsed = _toLocal(parsed);
+            TimeSpan diff = now - parsed;
             if (diff < TimeSpan.Zero)
             {
                 diff = TimeSpan.Zero;
@@ -102,35 +140,33 @@ namespace SshTool.Core.Sync
             double totalSeconds = diff.TotalSeconds;
             if (totalSeconds < JustNowSeconds)
             {
-                return "刚刚";
+                return new RelativeTime(RelativeTimeKind.JustNow, 0, localParsed);
             }
             if (totalSeconds < SecondsPerHour)
             {
                 int minutes = Math.Max(1, (int)(totalSeconds / SecondsPerMinute));
-                return minutes + " 分钟前";
+                return new RelativeTime(RelativeTimeKind.Minutes, minutes, localParsed);
             }
             if (totalSeconds < SecondsPerDay)
             {
                 int hours = Math.Max(1, (int)(totalSeconds / SecondsPerHour));
-                return hours + " 小时前";
+                return new RelativeTime(RelativeTimeKind.Hours, hours, localParsed);
             }
-            // 昨天 / 前天判定按日历日（UTC）。
-            DateTimeOffset now = _clock();
-            DateTimeOffset today = new DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, TimeSpan.Zero);
-            int dayDiff = (int)(today - parsed.Date).TotalDays;
+            DateTime todayLocal = _toLocal(now).Date;
+            int dayDiff = (int)(todayLocal - localParsed.Date).TotalDays;
             if (dayDiff == 1)
             {
-                return "昨天";
+                return new RelativeTime(RelativeTimeKind.Yesterday, 1, localParsed);
             }
             if (dayDiff == 2)
             {
-                return "前天";
+                return new RelativeTime(RelativeTimeKind.DayBeforeYesterday, 2, localParsed);
             }
             if (dayDiff > 2 && dayDiff < 7)
             {
-                return dayDiff + " 天前";
+                return new RelativeTime(RelativeTimeKind.Days, dayDiff, localParsed);
             }
-            return parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            return new RelativeTime(RelativeTimeKind.Date, 0, localParsed);
         }
 
         // 状态卡文案 + 图标：每个相位对应一个 resw 键与字形键（Spin 仅 Syncing 为 true）。

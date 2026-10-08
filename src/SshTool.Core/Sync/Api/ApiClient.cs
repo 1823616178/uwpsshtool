@@ -689,6 +689,7 @@ namespace SshTool.Core.Sync.Api
                 : response.StatusCode == 429 ? "RATE_LIMITED" : "HTTP_" + response.StatusCode;
 
             string message = null;
+            bool messageFromServer = true;
             var dataMessage = data != null ? data["message"] : null;
             if (dataMessage != null && dataMessage.Type == JTokenType.String)
             {
@@ -704,7 +705,10 @@ namespace SshTool.Core.Sync.Api
             }
             if (message == null)
             {
-                message = "服务器请求失败（" + response.StatusCode + "）";
+                // fix/functional-pass（P2-2）：无服务端文案时只给英文诊断；App 对
+                // MessageFromServer=false 且无 Api_<CODE> 键的错误显示本地化「服务器请求失败（status）」。
+                messageFromServer = false;
+                message = "HTTP " + response.StatusCode.ToString(CultureInfo.InvariantCulture);
             }
 
             return new ApiError(
@@ -714,7 +718,8 @@ namespace SshTool.Core.Sync.Api
                 status: response.StatusCode,
                 requestId: response.Header("x-request-id"),
                 retryAfterMs: ParseRetryAfter(response.Header("retry-after"), _clock()),
-                codeUnknown: !hasCode);
+                codeUnknown: !hasCode,
+                messageFromServer: messageFromServer);
         }
 
         private T ReadSuccess<T>(HttpResponseData response, Func<JObject, T> parse)

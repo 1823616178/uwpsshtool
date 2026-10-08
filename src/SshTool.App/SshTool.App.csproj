@@ -299,6 +299,7 @@
     <Compile Include="ViewModels\Sync\LoginViewModel.cs" />
     <Compile Include="ViewModels\Sync\SecurityRotateViewModel.cs" />
     <Compile Include="ViewModels\Sync\SyncConflictViewModel.cs" />
+    <Compile Include="ViewModels\Sync\SyncText.cs" />
     <Compile Include="ViewModels\Sync\VaultErrorText.cs" />
     <Compile Include="ViewModels\Sync\VaultSetupViewModel.cs" />
     <Compile Include="ViewModels\Sync\VaultUnlockViewModel.cs" />

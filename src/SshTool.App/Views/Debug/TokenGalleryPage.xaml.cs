@@ -55,7 +55,7 @@ namespace SshTool.App.Views.Debug
             UpdateSegmentResult();
 
             // 四张 SurfaceCard 的示例正文共用一条 resw（避免同文四键）。
-            string cardBody = loader.GetString("Gallery_CardBody.Text");
+            string cardBody = loader.GetString("Gallery_CardBody/Text");
             CardBody1.Text = cardBody;
             CardBody2.Text = cardBody;
             CardBody3.Text = cardBody;
@@ -73,7 +73,7 @@ namespace SshTool.App.Views.Debug
             string rowSubtitle = loader.GetString("Gallery_ListRowSubtitle");
             DemoRow1.Title = rowTitle;
             DemoRow1.Subtitle = rowSubtitle;
-            DemoRow1Status.Text = loader.GetString("Gallery_PillSuccess.Text");
+            DemoRow1Status.Text = loader.GetString("Gallery_PillSuccess/Text");
             DemoRow2.Title = rowTitle;
             DemoRow2.Subtitle = rowSubtitle;
             DemoRow3.Title = rowTitle;

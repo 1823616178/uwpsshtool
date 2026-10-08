@@ -23,7 +23,13 @@ namespace SshTool.Core.Sync
 
         public string NextRetryAt { get; set; }
 
+        // 诊断文本（日志 / 单测）；面向用户的文案由 App 按 MessageCode / MessageError 本地化。
         public string Message { get; set; } = "";
+
+        public SyncMessageCode MessageCode { get; set; }
+
+        // MessageCode=Error 时的原始异常（ApiError / SyncOperationException / 其他）。
+        public System.Exception MessageError { get; set; }
 
         public SyncConflictSummary Conflict { get; set; }
 
@@ -40,6 +46,8 @@ namespace SshTool.Core.Sync
                 LastSyncedAt = LastSyncedAt,
                 NextRetryAt = NextRetryAt,
                 Message = Message,
+                MessageCode = MessageCode,
+                MessageError = MessageError,
                 Conflict = Conflict == null ? null : Conflict.Clone()
             };
         }

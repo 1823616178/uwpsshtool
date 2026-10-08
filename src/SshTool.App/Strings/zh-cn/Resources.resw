@@ -735,6 +735,8 @@
   <data name="HostEdit_SwitchAuthTitle" xml:space="preserve"><value>切换认证方式？</value></data>
   <data name="HostEdit_SwitchAuthConfirm" xml:space="preserve"><value>切换</value></data>
   <data name="HostEdit_SwitchAuthCancel" xml:space="preserve"><value>取消</value></data>
+  <data name="HostEdit_SwitchAuthDropPassword" xml:space="preserve"><value>切换认证方式将清除已填写或已保存的密码。</value></data>
+  <data name="HostEdit_SwitchAuthDropKey" xml:space="preserve"><value>切换认证方式将清除已选私钥与密码短语。</value></data>
   <data name="HostEdit_TestMessage" xml:space="preserve"><value>测试连接…</value></data>
   <data name="HostEdit_TestTitle" xml:space="preserve"><value>测试连接</value></data>
   <data name="HostEdit_TestFailedTitle" xml:space="preserve"><value>测试失败</value></data>
@@ -776,6 +778,38 @@
   <data name="Sync_Offline" xml:space="preserve"><value>离线，稍后重试</value></data>
   <data name="Sync_Conflict" xml:space="preserve"><value>需要处理冲突</value></data>
   <data name="Sync_Error" xml:space="preserve"><value>同步失败</value></data>
+  <data name="Sync_Relative_JustNow" xml:space="preserve"><value>刚刚</value></data>
+  <data name="Sync_Relative_Minutes" xml:space="preserve"><value>{0} 分钟前</value></data>
+  <data name="Sync_Relative_Hours" xml:space="preserve"><value>{0} 小时前</value></data>
+  <data name="Sync_Relative_Yesterday" xml:space="preserve"><value>昨天</value></data>
+  <data name="Sync_Relative_DayBeforeYesterday" xml:space="preserve"><value>前天</value></data>
+  <data name="Sync_Relative_Days" xml:space="preserve"><value>{0} 天前</value></data>
+  <data name="Sync_Msg_VaultDeletedLocalKept" xml:space="preserve"><value>云端保险库和历史版本已删除，本机配置仍保留</value></data>
+  <data name="Sync_Msg_LoginPasswordChanged" xml:space="preserve"><value>密码已修改，请使用新密码重新登录</value></data>
+  <data name="Sync_Msg_RemoteVaultDeleted" xml:space="preserve"><value>云端保险库已被删除，请重新创建同步保险库</value></data>
+  <data name="Sync_Msg_RemoteKeyRotated" xml:space="preserve"><value>云端密钥已轮换，请重新输入同步密码或恢复密钥</value></data>
+  <data name="Sync_Msg_RotateResultUnknown" xml:space="preserve"><value>轮换结果未知，若云端已经轮换，请用新的同步密码重新解锁保险库</value></data>
+  <data name="Sync_Msg_SensitiveCleared" xml:space="preserve"><value>敏感字段已清理，密钥和历史版本已轮换</value></data>
+  <data name="Sync_Msg_SyncPasswordChanged" xml:space="preserve"><value>同步密码已更新，请保存新的恢复密钥</value></data>
+  <data name="Sync_Msg_ConflictInitialImport" xml:space="preserve"><value>已解锁云端配置，请选择首次同步方式</value></data>
+  <data name="Sync_Msg_ConflictRemoteDeletion" xml:space="preserve"><value>云端包含删除操作，请确认后再应用</value></data>
+  <data name="Sync_Msg_ConflictGeneric" xml:space="preserve"><value>检测到需要确认的同步冲突</value></data>
+  <data name="Sync_Err_SyncPasswordWrong" xml:space="preserve"><value>同步密码不正确</value></data>
+  <data name="Sync_Err_RecoveryKeyInvalid" xml:space="preserve"><value>恢复密钥无效</value></data>
+  <data name="Sync_Err_RotateRequired" xml:space="preserve"><value>关闭敏感同步需要执行密钥轮换，请在“安全清理”流程中输入账号密码</value></data>
+  <data name="Sync_Err_SignInRequired" xml:space="preserve"><value>请先登录</value></data>
+  <data name="Sync_Err_AlreadySignedIn" xml:space="preserve"><value>已登录，请先退出登录后再继续</value></data>
+  <data name="Sync_Err_RemoteRevisionBehind" xml:space="preserve"><value>云端 revision 低于本机基线，已停止上传以避免覆盖</value></data>
+  <data name="Sync_Err_VaultLocked" xml:space="preserve"><value>同步保险库未解锁</value></data>
+  <data name="Sync_Err_EncryptFailed" xml:space="preserve"><value>同步文档加密失败，请重试</value></data>
+  <data name="Sync_Err_DecryptFailed" xml:space="preserve"><value>云端文档解密失败</value></data>
+  <data name="Sync_Err_DocumentTooNew" xml:space="preserve"><value>云端文档版本更高，请升级应用</value></data>
+  <data name="Sync_Err_NoPendingConflict" xml:space="preserve"><value>没有待处理的同步冲突</value></data>
+  <data name="Sync_Err_RotateOnlyDisables" xml:space="preserve"><value>密钥轮换只用于关闭已启用的敏感同步</value></data>
+  <data name="Sync_Err_VaultCreateFailed" xml:space="preserve"><value>保险库创建失败，请重试</value></data>
+  <data name="Sync_Err_UnexpectedKeyVersion" xml:space="preserve"><value>服务端返回了意外的密钥版本</value></data>
+  <data name="Sync_Err_EnvelopeInvalid" xml:space="preserve"><value>保险库信封无效</value></data>
+  <data name="Api_HttpStatusFailed" xml:space="preserve"><value>服务器请求失败（{0}）</value></data>
   <data name="Sync_AuthError" xml:space="preserve"><value>登录已失效</value></data>
 
   <!-- AccountSyncPage -->
@@ -1225,6 +1259,9 @@
   <data name="KeyImport_ErrPickFailed" xml:space="preserve"><value>文件选择失败：{0}</value></data>
   <data name="KeyImport_ErrReadFailed" xml:space="preserve"><value>文件读取失败：{0}</value></data>
   <data name="KeyGenerate_ErrFallback" xml:space="preserve"><value>生成失败，请重试</value></data>
+  <data name="KeyGenerate_Err_UnsupportedBits" xml:space="preserve"><value>RSA 只支持 3072 / 4096 位</value></data>
+  <data name="KeyGenerate_Err_VerifyFailed" xml:space="preserve"><value>生成后校验失败，请重试</value></data>
+  <data name="KeyGenerate_Err_DuplicateFingerprint" xml:space="preserve"><value>生成的密钥与已有密钥指纹相同，请重试</value></data>
   <data name="Main_ToolsItem.Label" xml:space="preserve"><value>工具与设置</value></data>
   <data name="Main_PlaceholderNewHost" xml:space="preserve"><value>新建主机</value></data>
   <data name="Main_PlaceholderSync" xml:space="preserve"><value>同步</value></data>

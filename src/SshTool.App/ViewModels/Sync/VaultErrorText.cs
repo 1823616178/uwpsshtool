@@ -1,4 +1,5 @@
 using System;
+using SshTool.Core.Sync;
 using SshTool.Core.Sync.Api;
 using Windows.ApplicationModel.Resources;
 
@@ -16,6 +17,12 @@ namespace SshTool.App.ViewModels.Sync
             if (ex == null)
             {
                 return string.Empty;
+            }
+            // fix/functional-pass（P2-2）：Coordinator 的面向用户失败带 SyncErrorCode，按码查 resw。
+            SyncOperationException sync = ex as SyncOperationException;
+            if (sync != null)
+            {
+                return SyncText.Error(sync, loader);
             }
             ApiError api = ex as ApiError;
             if (api == null)
@@ -47,12 +54,28 @@ namespace SshTool.App.ViewModels.Sync
                 }
                 return AppendRequestId(GetString(loader, "Login_BusyRetry", api.Message), api.RequestId, loader);
             }
-            string text = loader.GetString(ApiErrorCatalog.ResourceKey(api.Code));
+            string text = GetString(loader, ApiErrorCatalog.ResourceKey(api.Code), null);
             if (string.IsNullOrEmpty(text))
             {
-                text = api.Message;
+                text = FallbackText(api, loader);
             }
             return AppendRequestId(text, api.RequestId, loader);
+        }
+
+        // 推断码（HTTP_<status>）无 resw 键：服务端给了文案就显示原文；没给（Core 只有英文诊断
+        // 「HTTP 500」）则显示本地化「服务器请求失败（500）」。
+        internal static string FallbackText(ApiError api, ResourceLoader loader)
+        {
+            if (api.MessageFromServer || api.Status == null)
+            {
+                return api.Message;
+            }
+            string template = GetString(loader, "Api_HttpStatusFailed", null);
+            if (string.IsNullOrEmpty(template))
+            {
+                return api.Message;
+            }
+            return string.Format(FormatCulture, template, api.Status.Value);
         }
 
         private static string AppendRequestId(string text, string requestId, ResourceLoader loader)

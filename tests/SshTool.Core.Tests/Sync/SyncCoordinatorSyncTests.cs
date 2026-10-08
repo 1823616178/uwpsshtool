@@ -651,7 +651,7 @@ namespace SshTool.Core.Tests.Sync
             Assert.Equal(SyncPhase.Locked, state.Phase);
             Assert.Equal(VaultStatus.Locked, state.Vault);
             Assert.Equal(2, state.KeyVersion);
-            Assert.Contains("轮换", state.Message);
+            Assert.Equal(SyncMessageCode.RemoteKeyRotated, state.MessageCode);
         }
 
         [Fact]
@@ -663,13 +663,14 @@ namespace SshTool.Core.Tests.Sync
             await h.SeedVaultAsync("5", baseline, dirty: true);
             await h.ServeDocumentAsync(baseline, 3);
 
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.SyncNowAsync());
             Assert.Contains("低于本机基线", error.Message);
             Assert.Equal(0, h.Server.PutCount());
             var state = h.Coordinator.State;
             Assert.Equal(SyncPhase.Error, state.Phase);
             Assert.Contains("低于本机基线", state.Message);
+            Assert.Equal(SyncErrorCode.RemoteRevisionBehind, Assert.IsType<SyncOperationException>(state.MessageError).Code);
         }
 
         // ---------- HEAD 分支：云端保险库已被删除 ----------
@@ -690,7 +691,7 @@ namespace SshTool.Core.Tests.Sync
             var state = h.Coordinator.State;
             Assert.Equal(SyncPhase.Disabled, state.Phase);
             Assert.Equal(VaultStatus.Missing, state.Vault);
-            Assert.Contains("已被删除", state.Message);
+            Assert.Equal(SyncMessageCode.RemoteVaultDeleted, state.MessageCode);
         }
 
         // ---------- Upload 特定错误清除 pending（409/版本失配/幂等键复用） ----------

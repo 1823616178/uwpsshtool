@@ -489,7 +489,7 @@ namespace SshTool.Core.Tests.Sync
             Assert.Equal("*", state.Conflict.Fields[0].Field);
             Assert.False(state.Conflict.Fields[0].Sensitive);
             Assert.Equal(1, state.Conflict.RemoteSummary.Servers);
-            Assert.Contains("首次同步", state.Message);
+            Assert.Equal(SyncMessageCode.ConflictInitialImport, state.MessageCode);
             // 冲突前不应用、不上传。
             Assert.Equal("Fresh device", h.Local.Current.Servers[0].Profile.Name);
             Assert.Equal(0, h.Server.PutCount());
@@ -579,7 +579,7 @@ namespace SshTool.Core.Tests.Sync
             Assert.Equal(0, state.Conflict.RemoteSummary.Servers);
             Assert.Equal(0, state.Conflict.RemoteSummary.Tunnels);
             Assert.Equal(1, state.Conflict.RemoteSummary.Groups);
-            Assert.Contains("删除", state.Message);
+            Assert.Equal(SyncMessageCode.ConflictRemoteDeletion, state.MessageCode);
             var fields = state.Conflict.Fields;
             Assert.Contains(fields, f => f.Entity == SyncConflictEntity.Server
                 && f.Id == "server-1" && f.Field == "*" && f.Sensitive);
@@ -650,7 +650,7 @@ namespace SshTool.Core.Tests.Sync
             Assert.Equal(SyncConflictReason.MergeConflict, state.Conflict.Reason);
             Assert.Contains(state.Conflict.Fields, f => f.Entity == SyncConflictEntity.Server
                 && f.Id == "server-1" && f.Field == "profile.name");
-            Assert.Contains("确认", state.Message);
+            Assert.Equal(SyncMessageCode.ConflictGeneric, state.MessageCode);
             // 冲突前不应用远端。
             Assert.Equal("Local edit", h.Local.Current.Servers[0].Profile.Name);
             // 冲突摘要不含值（脱敏）。
@@ -732,7 +732,7 @@ namespace SshTool.Core.Tests.Sync
                 throw new InvalidOperationException("服务器「Base」主机指纹发生变化，需要手动确认");
             };
 
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.SyncNowAsync());
             Assert.Contains("主机指纹发生变化", error.Message);
             Assert.Equal(0, h.Server.PutCount());
@@ -741,6 +741,8 @@ namespace SshTool.Core.Tests.Sync
             var state = h.Coordinator.State;
             Assert.Equal(SyncPhase.Error, state.Phase);
             Assert.Contains("主机指纹发生变化", state.Message);
+            Assert.Equal(SyncMessageCode.Error, state.MessageCode);
+            Assert.NotNull(state.MessageError);
         }
 
         [Fact]
@@ -758,7 +760,7 @@ namespace SshTool.Core.Tests.Sync
                 throw new InvalidOperationException("运行中的隧道「T1」涉及远端连接变更，请先停止后重试");
             };
 
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.SyncNowAsync());
             Assert.Contains("请先停止后重试", error.Message);
             Assert.Equal(0, h.Server.PutCount());
@@ -777,9 +779,10 @@ namespace SshTool.Core.Tests.Sync
             await h.SeedLoginAsync();
             await h.SeedVaultAsync("1", NewDoc("Base"), dirty: false);
 
-            var error = await Assert.ThrowsAsync<InvalidOperationException>(
+            var error = await Assert.ThrowsAnyAsync<InvalidOperationException>(
                 () => h.Coordinator.ResolveConflictAsync(SyncNowStrategy.UseRemote));
             Assert.Contains("没有待处理的同步冲突", error.Message);
+            Assert.Equal(SyncErrorCode.NoPendingConflict, Assert.IsType<SyncOperationException>(error).Code);
         }
 
         [Fact]
