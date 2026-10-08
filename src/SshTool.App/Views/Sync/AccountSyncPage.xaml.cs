@@ -21,6 +21,10 @@ namespace SshTool.App.Views.Sync
     // 到达本页即已登录。危险操作（删除保险库/注销账号/退出所有设备）走 ContentDialog 二次确认。
     public sealed partial class AccountSyncPage : Page
     {
+        // fix/login-feedback：本页只转走一次。StateChanged 每次都会重报 "Screen"，
+        // 不加闸会在一次状态抖动里连续发起多次导航。
+        private bool _routed;
+
         public AccountSyncPage()
         {
             ViewModel = CreateViewModel();
@@ -51,9 +55,10 @@ namespace SshTool.App.Views.Sync
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            if (ViewModel.NeedsRouting)
+            // fix/login-feedback：未登录现在会被路由到登录页（此前被送进建库页）；本页只是中转，
+            // 转走后从返回栈拿掉自己，登录完成后返回键不会回到一个旧的状态页副本。
+            if (ViewModel.NeedsRouting && RouteAway())
             {
-                SyncNavigation.GoAfterAuth(Frame, 1);
                 return;
             }
             RefreshHeader();
@@ -71,6 +76,16 @@ namespace SshTool.App.Views.Sync
             ViewModel.RequestSecurityRotate -= OnRequestSecurityRotate;
             ViewModel.Detach(); // O03：VM 挂在应用级 SyncCoordinator 上
             base.OnNavigatedFrom(e);
+        }
+
+        private bool RouteAway()
+        {
+            if (_routed)
+            {
+                return true;
+            }
+            _routed = SyncNavigation.GoAfterAuth(Frame, 1, true);
+            return _routed;
         }
 
         private static AccountSyncViewModel CreateViewModel()
@@ -310,7 +325,8 @@ namespace SshTool.App.Views.Sync
             string name = e.PropertyName;
             if (name == "Screen" && ViewModel.NeedsRouting)
             {
-                SyncNavigation.GoAfterAuth(Frame, 1);
+                // 如退出登录 / 登录失效后：转去登录页（或建库/解锁页）。
+                RouteAway();
                 return;
             }
             if (name == "StatusText" || name == "StatusIconKey" || name == "StatusSpin"

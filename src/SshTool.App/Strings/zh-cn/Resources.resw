@@ -124,6 +124,8 @@
   <data name="Login_RequestId" xml:space="preserve"><value>请求 ID：{0}</value></data>
   <data name="Login_SyncUnavailable" xml:space="preserve"><value>同步组件不可用，请重启应用后重试</value></data>
   <data name="Login_AlreadySignedIn" xml:space="preserve"><value>已登录，请先退出登录后再继续</value></data>
+  <data name="Login_UnexpectedError" xml:space="preserve"><value>登录失败（{0}），请稍后重试</value></data>
+  <data name="Login_HttpFallbackRetry" xml:space="preserve"><value>安全连接（HTTPS）不可用，已自动切换为未加密连接，请再试一次</value></data>
 
   <data name="Sftp_Title.Text" xml:space="preserve"><value>SFTP</value></data>
   <data name="Sftp_Connecting" xml:space="preserve"><value>正在建立 SFTP 连接并初始化会话…</value></data>
