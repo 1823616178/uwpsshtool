@@ -133,6 +133,7 @@ namespace SshTool.Core.Sync.Auth
                         }
                     }
                 }
+                LogLoadResult(bytes, parsed);
                 lock (_mutex)
                 {
                     _state = parsed;
@@ -144,6 +145,32 @@ namespace SshTool.Core.Sync.Auth
             {
                 _gate.Release();
             }
+        }
+
+        // fix/cold-start-login：冷启动恢复每一步都留一行日志（不含 token / 邮箱 / id），
+        // 用户再报「每次打开都要登录」时，导出的日志能直接看出是没存上、读不出还是被清掉。
+        private void LogLoadResult(byte[] bytes, StoredSession parsed)
+        {
+            if (_logger == null)
+            {
+                return;
+            }
+            if (bytes == null || bytes.Length == 0)
+            {
+                _logger.Log(LogLevel.Info, "Auth", "启动恢复登录状态：auth.bin 不存在或为空（未登录）");
+                return;
+            }
+            if (parsed == null)
+            {
+                return; // 已在上面记过「已损坏」
+            }
+            long remainingSeconds = (parsed.ExpiresAt - ToUnixMs(_clock())) / 1000L;
+            _logger.Log(LogLevel.Info, "Auth", "启动恢复登录状态：已登录（"
+                + bytes.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) + " 字节；accessToken "
+                + (remainingSeconds > 0
+                    ? "剩余 " + remainingSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture) + " 秒"
+                    : "已过期，将用 refreshToken 续期")
+                + (parsed.RefreshUncertain ? "；上次刷新结果不明" : string.Empty) + "）");
         }
 
         // fix/persist-login：见 _lastLoadFailed。
@@ -250,6 +277,11 @@ namespace SshTool.Core.Sync.Auth
                 // （刷新时旧 refreshToken 已作废），丢掉它下次刷新就会撞重用检测被强制登出。
                 // 先保住本次运行，挂起时 FlushAsync / 下一次写入再补落盘。
                 bool persisted = await TryWriteAsync(bytes, "save").ConfigureAwait(false);
+                if (persisted && _logger != null)
+                {
+                    // fix/cold-start-login：登录 / 刷新后确实落盘了（诊断「重启后为何没有会话」）。
+                    _logger.Log(LogLevel.Info, "Auth", "登录状态已保存到 auth.bin");
+                }
                 lock (_mutex)
                 {
                     _state = next;
@@ -343,9 +375,25 @@ namespace SshTool.Core.Sync.Auth
         // （此前抛错会盖掉调用方真正的鉴权错误，且内存会话不清），记待落盘由 FlushAsync 补。
         public async Task ClearAsync()
         {
+            await ClearAsync(null).ConfigureAwait(false);
+        }
+
+        // fix/cold-start-login：reason 只写进日志（如 logout / change-password / AUTH_TOKEN_REUSED），
+        // 说明会话是被谁、因为什么清掉的。
+        public async Task ClearAsync(string reason)
+        {
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
+                bool hadSession;
+                lock (_mutex)
+                {
+                    hadSession = _state != null;
+                }
+                if (hadSession && _logger != null)
+                {
+                    _logger.Log(LogLevel.Info, "Auth", "清除登录状态（" + (reason ?? "未注明") + "）");
+                }
                 bool persisted = await TryWriteAsync(new byte[0], "clear").ConfigureAwait(false);
                 lock (_mutex)
                 {
@@ -419,7 +467,8 @@ namespace SshTool.Core.Sync.Auth
                     last = ex;
                 }
             }
-            Warn("auth.bin 写入失败（" + phase + "，" + (last == null ? "?" : last.GetType().Name) + "），稍后补写");
+            Warn("auth.bin 写入失败（" + phase + "，" + (last == null ? "?" : last.GetType().Name
+                + " 0x" + last.HResult.ToString("X8", System.Globalization.CultureInfo.InvariantCulture)) + "），稍后补写");
             return false;
         }
 
@@ -456,7 +505,7 @@ namespace SshTool.Core.Sync.Auth
 
         public void Clear()
         {
-            ClearAsync().GetAwaiter().GetResult();
+            ClearAsync("api").GetAwaiter().GetResult();
         }
 
         public void MarkRefreshUncertain()

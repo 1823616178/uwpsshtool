@@ -584,11 +584,46 @@ namespace SshTool.Core.Sync.Api
         }
 
         // HEAD 请求拿不到响应体，401 时读不出 AUTH_TOKEN_EXPIRED；带着有效 token 收到 401
-        // 本身就说明 accessToken 已失效，此时按 §2.4.4 直接刷新重试
-        private static bool ShouldRefresh(ApiError error)
+        // 本身就说明 accessToken 已失效，此时按 §2.4.4 直接刷新重试。
+        // fix/cold-start-login：真实服务端对 accessToken 的 401 不止 AUTH_TOKEN_EXPIRED——实测还有
+        // AUTH_TOKEN_INVALID_SIGNATURE（服务端 JWT 密钥变了，如重启 / 重新部署）、AUTH_TOKEN_REQUIRED。
+        // 此前这些码不刷新，直接被 Coordinator 当成终端鉴权错误清空会话，表现为「打开软件又要登录」。
+        // 现在凡是 AUTH_TOKEN_* 的 401（AUTH_TOKEN_REUSED 除外：那是服务端已吊销整串 token）都先用
+        // refreshToken 换一次，由刷新结果裁决；刷新后重放仍 401 才按终端处理。
+        internal static bool ShouldRefresh(ApiError error)
         {
-            return error.Status == 401
-                && (error.Code == "AUTH_TOKEN_EXPIRED" || error.CodeUnknown);
+            if (error == null || error.Status != 401)
+            {
+                return false;
+            }
+            if (error.CodeUnknown)
+            {
+                return true;
+            }
+            string code = error.Code ?? string.Empty;
+            return code.StartsWith("AUTH_TOKEN_", StringComparison.Ordinal)
+                && !string.Equals(code, "AUTH_TOKEN_REUSED", StringComparison.Ordinal);
+        }
+
+        // fix/cold-start-login：ApiClient 自己清掉本地会话时通知（只带错误码，供 App 记日志定位
+        //「为什么被登出」；绝不含 token）。
+        public event Action<string> TokensCleared;
+
+        private void ClearTokens(string code)
+        {
+            _tokens.Clear();
+            var handler = TokensCleared;
+            if (handler != null)
+            {
+                try
+                {
+                    handler(code ?? "?");
+                }
+                catch (Exception)
+                {
+                    // 诊断回调不得影响鉴权流程
+                }
+            }
         }
 
         // §2.4.6 终端鉴权错误 → 清空本地会话
@@ -598,7 +633,7 @@ namespace SshTool.Core.Sync.Api
                 || error.Code == "AUTH_TOKEN_REUSED"
                 || (error.Code == "AUTH_TOKEN_EXPIRED" && error.Status == 401))
             {
-                _tokens.Clear();
+                ClearTokens(error.Code);
             }
         }
 
@@ -658,7 +693,7 @@ namespace SshTool.Core.Sync.Api
             var tokens = _tokens.GetTokens();
             if (tokens == null || string.IsNullOrEmpty(tokens.RefreshToken))
             {
-                _tokens.Clear();
+                ClearTokens(ApiError.CodeAuthRefreshUnavailable);
                 throw new ApiError(ApiErrorKind.Authentication, ApiError.CodeAuthRefreshUnavailable,
                     "登录已失效，请重新登录");
             }

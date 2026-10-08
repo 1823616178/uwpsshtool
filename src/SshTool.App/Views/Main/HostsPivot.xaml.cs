@@ -69,6 +69,7 @@ namespace SshTool.App.Views.Main
             ErrorState.Visibility = hasError ? Visibility.Visible : Visibility.Collapsed;
             Empty.Visibility = (!hasError && ViewModel.IsEmpty) ? Visibility.Visible : Visibility.Collapsed;
             NoMatches.Visibility = (!hasError && ViewModel.HasNoMatches) ? Visibility.Visible : Visibility.Collapsed;
+            UpdateEmptyForAccount();
             HostList.Visibility = (!hasError && ViewModel.IsListVisible) ? Visibility.Visible : Visibility.Collapsed;
             if (hasError)
             {
@@ -105,6 +106,16 @@ namespace SshTool.App.Views.Main
             {
                 SearchBox.Text = ViewModel.SearchText ?? string.Empty;
             }
+        }
+
+        // fix/cold-start-login：空列表文案跟随登录状态。已登录时不再邀请「登录同步」，
+        // 改为说明已登录并给出「查看同步状态」入口。
+        private void UpdateEmptyForAccount()
+        {
+            bool signedIn = ViewModel.IsSignedIn;
+            Empty.Description = Loader.GetString(signedIn ? "Hosts_EmptySignedIn" : "Hosts_Empty/Description");
+            Empty.SecondaryText = Loader.GetString(signedIn ? "Hosts_EmptySyncStatus" : "Hosts_Empty/SecondaryText");
+            Empty.SecondaryCommand = signedIn ? ViewModel.SyncStatusCommand : ViewModel.SignInCommand;
         }
 
         private void OnSearchTextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
