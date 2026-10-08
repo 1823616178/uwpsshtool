@@ -236,5 +236,49 @@ namespace SshTool.Core.Tests.Storage
             Assert.Equal(1, (int)items[0].Extra["newField"]);
             Assert.Contains(store.LoadWarnings, w => w.Contains("99"));
         }
-    }
+    
+        // code-review-pass：读取失败（文件被占用、编码异常）时内容拿不到，没法写文本备份；
+        // 此前直接以空集合继续，下一次保存就把完好的原文件覆盖成空。
+        [Fact]
+        public async Task Load_ReadFailure_MovesOriginalAsideBeforeAnySave()
+        {
+            var fs = new InMemoryFileSystem();
+            await NewStore(fs).SaveAsync(new List<Snippet> { NewSnippet("s1", "原有"), NewSnippet("s2", "数据") });
+            string original = fs.Files["data/snippets.json"];
+            var store = NewStore(fs);
+
+            fs.FailNextRead(new IOException("文件被占用"));
+            var items = await store.LoadAsync();
+
+            Assert.Empty(items);
+            Assert.True(store.CanSave);
+            string backup = "data/snippets.json.corrupt-20260102030405";
+            Assert.Equal(original, fs.Files[backup]);
+            Assert.Contains(store.LoadWarnings, w => w.Contains(backup));
+
+            await store.SaveAsync(new List<Snippet> { NewSnippet("s3", "新") });
+            Assert.Equal(original, fs.Files[backup]);
+        }
+
+        [Fact]
+        public async Task Load_ReadFailure_AndBackupFails_RefusesToOverwrite()
+        {
+            var fs = new InMemoryFileSystem();
+            await NewStore(fs).SaveAsync(new List<Snippet> { NewSnippet("s1", "原有") });
+            string original = fs.Files["data/snippets.json"];
+            var store = NewStore(fs);
+
+            fs.FailNextRead(new IOException("文件被占用"));
+            fs.FailNextMove(new IOException("仍被占用"));
+            Assert.Empty(await store.LoadAsync());
+
+            Assert.False(store.CanSave);
+            await Assert.ThrowsAsync<IOException>(() => store.SaveAsync(new List<Snippet> { NewSnippet("s2", "新") }));
+            Assert.Equal(original, fs.Files["data/snippets.json"]);
+
+            // 下次加载成功即解除封锁。
+            Assert.Single(await store.LoadAsync());
+            Assert.True(store.CanSave);
+        }
+}
 }

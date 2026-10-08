@@ -11,6 +11,7 @@ namespace SshTool.Core.Storage
         private readonly Dictionary<string, string> _files = new Dictionary<string, string>(StringComparer.Ordinal);
         private Exception _nextWriteFailure;
         private Exception _nextMoveFailure;
+        private Exception _nextReadFailure;
 
         public IReadOnlyDictionary<string, string> Files
         {
@@ -27,6 +28,11 @@ namespace SshTool.Core.Storage
             _nextMoveFailure = ex;
         }
 
+        public void FailNextRead(Exception ex)
+        {
+            _nextReadFailure = ex;
+        }
+
         public Task<bool> ExistsAsync(string path)
         {
             return Task.FromResult(_files.ContainsKey(path));
@@ -34,6 +40,12 @@ namespace SshTool.Core.Storage
 
         public Task<string> ReadAllTextAsync(string path)
         {
+            if (_nextReadFailure != null)
+            {
+                var ex = _nextReadFailure;
+                _nextReadFailure = null;
+                throw ex;
+            }
             string contents;
             if (!_files.TryGetValue(path, out contents))
             {

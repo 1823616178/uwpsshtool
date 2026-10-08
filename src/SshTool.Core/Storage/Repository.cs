@@ -256,7 +256,9 @@ namespace SshTool.Core.Storage
             await _gate.WaitAsync().ConfigureAwait(false);
             try
             {
-                if (_items == null)
+                // 读取失败且未能备份的文件：内存里只是「以空集合继续」的占位，
+                // 挂起时整份重写会把盘上完好的原数据覆盖掉。
+                if (_items == null || !_store.CanSave)
                 {
                     return;
                 }
