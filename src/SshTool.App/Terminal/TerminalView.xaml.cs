@@ -400,7 +400,7 @@ namespace SshTool.App.Terminal
             var loader = ResourceLoader.GetForCurrentView();
             var flyout = new MenuFlyout();
             flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuOpenLink"), (s, a) => OpenLink(url)));
-            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuCopyLink"), (s, a) => ClipboardService.SetText(url)));
+            flyout.Items.Add(MenuItem(loader.GetString("Terminal_MenuCopyLink"), (s, a) => ClipboardService.TrySetText(url)));
             try
             {
                 flyout.ShowAt(this, point);
@@ -1114,7 +1114,11 @@ namespace SshTool.App.Terminal
         {
             ISelectionGrid grid = CurrentGrid();
             string text = _selection.ExtractText(grid);
-            ClipboardService.SetText(text);
+            // 剪贴板被占用时静默失败：不弹「已复制」，选区保留可再试。
+            if (!ClipboardService.TrySetText(text))
+            {
+                return;
+            }
             Haptics.VibrateLight(true);
             if (CopiedToast != null)
             {
