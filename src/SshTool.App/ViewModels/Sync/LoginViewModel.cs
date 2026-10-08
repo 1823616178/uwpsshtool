@@ -134,6 +134,18 @@ namespace SshTool.App.ViewModels.Sync
             }
         }
 
+        // fix/auth-audit：被动登出（会话被吊销 / 过期）或修改登录密码后回到登录页时说明原因。
+        // 复用页头下方的提示条；已有错误时不覆盖，切换登录 / 注册页签或提交时自然清除。
+        public void ShowNotice(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text) || HasError)
+            {
+                return;
+            }
+            ErrorMessage = text;
+            RaisePropertyChanged("HasError");
+        }
+
         public void SetRegisterMode(bool register)
         {
             IsRegisterMode = register;
@@ -194,6 +206,9 @@ namespace SshTool.App.ViewModels.Sync
                 }
                 LogInfo(IsRegisterMode ? "registered" : "signed in");
                 authenticated = true;
+                // fix/auth-audit：密码已用完，不在内存里多留（页面随后离开）。
+                _password = string.Empty;
+                _confirmPassword = string.Empty;
             }
             catch (Exception ex)
             {
@@ -361,7 +376,7 @@ namespace SshTool.App.ViewModels.Sync
                 }
                 return AppendRequestId(GetString(loader, "Login_BusyRetry", api.Message), api.RequestId, loader);
             }
-            string text = GetString(loader, ApiErrorCatalog.ResourceKey(api.Code), null);
+            string text = VaultErrorText.CodeText(api, loader);
             if (string.IsNullOrEmpty(text))
             {
                 text = VaultErrorText.FallbackText(api, loader);

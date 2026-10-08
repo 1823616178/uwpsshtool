@@ -3,8 +3,11 @@ using System.ComponentModel;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Sync;
 using SshTool.Core.Sync;
+using Windows.System;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 
 namespace SshTool.App.Views.Sync
@@ -61,14 +64,61 @@ namespace SshTool.App.Views.Sync
 
         private void OnSubmitClick(object sender, EventArgs e)
         {
+            if (ViewModel == null)
+            {
+                return;
+            }
+            // 提交前从控件回读（输入法组合态下 TextChanged/PasswordChanged 可能漏发最后一次）。
+            ViewModel.Password = PasswordBox.Password;
+            ViewModel.ConfirmText = ConfirmBox.Text;
             if (ViewModel.SubmitCommand.CanExecute(null))
             {
                 ViewModel.SubmitCommand.Execute(null);
             }
         }
 
+        // fix/auth-audit：回车：密码 → 确认框；确认框回车只收起软键盘（露出底部红色按钮），
+        // 不直接提交——注销不可恢复，留一次明确点击。
+        private void OnPasswordKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key != VirtualKey.Enter)
+            {
+                return;
+            }
+            e.Handled = true;
+            ConfirmBox.Focus(FocusState.Programmatic);
+        }
+
+        private void OnConfirmKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key != VirtualKey.Enter)
+            {
+                return;
+            }
+            e.Handled = true;
+            HideSoftKeyboard();
+        }
+
+        // InputPane.TryHide 自 10586 起可用（低于 15063 基线，无需 ApiInformation 守卫）。
+        private static void HideSoftKeyboard()
+        {
+            try
+            {
+                InputPane pane = InputPane.GetForCurrentView();
+                if (pane != null)
+                {
+                    pane.TryHide();
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+
         private void OnAccountDeleted(object sender, EventArgs e)
         {
+            PasswordBox.Password = string.Empty;
             // 注销成功 → 回登录页。
             if (Frame != null && Frame.CanGoBack)
             {
@@ -99,11 +149,12 @@ namespace SshTool.App.Views.Sync
             if (ViewModel != null && ViewModel.HasError)
             {
                 ErrorText.Text = ViewModel.ErrorMessage;
-                ErrorText.Visibility = Visibility.Visible;
+                ErrorPanel.Visibility = Visibility.Visible;
             }
             else
             {
-                ErrorText.Visibility = Visibility.Collapsed;
+                ErrorText.Text = string.Empty;
+                ErrorPanel.Visibility = Visibility.Collapsed;
             }
         }
 

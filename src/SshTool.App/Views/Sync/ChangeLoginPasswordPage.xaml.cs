@@ -3,8 +3,11 @@ using System.ComponentModel;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Sync;
 using SshTool.Core.Sync;
+using Windows.System;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Navigation;
 
 namespace SshTool.App.Views.Sync
@@ -26,7 +29,8 @@ namespace SshTool.App.Views.Sync
             ViewModel.SubmitCommand.CanExecuteChanged += OnCanExecuteChanged;
             ViewModel.PropertyChanged += OnViewModelChanged;
             ViewModel.PasswordChanged += OnPasswordChanged;
-            ExplanationText.Text = Localized.Get("ChangeLoginPassword_Explanation", "修改密码后需要重新登录。");
+            ExplanationText.Text = Localized.Get("ChangeLoginPassword_Explanation",
+                "After the change, every device is signed out and must sign in again with the new password.");
             BottomBar.PrimaryText = Localized.Get("ChangeLogin_Submit", "修改密码");
             RefreshError();
             RefreshBusy();
@@ -67,15 +71,82 @@ namespace SshTool.App.Views.Sync
 
         private void OnSubmitClick(object sender, EventArgs e)
         {
+            SubmitFromUi();
+        }
+
+        // fix/auth-audit：回车键链（当前密码 → 新密码 → 确认 → 提交），与登录页一致。
+        // 此前没有回车处理，软键盘弹出时底部操作条收起，用户找不到提交入口。
+        // 只接 KeyDown 并标记 Handled，避免回车抬起落到下一个刚获得焦点的框上。
+        private void OnCurrentKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key != VirtualKey.Enter)
+            {
+                return;
+            }
+            e.Handled = true;
+            NewBox.Focus(FocusState.Programmatic);
+        }
+
+        private void OnNewKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key != VirtualKey.Enter)
+            {
+                return;
+            }
+            e.Handled = true;
+            ConfirmBox.Focus(FocusState.Programmatic);
+        }
+
+        private void OnConfirmKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key != VirtualKey.Enter)
+            {
+                return;
+            }
+            e.Handled = true;
+            HideSoftKeyboard();
+            SubmitFromUi();
+        }
+
+        // 提交前从控件回读（个别输入法组合态下 PasswordChanged 可能漏发最后一次）。
+        private void SubmitFromUi()
+        {
+            if (ViewModel == null)
+            {
+                return;
+            }
+            ViewModel.CurrentPassword = CurrentBox.Password;
+            ViewModel.NewPassword = NewBox.Password;
+            ViewModel.ConfirmPassword = ConfirmBox.Password;
             if (ViewModel.SubmitCommand.CanExecute(null))
             {
                 ViewModel.SubmitCommand.Execute(null);
             }
         }
 
+        // InputPane.TryHide 自 10586 起可用（低于 15063 基线，无需 ApiInformation 守卫）。
+        private static void HideSoftKeyboard()
+        {
+            try
+            {
+                InputPane pane = InputPane.GetForCurrentView();
+                if (pane != null)
+                {
+                    pane.TryHide();
+                }
+            }
+            catch (Exception)
+            {
+            }
+        }
+
+
         private void OnPasswordChanged(object sender, EventArgs e)
         {
-            // 成功后回登录页（需重新登录）。
+            CurrentBox.Password = string.Empty;
+            NewBox.Password = string.Empty;
+            ConfirmBox.Password = string.Empty;
+            // 成功后回状态页，状态页随即转去登录页（登录页会提示「密码已修改，请用新密码重新登录」）。
             if (Frame != null && Frame.CanGoBack)
             {
                 Frame.GoBack();
@@ -105,11 +176,12 @@ namespace SshTool.App.Views.Sync
             if (ViewModel != null && ViewModel.HasError)
             {
                 ErrorText.Text = ViewModel.ErrorMessage;
-                ErrorText.Visibility = Visibility.Visible;
+                ErrorPanel.Visibility = Visibility.Visible;
             }
             else
             {
-                ErrorText.Visibility = Visibility.Collapsed;
+                ErrorText.Text = string.Empty;
+                ErrorPanel.Visibility = Visibility.Collapsed;
             }
         }
 

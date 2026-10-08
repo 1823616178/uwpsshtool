@@ -297,6 +297,48 @@ namespace SshTool.Core.Sync.Auth
             }
         }
 
+        // fix/auth-audit：本机设备在设备列表里改名后同步本地会话里的名称（状态页「邮箱 · 设备名」）。
+        // 不是当前会话的设备时什么也不做；写盘失败照样采用（与 SaveAsync 一致，稍后补写）。
+        public async Task<bool> UpdateDeviceNameAsync(string deviceId, string name)
+        {
+            if (string.IsNullOrEmpty(deviceId) || string.IsNullOrWhiteSpace(name))
+            {
+                return false;
+            }
+            await _gate.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                StoredSession next;
+                lock (_mutex)
+                {
+                    if (_state == null
+                        || !string.Equals(_state.DeviceId, deviceId, StringComparison.Ordinal)
+                        || string.Equals(_state.DeviceName, name, StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+                    next = Clone(_state);
+                    next.DeviceName = name;
+                }
+                bool persisted = await TryWriteAsync(Serialize(next), "rename").ConfigureAwait(false);
+                lock (_mutex)
+                {
+                    // 写盘期间会话可能已被清除 / 替换（持有 _gate，实际不会；防御性检查）。
+                    if (_state == null || !string.Equals(_state.DeviceId, deviceId, StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+                    _state = next;
+                    _persistPending = !persisted;
+                }
+                return true;
+            }
+            finally
+            {
+                _gate.Release();
+            }
+        }
+
         // 显式退出 / 终端鉴权错误。fix/persist-login：内存一律清空；写盘失败不抛
         // （此前抛错会盖掉调用方真正的鉴权错误，且内存会话不清），记待落盘由 FlushAsync 补。
         public async Task ClearAsync()

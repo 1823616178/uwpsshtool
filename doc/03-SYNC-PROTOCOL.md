@@ -323,6 +323,10 @@ Initialize():
 
 Register/Login(input): api.register/login(input, DeviceDescriptor) → AfterAuthenticated()
   DeviceDescriptor = { name: 用户填写或 EasClientDeviceInformation.FriendlyName（≤255）, platform: "windows-mobile-arm" | "windows-uwp-<arch>", appVersion: Package 版本 }
+RetirePreviousDevice()（Login/Register 成功后、AfterAuthenticated 前；fix/auth-audit）：
+   读本机记住的上一条设备（ILastDeviceStore，LocalSettings 键 Sync.LastDevice，值 userId+deviceId，非机密）→
+   先记下新会话的设备 → 同一 userId 且 deviceId 不同时 DELETE devices/{旧 id}；失败（离线 / DEVICE_NOT_FOUND）只记警告，不影响登录、不重试。
+   Initialize 读到已登录会话时同样记下当前设备；DeleteAccount / logout-all 成功后清除记录。
 AfterAuthenticated(): 绑定缓存 → phase 同上 → 无 vaultId 则 ProbeVaultSafely()
 ProbeVault(): GET vault/key-envelope →
    成功：cache.vaultId=env.id, keyVersion=env.keyVersion；若 vaultId 变化则 vaultKey=null、revision="0"、baseDocument=null、dirty=false
@@ -330,6 +334,8 @@ ProbeVault(): GET vault/key-envelope →
    VAULT_NOT_FOUND：vault=missing, phase=disabled
    其他错误：HandleSyncError（不影响登录成功）
 Logout(all): 调 logout 或 logout-all（失败也继续）→ AuthStore.Clear → cache.Lock → phase=signed_out
+   例外（fix/auth-audit）：logout-all 未送达 / 失败（网络、超时、5xx 等非终端鉴权错误）时**保留本机会话并上抛**，
+   界面提示失败、可重试——否则界面回到登录页，用户以为其他设备都已下线。会话已失效（终端鉴权错误）时照常清本地。
 ChangeAccountPassword(cur,new): api → AuthStore.Clear → cache.Lock → phase=signed_out（提示用新密码重新登录）
 DeleteAccount(cur): DELETE me {currentPassword, confirmation:"DELETE"} → AuthStore.Clear → cache.Clear → signed_out
 ```
@@ -603,7 +609,7 @@ MergeEntityArray(ids = base∪local∪remote 排序)：
 7. `updatedAt` 必须是 ISO datetime（C# `DateTime.ToString("o")` 输出 7 位小数 + `Z` 可能被 zod `z.iso.datetime()` 拒绝 → 固定 `yyyy-MM-ddTHH:mm:ss.fffZ`）。
 8. revision 是 u64 字符串，不要转 double/int 比较。
 9. `Windows.Web.Http` 默认缓存 GET、会自动带 Cookie —— 必须关闭。
-10. login 每次新建设备：已登录状态下不要再 login；登录前检查 AuthState。
+10. login 每次新建设备：已登录状态下不要再 login；登录前检查 AuthState。logout 不撤销设备记录，退出后重登会留下死记录，攒满 10 台后本机再也登录不上（DEVICE_QUOTA_EXCEEDED）——登录成功后撤销本机上一条记录（见 §7.1 RetirePreviousDevice）。
 11. 刷新请求网络失败后 refresh token 可能已被消耗：**同一次刷新内不得重试**。fix/persist-login 起，下一次 401 时仍用它再试一次——若确已消耗，服务端回 `AUTH_TOKEN_REUSED` 吊销本设备这串 token family，客户端清空会话（与「直接清空」同一结局）；若其实没送达（Lumia 上更常见），就不会因一次网络抖动被强制登出。
 12. pendingUpload / pendingVaultSetup **先落盘再发请求**。
 13. 下行应用时来源标记为 Sync，不得再触发 MarkDirty（否则无限上传循环）。

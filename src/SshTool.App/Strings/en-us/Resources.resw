@@ -798,7 +798,7 @@
   <data name="Sync_Msg_ConflictInitialImport" xml:space="preserve"><value>Cloud configuration unlocked. Choose how to do the first sync</value></data>
   <data name="Sync_Msg_ConflictRemoteDeletion" xml:space="preserve"><value>The cloud contains deletions. Confirm before applying</value></data>
   <data name="Sync_Msg_ConflictGeneric" xml:space="preserve"><value>A sync conflict needs your confirmation</value></data>
-  <data name="Sync_Err_SyncPasswordWrong" xml:space="preserve"><value>Incorrect sync password</value></data>
+  <data name="Sync_Err_SyncPasswordWrong" xml:space="preserve"><value>Incorrect sync password (the one set when the vault was created, not your login password)</value></data>
   <data name="Sync_Err_RecoveryKeyInvalid" xml:space="preserve"><value>Invalid recovery key</value></data>
   <data name="Sync_Err_RotateRequired" xml:space="preserve"><value>Turning off sensitive sync requires a key rotation. Enter your account password in Security cleanup</value></data>
   <data name="Sync_Err_SignInRequired" xml:space="preserve"><value>Sign in first</value></data>
@@ -901,7 +901,7 @@
   <!-- ChangeLoginPasswordPage (U20) -->
   <data name="ChangeLogin_Header.Title" xml:space="preserve"><value>Change Login Password</value></data>
   <data name="ChangeLogin_Section_Password.Header" xml:space="preserve"><value>Change Password</value></data>
-  <data name="ChangeLogin_CurrentLabel.Text" xml:space="preserve"><value>Current password</value></data>
+  <data name="ChangeLogin_CurrentLabel.Text" xml:space="preserve"><value>Current login password</value></data>
   <data name="ChangeLogin_NewLabel.Text" xml:space="preserve"><value>New password</value></data>
   <data name="ChangeLogin_NewHint.Text" xml:space="preserve"><value>New password must be at least 10 characters.</value></data>
   <data name="ChangeLogin_ConfirmLabel.Text" xml:space="preserve"><value>Confirm new password</value></data>
@@ -1101,7 +1101,7 @@
   <data name="SessionsPivot_Restore" xml:space="preserve"><value>{0} sessions left open last time</value></data>
   <data name="ShortcutEditor_Conflict" xml:space="preserve"><value>Conflict: {0} is used by two actions</value></data>
   <data name="AccountSync_Title" xml:space="preserve"><value>Account and sync</value></data>
-  <data name="ChangeLoginPassword_Explanation" xml:space="preserve"><value>You will need to sign in again after changing your password.</value></data>
+  <data name="ChangeLoginPassword_Explanation" xml:space="preserve"><value>After the change, every device (including this one) is signed out and must sign in again with the new password. Your sync password is not affected.</value></data>
   <data name="SyncConflict_Title" xml:space="preserve"><value>Sync conflict</value></data>
   <data name="SyncConflict_Empty" xml:space="preserve"><value>No pending conflicts</value></data>
   <data name="SyncConflict_UpdatedBoth" xml:space="preserve"><value>Cloud updated {0} · this device updated {1}</value></data>
@@ -1484,5 +1484,12 @@
   <data name="Tunnel_ConfigDeleted" xml:space="preserve"><value>Configuration deleted</value></data>
   <data name="Tunnel_ManagerDisposed" xml:space="preserve"><value>Tunnel service released</value></data>
   <data name="Tunnel_ReconnectIn" xml:space="preserve"><value>{0}, reconnecting in {1}s</value></data>
+  <!-- fix/auth-audit -->
+  <data name="Api_VALIDATION_ERROR_Detail" xml:space="preserve"><value>Invalid input: {0}</value></data>
+  <data name="AccountSync_LoggingOut" xml:space="preserve"><value>Signing out…</value></data>
+  <data name="ChangeLogin_CurrentRequired" xml:space="preserve"><value>Enter your current login password.</value></data>
+  <data name="ChangeLogin_NewRequired" xml:space="preserve"><value>Enter a new password.</value></data>
+  <data name="DeleteAccount_PasswordRequired" xml:space="preserve"><value>Enter your login password.</value></data>
+  <data name="DeleteAccount_ConfirmRequired" xml:space="preserve"><value>Type DELETE (in capitals) to confirm.</value></data>
 </root>
 

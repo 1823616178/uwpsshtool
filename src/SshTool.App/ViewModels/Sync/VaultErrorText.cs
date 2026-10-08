@@ -1,6 +1,7 @@
 using System;
 using SshTool.Core.Sync;
 using SshTool.Core.Sync.Api;
+using SshTool.Core.Sync.Auth;
 using Windows.ApplicationModel.Resources;
 
 namespace SshTool.App.ViewModels.Sync
@@ -54,12 +55,34 @@ namespace SshTool.App.ViewModels.Sync
                 }
                 return AppendRequestId(GetString(loader, "Login_BusyRetry", api.Message), api.RequestId, loader);
             }
-            string text = GetString(loader, ApiErrorCatalog.ResourceKey(api.Code), null);
+            string text = CodeText(api, loader);
             if (string.IsNullOrEmpty(text))
             {
                 text = FallbackText(api, loader);
             }
             return AppendRequestId(text, api.RequestId, loader);
+        }
+
+        // Api_<CODE> 文案；fix/auth-audit：VALIDATION_ERROR 且服务端给了具体原因（如「请输入有效邮箱」、
+        // 设备名过长）时拼上原因——此前只显示笼统的「请求参数无效」，用户不知道该改哪一项。
+        internal static string CodeText(ApiError api, ResourceLoader loader)
+        {
+            string detail = LoginErrorKeys.ValidationDetail(api);
+            if (detail != null)
+            {
+                string template = GetString(loader, LoginErrorKeys.ValidationDetailKey, null);
+                if (!string.IsNullOrEmpty(template))
+                {
+                    try
+                    {
+                        return string.Format(FormatCulture, template, detail);
+                    }
+                    catch (FormatException)
+                    {
+                    }
+                }
+            }
+            return GetString(loader, ApiErrorCatalog.ResourceKey(api.Code), null);
         }
 
         // 推断码（HTTP_<status>）无 resw 键：服务端给了文案就显示原文；没给（Core 只有英文诊断

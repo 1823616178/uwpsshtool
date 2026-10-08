@@ -200,12 +200,20 @@ namespace SshTool.App.Views.Sync
             if (ViewModel.HasError)
             {
                 ErrorText.Text = ViewModel.ErrorMessage;
-                ErrorText.Visibility = Visibility.Visible;
+                ErrorPanel.Visibility = Visibility.Visible;
             }
             else
             {
-                ErrorText.Visibility = Visibility.Collapsed;
+                ErrorText.Text = string.Empty;
+                ErrorPanel.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void RefreshLoggingOut()
+        {
+            bool busy = ViewModel.IsLoggingOut;
+            Working.IsActive = busy;
+            Working.Message = busy ? GetString("AccountSync_LoggingOut", "Signing out…") : string.Empty;
         }
 
         // ---------------- 命令接线 ----------------
@@ -346,6 +354,10 @@ namespace SshTool.App.Views.Sync
             {
                 RefreshErrors();
             }
+            if (name == "IsLoggingOut")
+            {
+                RefreshLoggingOut();
+            }
             if (name == "HasDevices" || name == "IsLoadingDevices")
             {
                 RefreshDevicesVisual();
@@ -407,7 +419,13 @@ namespace SshTool.App.Views.Sync
                 PrimaryButtonText = GetString("AccountSync_Rename", "重命名"),
                 CloseButtonText = GetString("AccountSync_Cancel", "取消")
             };
-            var input = new TextBox { Text = row.Name, AcceptsReturn = false };
+            // fix/auth-audit：限制到服务端设备名上限（超长此前会被拒为 VALIDATION_ERROR 且无提示）。
+            var input = new TextBox
+            {
+                Text = row.Name,
+                AcceptsReturn = false,
+                MaxLength = AuthService.MaxDeviceNameLength
+            };
             renameDialog.Content = input;
             bool canRevoke = !row.IsCurrent;
             if (canRevoke)
@@ -417,8 +435,8 @@ namespace SshTool.App.Views.Sync
             ContentDialogResult result = await Dlg.ShowAsync(renameDialog);
             if (result == ContentDialogResult.Primary)
             {
-                string newName = input.Text ?? string.Empty;
-                if (!string.IsNullOrEmpty(newName))
+                string newName = (input.Text ?? string.Empty).Trim();
+                if (newName.Length > 0 && !string.Equals(newName, row.Name, StringComparison.Ordinal))
                 {
                     ViewModel.RenameDeviceAsync(row.Id, newName).Forget("AccountSyncPage.RenameDevice", AppLog.Logger);
                 }
