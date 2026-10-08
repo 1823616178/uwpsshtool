@@ -46,6 +46,13 @@ namespace SshTool.Core.Sync
             return false;
         }
 
+        // feat/remember-vault：解锁页是否要说明「为什么又要输入同步密码」：本机记住的密钥已失效
+        // （别的设备修改了同步密码 / 轮换了密钥 / 删库重建）。首次在本机解锁不提示。
+        public static bool ShouldShowUnlockNotice(SyncState state)
+        {
+            return state != null && state.MessageCode == SyncMessageCode.RemoteKeyRotated;
+        }
+
         // 目标就是当前页时不导航：同页重入会在 OnNavigatedTo 里再次判定并再次导航，形成循环。
         // current 为 null 表示当前页不属于同步流程（主页、设置页等），总是导航。
         public static bool ShouldNavigate(SyncScreenKind? current, SyncScreenKind target)

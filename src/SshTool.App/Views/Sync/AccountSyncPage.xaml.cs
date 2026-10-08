@@ -185,6 +185,8 @@ namespace SshTool.App.Views.Sync
             EnableSwitch.Toggled -= OnEnableSyncToggled;
             AutoSyncSwitch.Toggled -= OnAutoSyncToggled;
             SyncPasswordsSwitch.Toggled -= OnSyncPasswordsToggled;
+            RememberVaultKeySwitch.Toggled -= OnRememberVaultKeyToggled;
+            RememberVaultKeySwitch.IsOn = ViewModel.RememberVaultKey;
             EnableSwitch.IsOn = ViewModel.EnableSync;
             AutoSyncSwitch.IsOn = ViewModel.AutoSync;
             SyncPasswordsSwitch.IsOn = ViewModel.SyncPasswords;
@@ -193,6 +195,7 @@ namespace SshTool.App.Views.Sync
             EnableSwitch.Toggled += OnEnableSyncToggled;
             AutoSyncSwitch.Toggled += OnAutoSyncToggled;
             SyncPasswordsSwitch.Toggled += OnSyncPasswordsToggled;
+            RememberVaultKeySwitch.Toggled += OnRememberVaultKeyToggled;
         }
 
         private void RefreshErrors()
@@ -256,6 +259,17 @@ namespace SshTool.App.Views.Sync
                 return;
             }
             ViewModel.ToggleSyncPasswords(sw.IsOn);
+        }
+
+        private void OnRememberVaultKeyToggled(object sender, RoutedEventArgs e)
+        {
+            ToggleSwitch sw = sender as ToggleSwitch;
+            if (sw == null)
+            {
+                return;
+            }
+            ViewModel.SetRememberVaultKeyAsync(sw.IsOn)
+                .Forget("AccountSyncPage.SetRememberVaultKey", AppLog.Logger);
         }
 
         private void OnChangeSyncPasswordClick(object sender, RoutedEventArgs e)
@@ -346,7 +360,8 @@ namespace SshTool.App.Views.Sync
                 RefreshStatusVisual();
             }
             if (name == "EnableSync" || name == "AutoSync" || name == "SyncPasswords"
-                || name == "SyncPrivateKeys" || name == "SyncPrivateKeysEnabled")
+                || name == "SyncPrivateKeys" || name == "SyncPrivateKeysEnabled"
+                || name == "RememberVaultKey")
             {
                 RefreshSwitches();
             }

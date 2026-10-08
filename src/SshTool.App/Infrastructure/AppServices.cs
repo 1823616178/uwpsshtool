@@ -258,7 +258,8 @@ namespace SshTool.App.Infrastructure
                 Auth, VaultCache, SyncApi, new NativeVaultCrypto(Logger),
                 new UwpDeviceDescriptorProvider(), Logger, timers: new DispatcherTimerFactory(),
                 // fix/auth-audit：记住本机上一次的设备记录，重新登录后撤销它（防止攒满 10 台配额）。
-                lastDevice: new SettingsLastDeviceStore(new LocalSettingsStore()));
+                lastDevice: new SettingsLastDeviceStore(new LocalSettingsStore()),
+                deviceOptions: new SyncDeviceOptions(new LocalSettingsStore()));
             ServiceRegistry.Register(Sync);
             AuthService = new AuthService(Auth, SyncApi, new UwpDeviceDescriptorProvider(), Logger);
             SyncTriggers = new SyncTriggers(

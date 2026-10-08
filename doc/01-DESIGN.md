@@ -50,7 +50,7 @@ Windows 10 Mobile 原生 UWP SSH 终端：**C# / XAML 界面 + C++/CX 原生核�
 | UWP 包 | `Microsoft.NETCore.UniversalWindowsPlatform` **6.2.14**（SP01 已结：真机 .NET Native 运行通过，**无需退 5.4.x**） | 版本号写入 `Directory.Build.props` 统一管理 |
 | 部署 | 手机开「开发人员模式」→ USB 或 Wi-Fi；`WinAppDeployCmd.exe install -file x.appx -ip <phone> -pin <pin>` | 依赖包（VCLibs、.NET Native Runtime/Framework ARM）一并安装 |
 | 测试 | `dotnet test`（Core 纯逻辑，宿主机 net8）；CMake + GoogleTest（native 纯 C++，宿主机 x64 MSVC）；真机手工验收清单 | 让绝大部分逻辑不依赖真机就能自证 |
-| 同步测试服务器 | 配置默认 `https://123.161.179.32:46926`（客户端自动拼 `/api/v1`）；该服务器目前**未启用 TLS**，靠 `httpFallback` 降级到 `http://` 同地址 | 与鸿蒙端一致；明文 HTTP 风险见 §12.3 |
+| 同步测试服务器 | 配置默认 `http://123.161.179.32:46926`（客户端自动拼 `/api/v1`）；该服务器按设计**走明文 HTTP**，直接以 http 访问，不先试 https | 与鸿蒙端一致；明文 HTTP 风险见 §12.3 |
 
 ---
 
@@ -655,7 +655,7 @@ public ref class KeyTool sealed {
 | 会话恢复快照（打开的会话、窗格树） | `LocalFolder/state/sessions.json` | 仅 id 与布局，不含内容 |
 
 **SecretStore 键名规范**：`host:<hostId>:password`、`host:<hostId>:passphrase`、`key:<keyId>:private`、`key:<keyId>:passphrase`。
-（同步密码不保存；保险库密钥保存在 `vault-cache.bin`，与桌面端 `vault-cache.ts` 一致。）
+（同步密码不保存；保险库密钥保存在 `vault-cache.bin`，与桌面端 `vault-cache.ts` 一致；同一账号退出登录后默认保留，见 §12.3。）
 删除主机/密钥必须级联删除对应键。
 
 ### 8.3 设置键（D04 实现，`SettingsRepository`）
@@ -809,7 +809,8 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
 ### 12.3 同步通道明文 HTTP 风险
 
 端到端加密保护**文档内容**，不保护**登录邮箱/密码、access/refresh token、保险库信封**。当前服务端为公网裸 IP + HTTP：
-- 登录/注册页固定显示风险提示；不提供「记住账号密码」自动登录（token 由 refresh 维持）。
+- 登录/注册页在表单下方显示一行说明文字（feat/remember-vault 起不再用页顶警告 Banner，避免在 360×640 上挤占输入区）；
+  不提供「记住账号密码」自动登录（token 由 refresh 维持）。
 - 建议服务端挂域名 + TLS 后把 `SyncApiBaseUrl` 切 https（配置项，不改代码）。
 - **opt/full-pass（2026-10-08）现状**：`appconfig.*.json` 与 `AppConfigParser` 默认已是 `https://`，同时 `allowHttp=true`、
   `httpFallback=true`。`ApiClient` 首次 https 请求在**传输层**失败（握手/连接异常；超时不算）时一次性降级到同主机同端口的
@@ -822,6 +823,14 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
   （`HttpConnectionFailedException`：DNS/连接/TLS 握手失败，`UwpHttpTransport` 按 HRESULT/WebErrorStatus 判定）。
   其余写请求（登录、注册、改密等无幂等键的 POST）在 https 上结果不明时不重放，返回 ambiguous network 错误，
   避免服务器执行两次；用户重试时已直接走 http。
+- **feat/remember-vault（2026-10-09）现状**：服务器按设计就是 HTTP，`appconfig.*.json` 与 `AppConfigParser` 默认改为
+  `http://123.161.179.32:46926`。`ApiClient` 只在根地址为 `https://` 时才会启用回退，http 地址直接访问，因此不再出现
+  「首次 https 失败 → 已切换 HTTP，请重试」这一步；上面的回退 / 重放规则只对日后配置的 https 地址生效。
+  manifest 已声明 `internetClient`（公网 IP 的 HTTP 出站所需），无需额外能力。
+- **本机记住保险库密钥**：解锁 / 建库后 vaultKey 加密保存在 `vault-cache.bin`（DPAPI），同一账号退出后重新登录、重启都不再要求
+  同步密码；换账号、删除账号、设备被吊销、其他设备改了同步密码（keyVersion 变化）时清除，规则见 03-SYNC-PROTOCOL §6.2 / §7.1。
+  代价：拿到已解锁手机且知道登录密码的人可直接解开云端保险库——与本机已明文可用的主机 / 密钥数据风险等级相同；
+  介意者可在「账号与同步 → 保险库」关掉「退出登录后记住同步密码」。
 - W10M 的 TLS 根证书较旧（2017 年），若日后切 HTTPS 使用 Let's Encrypt（ISRG Root X1）需验证手机信任链，必要时在 manifest `Certificates` 声明中打包根证书（Q03 验证）。
 
 ---

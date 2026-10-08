@@ -721,6 +721,23 @@ namespace SshTool.Core.Tests.Sync
         }
 
         [Fact]
+        public async Task TerminalAuth_SessionExpired_KeepsRememberedVaultKey()
+        {
+            // feat/remember-vault：会话过期（非设备吊销）只需重新登录，同一账号无需再输同步密码。
+            var h = new Harness(NewDoc("Base"));
+            await h.SeedLoginAsync();
+            await h.SeedVaultAsync("1", NewDoc("Base"), dirty: false);
+            h.Server.HeadOverride = () => MockSyncServer.ApiErrorJson(
+                401, "AUTH_REFRESH_UNAVAILABLE", "session expired");
+
+            await Assert.ThrowsAsync<ApiError>(() => h.Coordinator.SyncNowAsync());
+
+            Assert.False(h.Auth.Session.Authenticated);
+            Assert.NotNull(h.Vault.State.VaultKeyBase64);
+            Assert.Equal(SyncPhase.AuthError, h.Coordinator.State.Phase);
+        }
+
+        [Fact]
         public async Task NonRetryableError_EntersErrorWithoutRetry()
         {
             var h = new Harness(NewDoc("Base"));

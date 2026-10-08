@@ -151,10 +151,30 @@
                                               x:Uid="AccountSync_Vault"
                                               Margin="{StaticResource GapMdTop}">
                             <controls:FormSection.SectionContent>
-                                <Button x:Name="ChangeSyncPasswordButton" x:Uid="AccountSync_ChangeSyncPassword"
-                                        HorizontalAlignment="Stretch"
-                                        Margin="{StaticResource GapSmTop}"
-                                        Click="OnChangeSyncPasswordClick" />
+                                <StackPanel>
+                                    <!-- feat/remember-vault：本机开关（不随账号同步），默认开。 -->
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Uid="AccountSync_RememberVaultKey"
+                                                   Style="{StaticResource BodyTextStyle}"
+                                                   TextWrapping="Wrap"
+                                                   VerticalAlignment="Center" />
+                                        <ToggleSwitch x:Name="RememberVaultKeySwitch" x:Uid="AccountSync_RememberVaultKeySwitch"
+                                                      Grid.Column="1"
+                                                      Toggled="OnRememberVaultKeyToggled" />
+                                    </Grid>
+                                    <TextBlock x:Uid="AccountSync_RememberVaultKeyNote"
+                                               Style="{StaticResource CaptionTextStyle}"
+                                               TextWrapping="Wrap"
+                                               Margin="{StaticResource GapXsTop}" />
+                                    <Button x:Name="ChangeSyncPasswordButton" x:Uid="AccountSync_ChangeSyncPassword"
+                                            HorizontalAlignment="Stretch"
+                                            Margin="{StaticResource GapSmTop}"
+                                            Click="OnChangeSyncPasswordClick" />
+                                </StackPanel>
                             </controls:FormSection.SectionContent>
                         </controls:FormSection>
 

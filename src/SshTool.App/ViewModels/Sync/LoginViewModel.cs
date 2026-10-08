@@ -52,7 +52,7 @@ namespace SshTool.App.ViewModels.Sync
 
         public AsyncCommand SubmitCommand { get; private set; }
 
-        // allowHttp 且 URL 为 http 时展示明文风险 Banner（02-UI-DESIGN.md §5.13）。
+        // allowHttp 且 URL 为 http 时在表单下方显示一行明文说明（feat/remember-vault 起不再用页顶 Banner）。
         public bool ShowHttpBanner { get; private set; }
 
         public bool IsRegisterMode

@@ -194,9 +194,11 @@ namespace SshTool.Core.Tests.Sync
         }
 
         [Fact]
-        public void ConfigDefaults_AreHttpsWithFallback()
+        public void ConfigDefaults_PlainHttpServer_FallbackOnlyForHttps()
         {
-            Assert.StartsWith("https://", AppConfigParser.DefaultSyncApiBaseUrl);
+            // feat/remember-vault：服务器按设计是明文 HTTP，默认地址直接用 http（不经 https 降级）。
+            Assert.StartsWith("http://", AppConfigParser.DefaultSyncApiBaseUrl);
+            Assert.True(AppConfigParser.DefaultAllowHttp);
             var cfg = AppConfigParser.Parse(
                 "{\"syncApiBaseUrl\":\"https://x.test\",\"allowHttp\":true,\"logLevel\":\"info\"}");
             Assert.Equal(AppConfigParser.DefaultHttpFallback, cfg.HttpFallback);

@@ -25,6 +25,13 @@
                         <EntranceThemeTransition />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
+                <!-- feat/remember-vault：本机记住的密钥失效（其他设备改了同步密码 / 保险库重建）时说明原因。 -->
+                <TextBlock x:Name="NoticeText"
+                           Style="{StaticResource CaptionTextStyle}"
+                           Foreground="{ThemeResource AppWarningBrush}"
+                           TextWrapping="Wrap"
+                           Margin="{StaticResource GapSmTop}"
+                           Visibility="Collapsed" />
                 <Grid Margin="{StaticResource GapSmTop}">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -60,6 +67,10 @@
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
+                <TextBlock x:Uid="VaultUnlock_Hint"
+                           Style="{StaticResource CaptionTextStyle}"
+                           TextWrapping="Wrap"
+                           Margin="{StaticResource GapSmTop}" />
             </StackPanel>
         </ScrollViewer>
         <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"

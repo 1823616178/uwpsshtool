@@ -3,6 +3,7 @@ using System.ComponentModel;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Sync;
 using SshTool.Core.Sync;
+using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
@@ -41,6 +42,7 @@ namespace SshTool.App.Views.Sync
         {
             base.OnNavigatedTo(e);
             ViewModel.Unlocked += OnUnlocked;
+            RefreshNotice();
             // 已就绪（如解锁后按返回键回到本页）：不留在此页，去状态路由。
             if (VaultIsReady())
             {
@@ -53,6 +55,27 @@ namespace SshTool.App.Views.Sync
             ViewModel.Unlocked -= OnUnlocked;
             ViewModel.Detach(); // O03：VM 挂在应用级 SyncCoordinator 上
             base.OnNavigatedFrom(e);
+        }
+
+        // feat/remember-vault：登录时发现本机记住的密钥已失效（keyVersion / vaultId 变了）→ 说明为何又要输入。
+        private void RefreshNotice()
+        {
+            string text = string.Empty;
+            try
+            {
+                AppServices services = AppServices.Current;
+                SyncState state = services != null && services.Sync != null ? services.Sync.State : null;
+                if (SyncRouting.ShouldShowUnlockNotice(state))
+                {
+                    text = SyncText.StateMessage(state, ResourceLoader.GetForCurrentView());
+                }
+            }
+            catch (Exception)
+            {
+                text = string.Empty;
+            }
+            NoticeText.Text = text ?? string.Empty;
+            NoticeText.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private static VaultUnlockViewModel CreateViewModel()

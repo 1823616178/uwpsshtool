@@ -99,6 +99,11 @@ namespace SshTool.Core.Sync
         // 未注入时用 Task.Delay 内建实现（单测默认）；生产由 S14 注入 DispatcherTimerFactory。
         private readonly ITimerFactory _timers;
         private readonly ILastDeviceStore _lastDevice;
+        private readonly SyncDeviceOptions _deviceOptions;
+
+        // feat/remember-vault：退出登录 / 登录失效后是否保留本机的保险库密钥（vault.bin，DPAPI）。
+        // 换账号由 VaultCacheStore.BindToUserAsync 整体重置，注销账号整体清除，不受此开关影响。
+        private volatile bool _rememberVaultKey = SyncDeviceOptions.DefaultRememberVaultKey;
         private readonly object _timerLock = new object();
         private IDisposable _debounceTimer;
         private IDisposable _retryTimer;
@@ -128,7 +133,8 @@ namespace SshTool.Core.Sync
             ISyncLocalPort local = null,
             Func<long, Task> sleep = null,
             ITimerFactory timers = null,
-            ILastDeviceStore lastDevice = null)
+            ILastDeviceStore lastDevice = null,
+            SyncDeviceOptions deviceOptions = null)
         {
             if (auth == null)
             {
@@ -162,6 +168,11 @@ namespace SshTool.Core.Sync
             _sleep = sleep ?? (ms => Task.Delay((int)ms));
             _timers = timers ?? new TaskDelayTimerFactory();
             _lastDevice = lastDevice;
+            _deviceOptions = deviceOptions;
+            if (deviceOptions != null)
+            {
+                _rememberVaultKey = deviceOptions.RememberVaultKey;
+            }
             lock (_stateLock)
             {
                 // O15：构建状态只需元数据，不克隆文档。
@@ -323,8 +334,11 @@ namespace SshTool.Core.Sync
             }
             // O15：只读 VaultId 标量，不克隆文档。
             string currentVaultId = _vault.ReadVaultId();
+            bool rotatedElsewhere = false;
             if (!string.Equals(currentVaultId, response.Id, StringComparison.Ordinal))
             {
+                // 本机保留着旧保险库的密钥而云端已是另一个库（别处删库后重建）：同样提示重新输入。
+                rotatedElsewhere = currentVaultId != null && _vault.ReadVaultKeyBase64() != null;
                 await _vault.UpdateAsync(next =>
                 {
                     next.VaultId = response.Id;
@@ -337,13 +351,26 @@ namespace SshTool.Core.Sync
             }
             else
             {
+                // feat/remember-vault：同一保险库但密钥版本变了（别的设备修改了同步密码 / 轮换了密钥）：
+                // 本机保留的旧密钥已解不开新文档，必须丢弃并请用户重新输入。此前只更新版本号、
+                // 保留旧密钥，状态显示「已就绪」，随后同步因版本号已一致而直接解密失败。
+                bool staleKey = false;
                 await _vault.UpdateAsync(next =>
                 {
+                    // KeyVersion 0 = 本机未知版本（旧缓存）：直接采用云端版本，不误判为失效。
+                    if (next.VaultKeyBase64 != null && next.KeyVersion > 0
+                        && next.KeyVersion != response.Envelope.KeyVersion)
+                    {
+                        next.VaultKeyBase64 = null;
+                        staleKey = true;
+                    }
                     next.KeyVersion = response.Envelope.KeyVersion;
                 }).ConfigureAwait(false);
+                rotatedElsewhere = staleKey;
             }
             // O15：构建状态只需元数据，不克隆文档。
             var after = _vault.CloneWithoutDocuments();
+            bool rotated = rotatedElsewhere;
             PatchState(next =>
             {
                 next.Vault = after.VaultKeyBase64 != null ? VaultStatus.Ready : VaultStatus.Locked;
@@ -351,7 +378,15 @@ namespace SshTool.Core.Sync
                 next.KeyVersion = response.Envelope.KeyVersion;
                 next.Revision = after.Revision;
                 next.Dirty = after.Dirty;
+                if (rotated)
+                {
+                    SetMessage(next, SyncMessageCode.RemoteKeyRotated);
+                }
             });
+            if (rotated)
+            {
+                Info("云端密钥版本已变化，本机保留的密钥已失效");
+            }
         }
 
         // §7.2 SetupVault：创建保险库并返回恢复密钥。
@@ -459,6 +494,34 @@ namespace SshTool.Core.Sync
                 SetMessage(next, SyncMessageCode.None);
             });
             Info("保险库已解锁");
+        }
+
+        // feat/remember-vault：「退出登录后记住同步密码」（默认开）。
+        public bool RememberVaultKey
+        {
+            get { return _rememberVaultKey; }
+        }
+
+        // 关掉时若已处于未登录状态，立刻丢掉本机保留的密钥；登录中则本次会话照常使用，
+        // 下次退出 / 登录失效时丢弃（关开关不打断正在进行的同步）。
+        public async Task SetRememberVaultKeyAsync(bool remember)
+        {
+            _rememberVaultKey = remember;
+            if (_deviceOptions != null)
+            {
+                _deviceOptions.RememberVaultKey = remember;
+            }
+            if (!remember && !_auth.Session.Authenticated)
+            {
+                await _vault.LockAsync().ConfigureAwait(false);
+            }
+            Info(remember ? "退出登录后保留保险库密钥" : "退出登录后不再保留保险库密钥");
+        }
+
+        // 会话结束（退出登录 / 修改登录密码 / 登录失效）时：记住 → 保留密钥，否则锁定。
+        private Task LockVaultOnSignOutAsync()
+        {
+            return _rememberVaultKey ? Task.CompletedTask : _vault.LockAsync();
         }
 
         // §7.2 LockVault：仅清 key。
@@ -594,7 +657,7 @@ namespace SshTool.Core.Sync
         private async Task ClearLocalAfterLogoutAsync()
         {
             await _auth.ClearAsync().ConfigureAwait(false);
-            await _vault.LockAsync().ConfigureAwait(false);
+            await LockVaultOnSignOutAsync().ConfigureAwait(false);
             // O15：只读 VaultId 标量，不克隆文档。
             string logoutVaultId = _vault.ReadVaultId();
             PatchState(next =>
@@ -616,7 +679,8 @@ namespace SshTool.Core.Sync
             await _api.ChangePasswordAsync(currentPassword, newPassword, cancellationToken)
                 .ConfigureAwait(false);
             await _auth.ClearAsync().ConfigureAwait(false);
-            await _vault.LockAsync().ConfigureAwait(false);
+            // 登录密码与同步密码无关：保险库密钥仍然有效。
+            await LockVaultOnSignOutAsync().ConfigureAwait(false);
             // O15：只读 VaultId 标量，不克隆文档。
             string changePassVaultId = _vault.ReadVaultId();
             PatchState(next =>
@@ -769,7 +833,10 @@ namespace SshTool.Core.Sync
                 .ConfigureAwait(false);
             // O15：重建状态只需元数据，不克隆文档。
             ApplySessionState(_auth.Session, _vault.CloneWithoutDocuments());
-            if (_auth.Session.Authenticated && _vault.ReadVaultId() == null)
+            // feat/remember-vault：登录后总是探测一次——本机保留的密钥要先确认仍对应云端当前的
+            // 保险库与密钥版本（别处删库重建 / 修改同步密码会让它失效），失效则锁定并提示重新输入。
+            // 探测失败（离线等）不影响登录，沿用本机状态，首次同步时还会再校验密钥版本。
+            if (_auth.Session.Authenticated)
             {
                 await ProbeVaultSafelyAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -801,7 +868,15 @@ namespace SshTool.Core.Sync
             if (apiError != null && IsTerminalAuthError(apiError))
             {
                 await _auth.ClearAsync().ConfigureAwait(false);
-                await _vault.LockAsync().ConfigureAwait(false);
+                if (string.Equals(apiError.Code, "AUTH_DEVICE_REVOKED", StringComparison.Ordinal))
+                {
+                    // feat/remember-vault：本机被账号主人在别处撤销 → 视为不可信设备，不保留保险库密钥。
+                    await _vault.LockAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    await LockVaultOnSignOutAsync().ConfigureAwait(false);
+                }
                 // O15：只读 VaultId 标量，不克隆文档。
                 string termVaultId = _vault.ReadVaultId();
                 PatchState(next =>
@@ -815,7 +890,7 @@ namespace SshTool.Core.Sync
             }
             if (!_auth.Session.Authenticated)
             {
-                await _vault.LockAsync().ConfigureAwait(false);
+                await LockVaultOnSignOutAsync().ConfigureAwait(false);
                 // O15：只读 VaultId 标量，不克隆文档。
                 string signedOutVaultId = _vault.ReadVaultId();
                 PatchState(next =>
