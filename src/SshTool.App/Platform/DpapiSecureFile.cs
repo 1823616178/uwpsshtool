@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Common;
@@ -11,9 +13,11 @@ using Windows.Storage.Streams;
 namespace SshTool.App.Platform
 {
     // D03 / D10：DataProtectionProvider("LOCAL=user") 加密整段明文，落 LocalFolder/secure/secrets.bin。
-    // opt/full-pass：解密失败（DPAPI 密钥不可用：重置/换机恢复了 LocalFolder 等）时重试一次，
-    // 仍失败则把文件改名隔离为 <name>.corrupt-<UTC 时间戳> 并返回空——不删除，便于人工恢复。
-    // 读文件本身的 IO 异常仍上抛（可能是暂时性的，不能据此丢弃）。
+    // opt/full-pass：解密失败时重试一次；两次都属于「真损坏 / 密钥已不在」（HRESULT 判定见
+    // Core SecureFileFailurePolicy：NTE_BAD_DATA、NTE_NO_KEY 等）才把文件改名隔离为
+    // <name>.corrupt-<UTC 时间戳> 并返回空——不删除，便于人工恢复。
+    // 评审（PR #1）：暂时性/未知的 DPAPI 或平台错误不隔离，原样上抛（与旧行为一致），
+    // 避免有效凭据因一次偶发错误被当成「不存在」。读文件本身的 IO 异常也照旧上抛。
     public sealed class DpapiSecureFile : ISecureFile, ISecureFileQuarantine
     {
         public const string DefaultRelativePath = "secure/secrets.bin";
@@ -45,32 +49,45 @@ namespace SshTool.App.Platform
             {
                 return new byte[0];
             }
-            IBuffer plain = await TryUnprotectAsync(cipher).ConfigureAwait(false);
-            if (plain == null)
+            var failures = new List<int>(UnprotectAttempts);
+            Exception last = null;
+            for (int attempt = 0; attempt < UnprotectAttempts; attempt++)
             {
-                plain = await TryUnprotectAsync(cipher).ConfigureAwait(false);
+                try
+                {
+                    IBuffer plain = await new DataProtectionProvider().UnprotectAsync(cipher);
+                    byte[] bytes;
+                    CryptographicBuffer.CopyToByteArray(plain, out bytes);
+                    return bytes ?? new byte[0];
+                }
+                catch (Exception ex)
+                {
+                    last = ex;
+                    failures.Add(ex.HResult);
+                }
+                if (attempt + 1 < UnprotectAttempts && !SecureFileFailurePolicy.IsGenuineCorruption(failures[attempt]))
+                {
+                    // 暂时性错误：稍等再试，给 DPAPI/系统服务一点恢复时间
+                    await Task.Delay(TransientRetryDelayMs).ConfigureAwait(false);
+                }
             }
-            if (plain == null)
+            if (SecureFileFailurePolicy.ShouldQuarantine(failures))
             {
-                await QuarantineAsync("decrypt").ConfigureAwait(false);
+                await QuarantineAsync("decrypt 0x" + failures[failures.Count - 1].ToString("X8")).ConfigureAwait(false);
                 return new byte[0];
             }
-            byte[] bytes;
-            CryptographicBuffer.CopyToByteArray(plain, out bytes);
-            return bytes ?? new byte[0];
+            ILogger log = AppLog.Logger;
+            if (log != null)
+            {
+                log.Log(LogLevel.Warning, "SecureFile",
+                    "解密暂时失败（0x" + failures[failures.Count - 1].ToString("X8") + "），保留原文件并上抛");
+            }
+            ExceptionDispatchInfo.Capture(last).Throw();
+            throw last; // 不可达：满足编译器的返回路径检查
         }
 
-        private static async Task<IBuffer> TryUnprotectAsync(IBuffer cipher)
-        {
-            try
-            {
-                return await new DataProtectionProvider().UnprotectAsync(cipher);
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+        private const int UnprotectAttempts = 2;
+        private const int TransientRetryDelayMs = 250;
 
         public async Task<bool> QuarantineAsync(string reason)
         {
