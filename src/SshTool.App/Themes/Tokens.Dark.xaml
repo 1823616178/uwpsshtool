@@ -32,6 +32,9 @@
     <!-- 危险提示块底（15% 红叠层）；正文仍用 AppTextBrush。替代旧的「整块 Opacity=0.15」（会连文字一起变淡）。 -->
     <SolidColorBrush x:Key="AppDangerSoftBrush" Color="#26F4605F" />
     <SolidColorBrush x:Key="AppInfoBrush" Color="#3EC6D9" />
+    <!-- feat/account-sync-ui：成功 / 警告 15% 叠层（状态徽章底），与 AppDangerSoftBrush 同法。 -->
+    <SolidColorBrush x:Key="AppSuccessSoftBrush" Color="#2634C77B" />
+    <SolidColorBrush x:Key="AppWarningSoftBrush" Color="#26F5A524" />
     <SolidColorBrush x:Key="KeyBarBgBrush" Color="#0B0E14" />
     <SolidColorBrush x:Key="KeyBarKeyBrush" Color="#1E2636" />
     <SolidColorBrush x:Key="KeyBarKeyActiveBrush" Color="#2F6FE0" />

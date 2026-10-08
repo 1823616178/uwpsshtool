@@ -3,22 +3,21 @@ using SshTool.App.Controls;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.Core.Common;
-using SshTool.App.Platform;
 using SshTool.App.ViewModels.Sync;
 using SshTool.Core.Sync;
 using SshTool.Core.Sync.Auth;
 using Windows.ApplicationModel.Resources;
-using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 
 namespace SshTool.App.Views.Sync
 {
     // U17/U18 同步状态页（02-UI-DESIGN.md §5.13 状态 Pivot + 设备/历史 Pivot）。
-    // 前置路由：未登录/建库/解锁由 ViewModel.NeedsRouting 在本页 OnNavigatedTo 经 SyncNavigation 转出；
-    // 到达本页即已登录。危险操作（删除保险库/注销账号/退出所有设备）走 ContentDialog 二次确认。
+    // 前置路由：只有未登录由 ViewModel.NeedsRouting 在本页 OnNavigatedTo 经 SyncNavigation 转去登录页。
+    // feat/account-sync-ui：保险库未建 / 已锁定不再转走——本页保险库卡给出「创建保险库」/
+    // 「输入同步密码解锁」（用户反馈「在哪里输入保险箱密码」），已解锁时可「锁定保险库」（本机忘记同步密码）。
+    // 危险操作（删除保险库/注销账号/退出所有设备/撤销设备/恢复与清空历史）走 ContentDialog 二次确认。
     public sealed partial class AccountSyncPage : Page
     {
         // fix/login-feedback：本页只转走一次。StateChanged 每次都会重报 "Screen"，
@@ -31,40 +30,39 @@ namespace SshTool.App.Views.Sync
             this.InitializeComponent();
             ViewModel.PropertyChanged += OnViewModelChanged;
             ViewModel.RequestSecurityRotate += OnRequestSecurityRotate;
+            DevicesList.ItemsSource = ViewModel.Devices;
+            HistoryList.ItemsSource = ViewModel.History;
         }
 
         public AccountSyncViewModel ViewModel { get; private set; }
 
-        private NavigationService Nav
-        {
-            get { return Get<NavigationService>(); }
-        }
-
         private DialogService Dlg
         {
-            get { return Get<DialogService>(); }
-        }
-
-        private T Get<T>() where T : class
-        {
-            T service;
-            ServiceRegistry.TryGet(out service);
-            return service;
+            get
+            {
+                DialogService service;
+                ServiceRegistry.TryGet(out service);
+                return service;
+            }
         }
 
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            // fix/login-feedback：未登录现在会被路由到登录页（此前被送进建库页）；本页只是中转，
+            // fix/login-feedback：未登录会被路由到登录页；本页只是中转，
             // 转走后从返回栈拿掉自己，登录完成后返回键不会回到一个旧的状态页副本。
             if (ViewModel.NeedsRouting && RouteAway())
             {
                 return;
             }
-            RefreshHeader();
-            BindStaticText();
-            RefreshStatusVisual();
+            Header.Title = Localized.Get("AccountSync_Title", "账号与同步");
+            Header.ShowBackButton = Frame.CanGoBack;
+            RefreshHero();
+            RefreshVault();
             RefreshSwitches();
+            RefreshErrors();
+            RefreshDevicesVisual();
+            RefreshHistoryVisual();
             // 进入状态页即触发一次设备与历史加载（懒加载）。
             ViewModel.RefreshDevicesCommand.Execute(null);
             ViewModel.RefreshHistoryCommand.Execute(null);
@@ -96,87 +94,84 @@ namespace SshTool.App.Views.Sync
             return new AccountSyncViewModel(sync, auth);
         }
 
-        // ---------------- 页头与状态卡 ----------------
+        // ---------------- 状态卡 ----------------
 
-        private void RefreshHeader()
+        private void RefreshHero()
         {
-            Header.Title = Localized.Get("AccountSync_Title", "账号与同步");
-            Header.ShowBackButton = Frame.CanGoBack;
-        }
+            StatusHeroSpec hero = ViewModel.Hero ?? new StatusHeroSpec();
+            bool spin = hero.Spin;
+            HeroBadge.Background = AccountSyncVisuals.SoftBrush(hero.Tone);
+            HeroGlyph.Glyph = AccountSyncVisuals.Glyph(hero.GlyphKey);
+            HeroGlyph.Foreground = AccountSyncVisuals.ToneBrush(hero.Tone);
+            HeroGlyph.Visibility = spin ? Visibility.Collapsed : Visibility.Visible;
+            HeroSpinner.IsActive = spin;
+            HeroSpinner.Visibility = spin ? Visibility.Visible : Visibility.Collapsed;
+            HeroTitle.Text = ViewModel.StatusTitle;
 
-        private void BindStaticText()
-        {
-            var state = GetServiceState();
-            AccountLine.Text = BuildAccountLine();
-            MetaLine.Text = BuildMetaLine(state);
-            LastSyncedLine.Text = FormatLastSynced(ViewModel.LastSyncedRelative);
+            LastSyncedLine.Text = string.IsNullOrEmpty(ViewModel.LastSyncedRelative)
+                ? GetString("AccountSync_LastSyncedNone", "Not synced yet")
+                : GetString("AccountSync_LastSyncedFormat", "Last synced {0}", ViewModel.LastSyncedRelative);
             if (!string.IsNullOrEmpty(ViewModel.NextRetryRelative))
             {
-                NextRetryLine.Text = GetString("AccountSync_NextRetry", "下次重试 {0}", ViewModel.NextRetryRelative);
+                NextRetryLine.Text = GetString("AccountSync_NextRetry", "Next retry {0}", ViewModel.NextRetryRelative);
                 NextRetryLine.Visibility = Visibility.Visible;
             }
             else
             {
                 NextRetryLine.Visibility = Visibility.Collapsed;
             }
+
+            if (ViewModel.HasStatusDetail)
+            {
+                SyncTone tone = hero.DetailTone;
+                HeroDetail.Background = AccountSyncVisuals.SoftBrush(tone);
+                HeroDetailGlyph.Glyph = AccountSyncVisuals.Glyph(
+                    tone == SyncTone.Danger ? "IconError" : (tone == SyncTone.Warning ? "IconWarning" : "IconInfo"));
+                HeroDetailGlyph.Foreground = AccountSyncVisuals.ToneBrush(tone);
+                HeroDetailText.Text = ViewModel.StatusDetail;
+                HeroDetail.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                HeroDetailText.Text = string.Empty;
+                HeroDetail.Visibility = Visibility.Collapsed;
+            }
+
+            EmailText.Text = ViewModel.Email;
+            DeviceText.Text = string.IsNullOrEmpty(ViewModel.DeviceName)
+                ? GetString("AccountSync_ThisDevice", "This device")
+                : ViewModel.DeviceName;
+            MetaLine.Text = GetString("AccountSync_Meta", "Revision r{0} · Key v{1}",
+                ViewModel.Revision, ViewModel.KeyVersion.ToString());
+
+            SyncNowButton.IsEnabled = ViewModel.SyncNowCommand.CanExecute(null);
+            string hint = ViewModel.SyncNowHint;
+            SyncNowHint.Text = hint;
+            SyncNowHint.Visibility = string.IsNullOrEmpty(hint) ? Visibility.Collapsed : Visibility.Visible;
+            ResolveConflictButton.Visibility = ViewModel.HasConflict ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private SyncState GetServiceState()
-        {
-            AppServices services = AppServices.Current;
-            if (services == null || services.Sync == null)
-            {
-                return null;
-            }
-            try
-            {
-                return services.Sync.State;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+        // ---------------- 保险库卡（同步密码在这里输入） ----------------
 
-        private string BuildAccountLine()
+        private void RefreshVault()
         {
-            string email = ViewModel.Email;
-            string device = ViewModel.DeviceName;
-            if (!string.IsNullOrEmpty(email) && !string.IsNullOrEmpty(device))
-            {
-                return email + " · " + device;
-            }
-            return email ?? device ?? string.Empty;
-        }
-
-        private string BuildMetaLine(SyncState state)
-        {
-            if (state == null)
-            {
-                return string.Empty;
-            }
-            string rev = state.Revision ?? "0";
-            return GetString("AccountSync_Meta", "版本 r{0} · 密钥 v{1}", rev, state.KeyVersion.ToString());
-        }
-
-        private string FormatLastSynced(string relative)
-        {
-            if (string.IsNullOrEmpty(relative))
-            {
-                return GetString("AccountSync_LastSyncedNone", "尚未同步");
-            }
-            return GetString("AccountSync_LastSyncedFormat", "上次同步 {0}", relative);
-        }
-
-        private void RefreshStatusVisual()
-        {
-            StatusIcon.Glyph = MapIconGlyph(ViewModel.StatusIconKey);
-            StatusIcon.Foreground = MapIconBrush(ViewModel.StatusIconKey);
-            StatusPill.Kind = MapPillKind(ViewModel.StatusIconKey);
-            StatusPill.Text = ViewModel.StatusText;
-            SyncNowButton.IsEnabled = !ViewModel.IsSyncing;
-            ResolveConflictButton.Visibility = ViewModel.HasConflict
+            VaultCardSpec card = ViewModel.VaultCard ?? new VaultCardSpec();
+            Visibility shown = card.Kind == VaultCardKind.Hidden ? Visibility.Collapsed : Visibility.Visible;
+            VaultHeader.Visibility = shown;
+            VaultCardBorder.Visibility = shown;
+            VaultBadge.Background = AccountSyncVisuals.SoftBrush(card.Tone);
+            VaultGlyph.Glyph = AccountSyncVisuals.Glyph(card.GlyphKey);
+            VaultGlyph.Foreground = AccountSyncVisuals.ToneBrush(card.Tone);
+            VaultTitle.Text = ViewModel.VaultTitle;
+            VaultDescription.Text = ViewModel.VaultDescription;
+            UnlockVaultButton.Visibility = card.ShowUnlock ? Visibility.Visible : Visibility.Collapsed;
+            CreateVaultButton.Visibility = card.ShowCreate ? Visibility.Visible : Visibility.Collapsed;
+            VaultReadyPanel.Visibility = card.ShowRemember || card.ShowLock || card.ShowChangePassword
                 ? Visibility.Visible : Visibility.Collapsed;
+            ChangeSyncPasswordButton.Visibility = card.ShowChangePassword ? Visibility.Visible : Visibility.Collapsed;
+            LockVaultButton.Visibility = card.ShowLock ? Visibility.Visible : Visibility.Collapsed;
+            LockVaultButton.IsEnabled = ViewModel.LockVaultCommand.CanExecute(null);
+            DeleteVaultButton.Visibility = card.ShowDeleteVault ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void RefreshSwitches()
@@ -189,9 +184,11 @@ namespace SshTool.App.Views.Sync
             RememberVaultKeySwitch.IsOn = ViewModel.RememberVaultKey;
             EnableSwitch.IsOn = ViewModel.EnableSync;
             AutoSyncSwitch.IsOn = ViewModel.AutoSync;
+            AutoSyncSwitch.IsEnabled = ViewModel.EnableSync;
             SyncPasswordsSwitch.IsOn = ViewModel.SyncPasswords;
             SyncPrivateKeysSwitch.IsOn = ViewModel.SyncPrivateKeys;
             SyncPrivateKeysSwitch.IsEnabled = ViewModel.SyncPrivateKeysEnabled;
+            SyncPrivateKeysDesc.Text = ViewModel.SyncPrivateKeysDescription;
             EnableSwitch.Toggled += OnEnableSyncToggled;
             AutoSyncSwitch.Toggled += OnAutoSyncToggled;
             SyncPasswordsSwitch.Toggled += OnSyncPasswordsToggled;
@@ -212,11 +209,15 @@ namespace SshTool.App.Views.Sync
             }
         }
 
-        private void RefreshLoggingOut()
+        private void RefreshBusy()
         {
-            bool busy = ViewModel.IsLoggingOut;
-            Working.IsActive = busy;
-            Working.Message = busy ? GetString("AccountSync_LoggingOut", "Signing out…") : string.Empty;
+            bool loggingOut = ViewModel.IsLoggingOut;
+            bool locking = ViewModel.IsLockingVault;
+            Working.IsActive = loggingOut || locking;
+            Working.Message = loggingOut
+                ? GetString("AccountSync_LoggingOut", "Signing out…")
+                : (locking ? GetString("AccountSync_LockingVault", "Locking the vault…") : string.Empty);
+            LockVaultButton.IsEnabled = ViewModel.LockVaultCommand.CanExecute(null);
         }
 
         // ---------------- 命令接线 ----------------
@@ -229,6 +230,22 @@ namespace SshTool.App.Views.Sync
         private void OnResolveConflictClick(object sender, RoutedEventArgs e)
         {
             Frame.Navigate(typeof(SyncConflictPage));
+        }
+
+        private void OnUnlockVaultClick(object sender, RoutedEventArgs e)
+        {
+            // 解锁成功后 GoAfterAuth 回到新的状态页，并把返回栈里这一页剪掉（见 SyncNavigation）。
+            Frame.Navigate(typeof(VaultUnlockPage));
+        }
+
+        private void OnCreateVaultClick(object sender, RoutedEventArgs e)
+        {
+            Frame.Navigate(typeof(VaultSetupPage));
+        }
+
+        private void OnLockVaultClick(object sender, RoutedEventArgs e)
+        {
+            ConfirmLockVaultAsync().Forget("AccountSyncPage.ConfirmLockVault", AppLog.Logger);
         }
 
         private void OnEnableSyncToggled(object sender, RoutedEventArgs e)
@@ -317,19 +334,107 @@ namespace SshTool.App.Views.Sync
 
         // ---------------- 设备与历史 ----------------
 
+        private void OnRefreshDevicesClick(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.RefreshDevicesCommand.CanExecute(null))
+            {
+                ViewModel.RefreshDevicesCommand.Execute(null);
+            }
+        }
+
+        private void OnRefreshHistoryClick(object sender, RoutedEventArgs e)
+        {
+            if (ViewModel.RefreshHistoryCommand.CanExecute(null))
+            {
+                ViewModel.RefreshHistoryCommand.Execute(null);
+            }
+        }
+
         private void OnDeviceClick(object sender, ItemClickEventArgs e)
         {
             var row = e.ClickedItem as DeviceRow;
             if (row != null)
             {
-                ShowDeviceMenuAsync(row).Forget("AccountSyncPage.ShowDeviceMenu", AppLog.Logger);
+                ShowDeviceMenu(row, DevicesList.ContainerFromItem(row) as FrameworkElement);
+            }
+        }
+
+        private void OnDeviceMoreClick(object sender, RoutedEventArgs e)
+        {
+            var anchor = sender as FrameworkElement;
+            var row = anchor != null ? anchor.DataContext as DeviceRow : null;
+            if (row != null)
+            {
+                ShowDeviceMenu(row, anchor);
+            }
+        }
+
+        // 设备操作菜单：重命名（含本机）；撤销仅远端设备（红字 + 二次确认），本机给出灰显说明。
+        private void ShowDeviceMenu(DeviceRow row, FrameworkElement anchor)
+        {
+            var menu = new MenuFlyout();
+            var rename = new MenuFlyoutItem
+            {
+                Text = GetString("AccountSync_RenameMenu", "Rename…"),
+                Tag = row
+            };
+            rename.Click += OnRenameDeviceMenuClick;
+            menu.Items.Add(rename);
+            menu.Items.Add(new MenuFlyoutSeparator());
+            if (row.IsCurrent)
+            {
+                menu.Items.Add(new MenuFlyoutItem
+                {
+                    Text = GetString("AccountSync_RevokeCurrentDisabled", "Use Sign out for this device"),
+                    IsEnabled = false
+                });
+            }
+            else
+            {
+                var revoke = new MenuFlyoutItem
+                {
+                    Text = GetString("AccountSync_Revoke", "Revoke device…"),
+                    Tag = row,
+                    Style = Application.Current.Resources["DangerMenuItemStyle"] as Style
+                };
+                revoke.Click += OnRevokeDeviceMenuClick;
+                menu.Items.Add(revoke);
+            }
+            if (anchor != null)
+            {
+                menu.ShowAt(anchor);
+            }
+            else
+            {
+                menu.ShowAt(DevicesList);
+            }
+        }
+
+        private void OnRenameDeviceMenuClick(object sender, RoutedEventArgs e)
+        {
+            var item = sender as MenuFlyoutItem;
+            var row = item != null ? item.Tag as DeviceRow : null;
+            if (row != null)
+            {
+                PromptRenameDeviceAsync(row).Forget("AccountSyncPage.PromptRenameDevice", AppLog.Logger);
+            }
+        }
+
+        private void OnRevokeDeviceMenuClick(object sender, RoutedEventArgs e)
+        {
+            var item = sender as MenuFlyoutItem;
+            var row = item != null ? item.Tag as DeviceRow : null;
+            if (row != null && !row.IsCurrent)
+            {
+                ConfirmRevokeDeviceAsync(row).Forget("AccountSyncPage.ConfirmRevokeDevice", AppLog.Logger);
             }
         }
 
         private void OnHistoryClick(object sender, ItemClickEventArgs e)
         {
             var row = e.ClickedItem as HistoryRow;
-            if (row != null)
+            // 当前云端版本无需恢复（行上也不显示箭头）。
+            if (row != null && !row.IsCurrent)
             {
                 ConfirmRestoreHistoryAsync(row).Forget("AccountSyncPage.ConfirmRestoreHistory", AppLog.Logger);
             }
@@ -347,17 +452,20 @@ namespace SshTool.App.Views.Sync
             string name = e.PropertyName;
             if (name == "Screen" && ViewModel.NeedsRouting)
             {
-                // 如退出登录 / 登录失效后：转去登录页（或建库/解锁页）。
+                // 如退出登录 / 登录失效后：转去登录页。
                 RouteAway();
                 return;
             }
-            if (name == "StatusText" || name == "StatusIconKey" || name == "StatusSpin"
-                || name == "IsSyncing" || name == "HasConflict"
+            if (name == "StatusTitle" || name == "StatusDetail" || name == "Hero" || name == "SyncNowHint"
+                || name == "IsSyncing" || name == "HasConflict" || name == "IsSyncNowAvailable"
                 || name == "Email" || name == "DeviceName" || name == "LastSyncedRelative"
                 || name == "NextRetryRelative" || name == "Revision" || name == "KeyVersion")
             {
-                BindStaticText();
-                RefreshStatusVisual();
+                RefreshHero();
+            }
+            if (name == "VaultCard" || name == "VaultTitle" || name == "VaultDescription")
+            {
+                RefreshVault();
             }
             if (name == "EnableSync" || name == "AutoSync" || name == "SyncPasswords"
                 || name == "SyncPrivateKeys" || name == "SyncPrivateKeysEnabled"
@@ -369,15 +477,15 @@ namespace SshTool.App.Views.Sync
             {
                 RefreshErrors();
             }
-            if (name == "IsLoggingOut")
+            if (name == "IsLoggingOut" || name == "IsLockingVault")
             {
-                RefreshLoggingOut();
+                RefreshBusy();
             }
-            if (name == "HasDevices" || name == "IsLoadingDevices")
+            if (name == "HasDevices" || name == "IsLoadingDevices" || name == "DevicesLoadFailed")
             {
                 RefreshDevicesVisual();
             }
-            if (name == "HasHistory" || name == "IsLoadingHistory")
+            if (name == "HasHistory" || name == "IsLoadingHistory" || name == "HistoryLoadFailed")
             {
                 RefreshHistoryVisual();
             }
@@ -385,15 +493,28 @@ namespace SshTool.App.Views.Sync
 
         private void RefreshDevicesVisual()
         {
-            DevicesList.ItemsSource = ViewModel.Devices;
             bool loading = ViewModel.IsLoadingDevices;
-            DevicesProgress.Visibility = loading ? Visibility.Visible : Visibility.Collapsed;
-            if (!loading && !ViewModel.HasDevices)
+            bool has = ViewModel.HasDevices;
+            bool failed = ViewModel.DevicesLoadFailed;
+            DevicesProgress.Visibility = loading && !has ? Visibility.Visible : Visibility.Collapsed;
+            RefreshDevicesButton.IsEnabled = !loading;
+            if (failed)
             {
-                DevicesEmpty.Glyph = "\uE1C9";
-                DevicesEmpty.Title = GetString("AccountSync_DevicesEmpty", "暂无设备");
-                DevicesEmpty.Description = string.Empty;
-                DevicesEmpty.Visibility = Visibility.Visible;
+                DevicesSummary.Text = GetString("Sync_DeviceListFailed", "Could not load the device list");
+            }
+            else
+            {
+                DevicesSummary.Text = has
+                    ? GetString("AccountSync_DevicesCount", "{0} devices", ViewModel.Devices.Count.ToString())
+                    : string.Empty;
+            }
+            if (!loading && !has)
+            {
+                ShowEmpty(DevicesEmpty, failed, "IconDevices",
+                    failed ? GetString("Sync_DeviceListFailed", "Could not load the device list")
+                           : GetString("AccountSync_DevicesEmpty", "No devices"),
+                    failed ? GetString("AccountSync_ListFailedDesc", "Check the network and try again.")
+                           : GetString("AccountSync_DevicesEmptyDesc", string.Empty));
                 DevicesList.Visibility = Visibility.Collapsed;
             }
             else
@@ -405,16 +526,29 @@ namespace SshTool.App.Views.Sync
 
         private void RefreshHistoryVisual()
         {
-            HistoryList.ItemsSource = ViewModel.History;
             bool loading = ViewModel.IsLoadingHistory;
-            HistoryProgress.Visibility = loading ? Visibility.Visible : Visibility.Collapsed;
-            ClearHistoryButton.IsEnabled = !loading;
-            if (!loading && !ViewModel.HasHistory)
+            bool has = ViewModel.HasHistory;
+            bool failed = ViewModel.HistoryLoadFailed;
+            HistoryProgress.Visibility = loading && !has ? Visibility.Visible : Visibility.Collapsed;
+            RefreshHistoryButton.IsEnabled = !loading;
+            ClearHistoryButton.IsEnabled = !loading && has;
+            if (failed)
             {
-                HistoryEmpty.Glyph = "\uE81C";
-                HistoryEmpty.Title = GetString("AccountSync_HistoryEmpty", "暂无历史版本");
-                HistoryEmpty.Description = string.Empty;
-                HistoryEmpty.Visibility = Visibility.Visible;
+                HistorySummary.Text = GetString("Sync_HistoryListFailed", "Could not load history versions");
+            }
+            else
+            {
+                HistorySummary.Text = has
+                    ? GetString("AccountSync_HistoryCount", "Last {0} versions · tap one to restore", ViewModel.History.Count.ToString())
+                    : string.Empty;
+            }
+            if (!loading && !has)
+            {
+                ShowEmpty(HistoryEmpty, failed, "IconHistory",
+                    failed ? GetString("Sync_HistoryListFailed", "Could not load history versions")
+                           : GetString("AccountSync_HistoryEmpty", "No history versions"),
+                    failed ? GetString("AccountSync_ListFailedDesc", "Check the network and try again.")
+                           : GetString("AccountSync_HistoryEmptyDesc", string.Empty));
                 HistoryList.Visibility = Visibility.Collapsed;
             }
             else
@@ -424,29 +558,34 @@ namespace SshTool.App.Views.Sync
             }
         }
 
+        private void ShowEmpty(EmptyState empty, bool failed, string glyphKey, string title, string description)
+        {
+            empty.Kind = failed ? EmptyStateKind.Offline : EmptyStateKind.Normal;
+            empty.Glyph = failed ? string.Empty : AccountSyncVisuals.Glyph(glyphKey);
+            empty.Title = title;
+            empty.Description = description;
+            empty.PrimaryText = failed ? GetString("AccountSync_Retry", "Retry") : null;
+            empty.Visibility = Visibility.Visible;
+        }
+
         // ---------------- 对话框 ----------------
 
-        private async System.Threading.Tasks.Task ShowDeviceMenuAsync(DeviceRow row)
+        private async System.Threading.Tasks.Task PromptRenameDeviceAsync(DeviceRow row)
         {
             var renameDialog = new ContentDialog
             {
-                Title = GetString("AccountSync_RenameDeviceTitle", "重命名设备"),
-                PrimaryButtonText = GetString("AccountSync_Rename", "重命名"),
-                CloseButtonText = GetString("AccountSync_Cancel", "取消")
+                Title = GetString("AccountSync_RenameDeviceTitle", "Rename device"),
+                PrimaryButtonText = GetString("AccountSync_Rename", "Rename"),
+                CloseButtonText = GetString("AccountSync_Cancel", "Cancel")
             };
             // fix/auth-audit：限制到服务端设备名上限（超长此前会被拒为 VALIDATION_ERROR 且无提示）。
             var input = new TextBox
             {
-                Text = row.Name,
+                Text = row.Name ?? string.Empty,
                 AcceptsReturn = false,
                 MaxLength = AuthService.MaxDeviceNameLength
             };
             renameDialog.Content = input;
-            bool canRevoke = !row.IsCurrent;
-            if (canRevoke)
-            {
-                renameDialog.SecondaryButtonText = GetString("AccountSync_Revoke", "撤销设备…");
-            }
             ContentDialogResult result = await Dlg.ShowAsync(renameDialog);
             if (result == ContentDialogResult.Primary)
             {
@@ -456,20 +595,16 @@ namespace SshTool.App.Views.Sync
                     ViewModel.RenameDeviceAsync(row.Id, newName).Forget("AccountSyncPage.RenameDevice", AppLog.Logger);
                 }
             }
-            else if (result == ContentDialogResult.Secondary && canRevoke)
-            {
-                ConfirmRevokeDeviceAsync(row).Forget("AccountSyncPage.ConfirmRevokeDevice", AppLog.Logger);
-            }
         }
 
         private async System.Threading.Tasks.Task ConfirmRevokeDeviceAsync(DeviceRow row)
         {
             var result = await ConfirmDialog.ShowAsync(
-                title: GetString("AccountSync_RevokeDeviceTitle", "撤销设备"),
+                title: GetString("AccountSync_RevokeDeviceTitle", "Revoke device"),
                 message: GetString("AccountSync_RevokeDeviceMessage",
                     "The device must sign in again to sync. This cannot be undone."),
-                confirmText: GetString("AccountSync_Revoke", "撤销"),
-                cancelText: GetString("AccountSync_Cancel", "取消"),
+                confirmText: GetString("AccountSync_RevokeConfirm", "Revoke"),
+                cancelText: GetString("AccountSync_Cancel", "Cancel"),
                 isDanger: true);
             if (result != null && result.Confirmed)
             {
@@ -477,14 +612,29 @@ namespace SshTool.App.Views.Sync
             }
         }
 
+        private async System.Threading.Tasks.Task ConfirmLockVaultAsync()
+        {
+            var result = await ConfirmDialog.ShowAsync(
+                title: GetString("AccountSync_LockVaultTitle", "Lock the vault"),
+                message: GetString("AccountSync_LockVaultMessage",
+                    "This device forgets the sync password and sync pauses until you enter it again. Hosts on this device are kept."),
+                confirmText: GetString("AccountSync_LockVaultConfirm", "Lock"),
+                cancelText: GetString("AccountSync_Cancel", "Cancel"),
+                isDanger: false);
+            if (result != null && result.Confirmed && ViewModel.LockVaultCommand.CanExecute(null))
+            {
+                ViewModel.LockVaultCommand.Execute(null);
+            }
+        }
+
         private async System.Threading.Tasks.Task ConfirmRestoreHistoryAsync(HistoryRow row)
         {
             var result = await ConfirmDialog.ShowAsync(
-                title: GetString("AccountSync_RestoreTitle", "恢复到此版本"),
+                title: GetString("AccountSync_RestoreTitle", "Restore this version"),
                 message: GetString("AccountSync_RestoreMessage",
                     "A new cloud version is created from this one and overwrites local settings."),
-                confirmText: GetString("AccountSync_Restore", "恢复"),
-                cancelText: GetString("AccountSync_Cancel", "取消"),
+                confirmText: GetString("AccountSync_Restore", "Restore"),
+                cancelText: GetString("AccountSync_Cancel", "Cancel"),
                 isDanger: true);
             if (result != null && result.Confirmed)
             {
@@ -495,11 +645,11 @@ namespace SshTool.App.Views.Sync
         private async System.Threading.Tasks.Task ConfirmClearHistoryAsync()
         {
             var result = await ConfirmDialog.ShowAsync(
-                title: GetString("AccountSync_ClearHistoryTitle", "清空历史"),
+                title: GetString("AccountSync_ClearHistoryTitle", "Clear history"),
                 message: GetString("AccountSync_ClearHistoryMessage",
                     "All cloud history versions will be deleted permanently."),
-                confirmText: GetString("AccountSync_Clear", "清空"),
-                cancelText: GetString("AccountSync_Cancel", "取消"),
+                confirmText: GetString("AccountSync_Clear", "Clear"),
+                cancelText: GetString("AccountSync_Cancel", "Cancel"),
                 isDanger: true);
             if (result != null && result.Confirmed)
             {
@@ -510,11 +660,11 @@ namespace SshTool.App.Views.Sync
         private async System.Threading.Tasks.Task ConfirmDeleteVaultAsync()
         {
             var result = await ConfirmDialog.ShowAsync(
-                title: GetString("AccountSync_DeleteVaultTitle", "删除云端保险库"),
+                title: GetString("AccountSync_DeleteVaultTitle", "Delete cloud vault"),
                 message: GetString("AccountSync_DeleteVaultMessage",
                     "The cloud vault and its history will be deleted; local settings are kept."),
-                confirmText: GetString("AccountSync_Delete", "删除"),
-                cancelText: GetString("AccountSync_Cancel", "取消"),
+                confirmText: GetString("AccountSync_Delete", "Delete"),
+                cancelText: GetString("AccountSync_Cancel", "Cancel"),
                 isDanger: true);
             if (result != null && result.Confirmed)
             {
@@ -526,15 +676,15 @@ namespace SshTool.App.Views.Sync
         {
             var result = await ConfirmDialog.ShowAsync(
                 title: all
-                    ? GetString("AccountSync_LogoutAllTitle", "退出所有设备")
-                    : GetString("AccountSync_LogoutTitle", "退出登录"),
+                    ? GetString("AccountSync_LogoutAllTitle", "Sign out of all devices")
+                    : GetString("AccountSync_LogoutTitle", "Sign out"),
                 message: all
-                    ? GetString("AccountSync_LogoutAllMessage", "所有设备都将退出登录，需要重新登录才能同步。")
-                    : GetString("AccountSync_LogoutMessage", "将退出当前设备。"),
+                    ? GetString("AccountSync_LogoutAllMessage", "All devices will be signed out and must sign in again to sync.")
+                    : GetString("AccountSync_LogoutMessage", "This device will be signed out."),
                 confirmText: all
-                    ? GetString("AccountSync_LogoutAllLabel", "退出所有设备")
-                    : GetString("AccountSync_LogoutLabel", "退出登录"),
-                cancelText: GetString("AccountSync_Cancel", "取消"),
+                    ? GetString("AccountSync_LogoutAllLabel", "Sign out all")
+                    : GetString("AccountSync_LogoutLabel", "Sign out"),
+                cancelText: GetString("AccountSync_Cancel", "Cancel"),
                 isDanger: all);
             if (result != null && result.Confirmed)
             {
@@ -546,63 +696,6 @@ namespace SshTool.App.Views.Sync
                 {
                     ViewModel.LogoutCommand.Execute(null);
                 }
-            }
-        }
-
-        // ---------------- 图标映射 ----------------
-
-        private string MapIconGlyph(string iconKey)
-        {
-            if (string.IsNullOrEmpty(iconKey))
-            {
-                return "\uE897";
-            }
-            switch (iconKey)
-            {
-                case "IconCloudOff": return "\uEC82";
-                case "IconCloud": return "\uE753";
-                case "IconLock": return "\uE72E";
-                case "IconCircleCheck": return "\uE930";
-                case "IconWarning": return "\uE7BA";
-                case "IconSyncError": return "\uE783";
-                default: return "\uE897";
-            }
-        }
-
-        private Brush MapIconBrush(string iconKey)
-        {
-            string key;
-            switch (iconKey)
-            {
-                case "IconCircleCheck": key = "AppSuccessBrush"; break;
-                case "IconWarning": key = "AppWarningBrush"; break;
-                case "IconSyncError": key = "AppDangerBrush"; break;
-                default: key = "AppTextDimBrush"; break;
-            }
-            return ResolveBrush(key);
-        }
-
-        private StatusPillKind MapPillKind(string iconKey)
-        {
-            switch (iconKey)
-            {
-                case "IconCircleCheck": return StatusPillKind.Success;
-                case "IconWarning": return StatusPillKind.Warning;
-                case "IconSyncError": return StatusPillKind.Danger;
-                default: return StatusPillKind.Neutral;
-            }
-        }
-
-        private Brush ResolveBrush(string key)
-        {
-            try
-            {
-                object resource = Resources[key] ?? Application.Current.Resources[key];
-                return resource as Brush;
-            }
-            catch (Exception)
-            {
-                return new SolidColorBrush(Colors.Gray);
             }
         }
 

@@ -24,6 +24,9 @@
     <SolidColorBrush x:Key="AppDangerFillBrush" Color="{ThemeResource SystemColorHighlightColor}" />
     <SolidColorBrush x:Key="AppDangerSoftBrush" Color="{ThemeResource SystemColorWindowColor}" />
     <SolidColorBrush x:Key="AppInfoBrush" Color="{ThemeResource SystemColorHotlightColor}" />
+    <!-- feat/account-sync-ui：高对比下叠层一律退回窗口底色（同 AppDangerSoftBrush），靠字形与文字表意。 -->
+    <SolidColorBrush x:Key="AppSuccessSoftBrush" Color="{ThemeResource SystemColorWindowColor}" />
+    <SolidColorBrush x:Key="AppWarningSoftBrush" Color="{ThemeResource SystemColorWindowColor}" />
     <SolidColorBrush x:Key="KeyBarBgBrush" Color="{ThemeResource SystemColorWindowColor}" />
     <SolidColorBrush x:Key="KeyBarKeyBrush" Color="{ThemeResource SystemColorWindowColor}" />
     <SolidColorBrush x:Key="KeyBarKeyActiveBrush" Color="{ThemeResource SystemColorHighlightColor}" />

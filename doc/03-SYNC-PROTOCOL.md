@@ -378,7 +378,7 @@ UnlockVault(secret, method):
   env = GET vault/key-envelope；key = method==password ? UnwrapWithPassword : UnwrapWithRecovery（失败 → 抛「同步密码不正确/恢复密钥无效」）
   cache: vaultId=env.id, vaultKey=b64(key), keyVersion=env.keyVersion, preferences.enabled=true
   state: phase=idle, vault=ready；SyncNow()
-LockVault(): cache.Lock()；state vault=locked, phase=locked
+LockVault(): 先等待进行中的同步结束（失败忽略）→ cache.Lock()；state vault=locked, phase=locked（避免锁定后被进行中的同步改回 synced）
 DeleteVault(currentPassword): DELETE vault → cache.Clear → vault=missing, phase=disabled, message「云端保险库和历史版本已删除，本机配置仍保留」
 
 SetPreferences(p):

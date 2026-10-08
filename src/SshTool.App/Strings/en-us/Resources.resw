@@ -822,28 +822,18 @@
   <data name="AccountSync_TabDevices.Header" xml:space="preserve"><value>Devices</value></data>
   <data name="AccountSync_TabHistory.Header" xml:space="preserve"><value>History</value></data>
   <data name="AccountSync_LastSyncedFormat" xml:space="preserve"><value>Last synced {0}</value></data>
-  <data name="AccountSync_LastSynced.Text" xml:space="preserve"><value>Last synced {0}</value></data>
   <data name="AccountSync_LastSyncedNone" xml:space="preserve"><value>Never synced</value></data>
   <data name="AccountSync_NextRetry" xml:space="preserve"><value>Next retry {0}</value></data>
   <data name="AccountSync_Meta" xml:space="preserve"><value>Revision r{0} · key v{1}</value></data>
   <data name="AccountSync_SyncNow.Content" xml:space="preserve"><value>Sync now</value></data>
   <data name="AccountSync_ResolveConflict.Content" xml:space="preserve"><value>Resolve conflict</value></data>
-  <data name="AccountSync_SyncSettings.Header" xml:space="preserve"><value>Sync settings</value></data>
   <data name="AccountSync_EnableSync.Text" xml:space="preserve"><value>Enable sync</value></data>
   <data name="AccountSync_AutoSync.Text" xml:space="preserve"><value>Auto-sync</value></data>
   <data name="AccountSync_SyncPasswords.Text" xml:space="preserve"><value>Sync passwords &amp; phrases</value></data>
   <data name="AccountSync_SyncPrivateKeys.Text" xml:space="preserve"><value>Sync private keys</value></data>
-  <data name="AccountSync_Vault.Header" xml:space="preserve"><value>Vault</value></data>
   <data name="AccountSync_ChangeSyncPassword.Content" xml:space="preserve"><value>Change sync password</value></data>
-  <data name="AccountSync_Account.Header" xml:space="preserve"><value>Account</value></data>
-  <data name="AccountSync_ChangeLoginPassword.Content" xml:space="preserve"><value>Change login password</value></data>
   <data name="AccountSync_LogoutLabel" xml:space="preserve"><value>Sign out</value></data>
-  <data name="AccountSync_Logout.Content" xml:space="preserve"><value>Sign out</value></data>
   <data name="AccountSync_LogoutAllLabel" xml:space="preserve"><value>Sign out all devices</value></data>
-  <data name="AccountSync_LogoutAll.Content" xml:space="preserve"><value>Sign out all devices</value></data>
-  <data name="AccountSync_Danger.Header" xml:space="preserve"><value>Danger zone</value></data>
-  <data name="AccountSync_DeleteVault.Content" xml:space="preserve"><value>Delete cloud vault…</value></data>
-  <data name="AccountSync_DeleteAccount.Content" xml:space="preserve"><value>Delete account…</value></data>
   <data name="AccountSync_DevicesEmpty" xml:space="preserve"><value>No devices</value></data>
   <data name="AccountSync_HistoryEmpty" xml:space="preserve"><value>No history</value></data>
   <data name="AccountSync_RenameDeviceTitle" xml:space="preserve"><value>Rename device</value></data>
@@ -864,9 +854,6 @@
   <data name="AccountSync_LogoutMessage" xml:space="preserve"><value>Sign out of the current device.</value></data>
   <data name="AccountSync_LogoutAllTitle" xml:space="preserve"><value>Sign out all devices</value></data>
   <data name="AccountSync_LogoutAllMessage" xml:space="preserve"><value>All devices will be signed out and must sign in again to sync.</value></data>
-  <data name="AccountSync_DeviceCurrentNote" xml:space="preserve"><value>This is the current device. Renaming works here; to revoke, use "Sign out".</value></data>
-  <data name="AccountSync_DeviceListFailed" xml:space="preserve"><value>Could not load devices</value></data>
-  <data name="AccountSync_HistoryListFailed" xml:space="preserve"><value>Could not load history</value></data>
   <data name="AccountSync_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Sync_Conflict_SensitiveChanged" xml:space="preserve"><value>Changed</value></data>
   <data name="Sync_CommandFailed" xml:space="preserve"><value>Action failed, please try again</value></data>
@@ -1361,7 +1348,6 @@
   <data name="AppearanceList_EmptyPrimary" xml:space="preserve"><value>New Scheme</value></data>
   <data name="GroupManage_EmptyTitle" xml:space="preserve"><value>No groups</value></data>
   <data name="GroupManage_EmptyDescription" xml:space="preserve"><value>Create groups to organize hosts with custom colors.</value></data>
-  <data name="AccountSync_ClearHistory.Content" xml:space="preserve"><value>Clear history</value></data>
   <data name="ChangeLogin_CurrentBox.PlaceholderText" xml:space="preserve"><value>Enter current password</value></data>
   <data name="ChangeLogin_NewBox.PlaceholderText" xml:space="preserve"><value>New password (at least 10 characters)</value></data>
   <data name="ChangeLogin_ConfirmBox.PlaceholderText" xml:space="preserve"><value>Re-enter new password</value></data>
@@ -1501,5 +1487,62 @@
   <data name="Sync_Err_LocalAdapterMissing" xml:space="preserve"><value>The sync component was not set up correctly and cannot read or write local data. Please update the app.</value></data>
   <data name="Sync_Err_Local" xml:space="preserve"><value>Sync failed while reading or writing local data ({0})</value></data>
   <data name="Sync_Err_Apply" xml:space="preserve"><value>Cloud data could not be applied on this device ({0}); local data was left unchanged</value></data>
+  <data name="AccountSync_VaultGroup.Text" xml:space="preserve"><value>Vault &amp; sync password</value></data>
+  <data name="AccountSync_UnlockVault.Content" xml:space="preserve"><value>Enter sync password to unlock</value></data>
+  <data name="AccountSync_CreateVault.Content" xml:space="preserve"><value>Create vault</value></data>
+  <data name="AccountSync_LockVault.Content" xml:space="preserve"><value>Lock vault</value></data>
+  <data name="AccountSync_VaultPasswordHint.Text" xml:space="preserve"><value>The sync password (vault password) end-to-end encrypts your cloud settings; the server cannot decrypt them. It is not your sign-in password. If you forget it, unlock with the recovery key.</value></data>
+  <data name="AccountSync_SettingsGroup.Text" xml:space="preserve"><value>Sync settings</value></data>
+  <data name="AccountSync_EnableSyncDesc.Text" xml:space="preserve"><value>Sync hosts, groups and tunnels between this device and the cloud</value></data>
+  <data name="AccountSync_AutoSyncDesc.Text" xml:space="preserve"><value>Sync automatically after changes, at startup and when the app returns</value></data>
+  <data name="AccountSync_SyncPasswordsDesc.Text" xml:space="preserve"><value>Host passwords and key passphrases are encrypted and synced; turning this off requires a security cleanup</value></data>
+  <data name="AccountSync_AccountGroup.Text" xml:space="preserve"><value>Account</value></data>
+  <data name="AccountSync_ChangeLoginPasswordRow.Text" xml:space="preserve"><value>Change sign-in password</value></data>
+  <data name="AccountSync_LogoutRow.Text" xml:space="preserve"><value>Sign out</value></data>
+  <data name="AccountSync_LogoutAllRow.Text" xml:space="preserve"><value>Sign out of all devices</value></data>
+  <data name="AccountSync_DangerGroup.Text" xml:space="preserve"><value>Danger zone</value></data>
+  <data name="AccountSync_DeleteVaultRow.Text" xml:space="preserve"><value>Delete cloud vault…</value></data>
+  <data name="AccountSync_DeleteAccountRow.Text" xml:space="preserve"><value>Delete account…</value></data>
+  <data name="AccountSync_RefreshDevicesButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Refresh device list</value></data>
+  <data name="AccountSync_RefreshHistoryButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Refresh history</value></data>
+  <data name="AccountSync_ClearHistoryButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Clear history</value></data>
+  <data name="AccountSync_HintCreateVault" xml:space="preserve"><value>Create a vault to start syncing</value></data>
+  <data name="AccountSync_HintUnlockVault" xml:space="preserve"><value>Enter the sync password to unlock the vault before syncing</value></data>
+  <data name="AccountSync_HintSyncDisabled" xml:space="preserve"><value>Sync is off; turn it on under Sync settings below</value></data>
+  <data name="AccountSync_VaultMissingTitle" xml:space="preserve"><value>No sync vault yet</value></data>
+  <data name="AccountSync_VaultMissingDesc" xml:space="preserve"><value>Create a vault and set a sync password; your hosts are then encrypted and synced to the cloud.</value></data>
+  <data name="AccountSync_VaultLockedTitle" xml:space="preserve"><value>Vault locked</value></data>
+  <data name="AccountSync_VaultLockedDesc" xml:space="preserve"><value>This device does not remember the sync password. Unlock with the sync password (or recovery key) to sync.</value></data>
+  <data name="AccountSync_VaultReadyTitle" xml:space="preserve"><value>Unlocked</value></data>
+  <data name="AccountSync_VaultReadyDescRemember" xml:space="preserve"><value>This device remembers the sync password; no need to enter it again after a restart or signing in to the same account.</value></data>
+  <data name="AccountSync_VaultReadyDescForget" xml:space="preserve"><value>Unlocked on this device; the sync password is forgotten when you sign out.</value></data>
+  <data name="AccountSync_SyncPrivateKeysDesc" xml:space="preserve"><value>Private keys are encrypted and synced to your other devices</value></data>
+  <data name="AccountSync_SyncPrivateKeysSoon" xml:space="preserve"><value>Encrypted private key sync (coming soon)</value></data>
+  <data name="AccountSync_DeviceActiveNow" xml:space="preserve"><value>In use now</value></data>
+  <data name="AccountSync_DeviceLastActive" xml:space="preserve"><value>Active {0}</value></data>
+  <data name="AccountSync_DeviceVersion" xml:space="preserve"><value>App {0}</value></data>
+  <data name="AccountSync_DeviceUnnamed" xml:space="preserve"><value>Unnamed device</value></data>
+  <data name="AccountSync_ThisDevice" xml:space="preserve"><value>This device</value></data>
+  <data name="AccountSync_DeviceActions" xml:space="preserve"><value>Actions for {0}</value></data>
+  <data name="AccountSync_HistoryFromThisDevice" xml:space="preserve"><value>From this device</value></data>
+  <data name="AccountSync_HistoryFromDevice" xml:space="preserve"><value>From {0}</value></data>
+  <data name="AccountSync_HistoryKeyVersion" xml:space="preserve"><value>Key v{0}</value></data>
+  <data name="AccountSync_History_Update" xml:space="preserve"><value>Update</value></data>
+  <data name="AccountSync_History_Current" xml:space="preserve"><value>Current cloud version</value></data>
+  <data name="AccountSync_History_KeyRotated" xml:space="preserve"><value>Key rotated</value></data>
+  <data name="AccountSync_History_Initial" xml:space="preserve"><value>First upload</value></data>
+  <data name="AccountSync_LockingVault" xml:space="preserve"><value>Locking the vault…</value></data>
+  <data name="AccountSync_RenameMenu" xml:space="preserve"><value>Rename…</value></data>
+  <data name="AccountSync_RevokeCurrentDisabled" xml:space="preserve"><value>Use Sign out for this device</value></data>
+  <data name="AccountSync_RevokeConfirm" xml:space="preserve"><value>Revoke</value></data>
+  <data name="AccountSync_LockVaultTitle" xml:space="preserve"><value>Lock the vault</value></data>
+  <data name="AccountSync_LockVaultMessage" xml:space="preserve"><value>This device forgets the sync password and sync pauses until you enter the sync password (or recovery key) again. Hosts on this device are kept.</value></data>
+  <data name="AccountSync_LockVaultConfirm" xml:space="preserve"><value>Lock</value></data>
+  <data name="AccountSync_DevicesCount" xml:space="preserve"><value>{0} devices</value></data>
+  <data name="AccountSync_DevicesEmptyDesc" xml:space="preserve"><value>Devices signed in to this account appear here.</value></data>
+  <data name="AccountSync_ListFailedDesc" xml:space="preserve"><value>Check the network and try again.</value></data>
+  <data name="AccountSync_Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="AccountSync_HistoryCount" xml:space="preserve"><value>Last {0} versions · tap one to restore</value></data>
+  <data name="AccountSync_HistoryEmptyDesc" xml:space="preserve"><value>Every upload leaves a version in the cloud that you can restore here.</value></data>
 </root>
 

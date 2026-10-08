@@ -43,7 +43,8 @@ namespace SshTool.App.Views.Sync
             {
                 return false;
             }
-            if (!frame.Navigate(PageOf(target), null))
+            Type targetPage = PageOf(target);
+            if (!frame.Navigate(targetPage, null))
             {
                 return false;
             }
@@ -55,9 +56,15 @@ namespace SshTool.App.Views.Sync
             // Navigate 只把「上一页」压进返回栈（当前页不入栈），所以栈顶就是刚离开的
             // 登录/建库/解锁页。逐个剪掉这类失效中间页，遇到任何其它类型（主页、终端页…）
             // 立即停止：登录→建库→完成这条路径剪完后栈顶仍是主页，主页留在栈内。
-            while (frame.BackStack.Count > 0 && IsStaleAuthPage(
-                frame.BackStack[frame.BackStack.Count - 1].SourcePageType))
+            // feat/account-sync-ui：与目标同类的旧页一并剪掉——状态页现在会留在栈里（保险库卡
+            // 「输入同步密码解锁」→ 解锁页 → 完成后去新的状态页），不剪的话返回键会先回到旧状态页。
+            while (frame.BackStack.Count > 0)
             {
+                Type top = frame.BackStack[frame.BackStack.Count - 1].SourcePageType;
+                if (!IsStaleAuthPage(top) && top != targetPage)
+                {
+                    break;
+                }
                 frame.BackStack.RemoveAt(frame.BackStack.Count - 1);
             }
             return true;

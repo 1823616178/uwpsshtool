@@ -1547,4 +1547,24 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <!-- feat/account-sync-ui：卡片内的操作行（账号 / 危险操作）：整行可点、左对齐「字形 + 文字 + 箭头」，
+         按压反馈沿用 IconButtonStyle 模板；行高 48 epx（≥ TouchTargetMin）。 -->
+    <Style x:Key="CardActionButtonStyle" TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="MinHeight" Value="{StaticResource ListRowCompactHeight}" />
+        <Setter Property="Padding" Value="{StaticResource PagePadding}" />
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+    </Style>
+
+    <!-- feat/account-sync-ui：卡片行尾的开关——去掉「开/关」文字与系统 154 epx 最小宽，
+         360 宽竖屏上把宽度留给左侧标题与说明；读屏名称由使用点 x:Uid 的 AutomationProperties.Name 提供。 -->
+    <Style x:Key="CompactToggleSwitchStyle" TargetType="ToggleSwitch">
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="OnContent" Value="" />
+        <Setter Property="OffContent" Value="" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
 </ResourceDictionary>

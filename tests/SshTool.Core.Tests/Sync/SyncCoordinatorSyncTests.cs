@@ -723,6 +723,72 @@ namespace SshTool.Core.Tests.Sync
             Assert.Equal(SyncPhase.Error, h.Coordinator.State.Phase);
         }
 
+        // ---------- feat/account-sync-ui：同步进行中锁定保险库 ----------
+
+        [Fact]
+        public async Task LockVault_DuringSync_WaitsForSyncThenStaysLocked()
+        {
+            // 「锁定保险库」在上传途中按下：必须等这次同步收尾再锁，否则收尾的 PatchState
+            // 会把相位改回 Synced（界面显示已同步、实际保险库已锁）。
+            var h = new Harness(NewDoc("Changed"));
+            await h.SeedLoginAsync();
+            var baseline = NewDoc("Base");
+            await h.SeedVaultAsync("1", baseline, dirty: true);
+            await h.ServeDocumentAsync(baseline, 1);
+            var putEntered = new TaskCompletionSource<bool>();
+            var releasePut = new TaskCompletionSource<bool>();
+            h.Server.BeforePut = async () =>
+            {
+                putEntered.TrySetResult(true);
+                await releasePut.Task.ConfigureAwait(false);
+            };
+
+            Task sync = h.Coordinator.SyncNowAsync();
+            await putEntered.Task;
+            Task lockTask = h.Coordinator.LockVaultAsync();
+            await Task.Delay(50);
+            Assert.False(lockTask.IsCompleted);
+            Assert.NotNull(h.Vault.State.VaultKeyBase64);
+
+            releasePut.SetResult(true);
+            await sync;
+            await lockTask;
+
+            Assert.Equal(1, h.Server.PutCount());
+            Assert.Null(h.Vault.State.VaultKeyBase64);
+            Assert.Equal(MockSyncServer.VaultId, h.Vault.State.VaultId);
+            Assert.Equal(SyncPhase.Locked, h.Coordinator.State.Phase);
+            Assert.Equal(VaultStatus.Locked, h.Coordinator.State.Vault);
+        }
+
+        [Fact]
+        public async Task LockVault_AfterFailedSync_StillLocks()
+        {
+            var h = new Harness(NewDoc("Changed"));
+            await h.SeedLoginAsync();
+            var baseline = NewDoc("Base");
+            await h.SeedVaultAsync("1", baseline, dirty: true);
+            await h.ServeDocumentAsync(baseline, 1);
+            var putEntered = new TaskCompletionSource<bool>();
+            var releasePut = new TaskCompletionSource<bool>();
+            h.Server.BeforePut = async () =>
+            {
+                putEntered.TrySetResult(true);
+                await releasePut.Task.ConfigureAwait(false);
+                await h.ServeDocumentAsync(NewDoc("Remote"), 2);
+            };
+
+            Task sync = h.Coordinator.SyncNowAsync();
+            await putEntered.Task;
+            Task lockTask = h.Coordinator.LockVaultAsync();
+            releasePut.SetResult(true);
+            await Assert.ThrowsAsync<ApiError>(() => sync);
+            await lockTask;
+
+            Assert.Null(h.Vault.State.VaultKeyBase64);
+            Assert.Equal(SyncPhase.Locked, h.Coordinator.State.Phase);
+        }
+
         // ---------- 上传期间本地又改动 → dirty 保持并 250 ms 后再同步 ----------
 
         [Fact]

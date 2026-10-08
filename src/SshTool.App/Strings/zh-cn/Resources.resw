@@ -823,28 +823,18 @@
   <data name="AccountSync_TabDevices.Header" xml:space="preserve"><value>设备</value></data>
   <data name="AccountSync_TabHistory.Header" xml:space="preserve"><value>历史</value></data>
   <data name="AccountSync_LastSyncedFormat" xml:space="preserve"><value>上次同步 {0}</value></data>
-  <data name="AccountSync_LastSynced.Text" xml:space="preserve"><value>上次同步 {0}</value></data>
   <data name="AccountSync_LastSyncedNone" xml:space="preserve"><value>尚未同步</value></data>
   <data name="AccountSync_NextRetry" xml:space="preserve"><value>下次重试 {0}</value></data>
   <data name="AccountSync_Meta" xml:space="preserve"><value>版本 r{0} · 密钥 v{1}</value></data>
   <data name="AccountSync_SyncNow.Content" xml:space="preserve"><value>立即同步</value></data>
   <data name="AccountSync_ResolveConflict.Content" xml:space="preserve"><value>处理冲突</value></data>
-  <data name="AccountSync_SyncSettings.Header" xml:space="preserve"><value>同步设置</value></data>
   <data name="AccountSync_EnableSync.Text" xml:space="preserve"><value>启用同步</value></data>
   <data name="AccountSync_AutoSync.Text" xml:space="preserve"><value>自动同步</value></data>
   <data name="AccountSync_SyncPasswords.Text" xml:space="preserve"><value>同步密码与短语</value></data>
   <data name="AccountSync_SyncPrivateKeys.Text" xml:space="preserve"><value>同步私钥</value></data>
-  <data name="AccountSync_Vault.Header" xml:space="preserve"><value>保险库</value></data>
   <data name="AccountSync_ChangeSyncPassword.Content" xml:space="preserve"><value>修改同步密码</value></data>
-  <data name="AccountSync_Account.Header" xml:space="preserve"><value>账号</value></data>
-  <data name="AccountSync_ChangeLoginPassword.Content" xml:space="preserve"><value>修改登录密码</value></data>
   <data name="AccountSync_LogoutLabel" xml:space="preserve"><value>退出登录</value></data>
-  <data name="AccountSync_Logout.Content" xml:space="preserve"><value>退出登录</value></data>
   <data name="AccountSync_LogoutAllLabel" xml:space="preserve"><value>退出所有设备</value></data>
-  <data name="AccountSync_LogoutAll.Content" xml:space="preserve"><value>退出所有设备</value></data>
-  <data name="AccountSync_Danger.Header" xml:space="preserve"><value>危险操作</value></data>
-  <data name="AccountSync_DeleteVault.Content" xml:space="preserve"><value>删除云端保险库…</value></data>
-  <data name="AccountSync_DeleteAccount.Content" xml:space="preserve"><value>注销账号…</value></data>
   <data name="AccountSync_DevicesEmpty" xml:space="preserve"><value>暂无设备</value></data>
   <data name="AccountSync_HistoryEmpty" xml:space="preserve"><value>暂无历史版本</value></data>
   <data name="AccountSync_RenameDeviceTitle" xml:space="preserve"><value>重命名设备</value></data>
@@ -865,9 +855,6 @@
   <data name="AccountSync_LogoutMessage" xml:space="preserve"><value>将退出当前设备。</value></data>
   <data name="AccountSync_LogoutAllTitle" xml:space="preserve"><value>退出所有设备</value></data>
   <data name="AccountSync_LogoutAllMessage" xml:space="preserve"><value>所有设备都将退出登录，需要重新登录才能同步。</value></data>
-  <data name="AccountSync_DeviceCurrentNote" xml:space="preserve"><value>这是当前设备。重命名可用；撤销请用「退出登录」。</value></data>
-  <data name="AccountSync_DeviceListFailed" xml:space="preserve"><value>无法加载设备列表</value></data>
-  <data name="AccountSync_HistoryListFailed" xml:space="preserve"><value>无法加载历史版本</value></data>
   <data name="AccountSync_Cancel" xml:space="preserve"><value>取消</value></data>
   <data name="Sync_Conflict_SensitiveChanged" xml:space="preserve"><value>有变更</value></data>
   <data name="Sync_CommandFailed" xml:space="preserve"><value>操作失败，请稍后重试</value></data>
@@ -1362,7 +1349,6 @@
   <data name="AppearanceList_EmptyPrimary" xml:space="preserve"><value>新建配色</value></data>
   <data name="GroupManage_EmptyTitle" xml:space="preserve"><value>暂无分组</value></data>
   <data name="GroupManage_EmptyDescription" xml:space="preserve"><value>创建分组整理主机，支持自定义名称和强调色。</value></data>
-  <data name="AccountSync_ClearHistory.Content" xml:space="preserve"><value>清空历史</value></data>
   <data name="ChangeLogin_CurrentBox.PlaceholderText" xml:space="preserve"><value>请输入当前密码</value></data>
   <data name="ChangeLogin_NewBox.PlaceholderText" xml:space="preserve"><value>设置新密码（至少 10 位）</value></data>
   <data name="ChangeLogin_ConfirmBox.PlaceholderText" xml:space="preserve"><value>再次输入新密码</value></data>
@@ -1502,5 +1488,62 @@
   <data name="Sync_Err_LocalAdapterMissing" xml:space="preserve"><value>同步组件未正确初始化，无法读写本机配置，请更新应用</value></data>
   <data name="Sync_Err_Local" xml:space="preserve"><value>同步失败：读写本机数据时出错（{0}）</value></data>
   <data name="Sync_Err_Apply" xml:space="preserve"><value>云端配置无法应用到本机（{0}），本机数据未改动</value></data>
+  <data name="AccountSync_VaultGroup.Text" xml:space="preserve"><value>保险库与同步密码</value></data>
+  <data name="AccountSync_UnlockVault.Content" xml:space="preserve"><value>输入同步密码解锁</value></data>
+  <data name="AccountSync_CreateVault.Content" xml:space="preserve"><value>创建保险库</value></data>
+  <data name="AccountSync_LockVault.Content" xml:space="preserve"><value>锁定保险库</value></data>
+  <data name="AccountSync_VaultPasswordHint.Text" xml:space="preserve"><value>同步密码（保险库密码）用于端到端加密云端配置，服务器无法解密；它和登录密码不是同一个。忘记时可用恢复密钥解锁。</value></data>
+  <data name="AccountSync_SettingsGroup.Text" xml:space="preserve"><value>同步设置</value></data>
+  <data name="AccountSync_EnableSyncDesc.Text" xml:space="preserve"><value>在本机与云端之间同步主机、分组和隧道配置</value></data>
+  <data name="AccountSync_AutoSyncDesc.Text" xml:space="preserve"><value>修改配置、启动应用和回到前台时自动同步</value></data>
+  <data name="AccountSync_SyncPasswordsDesc.Text" xml:space="preserve"><value>主机密码与私钥口令加密后一并同步；关闭需进行安全清理</value></data>
+  <data name="AccountSync_AccountGroup.Text" xml:space="preserve"><value>账号</value></data>
+  <data name="AccountSync_ChangeLoginPasswordRow.Text" xml:space="preserve"><value>修改登录密码</value></data>
+  <data name="AccountSync_LogoutRow.Text" xml:space="preserve"><value>退出登录</value></data>
+  <data name="AccountSync_LogoutAllRow.Text" xml:space="preserve"><value>退出所有设备</value></data>
+  <data name="AccountSync_DangerGroup.Text" xml:space="preserve"><value>危险操作</value></data>
+  <data name="AccountSync_DeleteVaultRow.Text" xml:space="preserve"><value>删除云端保险库…</value></data>
+  <data name="AccountSync_DeleteAccountRow.Text" xml:space="preserve"><value>注销账号…</value></data>
+  <data name="AccountSync_RefreshDevicesButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新设备列表</value></data>
+  <data name="AccountSync_RefreshHistoryButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>刷新历史版本</value></data>
+  <data name="AccountSync_ClearHistoryButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>清空历史</value></data>
+  <data name="AccountSync_HintCreateVault" xml:space="preserve"><value>创建保险库后才能同步</value></data>
+  <data name="AccountSync_HintUnlockVault" xml:space="preserve"><value>输入同步密码解锁保险库后才能同步</value></data>
+  <data name="AccountSync_HintSyncDisabled" xml:space="preserve"><value>同步已关闭，可在下方「同步设置」中开启</value></data>
+  <data name="AccountSync_VaultMissingTitle" xml:space="preserve"><value>尚未创建同步保险库</value></data>
+  <data name="AccountSync_VaultMissingDesc" xml:space="preserve"><value>创建保险库并设置同步密码后，主机配置会加密同步到云端。</value></data>
+  <data name="AccountSync_VaultLockedTitle" xml:space="preserve"><value>保险库已锁定</value></data>
+  <data name="AccountSync_VaultLockedDesc" xml:space="preserve"><value>本机还没有记住同步密码。输入同步密码（或恢复密钥）解锁后才能同步。</value></data>
+  <data name="AccountSync_VaultReadyTitle" xml:space="preserve"><value>已解锁</value></data>
+  <data name="AccountSync_VaultReadyDescRemember" xml:space="preserve"><value>本机已记住同步密码，重启或重新登录同一账号无需再次输入。</value></data>
+  <data name="AccountSync_VaultReadyDescForget" xml:space="preserve"><value>本机已解锁；退出登录时会忘记同步密码。</value></data>
+  <data name="AccountSync_SyncPrivateKeysDesc" xml:space="preserve"><value>私钥加密后同步到你的其他设备</value></data>
+  <data name="AccountSync_SyncPrivateKeysSoon" xml:space="preserve"><value>私钥加密后同步（即将推出）</value></data>
+  <data name="AccountSync_DeviceActiveNow" xml:space="preserve"><value>正在使用</value></data>
+  <data name="AccountSync_DeviceLastActive" xml:space="preserve"><value>最近活跃 {0}</value></data>
+  <data name="AccountSync_DeviceVersion" xml:space="preserve"><value>应用版本 {0}</value></data>
+  <data name="AccountSync_DeviceUnnamed" xml:space="preserve"><value>未命名设备</value></data>
+  <data name="AccountSync_ThisDevice" xml:space="preserve"><value>本机</value></data>
+  <data name="AccountSync_DeviceActions" xml:space="preserve"><value>{0} 的操作</value></data>
+  <data name="AccountSync_HistoryFromThisDevice" xml:space="preserve"><value>来自本机</value></data>
+  <data name="AccountSync_HistoryFromDevice" xml:space="preserve"><value>来自 {0}</value></data>
+  <data name="AccountSync_HistoryKeyVersion" xml:space="preserve"><value>密钥 v{0}</value></data>
+  <data name="AccountSync_History_Update" xml:space="preserve"><value>更新</value></data>
+  <data name="AccountSync_History_Current" xml:space="preserve"><value>当前云端版本</value></data>
+  <data name="AccountSync_History_KeyRotated" xml:space="preserve"><value>密钥已轮换</value></data>
+  <data name="AccountSync_History_Initial" xml:space="preserve"><value>首次上传</value></data>
+  <data name="AccountSync_LockingVault" xml:space="preserve"><value>正在锁定保险库…</value></data>
+  <data name="AccountSync_RenameMenu" xml:space="preserve"><value>重命名…</value></data>
+  <data name="AccountSync_RevokeCurrentDisabled" xml:space="preserve"><value>本机请使用「退出登录」</value></data>
+  <data name="AccountSync_RevokeConfirm" xml:space="preserve"><value>撤销</value></data>
+  <data name="AccountSync_LockVaultTitle" xml:space="preserve"><value>锁定保险库</value></data>
+  <data name="AccountSync_LockVaultMessage" xml:space="preserve"><value>本机将忘记同步密码，同步随即暂停；之后需要重新输入同步密码（或恢复密钥）才能继续同步。本机已有的主机配置不受影响。</value></data>
+  <data name="AccountSync_LockVaultConfirm" xml:space="preserve"><value>锁定</value></data>
+  <data name="AccountSync_DevicesCount" xml:space="preserve"><value>共 {0} 台设备</value></data>
+  <data name="AccountSync_DevicesEmptyDesc" xml:space="preserve"><value>登录过本账号的设备会显示在这里。</value></data>
+  <data name="AccountSync_ListFailedDesc" xml:space="preserve"><value>请检查网络后重试。</value></data>
+  <data name="AccountSync_Retry" xml:space="preserve"><value>重试</value></data>
+  <data name="AccountSync_HistoryCount" xml:space="preserve"><value>最近 {0} 个版本 · 点按可恢复</value></data>
+  <data name="AccountSync_HistoryEmptyDesc" xml:space="preserve"><value>每次上传都会在云端留下一个版本，可在这里恢复。</value></data>
 </root>
 

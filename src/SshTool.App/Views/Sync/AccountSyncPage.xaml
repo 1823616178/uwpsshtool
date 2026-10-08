@@ -6,10 +6,14 @@
     Background="{ThemeResource AppBgBrush}">
 
     <!-- U17/U18 同步状态页（02-UI-DESIGN.md §5.13）：Pivot[状态 | 设备 | 历史]。
-         未登录/建库/解锁由页面前置路由（NeedsRouting）经 SyncNavigation 转出；到达本页即已登录。
-         状态卡：相位图标 + 文案 + 上次同步相对时间 + 立即同步；开关：启用/自动/同步密码/私钥；
-         保险库与账号操作；危险操作（删除云端保险库 / 注销账号）走 ContentDialog 二次确认。
-         本页只用 15063 基线控件（Pivot/ToggleSwitch/Button）。 -->
+         feat/account-sync-ui 重设计（与主页卡片同材质：CardBorderStyle / 分组头 / EmptyState 徽章）：
+           状态页签 = 状态卡（语气色徽章 + 相位 + 上次同步 + 内联消息 + 账号 / 本机 + 立即同步）
+                    → 保险库卡（创建 / 输入同步密码解锁 / 已解锁 + 记住开关 + 修改同步密码 / 锁定）
+                    → 同步设置卡（每个开关带一行说明）→ 账号操作卡 → 危险操作卡；
+           设备页签 = 设备卡片（平台图标、本机高亮 + 「本机」徽标、最近活跃、⋯ 菜单：重命名 / 撤销）；
+           历史页签 = 时间线（事件字形、来源设备、相对时间；点按恢复，顶部刷新 / 清空）。
+         未登录由页面前置路由（NeedsRouting）经 SyncNavigation 转去登录页；保险库未建 / 已锁定留在本页，
+         由保险库卡给出入口。只用 15063 基线控件（Pivot / ToggleSwitch / Button / ListView / MenuFlyout）。 -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -24,7 +28,7 @@
         <!-- fix/auth-audit：错误条放在页头下方、Pivot 之外——设备 / 历史页签上的失败
              （改名、撤销、恢复、清空）此前写进状态页签底部的文本，切到别的页签根本看不到。 -->
         <Border x:Name="ErrorPanel" Grid.Row="1"
-                Background="{ThemeResource AppSurfaceAltBrush}"
+                Background="{ThemeResource AppDangerSoftBrush}"
                 BorderBrush="{ThemeResource AppDangerBrush}"
                 BorderThickness="{StaticResource BorderThinBottom}"
                 Padding="{StaticResource PadInlineError}"
@@ -39,7 +43,6 @@
                           Foreground="{ThemeResource AppDangerBrush}"
                           VerticalAlignment="Top" />
                 <TextBlock x:Name="ErrorText" Grid.Column="1"
-                           Foreground="{ThemeResource AppDangerBrush}"
                            Style="{StaticResource BodyTextStyle}"
                            TextWrapping="Wrap"
                            IsTextSelectionEnabled="True"
@@ -49,242 +52,685 @@
         </Border>
 
         <Grid Grid.Row="2">
-            <Grid.ChildrenTransitions>
-                <TransitionCollection>
-                    <EntranceThemeTransition />
-                </TransitionCollection>
-            </Grid.ChildrenTransitions>
+            <!-- ui/portrait-polish-2 同款：去掉 PivotItem 默认左右 12 外边距，卡片自带 12，与页头对齐。 -->
             <Pivot x:Name="MainPivot">
-            <!-- 状态 Pivot -->
-            <PivotItem x:Name="StatusTab" x:Uid="AccountSync_TabStatus">
-                <ScrollViewer>
-                    <StackPanel Padding="{StaticResource PagePadding}">
-                        <!-- 状态卡 -->
-                        <Border Background="{ThemeResource AppSurfaceBrush}"
-                                BorderBrush="{ThemeResource AppBorderBrush}"
-                                BorderThickness="{StaticResource BorderThin}"
-                                CornerRadius="{StaticResource RadiusMd}"
-                                Padding="{StaticResource PadMd}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal">
-                                    <FontIcon x:Name="StatusIcon" Margin="{StaticResource GapSmRight}"
-                                              VerticalAlignment="Center" />
-                                    <controls:StatusPill x:Name="StatusPill"
-                                                         VerticalAlignment="Center" />
-                                </StackPanel>
-                                <TextBlock x:Name="AccountLine" Style="{StaticResource BodyTextStyle}"
-                                           Margin="{StaticResource GapSmTop}" />
-                                <TextBlock x:Name="MetaLine" Style="{StaticResource CaptionTextStyle}"
-                                           Margin="{StaticResource GapXsTop}" />
-                                <TextBlock x:Name="LastSyncedLine" x:Uid="AccountSync_LastSynced"
-                                           Style="{StaticResource CaptionTextStyle}"
-                                           Margin="{StaticResource GapXsTop}" />
-                                <TextBlock x:Name="NextRetryLine" Style="{StaticResource CaptionTextStyle}"
-                                           Margin="{StaticResource GapXsTop}"
-                                           Visibility="Collapsed" />
-                                <Button x:Name="SyncNowButton" x:Uid="AccountSync_SyncNow"
-                                        Style="{StaticResource PrimaryButtonStyle}"
-                                        Margin="{StaticResource GapMdTop}"
-                                        HorizontalAlignment="Stretch"
-                                        Click="OnSyncNowClick" />
-                                <Button x:Name="ResolveConflictButton" x:Uid="AccountSync_ResolveConflict"
-                                        Margin="{StaticResource GapSmTop}"
-                                        HorizontalAlignment="Stretch"
-                                        Click="OnResolveConflictClick"
-                                        Visibility="Collapsed" />
-                            </StackPanel>
-                        </Border>
+                <Pivot.Resources>
+                    <Style TargetType="PivotItem">
+                        <Setter Property="Margin" Value="{StaticResource PadNone}" />
+                    </Style>
+                </Pivot.Resources>
 
-                        <!-- 同步设置 -->
-                        <controls:FormSection x:Name="SyncSettingsSection"
-                                              x:Uid="AccountSync_SyncSettings"
-                                              Margin="{StaticResource GapMdTop}">
-                            <controls:FormSection.SectionContent>
+                <!-- ================= 状态 ================= -->
+                <PivotItem x:Name="StatusTab" x:Uid="AccountSync_TabStatus">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel x:Name="StatusStack"
+                                    Padding="{StaticResource CardListPadding}"
+                                    MaxWidth="{StaticResource FormMaxWidth}">
+                            <StackPanel.ChildrenTransitions>
+                                <TransitionCollection>
+                                    <EntranceThemeTransition IsStaggeringEnabled="True" />
+                                </TransitionCollection>
+                            </StackPanel.ChildrenTransitions>
+
+                            <!-- 状态卡（hero） -->
+                            <Border x:Name="HeroCard" Style="{StaticResource CardBorderStyle}">
                                 <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <TextBlock x:Uid="AccountSync_EnableSync"
-                                           Grid.Row="0" Grid.Column="0"
-                                           Style="{StaticResource BodyTextStyle}"
-                                           VerticalAlignment="Center" />
-                                <ToggleSwitch x:Name="EnableSwitch" x:Uid="AccountSync_EnableSwitch" Grid.Row="0" Grid.Column="1"
-                                              Toggled="OnEnableSyncToggled" />
-                                <TextBlock x:Uid="AccountSync_AutoSync"
-                                           Grid.Row="1" Grid.Column="0"
-                                           Style="{StaticResource BodyTextStyle}"
-                                           VerticalAlignment="Center"
-                                           Margin="{StaticResource GapSmTop}" />
-                                <ToggleSwitch x:Name="AutoSyncSwitch" x:Uid="AccountSync_AutoSyncSwitch" Grid.Row="1" Grid.Column="1"
-                                              Margin="{StaticResource GapSmTop}"
-                                              Toggled="OnAutoSyncToggled" />
-                                <TextBlock x:Uid="AccountSync_SyncPasswords"
-                                           Grid.Row="2" Grid.Column="0"
-                                           Style="{StaticResource BodyTextStyle}"
-                                           VerticalAlignment="Center"
-                                           Margin="{StaticResource GapSmTop}" />
-                                <ToggleSwitch x:Name="SyncPasswordsSwitch" x:Uid="AccountSync_SyncPasswordsSwitch" Grid.Row="2" Grid.Column="1"
-                                              Margin="{StaticResource GapSmTop}"
-                                              Toggled="OnSyncPasswordsToggled" />
-                                <TextBlock x:Uid="AccountSync_SyncPrivateKeys"
-                                           Grid.Row="3" Grid.Column="0"
-                                           Style="{StaticResource BodyTextStyle}"
-                                           VerticalAlignment="Center"
-                                           Margin="{StaticResource GapSmTop}" />
-                                <ToggleSwitch x:Name="SyncPrivateKeysSwitch" x:Uid="AccountSync_SyncPrivateKeysSwitch" Grid.Row="3" Grid.Column="1"
-                                              Margin="{StaticResource GapSmTop}"
-                                              IsEnabled="False" />
+                                    <!-- 强调色斜向晕染（主页页头同款，仅装饰；纯渐变画刷，W10M 上无额外合成开销）。 -->
+                                    <Border Background="{ThemeResource AppHeaderGlowBrush}"
+                                            CornerRadius="{StaticResource RadiusLg}"
+                                            IsHitTestVisible="False" />
+                                    <StackPanel Padding="{StaticResource PadHero}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Grid Width="{StaticResource HeroBadgeSize}"
+                                                  Height="{StaticResource HeroBadgeSize}"
+                                                  VerticalAlignment="Top">
+                                                <Border x:Name="HeroBadge"
+                                                        CornerRadius="{StaticResource RadiusCircle}"
+                                                        Background="{ThemeResource AppAccentSoftBrush}" />
+                                                <FontIcon x:Name="HeroGlyph"
+                                                          FontSize="{StaticResource FontTitle}"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center" />
+                                                <ProgressRing x:Name="HeroSpinner"
+                                                              Width="{StaticResource HeroBadgeSize}"
+                                                              Height="{StaticResource HeroBadgeSize}"
+                                                              Foreground="{ThemeResource AppAccentTextBrush}"
+                                                              IsActive="False"
+                                                              Visibility="Collapsed" />
+                                            </Grid>
+                                            <StackPanel Grid.Column="1"
+                                                        Margin="{StaticResource GapMdLeft}"
+                                                        VerticalAlignment="Center">
+                                                <TextBlock x:Name="HeroTitle"
+                                                           Style="{StaticResource SubtitleTextStyle}"
+                                                           TextWrapping="Wrap"
+                                                           AutomationProperties.LiveSetting="Polite" />
+                                                <TextBlock x:Name="LastSyncedLine"
+                                                           Style="{StaticResource CaptionTextStyle}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="{StaticResource GapXsTop}" />
+                                                <TextBlock x:Name="NextRetryLine"
+                                                           Style="{StaticResource CaptionTextStyle}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="{StaticResource GapXsTop}"
+                                                           Visibility="Collapsed" />
+                                            </StackPanel>
+                                        </Grid>
 
-                            </Grid>
-                            </controls:FormSection.SectionContent>
-                        </controls:FormSection>
+                                        <!-- 内联消息：错误原因 / 离线 / 冲突 / 其他设备改了同步密码…（360 宽自动换行） -->
+                                        <Border x:Name="HeroDetail"
+                                                CornerRadius="{StaticResource RadiusMd}"
+                                                Padding="{StaticResource PadInlineError}"
+                                                Margin="{StaticResource GapMdTop}"
+                                                Visibility="Collapsed">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <FontIcon x:Name="HeroDetailGlyph"
+                                                          FontSize="{StaticResource FontBody}"
+                                                          VerticalAlignment="Top"
+                                                          Margin="{StaticResource GapXsTop}" />
+                                                <TextBlock x:Name="HeroDetailText" Grid.Column="1"
+                                                           Style="{StaticResource BodyTextStyle}"
+                                                           TextWrapping="Wrap"
+                                                           IsTextSelectionEnabled="True"
+                                                           AutomationProperties.LiveSetting="Polite"
+                                                           Margin="{StaticResource GapSmLeft}" />
+                                            </Grid>
+                                        </Border>
 
-                        <!-- 保险库 -->
-                        <controls:FormSection x:Name="VaultSection"
-                                              x:Uid="AccountSync_Vault"
-                                              Margin="{StaticResource GapMdTop}">
-                            <controls:FormSection.SectionContent>
-                                <StackPanel>
-                                    <!-- feat/remember-vault：本机开关（不随账号同步），默认开。 -->
+                                        <Border Height="{StaticResource StrokeThin}"
+                                                Background="{ThemeResource AppBorderBrush}"
+                                                Margin="{StaticResource GapMdVertical}" />
+
+                                        <!-- 账号 / 本机 -->
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon Glyph="{StaticResource IconContact}"
+                                                      FontSize="{StaticResource FontBody}"
+                                                      Foreground="{ThemeResource AppTextDimBrush}"
+                                                      VerticalAlignment="Center" />
+                                            <TextBlock x:Name="EmailText" Grid.Column="1"
+                                                       Style="{StaticResource BodyTextStyle}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       IsTextSelectionEnabled="True"
+                                                       Margin="{StaticResource GapSmLeft}" />
+                                        </Grid>
+                                        <Grid Margin="{StaticResource GapSmTop}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon Glyph="{StaticResource IconPhone}"
+                                                      FontSize="{StaticResource FontBody}"
+                                                      Foreground="{ThemeResource AppTextDimBrush}"
+                                                      VerticalAlignment="Center" />
+                                            <TextBlock x:Name="DeviceText" Grid.Column="1"
+                                                       Style="{StaticResource BodyTextStyle}"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       Margin="{StaticResource GapSmLeft}" />
+                                        </Grid>
+                                        <TextBlock x:Name="MetaLine"
+                                                   Style="{StaticResource CaptionTextStyle}"
+                                                   Margin="{StaticResource GapSmTop}" />
+
+                                        <Button x:Name="SyncNowButton" x:Uid="AccountSync_SyncNow"
+                                                Style="{StaticResource PrimaryButtonStyle}"
+                                                Margin="{StaticResource GapLgTop}"
+                                                HorizontalAlignment="Stretch"
+                                                Click="OnSyncNowClick" />
+                                        <TextBlock x:Name="SyncNowHint"
+                                                   Style="{StaticResource CaptionTextStyle}"
+                                                   TextWrapping="Wrap"
+                                                   TextAlignment="Center"
+                                                   Margin="{StaticResource GapXsTop}"
+                                                   Visibility="Collapsed" />
+                                        <Button x:Name="ResolveConflictButton" x:Uid="AccountSync_ResolveConflict"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Margin="{StaticResource GapSmTop}"
+                                                HorizontalAlignment="Stretch"
+                                                Click="OnResolveConflictClick"
+                                                Visibility="Collapsed" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+
+                            <!-- 保险库（同步密码在这里输入） -->
+                            <TextBlock x:Name="VaultHeader" x:Uid="AccountSync_VaultGroup"
+                                       Style="{StaticResource GroupHeaderTextStyle}"
+                                       Margin="{StaticResource GroupHeaderPadding}" />
+                            <Border x:Name="VaultCardBorder" Style="{StaticResource CardBorderStyle}">
+                                <StackPanel Padding="{StaticResource PadCard}">
                                     <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid Width="{StaticResource AvatarSize}"
+                                              Height="{StaticResource AvatarSize}"
+                                              VerticalAlignment="Top">
+                                            <Border x:Name="VaultBadge"
+                                                    CornerRadius="{StaticResource RadiusCircle}"
+                                                    Background="{ThemeResource AppAccentSoftBrush}" />
+                                            <FontIcon x:Name="VaultGlyph"
+                                                      FontSize="{StaticResource FontSubtitle}"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center" />
+                                        </Grid>
+                                        <StackPanel Grid.Column="1"
+                                                    Margin="{StaticResource GapMdLeft}"
+                                                    VerticalAlignment="Center">
+                                            <TextBlock x:Name="VaultTitle"
+                                                       Style="{StaticResource SectionTitleTextStyle}"
+                                                       FontSize="{StaticResource FontBody}"
+                                                       TextWrapping="Wrap" />
+                                            <TextBlock x:Name="VaultDescription"
+                                                       Style="{StaticResource CaptionTextStyle}"
+                                                       TextWrapping="Wrap"
+                                                       Margin="{StaticResource GapXsTop}" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <Button x:Name="UnlockVaultButton" x:Uid="AccountSync_UnlockVault"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            HorizontalAlignment="Stretch"
+                                            Margin="{StaticResource GapMdTop}"
+                                            Click="OnUnlockVaultClick"
+                                            Visibility="Collapsed" />
+                                    <Button x:Name="CreateVaultButton" x:Uid="AccountSync_CreateVault"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            HorizontalAlignment="Stretch"
+                                            Margin="{StaticResource GapMdTop}"
+                                            Click="OnCreateVaultClick"
+                                            Visibility="Collapsed" />
+
+                                    <StackPanel x:Name="VaultReadyPanel" Visibility="Collapsed">
+                                        <!-- feat/remember-vault：本机开关（不随账号同步），默认开。 -->
+                                        <Grid Margin="{StaticResource GapMdTop}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock x:Uid="AccountSync_RememberVaultKey"
+                                                           Style="{StaticResource BodyTextStyle}"
+                                                           TextWrapping="Wrap" />
+                                                <TextBlock x:Uid="AccountSync_RememberVaultKeyNote"
+                                                           Style="{StaticResource CaptionTextStyle}"
+                                                           TextWrapping="Wrap"
+                                                           Margin="{StaticResource GapXsTop}" />
+                                            </StackPanel>
+                                            <ToggleSwitch x:Name="RememberVaultKeySwitch" x:Uid="AccountSync_RememberVaultKeySwitch"
+                                                          Grid.Column="1"
+                                                          Style="{StaticResource CompactToggleSwitchStyle}"
+                                                          Margin="{StaticResource GapSmLeft}"
+                                                          Toggled="OnRememberVaultKeyToggled" />
+                                        </Grid>
+                                        <Grid Margin="{StaticResource GapMdTop}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Button x:Name="ChangeSyncPasswordButton" x:Uid="AccountSync_ChangeSyncPassword"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    HorizontalAlignment="Stretch"
+                                                    Click="OnChangeSyncPasswordClick" />
+                                            <Button x:Name="LockVaultButton" x:Uid="AccountSync_LockVault"
+                                                    Grid.Column="1"
+                                                    Style="{StaticResource SecondaryButtonStyle}"
+                                                    HorizontalAlignment="Stretch"
+                                                    Margin="{StaticResource GapSmLeft}"
+                                                    Click="OnLockVaultClick" />
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <Grid Margin="{StaticResource GapMdTop}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <FontIcon Glyph="{StaticResource IconInfo}"
+                                                  FontSize="{StaticResource FontCaption}"
+                                                  Foreground="{ThemeResource AppTextDimBrush}"
+                                                  VerticalAlignment="Top"
+                                                  Margin="{StaticResource GapXsTop}" />
+                                        <TextBlock x:Uid="AccountSync_VaultPasswordHint" Grid.Column="1"
+                                                   Style="{StaticResource CaptionTextStyle}"
+                                                   TextWrapping="Wrap"
+                                                   Margin="{StaticResource GapSmLeft}" />
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 同步设置 -->
+                            <TextBlock x:Uid="AccountSync_SettingsGroup"
+                                       Style="{StaticResource GroupHeaderTextStyle}"
+                                       Margin="{StaticResource GroupHeaderPadding}" />
+                            <Border Style="{StaticResource CardBorderStyle}">
+                                <StackPanel>
+                                    <Grid Padding="{StaticResource PadCardRow}" MinHeight="{StaticResource ListRowHeight}">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock x:Uid="AccountSync_RememberVaultKey"
-                                                   Style="{StaticResource BodyTextStyle}"
-                                                   TextWrapping="Wrap"
-                                                   VerticalAlignment="Center" />
-                                        <ToggleSwitch x:Name="RememberVaultKeySwitch" x:Uid="AccountSync_RememberVaultKeySwitch"
-                                                      Grid.Column="1"
-                                                      Toggled="OnRememberVaultKeyToggled" />
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Uid="AccountSync_EnableSync" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                                            <TextBlock x:Uid="AccountSync_EnableSyncDesc" Style="{StaticResource CaptionTextStyle}"
+                                                       TextWrapping="Wrap" Margin="{StaticResource GapXsTop}" />
+                                        </StackPanel>
+                                        <ToggleSwitch x:Name="EnableSwitch" x:Uid="AccountSync_EnableSwitch" Grid.Column="1"
+                                                      Style="{StaticResource CompactToggleSwitchStyle}"
+                                                      Margin="{StaticResource GapSmLeft}"
+                                                      Toggled="OnEnableSyncToggled" />
                                     </Grid>
-                                    <TextBlock x:Uid="AccountSync_RememberVaultKeyNote"
-                                               Style="{StaticResource CaptionTextStyle}"
-                                               TextWrapping="Wrap"
-                                               Margin="{StaticResource GapXsTop}" />
-                                    <Button x:Name="ChangeSyncPasswordButton" x:Uid="AccountSync_ChangeSyncPassword"
-                                            HorizontalAlignment="Stretch"
-                                            Margin="{StaticResource GapSmTop}"
-                                            Click="OnChangeSyncPasswordClick" />
+                                    <Border Height="{StaticResource StrokeThin}" Background="{ThemeResource AppBorderBrush}" />
+                                    <Grid Padding="{StaticResource PadCardRow}" MinHeight="{StaticResource ListRowHeight}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Uid="AccountSync_AutoSync" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                                            <TextBlock x:Uid="AccountSync_AutoSyncDesc" Style="{StaticResource CaptionTextStyle}"
+                                                       TextWrapping="Wrap" Margin="{StaticResource GapXsTop}" />
+                                        </StackPanel>
+                                        <ToggleSwitch x:Name="AutoSyncSwitch" x:Uid="AccountSync_AutoSyncSwitch" Grid.Column="1"
+                                                      Style="{StaticResource CompactToggleSwitchStyle}"
+                                                      Margin="{StaticResource GapSmLeft}"
+                                                      Toggled="OnAutoSyncToggled" />
+                                    </Grid>
+                                    <Border Height="{StaticResource StrokeThin}" Background="{ThemeResource AppBorderBrush}" />
+                                    <Grid Padding="{StaticResource PadCardRow}" MinHeight="{StaticResource ListRowHeight}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Uid="AccountSync_SyncPasswords" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                                            <TextBlock x:Uid="AccountSync_SyncPasswordsDesc" Style="{StaticResource CaptionTextStyle}"
+                                                       TextWrapping="Wrap" Margin="{StaticResource GapXsTop}" />
+                                        </StackPanel>
+                                        <ToggleSwitch x:Name="SyncPasswordsSwitch" x:Uid="AccountSync_SyncPasswordsSwitch" Grid.Column="1"
+                                                      Style="{StaticResource CompactToggleSwitchStyle}"
+                                                      Margin="{StaticResource GapSmLeft}"
+                                                      Toggled="OnSyncPasswordsToggled" />
+                                    </Grid>
+                                    <Border Height="{StaticResource StrokeThin}" Background="{ThemeResource AppBorderBrush}" />
+                                    <Grid Padding="{StaticResource PadCardRow}" MinHeight="{StaticResource ListRowHeight}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock x:Uid="AccountSync_SyncPrivateKeys" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                                            <TextBlock x:Name="SyncPrivateKeysDesc" Style="{StaticResource CaptionTextStyle}"
+                                                       TextWrapping="Wrap" Margin="{StaticResource GapXsTop}" />
+                                        </StackPanel>
+                                        <ToggleSwitch x:Name="SyncPrivateKeysSwitch" x:Uid="AccountSync_SyncPrivateKeysSwitch" Grid.Column="1"
+                                                      Style="{StaticResource CompactToggleSwitchStyle}"
+                                                      Margin="{StaticResource GapSmLeft}"
+                                                      IsEnabled="False" />
+                                    </Grid>
                                 </StackPanel>
-                            </controls:FormSection.SectionContent>
-                        </controls:FormSection>
+                            </Border>
 
-                        <!-- 账号 -->
-                        <controls:FormSection x:Name="AccountSection"
-                                              x:Uid="AccountSync_Account"
-                                              Margin="{StaticResource GapMdTop}">
-                            <controls:FormSection.SectionContent>
-                                <StackPanel>
-                                    <Button x:Name="ChangeLoginPasswordButton" x:Uid="AccountSync_ChangeLoginPassword"
-                                            HorizontalAlignment="Stretch"
-                                            Click="OnChangeLoginPasswordClick" />
-                                    <Button x:Name="LogoutButton" x:Uid="AccountSync_Logout"
-                                            Margin="{StaticResource GapSmTop}"
-                                            HorizontalAlignment="Stretch"
-                                            Click="OnLogoutClick" />
-                                    <Button x:Name="LogoutAllButton" x:Uid="AccountSync_LogoutAll"
-                                            Margin="{StaticResource GapSmTop}"
-                                            HorizontalAlignment="Stretch"
-                                            Click="OnLogoutAllClick" />
+                            <!-- 账号 -->
+                            <TextBlock x:Uid="AccountSync_AccountGroup"
+                                       Style="{StaticResource GroupHeaderTextStyle}"
+                                       Margin="{StaticResource GroupHeaderPadding}" />
+                            <Border Style="{StaticResource CardBorderStyle}">
+                                <StackPanel Padding="{StaticResource PadXs}">
+                                    <Button x:Name="ChangeLoginPasswordButton"
+                                            Style="{StaticResource CardActionButtonStyle}"
+                                            Click="OnChangeLoginPasswordClick">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon Glyph="{StaticResource IconKey}" FontSize="{StaticResource FontBody}"
+                                                      Foreground="{ThemeResource AppTextDimBrush}" VerticalAlignment="Center" />
+                                            <TextBlock x:Uid="AccountSync_ChangeLoginPasswordRow" Grid.Column="1"
+                                                       Style="{StaticResource BodyTextStyle}" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" Margin="{StaticResource GapMdLeft}" />
+                                            <FontIcon Grid.Column="2" Glyph="{StaticResource IconChevronRight}"
+                                                      FontSize="{StaticResource FontCaption}"
+                                                      Foreground="{ThemeResource AppTextFaintBrush}" VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Button>
+                                    <Button x:Name="LogoutButton"
+                                            Style="{StaticResource CardActionButtonStyle}"
+                                            Click="OnLogoutClick">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon Glyph="{StaticResource IconSignOut}" FontSize="{StaticResource FontBody}"
+                                                      Foreground="{ThemeResource AppTextDimBrush}" VerticalAlignment="Center" />
+                                            <TextBlock x:Uid="AccountSync_LogoutRow" Grid.Column="1"
+                                                       Style="{StaticResource BodyTextStyle}" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" Margin="{StaticResource GapMdLeft}" />
+                                        </Grid>
+                                    </Button>
+                                    <Button x:Name="LogoutAllButton"
+                                            Style="{StaticResource CardActionButtonStyle}"
+                                            Click="OnLogoutAllClick">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon Glyph="{StaticResource IconDevices}" FontSize="{StaticResource FontBody}"
+                                                      Foreground="{ThemeResource AppTextDimBrush}" VerticalAlignment="Center" />
+                                            <TextBlock x:Uid="AccountSync_LogoutAllRow" Grid.Column="1"
+                                                       Style="{StaticResource BodyTextStyle}" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" Margin="{StaticResource GapMdLeft}" />
+                                        </Grid>
+                                    </Button>
                                 </StackPanel>
-                            </controls:FormSection.SectionContent>
-                        </controls:FormSection>
+                            </Border>
 
-                        <!-- 危险操作 -->
-                        <controls:FormSection x:Name="DangerSection"
-                                              x:Uid="AccountSync_Danger"
-                                              Margin="{StaticResource GapMdTop}">
-                            <controls:FormSection.SectionContent>
-                                <StackPanel>
-                                    <Button x:Name="DeleteVaultButton" x:Uid="AccountSync_DeleteVault"
-                                            Style="{StaticResource DangerButtonStyle}"
-                                            HorizontalAlignment="Stretch"
-                                            Margin="{StaticResource GapSmTop}"
-                                            Click="OnDeleteVaultClick" />
-                                    <Button x:Name="DeleteAccountButton" x:Uid="AccountSync_DeleteAccount"
-                                            Style="{StaticResource DangerButtonStyle}"
-                                            Margin="{StaticResource GapSmTop}"
-                                            HorizontalAlignment="Stretch"
-                                            Click="OnDeleteAccountClick" />
+                            <!-- 危险操作（与上方拉开，红色细边 + 红字） -->
+                            <TextBlock x:Uid="AccountSync_DangerGroup"
+                                       Style="{StaticResource GroupHeaderTextStyle}"
+                                       Foreground="{ThemeResource AppDangerBrush}"
+                                       Margin="{StaticResource GroupHeaderPadding}" />
+                            <Border Style="{StaticResource CardBorderStyle}"
+                                    BorderBrush="{ThemeResource AppDangerBrush}">
+                                <StackPanel Padding="{StaticResource PadXs}">
+                                    <Button x:Name="DeleteVaultButton"
+                                            Style="{StaticResource CardActionButtonStyle}"
+                                            Click="OnDeleteVaultClick">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon Glyph="{StaticResource IconCloudOff}" FontSize="{StaticResource FontBody}"
+                                                      Foreground="{ThemeResource AppDangerBrush}" VerticalAlignment="Center" />
+                                            <TextBlock x:Uid="AccountSync_DeleteVaultRow" Grid.Column="1"
+                                                       Style="{StaticResource BodyTextStyle}"
+                                                       Foreground="{ThemeResource AppDangerBrush}" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" Margin="{StaticResource GapMdLeft}" />
+                                        </Grid>
+                                    </Button>
+                                    <Button x:Name="DeleteAccountButton"
+                                            Style="{StaticResource CardActionButtonStyle}"
+                                            Click="OnDeleteAccountClick">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <FontIcon Glyph="{StaticResource IconDelete}" FontSize="{StaticResource FontBody}"
+                                                      Foreground="{ThemeResource AppDangerBrush}" VerticalAlignment="Center" />
+                                            <TextBlock x:Uid="AccountSync_DeleteAccountRow" Grid.Column="1"
+                                                       Style="{StaticResource BodyTextStyle}"
+                                                       Foreground="{ThemeResource AppDangerBrush}" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" Margin="{StaticResource GapMdLeft}" />
+                                        </Grid>
+                                    </Button>
                                 </StackPanel>
-                            </controls:FormSection.SectionContent>
-                        </controls:FormSection>
-                    </StackPanel>
-                </ScrollViewer>
-            </PivotItem>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+                </PivotItem>
 
-            <!-- 设备 Pivot (U18) -->
-            <PivotItem x:Name="DevicesTab" x:Uid="AccountSync_TabDevices">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <ListView x:Name="DevicesList"
-                              SelectionMode="None"
-                              IsItemClickEnabled="True"
-                              ItemClick="OnDeviceClick">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <controls:AppListRow Title="{Binding Name}"
-                                                     Subtitle="{Binding Platform}"
-                                                     ShowChevron="True" />
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                    <controls:EmptyState x:Name="DevicesEmpty"
-                                         Grid.Row="0"
-                                         Visibility="Collapsed" />
-                    <ProgressRing x:Name="DevicesProgress" Grid.Row="0"
-                                  Width="{StaticResource SpaceXl}" Height="{StaticResource SpaceXl}"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                                  Visibility="Collapsed" />
-                </Grid>
-            </PivotItem>
+                <!-- ================= 设备 (U18) ================= -->
+                <PivotItem x:Name="DevicesTab" x:Uid="AccountSync_TabDevices">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid Margin="{StaticResource ListTopRowMargin}" MaxWidth="{StaticResource FormMaxWidth}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="DevicesSummary"
+                                       Style="{StaticResource CaptionTextStyle}"
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Center" />
+                            <Button x:Name="RefreshDevicesButton" x:Uid="AccountSync_RefreshDevicesButton" Grid.Column="1"
+                                    Style="{StaticResource IconButtonStyle}"
+                                    Margin="{StaticResource GapSmLeft}"
+                                    Click="OnRefreshDevicesClick">
+                                <FontIcon Glyph="{StaticResource IconRefresh}" FontSize="{StaticResource FontBody}" />
+                            </Button>
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <ListView x:Name="DevicesList"
+                                      SelectionMode="None"
+                                      IsItemClickEnabled="True"
+                                      ItemClick="OnDeviceClick"
+                                      MaxWidth="{StaticResource FormMaxWidth}"
+                                      ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                                      Padding="{StaticResource CardListPadding}">
+                                <ListView.Resources>
+                                    <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent" />
+                                    <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent" />
+                                </ListView.Resources>
+                                <ListView.ItemContainerTransitions>
+                                    <TransitionCollection>
+                                        <EntranceThemeTransition IsStaggeringEnabled="True" />
+                                        <AddDeleteThemeTransition />
+                                    </TransitionCollection>
+                                </ListView.ItemContainerTransitions>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource CardBorderStyle}"
+                                                BorderBrush="{Binding CardStrokeBrush}">
+                                            <Grid Padding="{StaticResource PadCardRow}" MinHeight="{StaticResource ListRowHeight}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid Width="{StaticResource AvatarSize}"
+                                                      Height="{StaticResource AvatarSize}"
+                                                      VerticalAlignment="Center">
+                                                    <Border CornerRadius="{StaticResource RadiusCircle}"
+                                                            Background="{Binding BadgeBrush}" />
+                                                    <FontIcon Glyph="{Binding Glyph}"
+                                                              Foreground="{Binding GlyphBrush}"
+                                                              FontSize="{StaticResource FontSubtitle}"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center" />
+                                                </Grid>
+                                                <StackPanel Grid.Column="1"
+                                                            Margin="{StaticResource GapMdLeft}"
+                                                            VerticalAlignment="Center">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   Style="{StaticResource BodyTextStyle}"
+                                                                   FontWeight="SemiBold"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   VerticalAlignment="Center" />
+                                                        <controls:StatusPill Grid.Column="1"
+                                                                             Kind="Success"
+                                                                             Text="{Binding CurrentBadgeText}"
+                                                                             Visibility="{Binding CurrentVisibility}"
+                                                                             Margin="{StaticResource GapSmLeft}" />
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding Subtitle}"
+                                                               Style="{StaticResource CaptionTextStyle}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Margin="{StaticResource GapXsTop}" />
+                                                    <TextBlock Text="{Binding Detail}"
+                                                               Style="{StaticResource CaptionTextStyle}"
+                                                               Foreground="{ThemeResource AppTextFaintBrush}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               Visibility="{Binding DetailVisibility}" />
+                                                </StackPanel>
+                                                <Button Grid.Column="2"
+                                                        Style="{StaticResource IconButtonStyle}"
+                                                        AutomationProperties.Name="{Binding MoreLabel}"
+                                                        Margin="{StaticResource GapXsLeft}"
+                                                        Click="OnDeviceMoreClick">
+                                                    <FontIcon Glyph="{StaticResource IconMore}" FontSize="{StaticResource FontBody}" />
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <controls:EmptyState x:Name="DevicesEmpty"
+                                                 Visibility="Collapsed"
+                                                 PrimaryClick="OnRefreshDevicesClick" />
+                            <ProgressRing x:Name="DevicesProgress"
+                                          Width="{StaticResource SpaceXl}" Height="{StaticResource SpaceXl}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Visibility="Collapsed" />
+                        </Grid>
+                    </Grid>
+                </PivotItem>
 
-            <!-- 历史 Pivot (U18) -->
-            <PivotItem x:Name="HistoryTab" x:Uid="AccountSync_TabHistory">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <ListView x:Name="HistoryList"
-                              SelectionMode="None"
-                              IsItemClickEnabled="True"
-                              ItemClick="OnHistoryClick">
-                        <ListView.ItemTemplate>
-                            <DataTemplate>
-                                <controls:AppListRow Title="{Binding Revision}"
-                                                     Subtitle="{Binding DeviceName}"
-                                                     ShowChevron="True" />
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                    <controls:EmptyState x:Name="HistoryEmpty"
-                                         Grid.Row="0"
-                                         Visibility="Collapsed" />
-                    <ProgressRing x:Name="HistoryProgress" Grid.Row="0"
-                                  Width="{StaticResource SpaceXl}" Height="{StaticResource SpaceXl}"
-                                  HorizontalAlignment="Center" VerticalAlignment="Center"
-                                  Visibility="Collapsed" />
-                    <Button x:Name="ClearHistoryButton" x:Uid="AccountSync_ClearHistory"
-                            Grid.Row="1"
-                            Margin="{StaticResource PagePadding}"
-                            HorizontalAlignment="Stretch"
-                            Click="OnClearHistoryClick" />
-                </Grid>
-            </PivotItem>
-        </Pivot>
+                <!-- ================= 历史 (U18) ================= -->
+                <PivotItem x:Name="HistoryTab" x:Uid="AccountSync_TabHistory">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Grid Margin="{StaticResource ListTopRowMargin}" MaxWidth="{StaticResource FormMaxWidth}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="HistorySummary"
+                                       Style="{StaticResource CaptionTextStyle}"
+                                       TextWrapping="Wrap"
+                                       VerticalAlignment="Center" />
+                            <Button x:Name="RefreshHistoryButton" x:Uid="AccountSync_RefreshHistoryButton" Grid.Column="1"
+                                    Style="{StaticResource IconButtonStyle}"
+                                    Margin="{StaticResource GapSmLeft}"
+                                    Click="OnRefreshHistoryClick">
+                                <FontIcon Glyph="{StaticResource IconRefresh}" FontSize="{StaticResource FontBody}" />
+                            </Button>
+                            <Button x:Name="ClearHistoryButton" x:Uid="AccountSync_ClearHistoryButton" Grid.Column="2"
+                                    Style="{StaticResource IconButtonStyle}"
+                                    Margin="{StaticResource GapSmLeft}"
+                                    Click="OnClearHistoryClick">
+                                <FontIcon Glyph="{StaticResource IconDelete}" FontSize="{StaticResource FontBody}"
+                                          Foreground="{ThemeResource AppDangerBrush}" />
+                            </Button>
+                        </Grid>
+                        <Grid Grid.Row="1">
+                            <ListView x:Name="HistoryList"
+                                      SelectionMode="None"
+                                      IsItemClickEnabled="True"
+                                      ItemClick="OnHistoryClick"
+                                      MaxWidth="{StaticResource FormMaxWidth}"
+                                      ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                                      Padding="{StaticResource CardListPadding}">
+                                <ListView.Resources>
+                                    <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent" />
+                                    <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent" />
+                                </ListView.Resources>
+                                <ListView.ItemContainerTransitions>
+                                    <TransitionCollection>
+                                        <EntranceThemeTransition IsStaggeringEnabled="True" />
+                                    </TransitionCollection>
+                                </ListView.ItemContainerTransitions>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="{StaticResource PagePadding}">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <!-- 时间线：上下两段竖线 + 事件徽章（首条无上段、末条无下段） -->
+                                            <Grid Width="{StaticResource AvatarSize}">
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="*" />
+                                                </Grid.RowDefinitions>
+                                                <Rectangle Width="{StaticResource TimelineLineThickness}"
+                                                           Fill="{ThemeResource AppBorderBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           Visibility="{Binding RailTopVisibility}" />
+                                                <Grid Grid.Row="1"
+                                                      Width="{StaticResource TimelineBadgeSize}"
+                                                      Height="{StaticResource TimelineBadgeSize}">
+                                                    <Border CornerRadius="{StaticResource RadiusCircle}"
+                                                            Background="{ThemeResource AppBgBrush}" />
+                                                    <Border CornerRadius="{StaticResource RadiusCircle}"
+                                                            Background="{Binding BadgeBrush}" />
+                                                    <FontIcon Glyph="{Binding Glyph}"
+                                                              Foreground="{Binding GlyphBrush}"
+                                                              FontSize="{StaticResource FontBody}"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center" />
+                                                </Grid>
+                                                <Rectangle Grid.Row="2"
+                                                           Width="{StaticResource TimelineLineThickness}"
+                                                           Fill="{ThemeResource AppBorderBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           Visibility="{Binding RailBottomVisibility}" />
+                                            </Grid>
+                                            <Border Grid.Column="1"
+                                                    Style="{StaticResource CardBorderStyle}"
+                                                    Margin="{StaticResource TimelineCardMargin}">
+                                                <Grid Padding="{StaticResource PadCardRow}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   Style="{StaticResource BodyTextStyle}"
+                                                                   FontWeight="SemiBold"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{Binding Subtitle}"
+                                                                   Style="{StaticResource CaptionTextStyle}"
+                                                                   TextWrapping="Wrap"
+                                                                   Margin="{StaticResource GapXsTop}" />
+                                                        <TextBlock Text="{Binding Detail}"
+                                                                   Style="{StaticResource CaptionTextStyle}"
+                                                                   Foreground="{ThemeResource AppTextFaintBrush}" />
+                                                    </StackPanel>
+                                                    <FontIcon Grid.Column="1"
+                                                              Glyph="{StaticResource IconChevronRight}"
+                                                              FontSize="{StaticResource FontCaption}"
+                                                              Foreground="{ThemeResource AppTextFaintBrush}"
+                                                              VerticalAlignment="Center"
+                                                              Margin="{StaticResource GapSmLeft}"
+                                                              Visibility="{Binding ChevronVisibility}" />
+                                                </Grid>
+                                            </Border>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <controls:EmptyState x:Name="HistoryEmpty"
+                                                 Visibility="Collapsed"
+                                                 PrimaryClick="OnRefreshHistoryClick" />
+                            <ProgressRing x:Name="HistoryProgress"
+                                          Width="{StaticResource SpaceXl}" Height="{StaticResource SpaceXl}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Visibility="Collapsed" />
+                        </Grid>
+                    </Grid>
+                </PivotItem>
+            </Pivot>
         </Grid>
 
         <controls:LoadingOverlay x:Name="Working" Grid.RowSpan="3" />
