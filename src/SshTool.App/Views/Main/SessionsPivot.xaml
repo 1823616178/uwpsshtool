@@ -80,7 +80,7 @@
                                         VerticalAlignment="Center">
                                     <FontIcon Glyph="{StaticResource IconTerminal}"
                                               FontSize="{StaticResource FontBody}"
-                                              Foreground="{ThemeResource AppAccentBrush}" />
+                                              Foreground="{ThemeResource AppAccentTextBrush}" />
                                 </Border>
                                 <StackPanel Grid.Column="2" VerticalAlignment="Center"
                                             Margin="{StaticResource GapMdLeft}">

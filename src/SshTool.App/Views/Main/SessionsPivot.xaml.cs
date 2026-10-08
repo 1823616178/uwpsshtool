@@ -1,3 +1,4 @@
+using SshTool.App.Platform;
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
@@ -145,7 +146,7 @@ namespace SshTool.App.Views.Main
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             SessionUiState state = value is SessionUiState ? (SessionUiState)value : SessionUiState.Disconnected;
-            return SshTool.App.Controls.Banner.ResolveThemedBrush(SessionStateVisuals.BrushKey(state));
+            return ThemeService.ResolveBrush(SessionStateVisuals.BrushKey(state));
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

@@ -1,3 +1,4 @@
+using SshTool.App.Platform;
 using System;
 using SshTool.Core.Terminal;
 using Windows.Foundation;
@@ -201,7 +202,7 @@ namespace SshTool.App.Terminal
 
         private static Brush Brush(string key)
         {
-            return Application.Current.Resources[key] as Brush;
+            return ThemeService.ResolveBrush(key);
         }
 
         private static double TokenDouble(string key)

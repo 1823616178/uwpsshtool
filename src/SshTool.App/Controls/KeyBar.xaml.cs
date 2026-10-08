@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
 using SshTool.Core.Terminal;
 using Windows.UI.Xaml;
@@ -27,6 +28,8 @@ namespace SshTool.App.Controls
         public KeyBar()
         {
             this.InitializeComponent();
+            // ui/fix-pass：代码赋值的主题画刷随 ThemeService.ThemeChanged 重算。
+            ThemeRefreshHook.Attach(this, Rebuild);
             _repeatTimer.Tick += OnRepeatTick;
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
@@ -557,6 +560,9 @@ namespace SshTool.App.Controls
                 }
                 return;
             }
+            // ui/fix-pass：锁定态底色是亮色（琥珀），白字对比度不足 2:1——前景改用专用的
+            // KeyBarKeyLockedForegroundBrush（#1A1A1A，PaletteContrastTests 保证 ≥4.5）。
+            string foregroundKey = state == StickyState.Locked ? "KeyBarKeyLockedForegroundBrush" : "AppOnAccentBrush";
             if (state == StickyState.Locked)
             {
                 chrome.Background = Brush("KeyBarKeyLockedBrush");
@@ -568,7 +574,7 @@ namespace SshTool.App.Controls
                 if (lockIcon != null)
                 {
                     lockIcon.Visibility = Visibility.Visible;
-                    lockIcon.Foreground = Brush("AppOnAccentBrush");
+                    lockIcon.Foreground = Brush(foregroundKey);
                 }
             }
             else
@@ -587,7 +593,7 @@ namespace SshTool.App.Controls
             }
             if (label != null)
             {
-                label.Foreground = Brush("AppOnAccentBrush");
+                label.Foreground = Brush(foregroundKey);
             }
         }
 
@@ -595,7 +601,7 @@ namespace SshTool.App.Controls
 
         private static Brush Brush(string key)
         {
-            return Application.Current.Resources[key] as Brush;
+            return ThemeService.ResolveBrush(key);
         }
 
         private static double TokenDouble(string key)

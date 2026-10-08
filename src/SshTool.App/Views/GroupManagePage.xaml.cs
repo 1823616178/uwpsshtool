@@ -1,3 +1,4 @@
+using SshTool.App.Platform;
 using System;
 using SshTool.App.Controls;
 using SshTool.App.Infrastructure;
@@ -96,7 +97,7 @@ namespace SshTool.App.Views
         // 取当前主题的 AppAccentBrush → #RRGGBB；解析不到时返回 null（选择器保留自身默认值）。
         private static string AccentColorHex()
         {
-            var brush = Banner.ResolveThemedBrush("AppAccentBrush") as SolidColorBrush;
+            var brush = ThemeService.ResolveBrush("AppAccentBrush") as SolidColorBrush;
             if (brush == null)
             {
                 return null;

@@ -6,6 +6,8 @@
     <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary Source="/Themes/Tokens.Dark.xaml" x:Key="Dark" />
         <ResourceDictionary Source="/Themes/Tokens.Light.xaml" x:Key="Light" />
+        <!-- ui/fix-pass：系统高对比度开启时 XAML 选这一份（覆盖应用深/浅主题）。 -->
+        <ResourceDictionary Source="/Themes/Tokens.HighContrast.xaml" x:Key="HighContrast" />
     </ResourceDictionary.ThemeDictionaries>
 
     <!-- §2.2 尺寸 -->

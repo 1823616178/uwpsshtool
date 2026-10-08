@@ -35,6 +35,9 @@ namespace SshTool.App.Infrastructure
             await turn.Task;
             try
             {
+                // ui/fix-pass：ContentDialog 挂在弹出层根上，不继承根 Frame 的 RequestedTheme；
+                // 应用内主题 ≠ 系统主题时会出现「浅色页面弹深色对话框」。显示前套用有效主题。
+                dialog.RequestedTheme = SshTool.App.Platform.ThemeService.EffectiveElementTheme();
                 return await dialog.ShowAsync();
             }
             finally

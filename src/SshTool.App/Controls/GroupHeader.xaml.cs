@@ -1,3 +1,5 @@
+using SshTool.App.Infrastructure;
+using SshTool.App.Platform;
 using System;
 using System.Globalization;
 using SshTool.Core.Hosts;
@@ -15,6 +17,8 @@ namespace SshTool.App.Controls
         public GroupHeader()
         {
             this.InitializeComponent();
+            // ui/fix-pass：代码赋值的主题画刷随 ThemeService.ThemeChanged 重算。
+            ThemeRefreshHook.Attach(this, BindGroup);
             this.DataContextChanged += OnDataContextChanged;
         }
 
@@ -52,14 +56,14 @@ namespace SshTool.App.Controls
             {
                 ColorDot.Visibility = Visibility.Collapsed;
                 SectionIcon.Glyph = (string)Application.Current.Resources["IconFavoriteStarFill"];
-                SectionIcon.Foreground = (Brush)Application.Current.Resources["AppWarningBrush"];
+                SectionIcon.Foreground = ThemeService.ResolveBrush("AppWarningBrush");
                 SectionIcon.Visibility = Visibility.Visible;
             }
             else if (string.Equals(group.GroupId, HostListGroup.RecentId, StringComparison.Ordinal))
             {
                 ColorDot.Visibility = Visibility.Collapsed;
                 SectionIcon.Glyph = (string)Application.Current.Resources["IconHistory"];
-                SectionIcon.Foreground = (Brush)Application.Current.Resources["AppAccentBrush"];
+                SectionIcon.Foreground = ThemeService.ResolveBrush("AppAccentBrush");
                 SectionIcon.Visibility = Visibility.Visible;
             }
             else

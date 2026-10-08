@@ -79,7 +79,7 @@
                     </Grid.ColumnDefinitions>
                     <FontIcon Glyph="{StaticResource IconConnect}"
                               FontSize="{StaticResource FontBody}"
-                              Foreground="{ThemeResource AppAccentBrush}"
+                              Foreground="{ThemeResource AppAccentTextBrush}"
                               VerticalAlignment="Center" />
                     <TextBlock x:Uid="Hosts_QuickConnectRowText" Grid.Column="1"
                                Style="{StaticResource BodyTextStyle}"
@@ -88,7 +88,7 @@
                     <FontIcon x:Name="QuickConnectChevron" Grid.Column="2"
                               Glyph="{StaticResource IconChevronDown}"
                               FontSize="{StaticResource FontCaption}"
-                              Foreground="{ThemeResource AppAccentBrush}"
+                              Foreground="{ThemeResource AppAccentTextBrush}"
                               VerticalAlignment="Center" />
                 </Grid>
             </Border>

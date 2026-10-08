@@ -23,8 +23,9 @@
                         <EntranceThemeTransition />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
-                <Border Background="{ThemeResource AppDangerBrush}"
-                        Opacity="0.15"
+                <Border Background="{ThemeResource AppDangerSoftBrush}"
+                        BorderBrush="{ThemeResource AppDangerBrush}"
+                        BorderThickness="{StaticResource BorderThin}"
                         CornerRadius="{StaticResource RadiusMd}"
                         Padding="{StaticResource PadMd}"
                         Margin="{StaticResource GapSmTop}">

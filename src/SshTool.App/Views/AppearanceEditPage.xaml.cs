@@ -1,3 +1,4 @@
+using SshTool.App.Platform;
 using System;
 using System.Globalization;
 using SshTool.App.Controls;
@@ -244,7 +245,7 @@ namespace SshTool.App.Views
             CornerRadius radius = (CornerRadius)Application.Current.Resources["RadiusSm"];
             Thickness gap = new Thickness(ColorSwatchPicker.SwatchGap);
             // AppBorderBrush 在 ThemeDictionaries 里，索引器取不到（恒 null）→ 用 Banner 的解析。
-            Brush hairline = Banner.ResolveThemedBrush("AppBorderBrush");
+            Brush hairline = ThemeService.ResolveBrush("AppBorderBrush");
             for (int i = 0; i < draft.Palette.Count && i < 16; i++)
             {
                 int index = i;

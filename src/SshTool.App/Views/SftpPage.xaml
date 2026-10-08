@@ -90,7 +90,7 @@
                         </Button>
                         <Button x:Uid="Sftp_RetryTransferButton" Click="OnRetryTransferClick"
                                 Style="{StaticResource IconButtonStyle}"
-                                Foreground="{ThemeResource AppAccentBrush}"
+                                Foreground="{ThemeResource AppAccentTextBrush}"
                                 Visibility="{Binding CanRetry, Converter={StaticResource BoolToVisibility}}">
                             <FontIcon Glyph="{StaticResource IconSync}" FontSize="{StaticResource FontBody}" />
                         </Button>

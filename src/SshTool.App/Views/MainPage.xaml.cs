@@ -27,6 +27,7 @@ namespace SshTool.App.Views
         {
             ViewModel = new MainViewModel();
             this.InitializeComponent();
+            ThemeRefreshHook.Attach(this, ViewModel.RefreshThemedVisuals);
             if (ViewModel.Hosts != null)
             {
                 HostsPane.Attach(ViewModel.Hosts);
