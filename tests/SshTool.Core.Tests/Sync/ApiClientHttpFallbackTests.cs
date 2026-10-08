@@ -119,6 +119,71 @@ namespace SshTool.Core.Tests.Sync
             Assert.False(client.UsingHttpFallback);
         }
 
+        // 评审（PR #1）：https 上结果不明的非幂等写请求（无 Idempotency-Key 的 POST）不得经 http 重放，
+        // 否则服务器可能执行两次；回退仍粘滞生效，用户重试时直接走 http。
+        [Fact]
+        public async Task AmbiguousHttpsFailure_NonIdempotentPost_IsNotReplayed()
+        {
+            var transport = TlsLessServer();
+            var client = new ApiClient("https://sync.example.test", FakeTokenStore.SignedIn(), transport,
+                allowHttp: true, retryLimit: 2, httpFallback: true);
+
+            var error = await Assert.ThrowsAsync<ApiError>(
+                () => client.ChangePasswordAsync("old-pw", "new-pw"));
+
+            Assert.Equal(ApiErrorKind.Network, error.Kind);
+            Assert.True(error.Ambiguous);
+            Assert.Single(transport.Requests);
+            Assert.StartsWith("https://", transport.Requests[0].Url);
+            Assert.True(client.UsingHttpFallback);
+
+            await client.GetMeAsync();
+            Assert.Equal(2, transport.Requests.Count);
+            Assert.StartsWith("http://", transport.Requests[1].Url);
+        }
+
+        // 传输层确认请求根本没发出去（TLS 握手失败等）时，写请求可安全地在 http 上重发一次。
+        [Fact]
+        public async Task PreSendFailure_NonIdempotentPost_ReplayedExactlyOnceOverHttp()
+        {
+            var transport = new FakeHttpTransport();
+            transport.Handler = request =>
+            {
+                if (request.Url.StartsWith("https://", StringComparison.Ordinal))
+                {
+                    throw new HttpConnectionFailedException("TLS handshake failed",
+                        new InvalidOperationException("wrong version number"));
+                }
+                return Ok("{}");
+            };
+            var client = new ApiClient("https://sync.example.test", FakeTokenStore.SignedIn(), transport,
+                allowHttp: true, retryLimit: 2, httpFallback: true);
+
+            await client.ChangePasswordAsync("old-pw", "new-pw");
+
+            Assert.Equal(2, transport.Requests.Count);
+            Assert.StartsWith("https://", transport.Requests[0].Url);
+            Assert.Equal("http://sync.example.test/api/v1/auth/change-password", transport.Requests[1].Url);
+            Assert.Equal("POST", transport.Requests[1].Method);
+        }
+
+        [Theory]
+        [InlineData("GET", null, false, true)]
+        [InlineData("HEAD", null, false, true)]
+        [InlineData("PUT", "idem-1", false, true)]
+        [InlineData("POST", "idem-1", false, true)]
+        [InlineData("POST", null, false, false)]
+        [InlineData("PUT", null, false, false)]
+        [InlineData("DELETE", null, false, false)]
+        [InlineData("POST", null, true, true)]
+        public void IsSafeToReplay_Matrix(string method, string idempotencyKey, bool preSend, bool expected)
+        {
+            Exception failure = preSend
+                ? (Exception)new HttpConnectionFailedException("x", null)
+                : new InvalidOperationException("x");
+            Assert.Equal(expected, ApiClient.IsSafeToReplay(method, idempotencyKey, failure));
+        }
+
         [Fact]
         public void HttpBaseUrl_IsInsecureFromStart()
         {

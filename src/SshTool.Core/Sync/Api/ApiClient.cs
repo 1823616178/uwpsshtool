@@ -480,7 +480,12 @@ namespace SshTool.Core.Sync.Api
             catch (Exception ex)
             {
                 Exception failure = ex;
-                if (TryActivateHttpFallback(url))
+                // 评审（PR #1）：回退本身照旧粘滞切换（后续请求走 http），但**当次请求**只在
+                // 重发安全时才立即经 http 重放：GET/HEAD、带 Idempotency-Key（服务端去重，
+                // 03 §2.4）、或传输层确认请求根本没发出去（HttpConnectionFailedException）。
+                // 其余写请求（如注册、登录、无幂等键的 POST）在 https 上结果不明——可能已被
+                // 服务器执行、只是响应丢了——重放会执行两次，故直接按 ambiguous network 错误返回。
+                if (TryActivateHttpFallback(url) && IsSafeToReplay(method, idempotencyKey, ex))
                 {
                     var retry = new HttpRequestData(method, Endpoint(path), headers, serialized, _timeoutMs);
                     try
@@ -507,6 +512,16 @@ namespace SshTool.Core.Sync.Api
                     ApiErrorKind.Network, ApiError.CodeNetworkError, "无法连接同步服务器",
                     ambiguous: method != "GET" && method != "HEAD", inner: failure));
             }
+        }
+
+        // https 失败后能否在 http 上立即重发当次请求（见 SendOnceAsync 注释）。
+        internal static bool IsSafeToReplay(string method, string idempotencyKey, Exception failure)
+        {
+            if (method == "GET" || method == "HEAD" || idempotencyKey != null)
+            {
+                return true;
+            }
+            return failure is HttpConnectionFailedException;
         }
 
         // https 请求在传输层失败时切到 http 根（只切一次）。返回 true 表示调用方应

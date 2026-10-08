@@ -810,6 +810,11 @@ UI 点击主机 → SessionManager.Open(hostId, mode)
   这层降级可被主动攻击者诱导（阻断 443/TLS 即可），只是不比原来「固定 http」更差——**服务器上 TLS 后必须把
   `allowHttp`、`httpFallback` 置 false**，才真正获得 HTTPS 保护。2026-10-08 实测该服务器 https 握手失败
   （`wrong version number`）、http 正常 401，所以当前包实际仍走明文。
+- **重放规则（PR #1 评审修订）**：回退切换本身仍粘滞生效，但**当次失败的请求**只在安全时才立即经 http 重发：
+  GET/HEAD、带 `Idempotency-Key` 的写请求（服务端去重，§2.4 / 03 文档）、或传输层确认请求未发出
+  （`HttpConnectionFailedException`：DNS/连接/TLS 握手失败，`UwpHttpTransport` 按 HRESULT/WebErrorStatus 判定）。
+  其余写请求（登录、注册、改密等无幂等键的 POST）在 https 上结果不明时不重放，返回 ambiguous network 错误，
+  避免服务器执行两次；用户重试时已直接走 http。
 - W10M 的 TLS 根证书较旧（2017 年），若日后切 HTTPS 使用 Let's Encrypt（ISRG Root X1）需验证手机信任链，必要时在 manifest `Certificates` 声明中打包根证书（Q03 验证）。
 
 ---
