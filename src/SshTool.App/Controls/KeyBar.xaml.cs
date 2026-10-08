@@ -64,6 +64,26 @@ namespace SshTool.App.Controls
 
         public bool HapticsEnabled { get; set; } = true;
 
+        // opt/full-pass 竖屏重设计：第二行键开关（TerminalPage TallState 用 VisualState Setter 打开）。
+        public static readonly DependencyProperty ShowExtraRowProperty =
+            DependencyProperty.Register(nameof(ShowExtraRow), typeof(bool), typeof(KeyBar),
+                new PropertyMetadata(false, OnShowExtraRowChanged));
+
+        public bool ShowExtraRow
+        {
+            get { return (bool)GetValue(ShowExtraRowProperty); }
+            set { SetValue(ShowExtraRowProperty, value); }
+        }
+
+        private static void OnShowExtraRowChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var bar = d as KeyBar;
+            if (bar != null)
+            {
+                bar.Rebuild();
+            }
+        }
+
         public string Layout
         {
             get { return _layout; }
@@ -123,6 +143,10 @@ namespace SshTool.App.Controls
             }
             StopRepeat();
             KeysPanel.Children.Clear();
+            if (KeysExtraPanel != null)
+            {
+                KeysExtraPanel.Children.Clear();
+            }
             _modifierChrome.Clear();
             _accentBars.Clear();
             _modifierLabels.Clear();
@@ -137,14 +161,38 @@ namespace SshTool.App.Controls
                 {
                     continue;
                 }
-                FrameworkElement element = CreateKeyElement(key, !first);
+                FrameworkElement element = CreateKeyElement(key, !first, false);
                 KeysPanel.Children.Add(element);
                 first = false;
             }
+            RebuildExtraRow();
             RefreshModifierVisuals();
         }
 
-        private FrameworkElement CreateKeyElement(KeyBarKey key, bool spaced)
+        // 第二行：只在 ShowExtraRow 时生成（隐藏时不占元素）；与主行去重后为空则整行收起。
+        private void RebuildExtraRow()
+        {
+            if (KeysExtraPanel == null || KeysExtraScroller == null)
+            {
+                return;
+            }
+            IReadOnlyList<KeyBarKey> extra = ShowExtraRow
+                ? KeyBarLayout.ExtraRowFor(_layout)
+                : (IReadOnlyList<KeyBarKey>)new KeyBarKey[0];
+            bool first = true;
+            for (int i = 0; i < extra.Count; i++)
+            {
+                if (extra[i].Action == KeyBarAction.HideKeyboard)
+                {
+                    continue;
+                }
+                KeysExtraPanel.Children.Add(CreateKeyElement(extra[i], !first, true));
+                first = false;
+            }
+            KeysExtraScroller.Visibility = first ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        private FrameworkElement CreateKeyElement(KeyBarKey key, bool spaced, bool extraRow)
         {
             var label = new TextBlock
             {
@@ -190,16 +238,17 @@ namespace SshTool.App.Controls
                 grid.Children.Add(label);
             }
             grid.Children.Add(accentBar);
+            // opt/full-pass：键帽 = 纵向渐变 + 发丝描边 + RadiusMd；第二行键矮一档、窄一档。
             var chrome = new Border
             {
                 Child = grid,
-                Background = Brush("KeyBarKeyBrush"),
-                MinWidth = TokenDouble("KeyBarKeyMinWidth"),
-                Height = TokenDouble("KeyBarHeight"),
+                Background = Brush(IdleKeyBrushKey),
+                MinWidth = TokenDouble(extraRow ? "KeyBarExtraKeyMinWidth" : "KeyBarKeyMinWidth"),
+                Height = TokenDouble(extraRow ? "KeyBarExtraRowHeight" : "KeyBarHeight"),
                 Padding = TokenThickness("PadNone"),
-                BorderBrush = Brush("AppTextBrush"),
-                BorderThickness = TokenThickness("BorderNone"),
-                CornerRadius = TokenCorner("RadiusSm")
+                BorderBrush = Brush("KeyBarKeyStrokeBrush"),
+                BorderThickness = TokenThickness("BorderThin"),
+                CornerRadius = TokenCorner("RadiusMd")
             };
             if (spaced)
             {
@@ -357,12 +406,12 @@ namespace SshTool.App.Controls
                 }
                 else if (chrome != null)
                 {
-                    chrome.Background = Brush("KeyBarKeyBrush");
+                    chrome.Background = Brush(IdleKeyBrushKey);
                 }
             }
             else if (chrome != null)
             {
-                chrome.Background = Brush("KeyBarKeyBrush");
+                chrome.Background = Brush(IdleKeyBrushKey);
             }
 
             // 按下与抬起各通知一次：框架把焦点挪走的时机（按下前 / 抬起后）无从预设，
@@ -492,8 +541,8 @@ namespace SshTool.App.Controls
 
             if (state == StickyState.Off)
             {
-                chrome.Background = Brush("KeyBarKeyBrush");
-                chrome.BorderThickness = TokenThickness("BorderNone");
+                chrome.Background = Brush(IdleKeyBrushKey);
+                chrome.BorderThickness = TokenThickness("BorderThin");
                 if (accentBar != null)
                 {
                     accentBar.Visibility = Visibility.Collapsed;
@@ -541,6 +590,8 @@ namespace SshTool.App.Controls
                 label.Foreground = Brush("AppOnAccentBrush");
             }
         }
+
+        private const string IdleKeyBrushKey = "KeyBarKeyIdleBrush";
 
         private static Brush Brush(string key)
         {

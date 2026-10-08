@@ -63,6 +63,11 @@ namespace SshTool.Core.Terminal
         public const string DefaultString =
             "esc,tab,ctrl,alt,up,down,left,right,home,end,pgup,pgdn,pipe,slash,minus,tilde,paste";
 
+        // opt/full-pass 竖屏重设计：高窗口（竖屏手机）时显示的第二行键——Shell 常用但 SIP
+        // 要切符号页才有的字符 + Shift/Del。实际显示用 ExtraRowFor 去掉主行已有的键。
+        public const string ExtraRowDefaultString =
+            "shift,underscore,colon,semicolon,quote,dquote,backtick,lt,gt,lbracket,rbracket,lbrace,rbrace,backslash,del";
+
         public const int RepeatInitialMilliseconds = 400;
         public const int RepeatIntervalMilliseconds = 60;
 
@@ -145,6 +150,28 @@ namespace SshTool.Core.Terminal
                 keys.Add(key);
             }
             return Serialize(keys);
+        }
+
+        // 第二行键：ExtraRowDefaultString 中去掉主行（mainLayout 解析结果）已有的 id，
+        // 保证同一 id 只出现一次（KeyBar 的修饰键视觉按 id 索引）。全被主行占用时返回空表。
+        public static IReadOnlyList<KeyBarKey> ExtraRowFor(string mainLayout)
+        {
+            IReadOnlyList<KeyBarKey> main = Parse(mainLayout);
+            var taken = new HashSet<string>(StringComparer.Ordinal);
+            for (int i = 0; i < main.Count; i++)
+            {
+                taken.Add(main[i].Id);
+            }
+            IReadOnlyList<KeyBarKey> extra = ParseCore(ExtraRowDefaultString);
+            var result = new List<KeyBarKey>();
+            for (int i = 0; i < extra.Count; i++)
+            {
+                if (!taken.Contains(extra[i].Id))
+                {
+                    result.Add(extra[i]);
+                }
+            }
+            return result;
         }
 
         private static IReadOnlyList<KeyBarKey> ParseCore(string layout)

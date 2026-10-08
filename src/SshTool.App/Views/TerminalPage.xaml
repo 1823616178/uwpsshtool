@@ -27,10 +27,11 @@
         <!-- V03a（05 §6.2）：紧凑信息条。默认单行（TerminalCompactBarHeight=44 epx），
              点击展开为双行（TerminalExpandedBarHeight=64 epx）；横屏（WideState）隐藏次要地址。
              中列用 2 行 Grid 容纳同行（Normal）与换行（Expanded）两种布局。 -->
-        <Grid x:Name="InfoBar" Grid.Row="1" Background="{ThemeResource AppSurfaceBrush}"
-              BorderBrush="{ThemeResource AppBorderBrush}" BorderThickness="{StaticResource BorderThinBottom}"
+        <!-- opt/full-pass 竖屏重设计：信息条改「玻璃条」（半透明底 + 底部发丝线，GlassBarGridStyle），
+             单行高度收为 TerminalGlassBarHeight（40，仍满足 TouchTargetMin）；图标按钮透明底。 -->
+        <Grid x:Name="InfoBar" Grid.Row="1" Style="{StaticResource GlassBarGridStyle}"
               AllowFocusOnInteraction="False"
-              Height="{StaticResource TerminalCompactBarHeight}" Tapped="OnInfoTapped">
+              Height="{StaticResource TerminalGlassBarHeight}" Tapped="OnInfoTapped">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
@@ -64,17 +65,25 @@
                            VerticalAlignment="Center"
                            Margin="{StaticResource GapSmLeft}" />
             </Grid>
-            <!-- C-03：TerminalIconButtonStyle 统一焦点行为（AllowFocusOnInteraction=False）
+            <!-- C-03：终端区图标按钮统一焦点行为（AllowFocusOnInteraction=False；opt/full-pass 起
+                 用 TerminalGlassButtonStyle——同样不抢焦点，透明底配玻璃条）
                  与触控宽；无障碍名经 x:Uid 走 resw。 -->
             <Button x:Uid="Terminal_MoreButton" Grid.Column="2" Click="OnMenuClick"
-                    Style="{StaticResource TerminalIconButtonStyle}">
+                    Style="{StaticResource TerminalGlassButtonStyle}">
                 <FontIcon Glyph="{StaticResource IconMore}" />
             </Button>
         </Grid>
 
         <!-- W02（01-DESIGN §16.2）：回滚查找条，打开时替换信息条所在行。 -->
-        <Grid x:Name="FindBar" Grid.Row="1" Background="{ThemeResource AppSurfaceBrush}"
-              Height="{StaticResource TerminalCompactBarHeight}" Visibility="Collapsed">
+        <Grid x:Name="FindBar" Grid.Row="1" Style="{StaticResource GlassBarGridStyle}"
+              Height="{StaticResource TerminalGlassBarHeight}" Visibility="Collapsed">
+            <!-- opt/full-pass：查找条子元素进场动画（Entrance 只在元素进入可视树时播放，
+                 Visibility 切换是否重放以真机为准，见 PR 待验证项）。 -->
+            <Grid.ChildrenTransitions>
+                <TransitionCollection>
+                    <EntranceThemeTransition />
+                </TransitionCollection>
+            </Grid.ChildrenTransitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -89,15 +98,15 @@
             <TextBlock x:Name="FindCount" Grid.Column="1" VerticalAlignment="Center"
                        Style="{StaticResource CaptionTextStyle}" />
             <Button x:Uid="Terminal_FindPrev" Grid.Column="2" Click="OnFindPrevClick"
-                    Style="{StaticResource TerminalIconButtonStyle}">
+                    Style="{StaticResource TerminalGlassButtonStyle}">
                 <FontIcon Glyph="{StaticResource IconChevronUp}" />
             </Button>
             <Button x:Uid="Terminal_FindNext" Grid.Column="3" Click="OnFindNextClick"
-                    Style="{StaticResource TerminalIconButtonStyle}">
+                    Style="{StaticResource TerminalGlassButtonStyle}">
                 <FontIcon Glyph="{StaticResource IconChevronDown}" />
             </Button>
             <Button x:Uid="Terminal_FindClose" Grid.Column="4" Click="OnFindCloseClick"
-                    Style="{StaticResource TerminalIconButtonStyle}">
+                    Style="{StaticResource TerminalGlassButtonStyle}">
                 <FontIcon Glyph="{StaticResource IconClose}" />
             </Button>
         </Grid>
@@ -112,7 +121,7 @@
             <VisualStateGroup x:Name="InfoStates">
                 <VisualState x:Name="Normal">
                     <VisualState.Setters>
-                        <Setter Target="InfoBar.Height" Value="{StaticResource TerminalCompactBarHeight}" />
+                        <Setter Target="InfoBar.Height" Value="{StaticResource TerminalGlassBarHeight}" />
                         <Setter Target="AddressRow.Height" Value="0" />
                         <Setter Target="AddressText.(Grid.Row)" Value="0" />
                         <Setter Target="AddressText.(Grid.Column)" Value="1" />
@@ -132,6 +141,20 @@
                         <Setter Target="AddressText.HorizontalAlignment" Value="Left" />
                         <Setter Target="AddressText.MaxWidth" Value="{StaticResource TerminalAddressExpandedMaxWidth}" />
                         <Setter Target="AddressText.Margin" Value="{StaticResource GapXsTop}" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+            <!-- opt/full-pass 竖屏重设计：高窗口（≥TallBreakpoint，竖屏手机）打开键条第二行。
+                 W10M 弹出 SIP 不改变窗口高度（InputPane 遮挡 + UpdateKeyBarLift 抬升），
+                 所以 SIP 开合不会让第二行闪烁；横屏手机（高 &lt;560）保持单行。 -->
+            <VisualStateGroup x:Name="HeightStates">
+                <VisualState x:Name="ShortState" />
+                <VisualState x:Name="TallState">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowHeight="{StaticResource TallBreakpoint}" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="Keys.ShowExtraRow" Value="True" />
                     </VisualState.Setters>
                 </VisualState>
             </VisualStateGroup>
