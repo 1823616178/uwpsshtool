@@ -4,6 +4,7 @@
 #include "Bridge/BridgeUtil.h"
 #include "Bridge/SshAgent.h"
 
+#include "ssh/auth.h"
 #include "fwd/local_listener.h"
 #include "fwd/jump_transport.h"
 #include "fwd/pump.h"
@@ -27,6 +28,29 @@ namespace SshTool
             using concurrency::task_completion_event;
             using Windows::Foundation::EventHandler;
             using Windows::Foundation::EventRegistrationToken;
+
+            // opt/full-pass：认证材料的唯一持有者。create_async / DoAuthenticate 的各层
+            // lambda 只复制 shared_ptr，不再各自复制一份明文；最后一个引用释放时
+            // （受理后 core 已清空，或未受理/会话已关）析构里 secureZero。
+            // 注意 Platform::String^ 本身与 UI 层的 managed 字符串无法在此擦除。
+            struct SecretString
+            {
+                std::string value;
+                SecretString() = default;
+                SecretString(const SecretString&) = delete;
+                SecretString& operator=(const SecretString&) = delete;
+                ~SecretString() { ssh::secureZero(value); }
+            };
+
+            // 复制进持有者后立即擦除源串：短口令走 SSO，move 会把明文留在源对象的
+            // 内联缓冲里，所以这里用 assign + secureZero 而不是 std::move。
+            static std::shared_ptr<SecretString> MakeSecret(std::string& plain)
+            {
+                auto secret = std::make_shared<SecretString>();
+                secret->value.assign(plain);
+                ssh::secureZero(plain);
+                return secret;
+            }
 
             // O01：ContentDirty 合并窗的时钟。steady_clock 不受系统时间调整影响，
             // 单调递增正是 DirtyCoalescer 的前提。
@@ -593,12 +617,14 @@ namespace SshTool
             Windows::Foundation::IAsyncOperation<int>^ SshSession::AuthenticatePasswordAsync(Platform::String^ password)
             {
                 SshSession^ self = this;
-                return concurrency::create_async([self, pwd = ToUtf8(password)]() -> task<int> {
+                std::string plain = ToUtf8(password);
+                std::shared_ptr<SecretString> pwd = MakeSecret(plain);
+                return concurrency::create_async([self, pwd]() -> task<int> {
                     // 外层 lambda 须为 const operator()（create_async 模板推导要求）；
-                    // 内层复制一份口令，受理时由 core 清空的是内层这份。
+                    // 各层只共享同一份口令，受理时由 core 清空，其余路径由析构擦除。
                     return self->DoAuthenticate(
-                        [p = pwd](ssh::SshSession* session, const ssh::AuthCallback& cb) mutable {
-                            return session->authenticatePassword(p, cb);
+                        [pwd](ssh::SshSession* session, const ssh::AuthCallback& cb) {
+                            return session->authenticatePassword(pwd->value, cb);
                         });
                 });
             }
@@ -610,17 +636,21 @@ namespace SshTool
                 {
                     throw ref new Platform::NullReferenceException();
                 }
-                std::string keyData(reinterpret_cast<const char*>(privateKeyPem->Data),
-                                    privateKeyPem->Length);
-                const std::string pass = ToUtf8(passphrase);
+                std::string keyPlain(reinterpret_cast<const char*>(privateKeyPem->Data),
+                                     privateKeyPem->Length);
+                std::string passPlain = ToUtf8(passphrase);
+                std::shared_ptr<SecretString> keyData = MakeSecret(keyPlain);
+                std::shared_ptr<SecretString> pass = MakeSecret(passPlain);
+                // 调用方传入的 Platform::Array 缓冲属于调用方（C# 侧负责在用完后清零）。
                 SshSession^ self = this;
                 return concurrency::create_async(
                     [self, keyData, pass]() -> task<int> {
                         return self->DoAuthenticate(
-                            [k = keyData, p = pass](ssh::SshSession* session,
-                                                    const ssh::AuthCallback& cb) mutable {
+                            [keyData, pass](ssh::SshSession* session,
+                                            const ssh::AuthCallback& cb) {
                                 std::string pub; // 空：libssh2 从私钥推导公钥
-                                return session->authenticatePublicKey(k, pub, p, cb); // 受理即清空
+                                return session->authenticatePublicKey(keyData->value, pub,
+                                                                      pass->value, cb); // 受理即清空
                             });
                     });
             }
