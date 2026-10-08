@@ -2,6 +2,7 @@
     x:Class="SshTool.App.Views.Sync.DeleteVaultPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:infra="using:SshTool.App.Infrastructure"
     xmlns:controls="using:SshTool.App.Controls"
     Background="{ThemeResource AppBgBrush}">
 
@@ -16,7 +17,7 @@
                                 ShowBackButton="True"
                                 BackRequested="OnBackRequested" />
 
-        <ScrollViewer Grid.Row="1">
+        <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>

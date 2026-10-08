@@ -231,6 +231,47 @@ namespace SshTool.App.Views
             }
             button.Background = AppearanceBrushes.FromHex(hex);
             button.Content = hex ?? string.Empty;
+            // ui/fix-pass：按钮底就是所选颜色，十六进制文字按亮度取深/浅前景（≥4.5:1），
+            // 否则白底白字、黑底黑字看不见；读屏名 =「前景色 #RRGGBB」（旁边的标签读屏不会自动关联）。
+            Brush readable = ReadableOn(hex);
+            if (readable != null)
+            {
+                button.Foreground = readable;
+            }
+            string label = Localized.Get(LabelKeyFor(button), string.Empty);
+            Windows.UI.Xaml.Automation.AutomationProperties.SetName(button,
+                string.IsNullOrEmpty(label) ? (hex ?? string.Empty) : label + " " + (hex ?? string.Empty));
+        }
+
+        private string LabelKeyFor(Button button)
+        {
+            if (button == FgButton)
+            {
+                return "AppearanceEdit_FgLabel/Text";
+            }
+            if (button == BgButton)
+            {
+                return "AppearanceEdit_BgLabel/Text";
+            }
+            if (button == CursorButton)
+            {
+                return "AppearanceEdit_CursorLabel/Text";
+            }
+            return "AppearanceEdit_SelectionLabel/Text";
+        }
+
+        private static readonly SolidColorBrush DarkOnColor = new SolidColorBrush(
+            Windows.UI.Color.FromArgb(255, ContrastMath.DarkForeground.R, ContrastMath.DarkForeground.G, ContrastMath.DarkForeground.B));
+        private static readonly SolidColorBrush LightOnColor = new SolidColorBrush(Windows.UI.Colors.White);
+
+        private static Brush ReadableOn(string hex)
+        {
+            Rgb rgb;
+            if (!Rgb.TryParse(hex, out rgb))
+            {
+                return null;
+            }
+            return ContrastMath.PreferDarkForeground(rgb) ? DarkOnColor : LightOnColor;
         }
 
         private void RebuildPaletteButtons(AppearanceProfile draft)
@@ -259,8 +300,9 @@ namespace SshTool.App.Views
                     BorderBrush = hairline,
                     Child = new TextBlock
                     {
-                        // 不设字号/前景：沿用 Button 向下继承的正文样式，与原先 string 内容一致。
+                        // 不设字号：沿用 Button 向下继承的正文样式。ui/fix-pass：前景按色块亮度取深/浅。
                         Text = index.ToString(CultureInfo.InvariantCulture),
+                        Foreground = ReadableOn(draft.Palette[index]),
                         HorizontalAlignment = HorizontalAlignment.Center,
                         VerticalAlignment = VerticalAlignment.Center
                     }
@@ -277,6 +319,9 @@ namespace SshTool.App.Views
                     BorderThickness = (Thickness)Application.Current.Resources["BorderNone"],
                     Tag = index
                 };
+                Windows.UI.Xaml.Automation.AutomationProperties.SetName(button,
+                    Localized.Format("AppearanceEdit_PaletteSwatchName", "Color {0}: {1}",
+                        index.ToString(CultureInfo.InvariantCulture), draft.Palette[index]));
                 var picker = new ColorSwatchPicker
                 {
                     Color = draft.Palette[index],
@@ -291,6 +336,14 @@ namespace SshTool.App.Views
                     }
                     ViewModel.Draft.Palette[index] = picker.Color;
                     swatch.Background = AppearanceBrushes.FromHex(picker.Color);
+                    var number = swatch.Child as TextBlock;
+                    if (number != null)
+                    {
+                        number.Foreground = ReadableOn(picker.Color);
+                    }
+                    Windows.UI.Xaml.Automation.AutomationProperties.SetName(button,
+                        Localized.Format("AppearanceEdit_PaletteSwatchName", "Color {0}: {1}",
+                            index.ToString(CultureInfo.InvariantCulture), picker.Color));
                     OnDraftChanged();
                 };
                 button.Flyout = new Flyout { Content = picker };

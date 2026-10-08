@@ -1419,5 +1419,10 @@
   <data name="ShortcutEditor_Saved" xml:space="preserve"><value>已保存 {0}</value></data>
   <data name="Sync_DeviceListFailed" xml:space="preserve"><value>无法加载设备列表</value></data>
   <data name="Sync_HistoryListFailed" xml:space="preserve"><value>无法加载历史版本</value></data>
+  <data name="AppearanceEdit_PaletteSwatchName" xml:space="preserve"><value>颜色 {0}：{1}</value></data>
+  <data name="AppearanceEdit_FgButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>前景</value></data>
+  <data name="AppearanceEdit_BgButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>背景</value></data>
+  <data name="AppearanceEdit_CursorButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>光标</value></data>
+  <data name="AppearanceEdit_SelectionButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>选区</value></data>
 </root>
 

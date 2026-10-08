@@ -74,7 +74,7 @@
                                         </Grid.RowDefinitions>
                                         <TextBlock x:Uid="AppearanceEdit_FgLabel" Style="{StaticResource BodyTextStyle}"
                                                    VerticalAlignment="Center" />
-                                        <Button x:Name="FgButton" Grid.Column="1" Margin="{StaticResource GapSmLeft}"
+                                        <Button x:Name="FgButton" x:Uid="AppearanceEdit_FgButton" Grid.Column="1" Margin="{StaticResource GapSmLeft}"
                                                 Tag="foreground"
                                                 Style="{StaticResource SecondaryButtonStyle}">
                                             <Button.Flyout>
@@ -85,7 +85,7 @@
                                         </Button>
                                         <TextBlock x:Uid="AppearanceEdit_BgLabel" Grid.Row="1" Style="{StaticResource BodyTextStyle}"
                                                    VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
-                                        <Button x:Name="BgButton" Grid.Row="1" Grid.Column="1"
+                                        <Button x:Name="BgButton" x:Uid="AppearanceEdit_BgButton" Grid.Row="1" Grid.Column="1"
                                                 Margin="{StaticResource GapSmLeft}" Tag="background"
                                                 Style="{StaticResource SecondaryButtonStyle}">
                                             <Button.Flyout>
@@ -96,7 +96,7 @@
                                         </Button>
                                         <TextBlock x:Uid="AppearanceEdit_CursorLabel" Grid.Row="2" Style="{StaticResource BodyTextStyle}"
                                                    VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
-                                        <Button x:Name="CursorButton" Grid.Row="2" Grid.Column="1"
+                                        <Button x:Name="CursorButton" x:Uid="AppearanceEdit_CursorButton" Grid.Row="2" Grid.Column="1"
                                                 Margin="{StaticResource GapSmLeft}" Tag="cursor"
                                                 Style="{StaticResource SecondaryButtonStyle}">
                                             <Button.Flyout>
@@ -107,7 +107,7 @@
                                         </Button>
                                         <TextBlock x:Uid="AppearanceEdit_SelectionLabel" Grid.Row="3" Style="{StaticResource BodyTextStyle}"
                                                    VerticalAlignment="Center" Margin="{StaticResource GapXsTop}" />
-                                        <Button x:Name="SelectionButton" Grid.Row="3" Grid.Column="1"
+                                        <Button x:Name="SelectionButton" x:Uid="AppearanceEdit_SelectionButton" Grid.Row="3" Grid.Column="1"
                                                 Margin="{StaticResource GapSmLeft}" Tag="selection"
                                                 Style="{StaticResource SecondaryButtonStyle}">
                                             <Button.Flyout>

@@ -2,6 +2,7 @@
     x:Class="SshTool.App.Views.Sync.VaultUnlockPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:infra="using:SshTool.App.Infrastructure"
     xmlns:controls="using:SshTool.App.Controls"
     Background="{ThemeResource AppBgBrush}">
 
@@ -17,7 +18,7 @@
         <controls:AppPageHeader x:Uid="VaultUnlock_Title"
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
-        <ScrollViewer Grid.Row="1">
+        <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
             <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>

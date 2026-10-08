@@ -2,13 +2,14 @@
     x:Class="SshTool.App.Views.Sync.SecurityRotatePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:infra="using:SshTool.App.Infrastructure"
     xmlns:controls="using:SshTool.App.Controls"
     Background="{ThemeResource AppBgBrush}">
 
     <!-- U20 安全清理 / 修改同步密码页（02-UI-DESIGN.md §5.13）：
          账号登录密码 + 新同步密码 ×2 → 执行 → RecoveryKeyDialog；失败回滚开关。 -->
     <Grid>
-        <ScrollViewer>
+        <ScrollViewer infra:InputPaneScroll.IsEnabled="True">
             <StackPanel Padding="{StaticResource PagePadding}">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
