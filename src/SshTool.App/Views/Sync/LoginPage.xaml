@@ -8,9 +8,13 @@
 
     <!-- U15 登录/注册页（02-UI-DESIGN.md §5.13）：登录/注册分段切换（设计允许用分段按钮代替 Pivot，
          避免两套表单重复 x:Uid）；明文 HTTP Banner；注册 ≥10 位 + 确认 + 可选邀请码；三端共用说明。
-         本页只用 15063 基线控件（Pivot 未用；PasswordBox 不开 reveal 按钮，避免越契约）。 -->
+         本页只用 15063 基线控件（Pivot 未用；PasswordBox 不开 reveal 按钮，避免越契约）。
+         fix/login-feedback：错误区挪到页头正下方、滚动区之外（原先在表单最底部，360×640 + 明文 Banner
+         + 软键盘时落在可视区外，真机表现为「登录没有报错也没有反应」）；输入框回车：邮箱 → 密码 → 提交
+        （软键盘弹出时底部操作条会收起，回车是唯一的提交途径）。 -->
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -18,7 +22,31 @@
         <controls:AppPageHeader x:Uid="Login_Title"
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
-        <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
+        <Border x:Name="ErrorPanel" Grid.Row="1"
+                Background="{ThemeResource AppSurfaceAltBrush}"
+                BorderBrush="{ThemeResource AppDangerBrush}"
+                BorderThickness="{StaticResource BorderThinBottom}"
+                Padding="{StaticResource PadInlineError}"
+                Visibility="Collapsed">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <FontIcon Glyph="{StaticResource IconError}"
+                          FontSize="{StaticResource FontSubtitle}"
+                          Foreground="{ThemeResource AppDangerBrush}"
+                          VerticalAlignment="Top" />
+                <TextBlock x:Name="ErrorText" Grid.Column="1"
+                           Foreground="{ThemeResource AppDangerBrush}"
+                           Style="{StaticResource BodyTextStyle}"
+                           TextWrapping="Wrap"
+                           IsTextSelectionEnabled="True"
+                           AutomationProperties.LiveSetting="Assertive"
+                           Margin="{StaticResource GapSmLeft}" />
+            </Grid>
+        </Border>
+        <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="2">
             <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
@@ -45,10 +73,14 @@
                         <StackPanel>
                             <TextBox x:Name="EmailBox" x:Uid="Login_EmailBox"
                                      InputScope="EmailSmtpAddress"
-                                     TextChanged="OnEmailChanged" />
+                                     IsSpellCheckEnabled="False"
+                                     IsTextPredictionEnabled="False"
+                                     TextChanged="OnEmailChanged"
+                                     KeyDown="OnEmailKeyDown" />
                             <PasswordBox x:Name="PasswordBox" x:Uid="Login_PasswordBox"
                                          Margin="{StaticResource GapSmTop}"
-                                         PasswordChanged="OnPasswordChanged" />
+                                         PasswordChanged="OnPasswordChanged"
+                                         KeyDown="OnPasswordKeyDown" />
                             <TextBlock x:Name="PasswordHint" x:Uid="Login_PasswordHint"
                                        Style="{StaticResource CaptionTextStyle}"
                                        Margin="{StaticResource GapXsTop}"
@@ -56,20 +88,17 @@
                             <StackPanel x:Name="RegisterPanel" Visibility="Collapsed">
                                 <PasswordBox x:Name="ConfirmBox" x:Uid="Login_ConfirmBox"
                                              Margin="{StaticResource GapSmTop}"
-                                             PasswordChanged="OnConfirmChanged" />
+                                             PasswordChanged="OnConfirmChanged"
+                                             KeyDown="OnSubmitKeyDown" />
                                 <TextBox x:Name="InviteBox" x:Uid="Login_InviteBox"
                                          Margin="{StaticResource GapSmTop}"
-                                         TextChanged="OnInviteChanged" />
+                                         TextChanged="OnInviteChanged"
+                                         KeyDown="OnSubmitKeyDown" />
                             </StackPanel>
                             <TextBox x:Name="DeviceBox" x:Uid="Login_DeviceBox" MaxLength="255"
                                      Margin="{StaticResource GapSmTop}"
-                                     TextChanged="OnDeviceChanged" />
-                            <TextBlock x:Name="ErrorText"
-                                       Foreground="{ThemeResource AppDangerBrush}"
-                                       Style="{StaticResource BodyTextStyle}"
-                                       TextWrapping="Wrap"
-                                       Margin="{StaticResource GapSmTop}"
-                                       Visibility="Collapsed" />
+                                     TextChanged="OnDeviceChanged"
+                                     KeyDown="OnSubmitKeyDown" />
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
@@ -79,8 +108,8 @@
                            Margin="{StaticResource GapSmTop}" />
             </StackPanel>
         </ScrollViewer>
-        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="3"
                                   PrimaryClick="OnSubmitClick" />
-        <controls:LoadingOverlay x:Name="Working" Grid.RowSpan="3" />
+        <controls:LoadingOverlay x:Name="Working" Grid.RowSpan="4" />
     </Grid>
 </Page>

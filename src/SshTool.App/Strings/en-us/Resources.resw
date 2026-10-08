@@ -124,6 +124,8 @@
   <data name="Login_RequestId" xml:space="preserve"><value>Request ID: {0}</value></data>
   <data name="Login_SyncUnavailable" xml:space="preserve"><value>Sync is unavailable. Restart the app and try again.</value></data>
   <data name="Login_AlreadySignedIn" xml:space="preserve"><value>Already signed in. Sign out first to continue.</value></data>
+  <data name="Login_UnexpectedError" xml:space="preserve"><value>Sign-in failed ({0}). Please try again.</value></data>
+  <data name="Login_HttpFallbackRetry" xml:space="preserve"><value>A secure (HTTPS) connection is unavailable; switched to an unencrypted connection. Please try again.</value></data>
 
   <data name="Sftp_Title.Text" xml:space="preserve"><value>SFTP</value></data>
   <data name="Sftp_Connecting" xml:space="preserve"><value>Connecting to SFTP and initializing session…</value></data>

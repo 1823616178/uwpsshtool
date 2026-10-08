@@ -72,30 +72,35 @@ namespace SshTool.App.Platform
                         // 标记出来，ApiClient 才允许在 https→http 回退后重发非幂等请求。
                         throw new HttpConnectionFailedException("connect phase failed (request not sent)", ex);
                     }
-                }
-                using (response)
-                {
-                    return await ReadResponse(response).ConfigureAwait(false);
+                    // fix/login-feedback：读响应体同样受同一个超时约束（此前读体不带取消令牌，
+                    // 服务器发完响应头后卡住时，登录页会一直转圈、没有任何报错）。
+                    using (response)
+                    {
+                        try
+                        {
+                            return await ReadResponse(response, timeout.Token).ConfigureAwait(false);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            if (!cancellationToken.IsCancellationRequested)
+                            {
+                                throw new TimeoutException("response read timed out (" + request.TimeoutMs + " ms)");
+                            }
+                            throw;
+                        }
+                    }
                 }
             }
         }
 
         // 只收「请求字节一定还没发出」的错误：名字解析、连不上、TLS/证书握手失败。
         // 连接中途断开（ConnectionAborted/Reset/Disconnected）等结果不明，不在此列。
-        // WinINet HRESULT：12007 名字解析失败、12029 无法连接、12157 安全通道错误
-        // （对端不是 TLS 时的典型结果）、SEC_E_ILLEGAL_MESSAGE / SEC_E_INVALID_TOKEN（Schannel 握手报文非法）。
-        private const int HResultNameNotResolved = unchecked((int)0x80072EE7);
-        private const int HResultCannotConnect = unchecked((int)0x80072EFD);
-        private const int HResultSecurityChannelError = unchecked((int)0x80072F7D);
-        private const int HResultSecIllegalMessage = unchecked((int)0x80090326);
-        private const int HResultSecInvalidToken = unchecked((int)0x80090308);
-
+        // HRESULT 表在 Core 的 TransportFailureClassifier（fix/login-feedback 挪过去并补全了
+        // Schannel 握手 / 证书类错误码，附单测）；这里只补 WinRT 的 WebErrorStatus 判定。
         private static bool IsPreSendFailure(Exception ex)
         {
             int hr = ex.HResult;
-            if (hr == HResultNameNotResolved || hr == HResultCannotConnect
-                || hr == HResultSecurityChannelError || hr == HResultSecIllegalMessage
-                || hr == HResultSecInvalidToken)
+            if (TransportFailureClassifier.IsPreSendHResult(hr))
             {
                 return true;
             }
@@ -128,7 +133,8 @@ namespace SshTool.App.Platform
             }
         }
 
-        private static async Task<HttpResponseData> ReadResponse(HttpResponseMessage response)
+        private static async Task<HttpResponseData> ReadResponse(HttpResponseMessage response,
+                                                                  CancellationToken cancellationToken)
         {
             var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             foreach (var header in response.Headers)
@@ -142,7 +148,7 @@ namespace SshTool.App.Platform
                 {
                     headers[header.Key] = header.Value;
                 }
-                body = await response.Content.ReadAsStringAsync().AsTask().ConfigureAwait(false);
+                body = await response.Content.ReadAsStringAsync().AsTask(cancellationToken).ConfigureAwait(false);
             }
             return new HttpResponseData((int)response.StatusCode, headers, body);
         }

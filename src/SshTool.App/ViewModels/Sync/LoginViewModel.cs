@@ -16,9 +16,17 @@ namespace SshTool.App.ViewModels.Sync
     // 保险库探测；AuthService 未接入组合根，此处不用，见 AppServices.BuildSyncStack）。
     // 脱敏：密码只存内存字段，日志只记操作相位与异常类型名，绝不记录密码/邀请码/token。
     // 本文件只用 15063 基线 API（ResourceLoader.GetForCurrentView 在 15063 可用）。
+    // fix/login-feedback（真机反馈「登录没有报错也没有反应」）：
+    //  - 任何失败都必须落到一条非空、本地化的 ErrorMessage 上（AsyncCommand 兜底不再只记日志）；
+    //  - 提交按钮不再因「邮箱/密码为空」而静默禁用：始终可点，由校验给出提示；
+    //  - 已登录（含「登录已生效但登录后的保险库探测/缓存绑定失败」）时直接继续路由，
+    //    不再让下一次点击撞上「已登录，请先退出」而停在登录页。
     public sealed class LoginViewModel : ViewModelBase
     {
+        private const string GenericErrorFallback = "Sign-in failed ({0}). Please try again.";
+
         private readonly SyncCoordinator _sync;
+        private readonly Func<bool> _isSignedIn;
         private bool _isRegisterMode;
         private string _email = string.Empty;
         private string _password = string.Empty;
@@ -33,9 +41,10 @@ namespace SshTool.App.ViewModels.Sync
         public event EventHandler LoginSucceeded;
 
         public LoginViewModel(SyncCoordinator sync, string defaultDeviceName, string apiBaseUrl, bool allowHttp,
-                              bool httpFallback = false)
+                              bool httpFallback = false, Func<bool> isSignedIn = null)
         {
             _sync = sync;
+            _isSignedIn = isSignedIn;
             _deviceName = defaultDeviceName ?? string.Empty;
             ShowHttpBanner = IsInsecureHttp(apiBaseUrl, allowHttp, httpFallback);
             SubmitCommand = new AsyncCommand(SubmitAsync, CanSubmit, OnSubmitError);
@@ -133,26 +142,16 @@ namespace SshTool.App.ViewModels.Sync
             SubmitCommand.RaiseCanExecuteChanged();
         }
 
+        // fix/login-feedback：只在执行中禁用（防重复提交）。此前邮箱/密码为空时按钮被静默禁用，
+        // 真机上禁用态不显眼，用户点了没有任何反馈；现在始终可点，由 LoginFormValidator 给出提示。
         private bool CanSubmit()
         {
-            if (IsBusy)
-            {
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrEmpty(_password))
-            {
-                return false;
-            }
-            if (IsRegisterMode && string.IsNullOrEmpty(_confirmPassword))
-            {
-                return false;
-            }
-            return true;
+            return !IsBusy;
         }
 
         private async Task SubmitAsync()
         {
-            var loader = ResourceLoader.GetForCurrentView();
+            ResourceLoader loader = TryGetLoader();
             string email = (_email ?? string.Empty).Trim();
             string errorKey = IsRegisterMode
                 ? LoginFormValidator.ValidateRegister(email, _password, _confirmPassword)
@@ -167,9 +166,18 @@ namespace SshTool.App.ViewModels.Sync
                 ShowError(loader, "Login_SyncUnavailable");
                 return;
             }
+            // 已登录（如另一处入口刚登录过）：每次登录都会在服务端新建设备（03 §11-10），
+            // 不再发请求，直接按状态继续路由——此前这里会报「已登录，请先退出」并停在本页。
+            if (IsSignedInNow())
+            {
+                LogInfo("already signed in, routing");
+                RaiseSucceeded(loader);
+                return;
+            }
             IsBusy = true;
             ErrorMessage = null;
             RaisePropertyChanged("HasError");
+            bool authenticated = false;
             try
             {
                 // 设备名为空时传 null，UwpDeviceDescriptorProvider 取系统默认名；
@@ -185,21 +193,80 @@ namespace SshTool.App.ViewModels.Sync
                     await _sync.LoginAsync(email, _password, deviceName).ConfigureAwait(true);
                 }
                 LogInfo(IsRegisterMode ? "registered" : "signed in");
-                EventHandler handler = LoginSucceeded;
-                if (handler != null)
-                {
-                    handler(this, EventArgs.Empty);
-                }
+                authenticated = true;
             }
             catch (Exception ex)
             {
                 LogWarning("login/register failed " + ex.GetType().Name);
-                ErrorMessage = Describe(ex, loader);
-                RaisePropertyChanged("HasError");
+                if (IsSignedInNow())
+                {
+                    // 凭据已被服务端接受、会话已落盘，失败的是登录后的本地步骤（保险库缓存绑定等）：
+                    // 继续路由（状态页会显示同步错误），而不是停在登录页让下一次点击撞上「已登录」。
+                    LogWarning("signed in despite post-auth failure, routing");
+                    authenticated = true;
+                }
+                else
+                {
+                    ErrorMessage = Describe(ex, loader);
+                    RaisePropertyChanged("HasError");
+                }
             }
             finally
             {
                 IsBusy = false;
+            }
+            if (authenticated)
+            {
+                RaiseSucceeded(loader);
+            }
+        }
+
+        // 导航放在 try 之外：导航本身失败（目标页构造异常等）不能被当成「登录失败」，
+        // 也不能静默——给出通用失败文案（会话已保存，返回后重新进入即可继续）。
+        private void RaiseSucceeded(ResourceLoader loader)
+        {
+            EventHandler handler = LoginSucceeded;
+            if (handler == null)
+            {
+                return;
+            }
+            try
+            {
+                handler(this, EventArgs.Empty);
+            }
+            catch (Exception ex)
+            {
+                LogWarning("post-login navigation failed " + ex.GetType().Name);
+                ErrorMessage = GenericError(ex, loader);
+                RaisePropertyChanged("HasError");
+            }
+        }
+
+        private bool IsSignedInNow()
+        {
+            if (_isSignedIn == null)
+            {
+                return false;
+            }
+            try
+            {
+                return _isSignedIn();
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private static ResourceLoader TryGetLoader()
+        {
+            try
+            {
+                return ResourceLoader.GetForCurrentView();
+            }
+            catch (Exception)
+            {
+                return null;
             }
         }
 
@@ -209,25 +276,67 @@ namespace SshTool.App.ViewModels.Sync
             RaisePropertyChanged("HasError");
         }
 
+        // AsyncCommand 兜底：SubmitAsync 之外抛出的意外（资源加载、校验、状态读取……）。
+        // fix/login-feedback：此前这里只记日志——用户看到的就是「点了登录，没有报错也没有反应」。
         private void OnSubmitError(Exception ex)
         {
-            // AsyncCommand 兜底：SubmitAsync 内部已吞掉业务异常，此处只防资源加载等意外。
+            LogWarning("submit failed " + (ex != null ? ex.GetType().Name : "null"));
             try
             {
-                LogWarning("submit failed " + ex.GetType().Name);
+                IsBusy = false;
+                ErrorMessage = GenericError(ex, TryGetLoader());
+                RaisePropertyChanged("HasError");
             }
             catch (Exception)
             {
             }
         }
 
+        private static string GenericError(Exception ex, ResourceLoader loader)
+        {
+            string template = GetString(loader, LoginErrorKeys.UnexpectedKey, GenericErrorFallback);
+            try
+            {
+                return string.Format(CultureInfo.InvariantCulture, template, LoginErrorKeys.Diagnostic(ex));
+            }
+            catch (FormatException)
+            {
+                return template;
+            }
+        }
+
         // 错误码中文映射：Api_<CODE> 查 resw；RATE_LIMITED 用 RetryAfterMs 填充秒数；
         // 推断码（HTTP_<status> 等 CodeUnknown）无 resw 键，回退服务端原文。
+        // fix/login-feedback：先经 Core 的 LoginErrorKeys 判定（超时/连接失败/https 已降级待重试/
+        // 意外异常各有专门文案）；结果保证非空（空串会让错误区折叠，等于没报错）。
         internal static string Describe(Exception ex, ResourceLoader loader)
+        {
+            string text;
+            try
+            {
+                text = DescribeCore(ex, loader);
+            }
+            catch (Exception)
+            {
+                text = null;
+            }
+            return string.IsNullOrWhiteSpace(text) ? GenericError(ex, loader) : text;
+        }
+
+        private static string DescribeCore(Exception ex, ResourceLoader loader)
         {
             if (ex == null)
             {
-                return string.Empty;
+                return null;
+            }
+            string overrideKey = LoginErrorKeys.OverrideKey(ex);
+            if (overrideKey != null)
+            {
+                if (string.Equals(overrideKey, LoginErrorKeys.UnexpectedKey, StringComparison.Ordinal))
+                {
+                    return GenericError(ex, loader);
+                }
+                return GetString(loader, overrideKey, null);
             }
             if (ex is SshTool.Core.Sync.SyncOperationException)
             {
@@ -236,11 +345,7 @@ namespace SshTool.App.ViewModels.Sync
             ApiError api = ex as ApiError;
             if (api == null)
             {
-                if (ex is InvalidOperationException)
-                {
-                    return GetString(loader, "Login_AlreadySignedIn", ex.Message);
-                }
-                return ex.Message;
+                return null;
             }
             if (string.Equals(api.Code, ApiErrorCatalog.RateLimited, StringComparison.Ordinal))
             {
@@ -256,7 +361,7 @@ namespace SshTool.App.ViewModels.Sync
                 }
                 return AppendRequestId(GetString(loader, "Login_BusyRetry", api.Message), api.RequestId, loader);
             }
-            string text = loader.GetString(ApiErrorCatalog.ResourceKey(api.Code));
+            string text = GetString(loader, ApiErrorCatalog.ResourceKey(api.Code), null);
             if (string.IsNullOrEmpty(text))
             {
                 text = VaultErrorText.FallbackText(api, loader);
@@ -279,6 +384,10 @@ namespace SshTool.App.ViewModels.Sync
 
         private static string GetString(ResourceLoader loader, string key, string fallback)
         {
+            if (loader == null)
+            {
+                return fallback;
+            }
             try
             {
                 string value = loader.GetString(key);
