@@ -6,10 +6,19 @@
     <!-- 02-UI-DESIGN.md §6：字形图标 + 标题 + 说明 + 最多两个按钮 -->
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
                 Padding="{StaticResource PagePadding}">
-        <FontIcon x:Name="GlyphIcon" FontSize="{StaticResource FontHeader}"
-                  Foreground="{ThemeResource AppTextFaintBrush}"
-                  HorizontalAlignment="Center"
-                  Margin="{StaticResource GapSmBottom}" />
+        <!-- ui/portrait-polish-2：字形放进强调色淡底圆形徽章，空页面有视觉焦点。 -->
+        <Border x:Name="GlyphBadge"
+                Width="{StaticResource EmptyStateBadgeSize}"
+                Height="{StaticResource EmptyStateBadgeSize}"
+                CornerRadius="{StaticResource RadiusCircle}"
+                Background="{ThemeResource AppAccentSoftBrush}"
+                HorizontalAlignment="Center"
+                Margin="{StaticResource GapLgBottom}">
+            <FontIcon x:Name="GlyphIcon" FontSize="{StaticResource FontHeader}"
+                      Foreground="{ThemeResource AppAccentTextBrush}"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center" />
+        </Border>
         <TextBlock x:Name="TitleText" Style="{StaticResource SectionTitleTextStyle}"
                    TextAlignment="Center"
                    Margin="{StaticResource GapXsBottom}" />

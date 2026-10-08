@@ -27,6 +27,13 @@
         <Setter Property="FontSize" Value="{StaticResource FontCaption}" />
         <Setter Property="Foreground" Value="{ThemeResource AppTextDimBrush}" />
     </Style>
+    <!-- ui/portrait-polish-2：分组头文字——小号加粗、略加字距，与卡片标题拉开层级。 -->
+    <Style x:Key="GroupHeaderTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource FontCaption}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="CharacterSpacing" Value="40" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextDimBrush}" />
+    </Style>
     <Style x:Key="MonoCaptionTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource AppMonoFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontCaption}" />

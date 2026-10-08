@@ -19,7 +19,7 @@
     <!-- F06：基于 AppListRow 构建的隧道行（02-UI §5.3；05-CODE-AUDIT §6.1）。
          领先槽=StatusDot 状态点，主标题=隧道名称/默认路由，副标题=via 主机 · 状态 · 统计，
          尾操作槽=ToggleSwitch 启停开关（relay 禁用）。行点击进入编辑页。 -->
-    <controls:AppListRow x:Name="RowCtl" Click="OnRowClick">
+    <controls:AppListRow x:Name="RowCtl" Click="OnRowClick" IsCard="True">
         <controls:AppListRow.IconContent>
             <controls:StatusDot x:Name="Dot" VerticalAlignment="Center" />
         </controls:AppListRow.IconContent>
