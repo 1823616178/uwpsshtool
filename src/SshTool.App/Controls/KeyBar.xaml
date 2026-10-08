@@ -61,7 +61,7 @@
                 MinWidth="{StaticResource KeyBarKeyMinWidth}"
                 Height="{StaticResource KeyBarHeight}"
                 Padding="{StaticResource PadNone}"
-                Margin="{StaticResource GapSmLeft}"
+                Margin="{StaticResource KeyBarKeyGap}"
                 Background="{ThemeResource KeyBarKeyIdleBrush}"
                 Foreground="{ThemeResource AppTextBrush}"
                 BorderBrush="{ThemeResource KeyBarKeyStrokeBrush}"
