@@ -16,10 +16,11 @@ namespace SshTool.Core.Common
     // 注意：不包含任何服务端密钥（01-DESIGN.md §12.3）。
     public static class AppConfigParser
     {
-        // opt/full-pass：默认 https。现网服务器尚未上 TLS，所以同时默认允许 HTTP 并开启
-        // httpFallback（https 传输层失败时降级到同地址 http，见 ApiClient）。服务器支持
-        // TLS 后把 appconfig 里的 allowHttp / httpFallback 改成 false 即可强制 HTTPS。
-        public const string DefaultSyncApiBaseUrl = "https://123.161.179.32:46926";
+        // feat/remember-vault：同步服务器按设计就是明文 HTTP（用户确认），默认直接用 http，
+        // 不再先试 https 再降级（此前首次登录会多一步「已切换到 HTTP，请再点一次」）。
+        // httpFallback 只对 https 地址起作用（https 传输层失败时降级到同地址 http，见 ApiClient）；
+        // 将来换成 TLS 服务器时把地址改成 https，并把 allowHttp / httpFallback 改成 false 即可强制 HTTPS。
+        public const string DefaultSyncApiBaseUrl = "http://123.161.179.32:46926";
         public const bool DefaultAllowHttp = true;
         public const bool DefaultHttpFallback = true;
         public const string DefaultLogLevel = "info";

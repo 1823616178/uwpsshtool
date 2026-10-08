@@ -302,6 +302,11 @@ DecryptSyncDocument(envelope, vaultKey, vaultId):
 ```
 - 绑定用户：登录用户 id 与 `userId` 不同 → 整个缓存重置（只保留 preferences 默认值）。
 - `Lock()`：vaultKey 置 null（其余保留）。`Clear()`：重置为初始（保留 userId）。
+- **记住同步密码（feat/remember-vault）**：vaultKey 随本文件（DPAPI `LOCAL=user`）跨重启、跨**同一账号**的退出/重新登录保留，
+  只在以下情况清除：换账号（上面的 userId 绑定重置）、删除账号 / 删除保险库（`Clear()`）、设备被吊销（`AUTH_DEVICE_REVOKED`）、
+  用户手动锁定、云端 keyVersion / vaultId 与本机不一致（见 §7.1 ProbeVault），以及本机开关「退出登录后记住同步密码」关闭时的退出登录。
+  开关存 LocalSettings 键 `Sync.RememberVaultKey`（bool，默认 true，不在 SettingDefinitions 中、不随账号同步）；
+  已退出登录时关掉开关立即 `Lock()`，已登录时关掉则在下次退出登录时生效。同步密码本身从不保存，只保存解出的 vaultKey。
 
 ### 6.3 SyncState（UI 可观察，不持久化）
 
@@ -327,16 +332,21 @@ RetirePreviousDevice()（Login/Register 成功后、AfterAuthenticated 前；fix
    读本机记住的上一条设备（ILastDeviceStore，LocalSettings 键 Sync.LastDevice，值 userId+deviceId，非机密）→
    先记下新会话的设备 → 同一 userId 且 deviceId 不同时 DELETE devices/{旧 id}；失败（离线 / DEVICE_NOT_FOUND）只记警告，不影响登录、不重试。
    Initialize 读到已登录会话时同样记下当前设备；DeleteAccount / logout-all 成功后清除记录。
-AfterAuthenticated(): 绑定缓存 → phase 同上 → 无 vaultId 则 ProbeVaultSafely()
+AfterAuthenticated(): 绑定缓存（userId 不同 → 整个缓存重置，上一个账号的 vaultKey 不会沿用）→ phase 同上
+   → **总是** ProbeVaultSafely()（feat/remember-vault：顺带校验本机记住的 vaultKey 是否仍有效；离线时保留密钥，留给同步时再校验）
 ProbeVault(): GET vault/key-envelope →
    成功：cache.vaultId=env.id, keyVersion=env.keyVersion；若 vaultId 变化则 vaultKey=null、revision="0"、baseDocument=null、dirty=false
+         vaultId 未变但本机有 vaultKey 且 keyVersion ≠ env.keyVersion（其他设备改了同步密码 / 轮换了密钥）→ vaultKey=null
+         上述两种情况若本机原本有 vaultKey，message=RemoteKeyRotated（解锁页顶部说明「同步密码已在其他设备上修改…」，只问一次）
          vault = vaultKey ? ready : locked；phase = vaultKey ? idle : locked
    VAULT_NOT_FOUND：vault=missing, phase=disabled
    其他错误：HandleSyncError（不影响登录成功）
-Logout(all): 调 logout 或 logout-all（失败也继续）→ AuthStore.Clear → cache.Lock → phase=signed_out
+Logout(all): 调 logout 或 logout-all（失败也继续）→ AuthStore.Clear → （仅「记住同步密码」关闭时）cache.Lock → phase=signed_out
    例外（fix/auth-audit）：logout-all 未送达 / 失败（网络、超时、5xx 等非终端鉴权错误）时**保留本机会话并上抛**，
    界面提示失败、可重试——否则界面回到登录页，用户以为其他设备都已下线。会话已失效（终端鉴权错误）时照常清本地。
-ChangeAccountPassword(cur,new): api → AuthStore.Clear → cache.Lock → phase=signed_out（提示用新密码重新登录）
+ChangeAccountPassword(cur,new): api → AuthStore.Clear → （仅「记住同步密码」关闭时）cache.Lock → phase=signed_out（提示用新密码重新登录；
+   登录密码与同步密码无关，保险库密钥不受影响）
+ChangeSyncPassword / RotateVaultKey：成功后本机直接换存新 vaultKey 与 keyVersion（本机不会再被要求输入）
 DeleteAccount(cur): DELETE me {currentPassword, confirmation:"DELETE"} → AuthStore.Clear → cache.Clear → signed_out
 ```
 
@@ -461,8 +471,9 @@ MarkDirty(): !enabled → return；changeGeneration++；cache.dirty=true；autoS
 
 ```
 终端鉴权（kind==authentication 且 code ∈ {AUTH_DEVICE_REVOKED, AUTH_TOKEN_REUSED, AUTH_REFRESH_UNAVAILABLE} 或 status==401 且带服务端 data.code（无码 401 不算，fix/persist-login））：
-   AuthStore.Clear；cache.Lock；phase=auth_error，vault = vaultId ? locked : missing，message，nextRetryAt=null
-AuthStore 已无会话：cache.Lock；phase=signed_out
+   AuthStore.Clear；cache.Lock（仅 AUTH_DEVICE_REVOKED 或「记住同步密码」关闭时；会话过期 / refresh 失效只需重新登录，
+   同一账号不再要求同步密码）；phase=auth_error，vault = vaultId ? locked : missing，message，nextRetryAt=null
+AuthStore 已无会话：（「记住同步密码」关闭时）cache.Lock；phase=signed_out
 其他：
    offline = kind ∈ {network, timeout}
    retryable = offline || status==429 || status>=500

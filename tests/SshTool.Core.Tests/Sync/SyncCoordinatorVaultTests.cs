@@ -19,7 +19,7 @@ namespace SshTool.Core.Tests.Sync
     // Setup/Unlock 成功后只记 dirty/就绪并转 idle/ready，实际上传由 S12a 的 SyncNow 完成。
     public class SyncCoordinatorVaultTests
     {
-        private sealed class CapturingLogger : ILogger
+        internal sealed class CapturingLogger : ILogger
         {
             public readonly List<string> Lines = new List<string>();
 
@@ -29,7 +29,7 @@ namespace SshTool.Core.Tests.Sync
             }
         }
 
-        private sealed class StubDevices : IDeviceDescriptorProvider
+        internal sealed class StubDevices : IDeviceDescriptorProvider
         {
             public DeviceDescriptorData GetDescriptor(string nameOverride = null)
             {
@@ -44,10 +44,13 @@ namespace SshTool.Core.Tests.Sync
 
         // 桌面端 MockSyncService 的 Lumia 版：走真实 ApiClient + FakeHttpTransport，
         // 在传输层实现最小服务端（认证/保险库分组），加密与幂等语义与桌面 mock 一致。
-        private sealed class MockSyncServer
+        internal sealed class MockSyncServer
         {
             public const string VaultId = "vault-test-1";
             public const string UserId = "u1";
+
+            // feat/remember-vault：登录 / 注册返回的用户 id（换账号用例改它）。
+            public string LoginUserId = UserId;
 
             // GET/POST/DELETE 响应中的保险库 id（默认与 VaultId 一致；
             // ProbeVault 换库测试可改为不同 id）。
@@ -177,10 +180,10 @@ namespace SshTool.Core.Tests.Sync
                 return Requests.Count(r => r.Method == "POST" && r.Url.EndsWith("/vault", StringComparison.Ordinal));
             }
 
-            private static string AuthJson(string access, string refresh)
+            private string AuthJson(string access, string refresh)
             {
                 return @"{""accessToken"":""" + access + @""",""refreshToken"":""" + refresh
-                    + @""",""expiresIn"":3600,""user"":{""id"":""" + UserId
+                    + @""",""expiresIn"":3600,""user"":{""id"":""" + LoginUserId
                     + @""",""email"":""a@b.c""},""device"":{""id"":""d-1"",""name"":""Lumia""}}";
             }
 
@@ -220,12 +223,12 @@ namespace SshTool.Core.Tests.Sync
             }
         }
 
-        private sealed class Harness
+        internal sealed class Harness
         {
-            public readonly MockSyncServer Server = new MockSyncServer();
+            public readonly MockSyncServer Server;
             public readonly FakeHttpTransport Transport = new FakeHttpTransport();
-            public readonly InMemorySecureFile AuthFile = new InMemorySecureFile();
-            public readonly InMemorySecureFile VaultFile = new InMemorySecureFile();
+            public readonly InMemorySecureFile AuthFile;
+            public readonly InMemorySecureFile VaultFile;
             public readonly AuthStore Auth;
             public readonly VaultCacheStore Vault;
             public readonly ApiClient Api;
@@ -235,13 +238,24 @@ namespace SshTool.Core.Tests.Sync
             public readonly List<SyncState> States = new List<SyncState>();
 
             public Harness()
+                : this(null, null)
             {
+            }
+
+            // feat/remember-vault：previous 非空时模拟「重启」——共用同一服务端与同一组本机文件，
+            // 其余（AuthStore / VaultCacheStore / ApiClient / Coordinator）全部新建。
+            public Harness(Harness previous, SyncDeviceOptions options = null)
+            {
+                Server = previous != null ? previous.Server : new MockSyncServer();
+                AuthFile = previous != null ? previous.AuthFile : new InMemorySecureFile();
+                VaultFile = previous != null ? previous.VaultFile : new InMemorySecureFile();
                 Auth = new AuthStore(AuthFile);
                 Vault = new VaultCacheStore(VaultFile, Logger);
                 Transport.Handler = Server.Handle;
                 // retryLimit 0：本类只测单次语义，重试退避是 S13 范围；同时让离线用例无延迟。
                 Api = new ApiClient("https://sync.example.test", Auth, Transport, retryLimit: 0);
-                Coordinator = new SyncCoordinator(Auth, Vault, Api, Crypto, new StubDevices(), Logger);
+                Coordinator = new SyncCoordinator(Auth, Vault, Api, Crypto, new StubDevices(), Logger,
+                    deviceOptions: options);
                 Coordinator.StateChanged += s => States.Add(s);
             }
         }
@@ -631,14 +645,15 @@ namespace SshTool.Core.Tests.Sync
         }
 
         [Fact]
-        public async Task Logout_ClearsAuthAndLocks()
+        public async Task Logout_ClearsAuth_KeepsVaultKeyByDefault()
         {
             var h = new Harness();
             await RegisteredAsync(h);
             await h.Coordinator.SetupVaultAsync("sync-password");
             await h.Coordinator.LogoutAsync();
             Assert.False(h.Auth.Session.Authenticated);
-            Assert.Null(h.Vault.State.VaultKeyBase64);
+            // feat/remember-vault：默认记住同步密码，同一账号重新登录不再要求输入（关闭开关见 RememberVaultKeyTests）。
+            Assert.NotNull(h.Vault.State.VaultKeyBase64);
             Assert.Equal(MockSyncServer.VaultId, h.Vault.State.VaultId);
             Assert.Equal(SyncPhase.SignedOut, h.Coordinator.State.Phase);
         }
@@ -652,19 +667,20 @@ namespace SshTool.Core.Tests.Sync
             h.Server.FailLogout = true;
             await Assert.ThrowsAsync<ApiError>(() => h.Coordinator.LogoutAsync());
             Assert.False(h.Auth.Session.Authenticated);
-            Assert.Null(h.Vault.State.VaultKeyBase64);
+            Assert.NotNull(h.Vault.State.VaultKeyBase64);
             Assert.Equal(SyncPhase.SignedOut, h.Coordinator.State.Phase);
         }
 
         [Fact]
-        public async Task ChangeAccountPassword_ClearsAuthAndLocks()
+        public async Task ChangeAccountPassword_ClearsAuth_KeepsVaultKeyByDefault()
         {
             var h = new Harness();
             await RegisteredAsync(h);
             await h.Coordinator.SetupVaultAsync("sync-password");
             await h.Coordinator.ChangeAccountPasswordAsync("login-password", "new-login-password");
             Assert.False(h.Auth.Session.Authenticated);
-            Assert.Null(h.Vault.State.VaultKeyBase64);
+            // 登录密码与同步密码无关：保险库密钥仍有效，默认保留。
+            Assert.NotNull(h.Vault.State.VaultKeyBase64);
             Assert.Equal(SyncPhase.SignedOut, h.Coordinator.State.Phase);
             Assert.Equal(SyncMessageCode.LoginPasswordChanged, h.Coordinator.State.MessageCode);
         }

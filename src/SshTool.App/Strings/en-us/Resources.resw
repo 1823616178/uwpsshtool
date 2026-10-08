@@ -110,8 +110,6 @@
   <data name="Login_SubmitButton.Content" xml:space="preserve"><value>Sign in</value></data>
   <data name="Login_SharedNote.Text" xml:space="preserve"><value>Use the same account as SSH Tool on desktop and HarmonyOS. Hosts and tunnels sync across devices automatically.</value></data>
   <data name="Login_PasswordHint.Text" xml:space="preserve"><value>Registration password must be at least 10 characters.</value></data>
-  <data name="Login_HttpBanner.Title" xml:space="preserve"><value>Unencrypted connection</value></data>
-  <data name="Login_HttpBanner.Message" xml:space="preserve"><value>Your login password may be eavesdropped on this network. Use only on networks you trust.</value></data>
   <data name="Login_SubmitLogin" xml:space="preserve"><value>Sign in</value></data>
   <data name="Login_SubmitRegister" xml:space="preserve"><value>Sign up</value></data>
   <data name="Login_WorkingLogin" xml:space="preserve"><value>Connecting to sync server and verifying credentials…</value></data>
@@ -247,7 +245,7 @@
   <data name="VaultSetup_PasswordBox.PlaceholderText" xml:space="preserve"><value>Set a sync password (at least 8 characters)</value></data>
   <data name="VaultSetup_ConfirmBox.Header" xml:space="preserve"><value>Confirm sync password</value></data>
   <data name="VaultSetup_PasswordHint.Text" xml:space="preserve"><value>Sync password must be at least 8 characters.</value></data>
-  <data name="VaultSetup_LocalNote.Text" xml:space="preserve"><value>Once unlocked, the vault key is stored encrypted on this device, so you will not need to type it again after a restart.</value></data>
+  <data name="VaultSetup_LocalNote.Text" xml:space="preserve"><value>Once unlocked, the vault key is stored encrypted on this device, so you will not need to type it again after a restart or when signing back in to the same account. It is cleared when you switch or delete the account.</value></data>
   <data name="VaultSetup_SubmitButton.Content" xml:space="preserve"><value>Create</value></data>
   <data name="VaultUnlock_Title.Title" xml:space="preserve"><value>Unlock vault</value></data>
   <data name="VaultUnlock_Section_Unlock.Header" xml:space="preserve"><value>Unlock Vault</value></data>
@@ -791,7 +789,7 @@
   <data name="Sync_Msg_VaultDeletedLocalKept" xml:space="preserve"><value>Cloud vault and history deleted; local configuration kept</value></data>
   <data name="Sync_Msg_LoginPasswordChanged" xml:space="preserve"><value>Password changed. Sign in again with the new password</value></data>
   <data name="Sync_Msg_RemoteVaultDeleted" xml:space="preserve"><value>The cloud vault was deleted. Create a new sync vault</value></data>
-  <data name="Sync_Msg_RemoteKeyRotated" xml:space="preserve"><value>The cloud key was rotated. Enter the sync password or recovery key again</value></data>
+  <data name="Sync_Msg_RemoteKeyRotated" xml:space="preserve"><value>The sync password was changed on another device (or the vault was recreated), so the key remembered on this device no longer works. Enter the current sync password or recovery key</value></data>
   <data name="Sync_Msg_RotateResultUnknown" xml:space="preserve"><value>Rotation result unknown. If the cloud was rotated, unlock the vault with the new sync password</value></data>
   <data name="Sync_Msg_SensitiveCleared" xml:space="preserve"><value>Sensitive fields cleared; key and history rotated</value></data>
   <data name="Sync_Msg_SyncPasswordChanged" xml:space="preserve"><value>Sync password updated. Save the new recovery key</value></data>
@@ -1491,5 +1489,10 @@
   <data name="ChangeLogin_NewRequired" xml:space="preserve"><value>Enter a new password.</value></data>
   <data name="DeleteAccount_PasswordRequired" xml:space="preserve"><value>Enter your login password.</value></data>
   <data name="DeleteAccount_ConfirmRequired" xml:space="preserve"><value>Type DELETE (in capitals) to confirm.</value></data>
+  <data name="Login_HttpNotice.Text" xml:space="preserve"><value>Note: the sync server uses an unencrypted HTTP connection. Prefer signing in on a network you trust.</value></data>
+  <data name="VaultUnlock_Hint.Text" xml:space="preserve"><value>The sync password is not your login password. After you unlock once, this device remembers it for restarts and for signing back in to the same account.</value></data>
+  <data name="AccountSync_RememberVaultKey.Text" xml:space="preserve"><value>Remember sync password after sign-out</value></data>
+  <data name="AccountSync_RememberVaultKeySwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Remember sync password after sign-out</value></data>
+  <data name="AccountSync_RememberVaultKeyNote.Text" xml:space="preserve"><value>When on, signing back in to the same account on this device does not ask for the sync password again. It is cleared when you switch or delete the account. When off, it is forgotten on sign-out.</value></data>
 </root>
 

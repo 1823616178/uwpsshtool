@@ -269,6 +269,25 @@ namespace SshTool.App.ViewModels.Sync
             return RunSafe("SetPreferences", () => _sync.SetPreferencesAsync(next), onFailed: RefreshAll);
         }
 
+        // feat/remember-vault：退出登录后是否在本机保留保险库密钥（本机设置，不随账号同步）。
+        public bool RememberVaultKey
+        {
+            get { return _sync == null || _sync.RememberVaultKey; }
+        }
+
+        public Task SetRememberVaultKeyAsync(bool value)
+        {
+            if (_sync == null || value == _sync.RememberVaultKey)
+            {
+                return Task.CompletedTask;
+            }
+            return RunSafe("SetRememberVaultKey", async () =>
+            {
+                await _sync.SetRememberVaultKeyAsync(value);
+                RaisePropertyChanged("RememberVaultKey");
+            }, onFailed: RefreshAll);
+        }
+
         // 同步密码开关：开→关必须走 U20 安全清理（轮换密钥），此处触发事件；关→开直接写入。
         public void ToggleSyncPasswords(bool value)
         {
@@ -545,6 +564,7 @@ namespace SshTool.App.ViewModels.Sync
             RaisePropertyChanged("AutoSync");
             RaisePropertyChanged("SyncPasswords");
             RaisePropertyChanged("SyncPrivateKeys");
+            RaisePropertyChanged("RememberVaultKey");
             RaisePropertyChanged("NeedsRouting");
             SyncNowCommand.RaiseCanExecuteChanged();
             RefreshDevicesCommand.RaiseCanExecuteChanged();
