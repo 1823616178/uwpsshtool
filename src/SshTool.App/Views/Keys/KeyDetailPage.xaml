@@ -42,15 +42,22 @@
                 <StackPanel Padding="{StaticResource PadCard}">
 
                 <!-- 类型/位数/格式/加密/创建时间：五行「标题 + 值」，属性名走 x:Uid（.Title），
-                     当前值由 code-behind 写进 Subtitle；值仍是纯展示，无交互。 -->
-                <controls:AppListRow x:Name="TypeRow" x:Uid="KeyDetail_TypeRow" IsCompact="True" />
+                     当前值由 code-behind 写进 Subtitle；值仍是纯展示，无交互。
+                     SubtitleStyle=ValueTextStyle 是本页的关键：值（ED25519、256、创建时间）是用户
+                     来看的内容，不能按副标题降级成暗色小字——这里值与正文同级、标题退为暗色小字。 -->
+                <controls:AppListRow x:Name="TypeRow" x:Uid="KeyDetail_TypeRow" IsCompact="True"
+                                     SubtitleStyle="{StaticResource ValueTextStyle}" />
                 <controls:AppListRow x:Name="BitsRow" x:Uid="KeyDetail_BitsRow" IsCompact="True"
+                                     SubtitleStyle="{StaticResource ValueTextStyle}"
                                      Margin="{StaticResource GapXsTop}" />
                 <controls:AppListRow x:Name="FormatRow" x:Uid="KeyDetail_FormatRow" IsCompact="True"
+                                     SubtitleStyle="{StaticResource ValueTextStyle}"
                                      Margin="{StaticResource GapXsTop}" />
                 <controls:AppListRow x:Name="EncryptedRow" x:Uid="KeyDetail_EncryptedRow" IsCompact="True"
+                                     SubtitleStyle="{StaticResource ValueTextStyle}"
                                      Margin="{StaticResource GapXsTop}" />
                 <controls:AppListRow x:Name="CreatedRow" x:Uid="KeyDetail_CreatedRow" IsCompact="True"
+                                     SubtitleStyle="{StaticResource ValueTextStyle}"
                                      Margin="{StaticResource GapXsTop}" />
                 </StackPanel>
                 </Border>

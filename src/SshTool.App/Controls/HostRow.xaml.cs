@@ -7,9 +7,9 @@ using SshTool.Core.Hosts;
 using Windows.UI;
 using Windows.UI.Input;
 using Windows.UI.Xaml;
+using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 
 namespace SshTool.App.Controls
@@ -154,6 +154,31 @@ namespace SshTool.App.Controls
                 return;
             }
             Raise(ConnectRequested);
+        }
+
+        // 行点击让先于分组头折叠：AppListRow 只消费冒泡到自身的 Tapped 并置 Handled，
+        // 而上游分组头监听的是 PointerReleased（不查 Handled），所以要在这里显式告知
+        // 分组头「这次点按已经被行用掉了」。
+        private void OnRowTapped(object sender, TappedRoutedEventArgs e)
+        {
+            GroupHeader header = GroupHeaderOf(this);
+            if (header != null)
+            {
+                header.ConsumeToggle();
+            }
+        }
+
+        private static GroupHeader GroupHeaderOf(DependencyObject start)
+        {
+            for (DependencyObject node = start; node != null; node = VisualTreeHelper.GetParent(node))
+            {
+                var header = node as GroupHeader;
+                if (header != null)
+                {
+                    return header;
+                }
+            }
+            return null;
         }
 
         private void OnHolding(object sender, HoldingRoutedEventArgs e)

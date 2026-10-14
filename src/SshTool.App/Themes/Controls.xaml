@@ -34,6 +34,13 @@
         <Setter Property="CharacterSpacing" Value="40" />
         <Setter Property="Foreground" Value="{ThemeResource AppTextDimBrush}" />
     </Style>
+    <!-- 值文本样式（密钥详情等「一行一属性」卡片）：值才是这页用户要看的内容，
+         走正文色与正文字号、允许换行；标签退到 CaptionTextStyle 的暗色小字。 -->
+    <Style x:Key="ValueTextStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{StaticResource FontBody}" />
+        <Setter Property="Foreground" Value="{ThemeResource AppTextBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
     <Style x:Key="MonoCaptionTextStyle" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource AppMonoFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontCaption}" />

@@ -82,11 +82,12 @@ namespace SshTool.App.Views
         private void UpdateChrome()
         {
             bool hasError = ViewModel.HasError;
+            // 分组折叠后组内行不在树里，空态判定按「有可见行」而不是行数（HasVisibleRows）。
             ErrorState.Visibility = hasError ? Visibility.Visible : Visibility.Collapsed;
             Empty.Visibility = (!hasError && ViewModel.IsEmpty) ? Visibility.Visible : Visibility.Collapsed;
             NoMatches.Visibility = (!hasError && ViewModel.HasNoMatches) ? Visibility.Visible : Visibility.Collapsed;
-            SnippetList.Visibility =
-                (hasError || ViewModel.IsEmpty || ViewModel.HasNoMatches) ? Visibility.Collapsed : Visibility.Visible;
+            SnippetList.Visibility = (!hasError && ViewModel.HasVisibleRows)
+                ? Visibility.Visible : Visibility.Collapsed;
             if (hasError)
             {
                 ErrorState.Title = _loader.GetString("Common_LoadFailed");
@@ -126,6 +127,28 @@ namespace SshTool.App.Views
         private void OnItemClick(object sender, ItemClickEventArgs e)
         {
             ViewModel.OpenEdit(e.ClickedItem as SnippetRowVm);
+        }
+
+        // 分组头点击折叠/展开该分组（与主机列表分组头同一交互）。
+        private void OnGroupHeaderToggle(object sender, System.EventArgs e)
+        {
+            var header = sender as SshTool.App.Controls.GroupHeader;
+            if (header == null)
+            {
+                return;
+            }
+            ViewModel.ToggleGroup(ResolveGroup(header));
+        }
+
+        private static SnippetGroupVm ResolveGroup(FrameworkElement header)
+        {
+            var direct = header == null ? null : header.DataContext as SnippetGroupVm;
+            if (direct != null)
+            {
+                return direct;
+            }
+            var cvg = header == null ? null : header.DataContext as Windows.UI.Xaml.Data.ICollectionViewGroup;
+            return cvg == null ? null : cvg.Group as SnippetGroupVm;
         }
 
         private void OnSendClick(object sender, RoutedEventArgs e)

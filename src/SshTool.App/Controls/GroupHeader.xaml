@@ -5,7 +5,8 @@
 
     <Grid Background="Transparent"
           MinHeight="{StaticResource GroupHeaderHeight}"
-          Padding="{StaticResource GroupHeaderPadding}">
+          Padding="{StaticResource GroupHeaderPadding}"
+          PointerReleased="OnRootPointerReleased">
         <Grid.ChildrenTransitions>
             <TransitionCollection>
                 <RepositionThemeTransition />
@@ -16,7 +17,8 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
-        <!-- V01a：▸/▾ 文本换 MDL2 尖括号（Glyph 由 code-behind 按折叠态赋 IconChevronRight/IconChevronDown）。 -->
+        <!-- V01a：▸/▾ 文本换 MDL2 尖括号（Glyph 由 code-behind 按折叠态赋 IconChevronRight/IconChevronDown）；
+             分组不可折叠时整块隐藏（Visibility 由 code-behind 赋值）。 -->
         <FontIcon x:Name="Chevron" FontSize="{StaticResource FontCaption}"
                   Foreground="{ThemeResource AppTextDimBrush}"
                   VerticalAlignment="Center" />

@@ -161,9 +161,16 @@ namespace SshTool.App.Views.Main
             }
         }
 
+        // GroupHeader 在根上监听 PointerReleased（Tapped 的 Handled 压不住已注册的处理器），
+        // 所以行点击时由 HostRow 先把这次点按「消费」掉，这里再跳过。
         private void OnGroupHeaderTapped(object sender, TappedRoutedEventArgs e)
         {
             if (ViewModel == null)
+            {
+                return;
+            }
+            var header = sender as GroupHeader;
+            if (header != null && header.ConsumeToggle())
             {
                 return;
             }

@@ -23,6 +23,8 @@ namespace SshTool.App.ViewModels.Snippets
         private IReadOnlyList<Snippet> _all = new Snippet[0];
         private string _search = string.Empty;
         private SessionInfo _session;
+        // 片段分组头的折叠态（分组名，未分组为空串）。片段侧没有设置项，刷新后由这里还原。
+        private readonly HashSet<string> _collapsed = new HashSet<string>(StringComparer.Ordinal);
 
         public SnippetsViewModel(AppServices services)
         {
@@ -60,6 +62,23 @@ namespace SshTool.App.ViewModels.Snippets
         public bool HasNoMatches
         {
             get { return Groups.Count == 0 && _search.Trim().Length > 0; }
+        }
+
+        // 分组头点击折叠后，组内行不再在树里：空结果判定要把折叠丢掉的可见行算回来，
+        // 否则「全部折叠」会被当成「没有匹配」。
+        public bool HasVisibleRows
+        {
+            get
+            {
+                for (int i = 0; i < Groups.Count; i++)
+                {
+                    if (Groups[i].Rows.Count > 0)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
         }
 
         public bool CanSend
@@ -124,6 +143,25 @@ namespace SshTool.App.ViewModels.Snippets
             ApplyFilter();
         }
 
+        // 分组头点击：翻转折叠态后重建分组集合。刷新/搜索都保留（折叠只影响行是否可见）。
+        public void ToggleGroup(SnippetGroupVm group)
+        {
+            if (group == null)
+            {
+                return;
+            }
+            string key = group.GroupName ?? string.Empty;
+            if (group.IsCollapsed)
+            {
+                _collapsed.Remove(key);
+            }
+            else
+            {
+                _collapsed.Add(key);
+            }
+            ApplyFilter();
+        }
+
         public void OpenNew()
         {
             Navigation.Navigate<SnippetEditPage>(SnippetEditArgs.New());
@@ -168,7 +206,7 @@ namespace SshTool.App.ViewModels.Snippets
 
         private void ApplyFilter()
         {
-            List<SnippetGroupVm> grouped = SnippetGrouping.Group(_all, _search);
+            List<SnippetGroupVm> grouped = SnippetGrouping.Group(_all, _search, _collapsed);
             bool canSend = CanSend;
             for (int g = 0; g < grouped.Count; g++)
             {
@@ -184,6 +222,7 @@ namespace SshTool.App.ViewModels.Snippets
             }
             RaisePropertyChanged("IsEmpty");
             RaisePropertyChanged("HasNoMatches");
+            RaisePropertyChanged("HasVisibleRows");
         }
     }
 }

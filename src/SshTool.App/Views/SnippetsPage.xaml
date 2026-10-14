@@ -30,9 +30,11 @@
             </controls:AppListRow>
         </DataTemplate>
         <!-- 分组行标题改用通用 GroupHeader（未分组走中性圆点、真实分组走强调色图标），
-             与主机列表分组头同一视觉语言；GroupHeader 内部按数据源类型分派。 -->
+             与主机列表分组头同一视觉语言；GroupHeader 内部按数据源类型分派。
+             折叠点击走 GroupHeader.ToggleRequested：与主机列表同一条路径——行点击只发送/编辑，
+             不折叠分组；只有点分组头才折叠。 -->
         <DataTemplate x:Key="SnippetGroupHeaderTemplate">
-            <controls:GroupHeader />
+            <controls:GroupHeader ToggleRequested="OnGroupHeaderToggle" />
         </DataTemplate>
     </Page.Resources>
 

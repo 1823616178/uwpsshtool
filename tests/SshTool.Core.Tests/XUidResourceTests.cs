@@ -15,7 +15,9 @@ namespace SshTool.Core.Tests
     //   1. 每个 x:Uid 在中英两份 resw 都至少有一个带属性后缀的键；
     //   2. 附加属性键必须写全限定形式 Uid.[using:命名空间]类.属性；
     //   3. 常见内置控件 / 本工程自定义控件上，后缀属性必须真实存在。
-    // 另外兜住代码里 ResourceLoader.GetString("Uid/属性") 指向的键必须存在。
+    // 另外兜住代码里 ResourceLoader.GetString("Uid/属性") 指向的键必须存在、XAML 里
+    // {StaticResource 键} 指向的资源必须存在（缺失时真机静默失败，只表现为样式/图标消失），
+    // 以及分组头尖括号只在分组可折叠时出现（不可折叠却画了箭头 = 死 affordance）。
     public class XUidResourceTests
     {
         private static readonly Regex UidTag = new Regex(
@@ -23,6 +25,12 @@ namespace SshTool.Core.Tests
 
         private static readonly Regex SlashLookup = new Regex(
             "GetString\\(\"([A-Za-z0-9_]+)/([A-Za-z0-9_.\\[\\]:]+)\"\\)", RegexOptions.Compiled);
+
+        private static readonly Regex ResourceKeyDefinition = new Regex(
+            "x:Key=\"([^\"]+)\"", RegexOptions.Compiled);
+
+        private static readonly Regex StaticResourceUse = new Regex(
+            "\\{StaticResource\\s+([A-Za-z0-9_.]+)\\s*\\}", RegexOptions.Compiled);
 
         // 内置控件可被 x:Uid 赋值的文案属性（只列本工程用到的类型；未列出的类型不校验）。
         private static readonly Dictionary<string, string[]> BuiltInProps =
@@ -139,6 +147,56 @@ namespace SshTool.Core.Tests
                 }
             }
             Assert.True(bad.Count == 0, "代码按 Uid/属性 取的资源键不存在：\n" + string.Join("\n", bad));
+        }
+
+        // XAML 里 {StaticResource 键} 必须真实存在：ThemeResource 缺键在编译期报错，
+        // StaticResource 缺键在真机上是「样式/图标悄悄没了」，本地门禁不查就发现不了。
+        [Fact]
+        public void StaticResourceKeys_ResolveToDefinedResources()
+        {
+            var defined = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string file in Directory.GetFiles(AppDir(), "*.xaml", SearchOption.AllDirectories))
+            {
+                if (IsExcluded(file))
+                {
+                    continue;
+                }
+                foreach (Match m in ResourceKeyDefinition.Matches(File.ReadAllText(file)))
+                {
+                    defined.Add(m.Groups[1].Value);
+                }
+            }
+
+            var bad = new List<string>();
+            foreach (string file in Directory.GetFiles(AppDir(), "*.xaml", SearchOption.AllDirectories))
+            {
+                if (IsExcluded(file))
+                {
+                    continue;
+                }
+                string text = File.ReadAllText(file);
+                foreach (Match m in StaticResourceUse.Matches(text))
+                {
+                    if (defined.Contains(m.Groups[1].Value))
+                    {
+                        continue;
+                    }
+                    int line = text.Take(m.Index).Count(c => c == '\n') + 1;
+                    bad.Add(file.Substring(AppDir().Length + 1).Replace('\\', '/') + ":" + line
+                        + " {StaticResource " + m.Groups[1].Value + "}");
+                }
+            }
+            Assert.True(bad.Count == 0, "XAML 引用了不存在的资源键：\n" + string.Join("\n", bad.Distinct()));
+        }
+
+        // 分组头的尖括号是「可折叠」的可视信号。GroupHeader 只在 CanToggle 为 true 时才显示
+        // Chevron，所以消费方必须给分组头绑 ToggleRequested；只绑 Tapped 的老写法会让分组
+        // 画出箭头却点不动，看起来和别的分组头一致、实际什么也不发生。
+        [Fact]
+        public void SnippetGroupHeader_IsWiredForCollapse()
+        {
+            string xaml = File.ReadAllText(Path.Combine(AppDir(), "Views", "SnippetsPage.xaml"));
+            Assert.Contains("ToggleRequested=", xaml);
         }
 
         // Localized.Get/Format("键", 兜底) 与 GetString("键") 的键必须在中英两份 resw 里都存在：

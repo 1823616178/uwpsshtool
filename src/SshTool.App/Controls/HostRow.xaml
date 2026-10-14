@@ -28,7 +28,8 @@
          AppListRow 根上的 AutomationProperties.Name（=标题）代表。 -->
     <!-- opt/full-pass 竖屏重设计：IsCard=卡片外观（圆角/渐变卡底/发丝描边/卡间距），
          头像加一圈发丝描边，与卡片同材质语言。 -->
-    <controls:AppListRow x:Name="RowCtl" Click="OnRowClick" IsCard="True">
+    <controls:AppListRow x:Name="RowCtl" Click="OnRowClick" IsCard="True"
+                        Tapped="OnRowTapped">
         <controls:AppListRow.IconContent>
             <!-- G06：首字母圆形头像（底色取分组颜色或 AppSurfaceAltBrush）+ 状态点 -->
             <Grid Width="{StaticResource AvatarSize}" Height="{StaticResource AvatarSize}"

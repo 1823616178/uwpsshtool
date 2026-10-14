@@ -28,6 +28,9 @@ namespace SshTool.App.ViewModels.Snippets
         public string GroupName { get; set; }
         public string Title { get; set; }
         public List<SnippetRowVm> Rows { get; private set; }
+        // 分组头折叠态。片段分组没有持久化设置（主机分组的 hostGroupCollapsed 在设置表里），
+        // 这里是纯视图态：刷新/搜索会重算分组集合，折叠态由 ViewModel 记在 _collapsed 里。
+        public bool IsCollapsed { get; set; }
     }
 
     // 分组 + 搜索纯逻辑：GroupName 为空/空白归入「未分组」；
@@ -55,6 +58,14 @@ namespace SshTool.App.ViewModels.Snippets
 
         public static List<SnippetGroupVm> Group(
             IReadOnlyList<Snippet> items, string search)
+        {
+            return Group(items, search, null);
+        }
+
+        // collapsed：已折叠分组名（未分组用空串），由调用方持有并复用，使分组头点击后
+        // 重建分组集合时折叠态不丢。
+        public static List<SnippetGroupVm> Group(
+            IReadOnlyList<Snippet> items, string search, ICollection<string> collapsed)
         {
             string q = search == null ? string.Empty : search.Trim();
             var byGroup = new Dictionary<string, SnippetGroupVm>(StringComparer.Ordinal);
@@ -84,7 +95,8 @@ namespace SshTool.App.ViewModels.Snippets
                         group = new SnippetGroupVm
                         {
                             GroupName = key,
-                            Title = DisplayName(key)
+                            Title = DisplayName(key),
+                            IsCollapsed = collapsed != null && collapsed.Contains(key)
                         };
                         byGroup[key] = group;
                         order.Add(key);
