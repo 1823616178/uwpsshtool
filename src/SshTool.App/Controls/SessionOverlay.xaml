@@ -1,11 +1,16 @@
-<UserControl
+﻿<UserControl
     x:Class="SshTool.App.Controls.SessionOverlay"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid x:Name="Root" Background="{ThemeResource OverlayScrimBrush}" Visibility="Collapsed">
+        <!-- opt/full-pass：蒙层卡片与对话框同一材质/圆角/发丝描边（原先是无圆角无描边的裸面板），
+             窄屏下按钮横向排不下时仍靠 MaxWidth + 换行兜底（StackPanel 不换行，故按钮数量保持 ≤3 可见）。 -->
         <Border Background="{ThemeResource AppSurfaceBrush}"
-                Padding="{StaticResource PadMd}"
+                BorderBrush="{ThemeResource AppBorderBrush}"
+                BorderThickness="{StaticResource BorderThin}"
+                CornerRadius="{StaticResource RadiusLg}"
+                Padding="{StaticResource PadHero}"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
                 MaxWidth="{StaticResource DialogMaxWidth}">
             <StackPanel>

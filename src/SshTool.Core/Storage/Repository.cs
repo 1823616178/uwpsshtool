@@ -12,11 +12,11 @@ namespace SshTool.Core.Storage
     {
         private readonly JsonStore<T> _store;
         private readonly SemaphoreSlim _gate = new SemaphoreSlim(1, 1);
-        private List<T> _items;
-        // O08：id → _items 下标。GetByIdAsync 原本是 O(n) 线性扫，而它就落在
-        // 每次连接（SessionManager.StartOpenAsync）、每次重连、每次密钥认证的路上。
-        // _items 每次整体替换时同步重建（见 SetItems）。
-        private Dictionary<string, int> _index = new Dictionary<string, int>(StringComparer.Ordinal);
+        // 列表与索引必须成对发布：GetAllAsync/GetByIdAsync 在 LoadAsync 释放 gate 之后
+        // 才读它们，另一个线程可能在两次读之间 SetItems。若分别用两个字段存放，
+        // 读方就可能拿到「新列表 + 旧索引」（列表变短时越界，等长时按 id 取错对象）。
+        // 因此把二者绑进一个不可变快照，替换时只做一次引用赋值（引用赋值本身是原子的）。
+        private Snapshot _snapshot = new Snapshot(new List<T>(), new Dictionary<string, int>(StringComparer.Ordinal));
         private bool _loaded;
 
         public Repository(JsonStore<T> store)
@@ -51,14 +51,16 @@ namespace SshTool.Core.Storage
         public async Task<IReadOnlyList<T>> GetAllAsync()
         {
             await LoadAsync().ConfigureAwait(false);
-            return _items;
+            // 单次取快照：避免「取列表」与「取索引」之间被 SetItems 拆开。
+            return _snapshot.Items;
         }
 
         public async Task<T> GetByIdAsync(string id)
         {
             await LoadAsync().ConfigureAwait(false);
-            int index = FindIndex(id);
-            return index < 0 ? default(T) : _items[index];
+            Snapshot snapshot = _snapshot;
+            int index = FindIndex(snapshot, id);
+            return index < 0 ? default(T) : snapshot.Items[index];
         }
 
         public async Task AddAsync(T item, ChangeOrigin origin = ChangeOrigin.User)
@@ -73,11 +75,11 @@ namespace SshTool.Core.Storage
                 {
                     throw new InvalidOperationException("实体 id 为空");
                 }
-                if (FindIndex(id) >= 0)
+                if (FindIndex(_snapshot, id) >= 0)
                 {
                     throw new InvalidOperationException("实体 id 重复: " + id);
                 }
-                var next = new List<T>(_items);
+                var next = new List<T>(_snapshot.Items);
                 next.Add(item);
                 await _store.SaveAsync(next).ConfigureAwait(false);
                 SetItems(next);
@@ -101,7 +103,7 @@ namespace SshTool.Core.Storage
             try
             {
                 await EnsureLoadedCoreAsync().ConfigureAwait(false);
-                var next = new List<T>(_items);
+                var next = new List<T>(_snapshot.Items);
                 var batchIds = new HashSet<string>(StringComparer.Ordinal);
                 for (int i = 0; i < items.Count; i++)
                 {
@@ -110,7 +112,7 @@ namespace SshTool.Core.Storage
                     {
                         throw new InvalidOperationException("实体 id 为空");
                     }
-                    if (FindIndex(id) >= 0 || batchIds.Contains(id))
+                    if (FindIndex(_snapshot, id) >= 0 || batchIds.Contains(id))
                     {
                         throw new InvalidOperationException("实体 id 重复: " + id);
                     }
@@ -154,9 +156,9 @@ namespace SshTool.Core.Storage
                         byId[id] = item;
                     }
                 }
-                var next = new List<T>(_items.Count);
+                var next = new List<T>(_snapshot.Items.Count);
                 var replaced = new List<string>();
-                foreach (var existing in _items)
+                foreach (var existing in _snapshot.Items)
                 {
                     T replacement;
                     if (byId.TryGetValue(IdOf(existing), out replacement))
@@ -198,9 +200,9 @@ namespace SshTool.Core.Storage
             {
                 await EnsureLoadedCoreAsync().ConfigureAwait(false);
                 var doomed = new HashSet<string>(ids, StringComparer.Ordinal);
-                var next = new List<T>(_items.Count);
+                var next = new List<T>(_snapshot.Items.Count);
                 var removed = new List<string>();
-                foreach (var existing in _items)
+                foreach (var existing in _snapshot.Items)
                 {
                     if (doomed.Contains(IdOf(existing)))
                     {
@@ -258,11 +260,12 @@ namespace SshTool.Core.Storage
             {
                 // 读取失败且未能备份的文件：内存里只是「以空集合继续」的占位，
                 // 挂起时整份重写会把盘上完好的原数据覆盖掉。
-                if (_items == null || !_store.CanSave)
+                List<T> snapshotItems = _snapshot.Items;
+                if (snapshotItems == null || !_store.CanSave)
                 {
                     return;
                 }
-                await _store.SaveAsync(_items).ConfigureAwait(false);
+                await _store.SaveAsync(snapshotItems).ConfigureAwait(false);
             }
             finally
             {
@@ -280,7 +283,7 @@ namespace SshTool.Core.Storage
             _loaded = true;
         }
 
-        // O08：替换 _items 的唯一入口，保证索引不与列表脱节。
+        // 替换内存状态的唯一入口：把列表与索引做成一个不可变快照后整体发布。
         // 重复 id（存储文件被写坏）沿用旧的「第一个命中」语义：字典只记首次出现，
         // 不用 Add 以免在损坏数据上抛异常。
         private void SetItems(List<T> next)
@@ -294,18 +297,32 @@ namespace SshTool.Core.Storage
                     index[id] = i;
                 }
             }
-            _items = next;
-            _index = index;
+            // 只做一次引用赋值：读方要么看到整个旧快照、要么看到整个新快照。
+            _snapshot = new Snapshot(next, index);
         }
 
-        private int FindIndex(string id)
+        private int FindIndex(Snapshot snapshot, string id)
         {
             if (string.IsNullOrEmpty(id))
             {
                 return -1;
             }
             int found;
-            return _index.TryGetValue(id, out found) ? found : -1;
+            return snapshot.Index.TryGetValue(id, out found) ? found : -1;
+        }
+
+        // 列表 + id→下标，成对发布，避免读到错配的中间态。
+        private sealed class Snapshot
+        {
+            public Snapshot(List<T> items, Dictionary<string, int> index)
+            {
+                Items = items;
+                Index = index;
+            }
+
+            public List<T> Items { get; private set; }
+
+            public Dictionary<string, int> Index { get; private set; }
         }
 
         private string IdOf(T item)

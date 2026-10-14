@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.Sync.SecurityRotatePage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -9,20 +9,33 @@
     <!-- U20 安全清理 / 修改同步密码页（02-UI-DESIGN.md §5.13）：
          账号登录密码 + 新同步密码 ×2 → 执行 → RecoveryKeyDialog；失败回滚开关。 -->
     <Grid>
-        <ScrollViewer infra:InputPaneScroll.IsEnabled="True">
-            <StackPanel Padding="{StaticResource PagePadding}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <!-- opt/full-pass：页头固定（原先随表单一起滚走），宽度收进 FormMaxWidth。 -->
+        <controls:AppPageHeader x:Name="Header" x:Uid="SecurityRotate_Header"
+                                Level="Secondary"
+                                ShowBackButton="True"
+                                MaxWidth="{StaticResource FormMaxWidth}"
+                                HorizontalAlignment="Stretch"
+                                BackRequested="OnBackRequested" />
+
+        <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
+            <StackPanel Padding="{StaticResource CardListPadding}"
+                        MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
-                <controls:AppPageHeader x:Name="Header" x:Uid="SecurityRotate_Header"
-                                        ShowBackButton="True"
-                                        BackRequested="OnBackRequested" />
-
                 <TextBlock x:Name="ExplanationText" Style="{StaticResource BodyTextStyle}"
                            TextWrapping="Wrap" Margin="{StaticResource GapSmTop}" />
 
+                <!-- opt/full-pass：表单收进卡片。 -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Padding="{StaticResource PadCard}">
                 <TextBlock x:Uid="SecurityRotate_LoginPasswordLabel"
                            Style="{StaticResource BodyTextStyle}"
                            Margin="{StaticResource GapMdTop}" />
@@ -46,6 +59,8 @@
                 <PasswordBox x:Name="ConfirmBox" x:Uid="SecurityRotate_ConfirmBox"
                              Margin="{StaticResource GapSmTop}"
                              PasswordChanged="OnConfirmChanged" />
+                </StackPanel>
+                </Border>
 
                 <TextBlock x:Name="ErrorText"
                            Foreground="{ThemeResource AppDangerBrush}"
@@ -53,16 +68,16 @@
                            Margin="{StaticResource GapSmTop}"
                            TextWrapping="Wrap"
                            Visibility="Collapsed" />
-
-                <Button x:Name="SubmitButton" x:Uid="SecurityRotate_Submit"
-                        Style="{StaticResource PrimaryButtonStyle}"
-                        Margin="{StaticResource GapMdTop}"
-                        HorizontalAlignment="Stretch"
-                        Click="OnSubmitClick" />
             </StackPanel>
         </ScrollViewer>
 
-        <Grid x:Name="BusyOverlay"
+        <!-- opt/full-pass：主操作固定底部（与其余表单页一致），不再随表单滚走。 -->
+        <controls:BottomActionBar x:Name="SubmitBar" Grid.Row="2"
+                                  PrimaryClick="OnSubmitClick"
+                                  MaxWidth="{StaticResource FormMaxWidth}"
+                                  HorizontalAlignment="Stretch" />
+
+        <Grid x:Name="BusyOverlay" Grid.RowSpan="3"
               Background="{ThemeResource AppBgBrush}"
               Visibility="Collapsed">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">

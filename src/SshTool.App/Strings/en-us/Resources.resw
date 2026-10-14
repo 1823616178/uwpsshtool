@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -380,6 +380,8 @@
   <data name="KeyDetail_NameBox.Header" xml:space="preserve"><value>Name</value></data>
   <data name="KeyDetail_Rename.Content" xml:space="preserve"><value>Save Name</value></data>
   <data name="KeyDetail_TypeLabel.Text" xml:space="preserve"><value>Type</value></data>
+  <data name="KeyDetail_AttributesHeader.Text" xml:space="preserve"><value>Details</value></data>
+  <data name="KeyDetail_DangerHeader.Text" xml:space="preserve"><value>Danger zone</value></data>
   <data name="KeyDetail_BitsLabel.Text" xml:space="preserve"><value>Bits</value></data>
   <data name="KeyDetail_FormatLabel.Text" xml:space="preserve"><value>Format</value></data>
   <data name="KeyDetail_EncryptedLabel.Text" xml:space="preserve"><value>Encrypted</value></data>
@@ -539,6 +541,9 @@
   <data name="Settings_Pivot_Connection.Header" xml:space="preserve"><value>Connection</value></data>
   <data name="Settings_Pivot_About.Header" xml:space="preserve"><value>About</value></data>
   <data name="Settings_PageHeader.Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_GroupDevice.Text" xml:space="preserve"><value>Device</value></data>
+  <data name="Settings_GroupConnection.Text" xml:space="preserve"><value>Connection &amp; sync</value></data>
+  <data name="Settings_GroupApp.Text" xml:space="preserve"><value>App</value></data>
   <data name="Settings_Row_General.Title" xml:space="preserve"><value>General</value></data>
   <data name="Settings_Row_Terminal.Title" xml:space="preserve"><value>Terminal</value></data>
   <data name="Settings_Row_Keyboard.Title" xml:space="preserve"><value>Keyboard</value></data>
@@ -563,7 +568,6 @@
   <data name="Settings_Connection_Section_Display.Header" xml:space="preserve"><value>Display</value></data>
   <data name="Settings_Connection_Section_KeepAlive.Header" xml:space="preserve"><value>Background &amp; Disconnect</value></data>
   <data name="Settings_Connection_Section_Security.Header" xml:space="preserve"><value>Security</value></data>
-  <data name="Settings_Connection_Section_Network.Header" xml:space="preserve"><value>Reconnect &amp; Timeout</value></data>
   <data name="Settings_Sync_Section_Poll.Header" xml:space="preserve"><value>Foreground Polling</value></data>
   <data name="Settings_Sync_Section_Account.Header" xml:space="preserve"><value>Account &amp; Cloud Sync</value></data>
   <data name="Settings_Sync_Account_Desc.Text" xml:space="preserve"><value>Securely sync hosts, keys, themes, and snippets to your cloud vault across devices.</value></data>
@@ -629,18 +633,20 @@
   <data name="Settings_Terminal_AltScroll.Header" xml:space="preserve"><value>Alt-screen scroll</value></data>
   <data name="Settings_Terminal_AltScroll_Arrows" xml:space="preserve"><value>Arrow keys</value></data>
   <data name="Settings_Terminal_AltScroll_Wheel" xml:space="preserve"><value>Scroll wheel</value></data>
-  <data name="Settings_Terminal_PasteConfirm.Header" xml:space="preserve"><value>Confirm before pasting multiple lines</value></data>
-  <data name="Settings_Terminal_CursorBlink_Header" xml:space="preserve"><value>Cursor blink follows appearance</value></data>
+  <data name="Settings_Terminal_PasteConfirm.Text" xml:space="preserve"><value>Confirm before pasting multiple lines</value></data>
+  <data name="Settings_Terminal_PasteConfirmSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Confirm before pasting multiple lines</value></data>
+  <data name="Settings_Terminal_CursorBlink_Header.Text" xml:space="preserve"><value>Cursor blink follows appearance</value></data>
   <data name="Settings_Terminal_CursorBlink_Note.Text" xml:space="preserve"><value>Change in appearance page</value></data>
   <data name="Settings_Terminal_CursorBlink_Link.Content" xml:space="preserve"><value>Go to appearance</value></data>
 
   <!-- V04a: Keyboard Pivot -->
-  <data name="Settings_Keyboard_KeyBar.Header" xml:space="preserve"><value>Show key bar</value></data>
-  <data name="Settings_Keyboard_KeyBarLayout_Header" xml:space="preserve"><value>Key bar layout</value></data>
+  <data name="Settings_Keyboard_KeyBar.Text" xml:space="preserve"><value>Show key bar</value></data>
+  <data name="Settings_Keyboard_KeyBarSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Show key bar</value></data>
+  <data name="Settings_Keyboard_KeyBarLayout_Header.Text" xml:space="preserve"><value>Key bar layout</value></data>
   <data name="Settings_Keyboard_KeyBarLayout_Edit.Content" xml:space="preserve"><value>Edit key bar layout</value></data>
-  <data name="Settings_Keyboard_Backspace_Header" xml:space="preserve"><value>Backspace default</value></data>
+  <data name="Settings_Keyboard_Backspace_Header.Text" xml:space="preserve"><value>Backspace default</value></data>
   <data name="Settings_Keyboard_Backspace_Note.Text" xml:space="preserve"><value>Backspace is set per host (Host edit → Terminal → Backspace sends Ctrl+H)</value></data>
-  <data name="Settings_Keyboard_Shortcuts_Header" xml:space="preserve"><value>Shortcuts</value></data>
+  <data name="Settings_Keyboard_Shortcuts_Header.Text" xml:space="preserve"><value>Shortcuts</value></data>
   <data name="Settings_Keyboard_Shortcuts_Edit.Content" xml:space="preserve"><value>Edit shortcuts</value></data>
 
   <!-- V04a: Connection Pivot -->
@@ -648,7 +654,10 @@
   <data name="Settings_Connection_KeepScreen_Never" xml:space="preserve"><value>Never</value></data>
   <data name="Settings_Connection_KeepScreen_Session" xml:space="preserve"><value>When connected</value></data>
   <data name="Settings_Connection_KeepScreen_Always" xml:space="preserve"><value>Always</value></data>
-  <data name="Settings_Connection_KeepAlive.Header" xml:space="preserve"><value>Keep alive in background</value></data>
+  <data name="Settings_Connection_KeepAlive.Text" xml:space="preserve"><value>Keep alive in background</value></data>
+  <data name="Settings_Connection_KeepAliveSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Keep connections alive in background</value></data>
+  <data name="Settings_Connection_NotifySwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Notify when a background session drops</value></data>
+  <data name="Settings_Security_AppLockSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>App lock</value></data>
   <data name="Settings_Connection_KeepAlive_Note.Text" xml:space="preserve"><value>Disconnect immediately when app goes to background, auto-reconnect on return</value></data>
   <data name="Settings_Connection_BgDisc.Header" xml:space="preserve"><value>Disconnect after N minutes in background</value></data>
   <data name="Settings_Connection_BgDisc_Off" xml:space="preserve"><value>Off</value></data>
@@ -750,6 +759,9 @@
 
   <!-- V04b (C-06 + §6.4): KeysPage row template + bottom actions + all text via resw -->
   <data name="Keys_Title.Text" xml:space="preserve"><value>Keys</value></data>
+  <data name="Keys_Header.Title" xml:space="preserve"><value>Keys</value></data>
+  <data name="Keys_CountFormat" xml:space="preserve"><value>{0} keys · press and hold for details or delete</value></data>
+  <data name="Keys_CountFormatNone" xml:space="preserve"><value>No keys yet</value></data>
   <data name="Keys_Empty_Title" xml:space="preserve"><value>No Keys Yet</value></data>
   <data name="Keys_Empty_Description" xml:space="preserve"><value>Generate a new key, or import an existing private key.</value></data>
   <data name="Keys_Empty_Primary" xml:space="preserve"><value>Generate Key</value></data>
@@ -1261,6 +1273,8 @@
   <data name="Main_PlaceholderNewHost" xml:space="preserve"><value>New host</value></data>
   <data name="Main_PlaceholderSync" xml:space="preserve"><value>Sync</value></data>
   <data name="Tools_PageHeader.Title" xml:space="preserve"><value>Tools &amp; settings</value></data>
+  <data name="Tools_GroupLocal.Text" xml:space="preserve"><value>This device &amp; terminal</value></data>
+  <data name="Tools_GroupHosts.Text" xml:space="preserve"><value>Host data</value></data>
   <data name="Tools_RowSettings.Title" xml:space="preserve"><value>Settings</value></data>
   <data name="Tools_RowSettings.Subtitle" xml:space="preserve"><value>Appearance, terminal, keyboard, connection, diagnostics</value></data>
   <data name="Tools_RowKeys.Title" xml:space="preserve"><value>Keys</value></data>
@@ -1294,8 +1308,8 @@
   <data name="Settings_Terminal_Bell_Vibrate" xml:space="preserve"><value>Vibrate</value></data>
   <data name="Settings_Terminal_Bell_Visual" xml:space="preserve"><value>Flash screen</value></data>
   <data name="Settings_Terminal_Bell_None" xml:space="preserve"><value>Off</value></data>
-  <data name="Settings_Connection_NotifyDisconnect.Header" xml:space="preserve"><value>Notify when disconnected in background</value></data>
-  <data name="Settings_Security_AppLock.Header" xml:space="preserve"><value>App lock</value></data>
+  <data name="Settings_Connection_NotifyDisconnect.Text" xml:space="preserve"><value>Notify when disconnected in background</value></data>
+  <data name="Settings_Security_AppLock.Text" xml:space="preserve"><value>App lock</value></data>
   <data name="Settings_Security_AppLock_Note.Text" xml:space="preserve"><value>Require Windows Hello or PIN on launch and after being away for more than 1 minute</value></data>
   <data name="Settings_Security_AppLock_Unavailable" xml:space="preserve"><value>Set up a PIN or Windows Hello on this device to use app lock</value></data>
   <data name="Settings_Security_AppLock_Confirm" xml:space="preserve"><value>Verify your identity to turn on app lock</value></data>
@@ -1347,6 +1361,7 @@
   <data name="AppearanceList_EmptyDescription" xml:space="preserve"><value>Create custom color schemes for your terminal.</value></data>
   <data name="AppearanceList_EmptyPrimary" xml:space="preserve"><value>New Scheme</value></data>
   <data name="GroupManage_EmptyTitle" xml:space="preserve"><value>No groups</value></data>
+  <data name="GroupManage_CountFormat" xml:space="preserve"><value>{0} hosts · {1} tunnels</value></data>
   <data name="GroupManage_EmptyDescription" xml:space="preserve"><value>Create groups to organize hosts with custom colors.</value></data>
   <data name="ChangeLogin_CurrentBox.PlaceholderText" xml:space="preserve"><value>Enter current password</value></data>
   <data name="ChangeLogin_NewBox.PlaceholderText" xml:space="preserve"><value>New password (at least 10 characters)</value></data>

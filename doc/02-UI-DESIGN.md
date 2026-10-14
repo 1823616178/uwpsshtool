@@ -154,6 +154,27 @@ AccountSyncPage（Pivot：状态 | 设备 | 历史）
 
 ---
 
+## 4.5 页面语言的统一（全站实况）
+
+同一套视觉语言在每个页面都必须落地——不允许「只有主页漂亮」。全站只有一个骨架：
+
+| 页面类型 | 骨架 | 参考实现 |
+|---|---|---|
+| 列表页 | `AppPageHeader` + 工具行（搜索走 `PillFieldBorderStyle` 胶囊）/ 分组头 + **卡片行**（`AppListRow.IsCard`，容器 `CardListViewItemStyle` + `CardListPadding`）+ 三种空态 + 底部 `BottomActionBar` | 主页主机页、密钥、片段、已知主机、外观列表、SFTP |
+| 表单页（新建/编辑） | `AppPageHeader`（Secondary + 返回）+ `FormMaxWidth` 限宽 + 每个分组一张 `CardBorderStyle` 卡片 + 主操作固定底部 | 主机编辑、隧道编辑、登录、建库、解锁、改密、注销 |
+| 设置类页面 | 首页 `AppListRow` 分组摘要 + 二级页 `FormSection` + **行式开关**（标题 + 说明 + 右侧 `CompactToggleSwitchStyle`）/「值 + 右侧链接」行 | 设置首页与 6 个二级页、工具页、关于页 |
+| 全屏载体 | 玻璃条（`GlassBarGridStyle`）+ 卡片式状态蒙层（圆角 + 发丝描边，同 `ContentDialog` 材质） | 终端页、会话蒙层、账号与同步状态页 |
+
+规则：
+
+1. **列表行一律卡片**（`IsCard="True"`），不带卡片的裸 `AppListRow` 只用于卡片内部的次级行。
+2. **分组必有分组头**（`GroupHeaderTextStyle` + `GroupHeaderPadding`）；危险分组用 `AppDangerBrush` 字 + 红描边卡片。
+3. **开关一律行式**：标题（`BodyTextStyle`）+ 说明（`CaptionTextStyle`）+ 右侧紧凑开关；开关自身不带文字，无障碍名走 `x:Uid` 的 `AutomationProperties.Name`。
+4. **二选一用 `SegmentTabs`**，不用两个按钮靠禁用态表达选中。
+5. **底部操作只有一种语言**：主操作 + 溢出 `BottomActionBar`；不使用 `Page.BottomAppBar` 的图标条。
+6. **页头只有一种语言**：`AppPageHeader`（一级 `Primary` / 二级 `Secondary` + 返回），不再手写标题 `TextBlock`。
+7. 每个页面内容区都保留 `EntranceThemeTransition`；终端画布除外。
+
 ## 5. 页面设计
 
 > 线框以 360 epx 宽手机竖屏为基准；`[ ]` 表示按钮，`( )` 表示图标按钮，`▸/▾` 折叠箭头。每页列出：组成、状态、交互、ViewModel 关键属性/命令。

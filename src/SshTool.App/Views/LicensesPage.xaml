@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.LicensesPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -14,18 +14,28 @@
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnBackRequested" />
         <ScrollViewer Grid.Row="1">
-            <StackPanel Padding="{StaticResource PagePadding}">
+            <StackPanel Padding="{StaticResource CardListPadding}"
+                        MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
+                <!-- opt/full-pass：两组许可各归卡片（长文本在小屏上不再直接贴在页面底）。 -->
                 <controls:SectionHeader x:Uid="Licenses_OssHeader"
-                                        Margin="{StaticResource GapSmTop}" />
-                <controls:MonoText x:Name="OssText" Compact="True" />
+                                        Margin="{StaticResource GroupHeaderPadding}" />
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Padding="{StaticResource PadCard}">
+                        <controls:MonoText x:Name="OssText" Compact="True" />
+                    </StackPanel>
+                </Border>
                 <controls:SectionHeader x:Uid="Licenses_FontsHeader"
-                                        Margin="{StaticResource GapMdTop}" />
-                <controls:MonoText x:Name="FontsText" Compact="True" />
+                                        Margin="{StaticResource GroupHeaderPadding}" />
+                <Border Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Padding="{StaticResource PadCard}">
+                        <controls:MonoText x:Name="FontsText" Compact="True" />
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
     </Grid>

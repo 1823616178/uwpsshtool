@@ -7,6 +7,8 @@
 
     <!-- W01（05 §6.1）：「工具与设置」。原主页溢出菜单平铺的 5 个次要入口与分组管理集中于此，
          主页溢出只留「工具与设置 / 关于 / 登录」。 -->
+    <!-- opt/full-pass 列表页收口：入口按「本机与终端 / 主机数据」两段分组并改成卡片行，
+         与主页、设置首页同一套卡片语言；入口集合与命令契约不变。 -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -18,33 +20,50 @@
                                 BackRequested="OnBackRequested" />
 
         <ScrollViewer Grid.Row="1">
-            <StackPanel>
+            <StackPanel Padding="{StaticResource CardListPadding}"
+                        MaxWidth="{StaticResource FormMaxWidth}"
+                        HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
-                        <EntranceThemeTransition />
+                        <EntranceThemeTransition IsStaggeringEnabled="True" />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
+
+                <TextBlock x:Uid="Tools_GroupLocal"
+                           Style="{StaticResource GroupHeaderTextStyle}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
                 <controls:AppListRow x:Uid="Tools_RowSettings"
                                      IconGlyph="{StaticResource IconSettings}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnSettingsClick" />
+                <controls:AppListRow x:Uid="Tools_RowAppearance"
+                                     IconGlyph="{StaticResource IconEdit}"
+                                     IsCard="True"
+                                     ShowChevron="True" Click="OnAppearanceClick" />
                 <controls:AppListRow x:Uid="Tools_RowKeys"
                                      IconGlyph="{StaticResource IconKey}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnKeysClick" />
                 <controls:AppListRow x:Uid="Tools_RowSnippets"
                                      IconGlyph="{StaticResource IconSnippet}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnSnippetsClick" />
-                <controls:AppListRow x:Uid="Tools_RowAppearance"
-                                     IconGlyph="{StaticResource IconEdit}"
-                                     ShowChevron="True" Click="OnAppearanceClick" />
-                <controls:AppListRow x:Uid="Tools_RowKnownHosts"
-                                     IconGlyph="{StaticResource IconLock}"
-                                     ShowChevron="True" Click="OnKnownHostsClick" />
+
+                <TextBlock x:Uid="Tools_GroupHosts"
+                           Style="{StaticResource GroupHeaderTextStyle}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
                 <controls:AppListRow x:Uid="Tools_RowGroups"
                                      IconGlyph="{StaticResource IconFolder}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnGroupsClick" />
+                <controls:AppListRow x:Uid="Tools_RowKnownHosts"
+                                     IconGlyph="{StaticResource IconLock}"
+                                     IsCard="True"
+                                     ShowChevron="True" Click="OnKnownHostsClick" />
                 <!-- W05（01-DESIGN §16.5）：从 OpenSSH 配置文件批量导入主机。 -->
                 <controls:AppListRow x:Uid="Tools_RowImportConfig"
                                      IconGlyph="{StaticResource IconUpload}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnImportConfigClick" />
             </StackPanel>
         </ScrollViewer>

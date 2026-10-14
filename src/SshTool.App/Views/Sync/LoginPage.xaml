@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.Sync.LoginPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -47,24 +47,27 @@
             </Grid>
         </Border>
         <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="2">
-            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+            <StackPanel Padding="{StaticResource CardListPadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
-                <Grid Margin="{StaticResource GapSmTop}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <Button x:Name="LoginTabButton" x:Uid="Login_LoginTab"
-                            HorizontalAlignment="Stretch" Click="OnLoginTabClick" />
-                    <Button x:Name="RegisterTabButton" x:Uid="Login_RegisterTab"
-                            Grid.Column="1" HorizontalAlignment="Stretch"
-                            Margin="{StaticResource GapSmLeft}" Click="OnRegisterTabClick" />
+                <!-- opt/full-pass：分段切换换成 SegmentTabs（选中段 accent 底、未选段正文色，
+                     双击/回车可切换），不再是两个按钮靠「禁用态」表达选中。 -->
+                <controls:SegmentTabs x:Name="ModeTabs"
+                                      Margin="{StaticResource GapSmTop}"
+                                      HorizontalAlignment="Stretch"
+                                      SelectionChanged="OnModeTabsSelectionChanged" />
+                <!-- 兼容旧路径的两个按钮收进零尺寸容器：Click 处理器与 IsEnabled 语义保留，
+                     但不再参与布局（原先与 SegmentTabs 同格会叠在一起）。 -->
+                <Grid Height="0" Visibility="Collapsed">
+                    <Button x:Name="LoginTabButton" x:Uid="Login_LoginTab" Click="OnLoginTabClick" />
+                    <Button x:Name="RegisterTabButton" x:Uid="Login_RegisterTab" Click="OnRegisterTabClick" />
                 </Grid>
-                <controls:FormSection x:Uid="Login_Section_Credentials" Margin="{StaticResource GapSmTop}">
+                <!-- opt/full-pass：表单收进卡片（与账号与同步页同材质），错误条仍留在页头下方常驻。 -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                <controls:FormSection x:Uid="Login_Section_Credentials">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
                             <TextBox x:Name="EmailBox" x:Uid="Login_EmailBox"
@@ -98,6 +101,7 @@
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
+                </Border>
                 <TextBlock x:Uid="Login_SharedNote"
                            Style="{StaticResource CaptionTextStyle}"
                            TextWrapping="Wrap"

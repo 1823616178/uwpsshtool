@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
@@ -142,6 +142,8 @@ namespace SshTool.App.Views
 
         private void BindLoaded()
         {
+            // opt/full-pass：标题改由 AppPageHeader 呈现（TextBlock 仅作兼容载体）。
+            PageHeader.Title = ViewModel.Title;
             TitleText.Text = ViewModel.Title;
             _suppressCombo = true;
             NameBox.Text = ViewModel.Name;
@@ -258,6 +260,16 @@ namespace SshTool.App.Views
         }
 
         // V04b：高级 Section 折叠/展开。点击头部翻转 chevron 并切换内容可见性。
+        // opt/full-pass：页头返回按钮（与硬件返回键同一条处理链，未保存修改仍会二次确认）。
+        private void OnHeaderBackRequested(object sender, System.EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+            }
+        }
+
         private void OnAdvancedToggleClick(object sender, RoutedEventArgs e)
         {
             bool collapsed = AdvancedContent.Visibility == Visibility.Collapsed;

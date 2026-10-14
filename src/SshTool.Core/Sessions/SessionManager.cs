@@ -25,6 +25,11 @@ namespace SshTool.Core.Sessions
         private readonly IUiDispatcher _ui;
         private readonly ILogger _logger;
         private readonly ISshAgent _agent;
+        // 线程模型：本类的方法可能来自 UI 线程、线程池（重连计时器 / ObserveConnect 续体）
+        // 与后台事件（网络变化、生命周期）。_sessions 与 _reconnectTimers 因此必须由 _gate 保护，
+        // 读侧统一先取快照再遍历（见 TunnelManager 的同款做法）。持锁时不做 await、
+        // 不触发 RaiseChanged / 回调外部（native.Dispose 等），避免死锁与重入。
+        private readonly object _gate = new object();
         private readonly List<SessionInfo> _sessions = new List<SessionInfo>();
         private readonly Dictionary<string, IDisposable> _reconnectTimers =
             new Dictionary<string, IDisposable>(StringComparer.Ordinal);
@@ -74,19 +79,32 @@ namespace SshTool.Core.Sessions
 
         public event EventHandler SessionsChanged;
 
+        // 返回快照：调用方（多为 UI 线程）会遍历/取值，直接返回活 List 会与
+        // 后台线程的增删撞出「集合已修改」或读到半个状态。
         public IReadOnlyList<SessionInfo> Sessions
         {
-            get { return _sessions; }
+            get
+            {
+                lock (_gate)
+                {
+                    return _sessions.ToArray();
+                }
+            }
         }
 
         public int ActiveSessionCount
         {
             get
             {
-                int n = 0;
-                for (int i = 0; i < _sessions.Count; i++)
+                SessionInfo[] snapshot;
+                lock (_gate)
                 {
-                    if (_sessions[i].State != SessionUiState.Closed)
+                    snapshot = _sessions.ToArray();
+                }
+                int n = 0;
+                for (int i = 0; i < snapshot.Length; i++)
+                {
+                    if (snapshot[i].State != SessionUiState.Closed)
                     {
                         n++;
                     }
@@ -157,7 +175,10 @@ namespace SshTool.Core.Sessions
             // 字段同步更新、PropertyChanged 经 _ui 回 UI 线程，否则 XAML 绑定
             //（如 StatusDot 的 Ellipse）会在后台线程触碰 STA 对象而抛 0x8001010E。
             info.SetDispatcherPost(_ui.Post);
-            _sessions.Add(info);
+            lock (_gate)
+            {
+                _sessions.Add(info);
+            }
             RaiseChanged();
             ObserveConnect(info, ConnectCoreAsync(info, host, false));
             return info;
@@ -182,14 +203,21 @@ namespace SshTool.Core.Sessions
                 info.NativeSession = null;
             }
             info.State = SessionUiState.Closed;
-            _sessions.Remove(info);
+            lock (_gate)
+            {
+                _sessions.Remove(info);
+            }
             RaiseChanged();
         }
 
 
         public void CloseAll()
         {
-            SessionInfo[] copy = _sessions.ToArray();
+            SessionInfo[] copy;
+            lock (_gate)
+            {
+                copy = _sessions.ToArray();
+            }
             for (int i = 0; i < copy.Length; i++)
             {
                 Close(copy[i].SessionId);
@@ -230,9 +258,14 @@ namespace SshTool.Core.Sessions
         public int SuspendAllForPolicy(string reason)
         {
             int count = 0;
-            for (int i = 0; i < _sessions.Count; i++)
+            SessionInfo[] snapshot;
+            lock (_gate)
             {
-                SessionInfo info = _sessions[i];
+                snapshot = _sessions.ToArray();
+            }
+            for (int i = 0; i < snapshot.Length; i++)
+            {
+                SessionInfo info = snapshot[i];
                 if (info.UserClosed || info.PolicySuspended
                     || info.State == SessionUiState.Closed || !IsAliveForPolicy(info))
                 {
@@ -271,9 +304,14 @@ namespace SshTool.Core.Sessions
         public int ResumeSuspended()
         {
             int count = 0;
-            for (int i = 0; i < _sessions.Count; i++)
+            SessionInfo[] snapshot;
+            lock (_gate)
             {
-                SessionInfo info = _sessions[i];
+                snapshot = _sessions.ToArray();
+            }
+            for (int i = 0; i < snapshot.Length; i++)
+            {
+                SessionInfo info = snapshot[i];
                 if (!info.PolicySuspended || info.UserClosed
                     || info.State == SessionUiState.Closed)
                 {
@@ -300,9 +338,14 @@ namespace SshTool.Core.Sessions
         public int ProbeAll()
         {
             int count = 0;
-            for (int i = 0; i < _sessions.Count; i++)
+            SessionInfo[] snapshot;
+            lock (_gate)
             {
-                SessionInfo info = _sessions[i];
+                snapshot = _sessions.ToArray();
+            }
+            for (int i = 0; i < snapshot.Length; i++)
+            {
+                SessionInfo info = snapshot[i];
                 if (info.PolicySuspended || info.UserClosed
                     || info.State != SessionUiState.Connected || info.NativeSession == null)
                 {
@@ -329,7 +372,11 @@ namespace SshTool.Core.Sessions
         public int OnNetworkChanged()
         {
             int affected = 0;
-            SessionInfo[] copy = _sessions.ToArray();
+            SessionInfo[] copy;
+            lock (_gate)
+            {
+                copy = _sessions.ToArray();
+            }
             for (int i = 0; i < copy.Length; i++)
             {
                 SessionInfo info = copy[i];
@@ -338,7 +385,12 @@ namespace SshTool.Core.Sessions
                 {
                     continue;
                 }
-                if (_reconnectTimers.ContainsKey(info.SessionId))
+                bool hasTimer;
+                lock (_gate)
+                {
+                    hasTimer = _reconnectTimers.ContainsKey(info.SessionId);
+                }
+                if (hasTimer)
                 {
                     ReconnectNow(info.SessionId);
                     affected++;
@@ -361,9 +413,14 @@ namespace SshTool.Core.Sessions
         // P01：Suspending 时标记「挂起前在线」的会话（01-DESIGN.md §10）。
         public void MarkOnlineBeforeSuspend()
         {
-            for (int i = 0; i < _sessions.Count; i++)
+            SessionInfo[] snapshot;
+            lock (_gate)
             {
-                SessionInfo info = _sessions[i];
+                snapshot = _sessions.ToArray();
+            }
+            for (int i = 0; i < snapshot.Length; i++)
+            {
+                SessionInfo info = snapshot[i];
                 info.WasOnlineBeforeSuspend = !info.UserClosed && !info.PolicySuspended
                     && info.State != SessionUiState.Closed
                     && (info.State == SessionUiState.Connected
@@ -374,9 +431,14 @@ namespace SshTool.Core.Sessions
         // P01：Resuming/回前台处理完成后清除标记。
         public void ClearSuspendMarks()
         {
-            for (int i = 0; i < _sessions.Count; i++)
+            SessionInfo[] snapshot;
+            lock (_gate)
             {
-                _sessions[i].WasOnlineBeforeSuspend = false;
+                snapshot = _sessions.ToArray();
+            }
+            for (int i = 0; i < snapshot.Length; i++)
+            {
+                snapshot[i].WasOnlineBeforeSuspend = false;
             }
         }
 
@@ -384,12 +446,17 @@ namespace SshTool.Core.Sessions
         {
             // 终态（用户取消重连 / 不可重试的失败 / 重试耗尽）且无待发计时器：
             // 尊重其终态文案，不覆写为 405。
+            bool hasTimer;
+            lock (_gate)
+            {
+                hasTimer = _reconnectTimers.ContainsKey(info.SessionId);
+            }
             if ((info.State == SessionUiState.Disconnected || info.State == SessionUiState.Error)
-                && !_reconnectTimers.ContainsKey(info.SessionId))
+                && !hasTimer)
             {
                 return false;
             }
-            if (info.NativeSession == null && !_reconnectTimers.ContainsKey(info.SessionId))
+            if (info.NativeSession == null && !hasTimer)
             {
                 return false;
             }
@@ -399,13 +466,18 @@ namespace SshTool.Core.Sessions
         public HostListStatus GetStatus(string hostId)
         {
             HostListStatus best = HostListStatus.None;
-            for (int i = 0; i < _sessions.Count; i++)
+            SessionInfo[] snapshot;
+            lock (_gate)
             {
-                if (!string.Equals(_sessions[i].HostId, hostId, StringComparison.Ordinal))
+                snapshot = _sessions.ToArray();
+            }
+            for (int i = 0; i < snapshot.Length; i++)
+            {
+                if (!string.Equals(snapshot[i].HostId, hostId, StringComparison.Ordinal))
                 {
                     continue;
                 }
-                HostListStatus s = ToStatus(_sessions[i].State);
+                HostListStatus s = ToStatus(snapshot[i].State);
                 if ((int)s > (int)best)
                 {
                     best = s;
@@ -1468,7 +1540,10 @@ namespace SshTool.Core.Sessions
             {
                 ObserveConnect(info, ReconnectAsync(info));
             });
-            _reconnectTimers[info.SessionId] = timer;
+            lock (_gate)
+            {
+                _reconnectTimers[info.SessionId] = timer;
+            }
         }
 
         // 连接任务的异常兜底。此前只有首次连接（OpenAsync）挂了这层，两条重连路径
@@ -1510,9 +1585,14 @@ namespace SshTool.Core.Sessions
         private void TickReconnectCountdown()
         {
             bool any = false;
-            for (int i = 0; i < _sessions.Count; i++)
+            SessionInfo[] snapshot;
+            lock (_gate)
             {
-                SessionInfo s = _sessions[i];
+                snapshot = _sessions.ToArray();
+            }
+            for (int i = 0; i < snapshot.Length; i++)
+            {
+                SessionInfo s = snapshot[i];
                 if (s.State == SessionUiState.Reconnecting && s.ReconnectInSeconds > 0)
                 {
                     s.ReconnectInSeconds = s.ReconnectInSeconds - 1;
@@ -1527,21 +1607,31 @@ namespace SshTool.Core.Sessions
 
         private void CancelTimer(string sessionId)
         {
-            IDisposable timer;
-            if (_reconnectTimers.TryGetValue(sessionId, out timer))
+            IDisposable timer = null;
+            lock (_gate)
+            {
+                if (_reconnectTimers.TryGetValue(sessionId, out timer))
+                {
+                    _reconnectTimers.Remove(sessionId);
+                }
+            }
+            // Dispose 放在锁外：计时器回调可能同步重入（与 Schedule 的工厂实现有关）。
+            if (timer != null)
             {
                 timer.Dispose();
-                _reconnectTimers.Remove(sessionId);
             }
         }
 
         private SessionInfo Find(string sessionId)
         {
-            for (int i = 0; i < _sessions.Count; i++)
+            lock (_gate)
             {
-                if (_sessions[i].SessionId == sessionId)
+                for (int i = 0; i < _sessions.Count; i++)
                 {
-                    return _sessions[i];
+                    if (_sessions[i].SessionId == sessionId)
+                    {
+                        return _sessions[i];
+                    }
                 }
             }
             return null;

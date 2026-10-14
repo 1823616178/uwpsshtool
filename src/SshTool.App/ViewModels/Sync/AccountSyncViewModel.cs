@@ -397,8 +397,12 @@ namespace SshTool.App.ViewModels.Sync
             }
             if (!value)
             {
-                // 开→关：进安全清理流程。
+                // 开→关：进安全清理流程（真正的关闭由安全清理页完成后经 Sync 状态回流）。
                 RequestSecurityRotate?.Invoke(this, EventArgs.Empty);
+                // 此处只发起导航，开关的视觉值已被用户拨到「关」，而 _state 仍是「开」。
+                // 若用户在半途取消/返回，两者就会长期发散。主动刷一次让 UI 以 VM 为准
+                //（同步密码真正关闭后会经 OnSyncChanged→RefreshAll 再次同步）。
+                RefreshAll();
                 return;
             }
             var next = _state.Preferences == null

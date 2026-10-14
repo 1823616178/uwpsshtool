@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.KnownHostsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -15,9 +15,14 @@
         <controls:AppPageHeader x:Uid="KnownHosts_Header"
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
-        <AutoSuggestBox x:Uid="KnownHostsPage_SearchBox" x:Name="SearchBox" Grid.Row="1"
-                        QueryIcon="Find" TextChanged="OnSearchChanged"
-                        Margin="{StaticResource PagePadding}" />
+        <!-- opt/full-pass：搜索框收进卡片胶囊，与主机 / 片段页同一刻度。 -->
+        <Grid Grid.Row="1" Margin="{StaticResource ListTopRowMargin}">
+            <Border Style="{StaticResource PillFieldBorderStyle}">
+                <AutoSuggestBox x:Uid="KnownHostsPage_SearchBox" x:Name="SearchBox"
+                                TextBoxStyle="{StaticResource PillAutoSuggestTextBoxStyle}"
+                                QueryIcon="Find" TextChanged="OnSearchChanged" />
+            </Border>
+        </Grid>
         <Grid Grid.Row="2">
             <Grid.ChildrenTransitions>
                 <TransitionCollection>
@@ -34,24 +39,42 @@
                                  Kind="Offline"
                                  Visibility="Collapsed" />
             <ListView x:Name="HostList" SelectionMode="Single"
-                      ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
+                      ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                      Padding="{StaticResource CardListPadding}"
                       SelectionChanged="OnSelectionChanged">
+                <ListView.Resources>
+                    <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent" />
+                </ListView.Resources>
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition IsStaggeringEnabled="True" />
+                        <AddDeleteThemeTransition />
+                        <RepositionThemeTransition />
+                    </TransitionCollection>
+                </ListView.ItemContainerTransitions>
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <!-- W06：统一 V2 列表行。 -->
+                        <!-- W06：统一 V2 列表行；opt/full-pass 起改卡片。 -->
                         <controls:AppListRow Title="{Binding Title}" Subtitle="{Binding Subtitle}"
-                                             IconGlyph="{StaticResource IconLock}" IsCompact="True" />
+                                             IconGlyph="{StaticResource IconLock}" IsCard="True" />
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
         </Grid>
-        <StackPanel x:Name="Detail" Grid.Row="3" Padding="{StaticResource PagePadding}"
-                    Background="{ThemeResource AppSurfaceBrush}" Visibility="Collapsed">
-            <controls:MonoText x:Name="FingerprintText" Compact="True" />
-            <controls:RandomArtView x:Name="ArtView" Margin="{StaticResource GapSmTop}" />
-            <Button x:Uid="KnownHostsPage_Button1" Click="OnDeleteClick" Margin="{StaticResource GapSmTop}"
-                    Style="{StaticResource DangerButtonStyle}"
-                    MinHeight="{StaticResource TouchTargetMin}" />
-        </StackPanel>
+        <!-- 底部详情：选中行的完整指纹与 randomart；opt/full-pass 起用卡片材质 + 顶部细线，
+             与列表的卡片语言一致（原先是一块无分隔的 Surface 面板）。 -->
+        <Border x:Name="Detail" Grid.Row="3" Visibility="Collapsed"
+                Background="{ThemeResource AppSurfaceBrush}"
+                BorderBrush="{ThemeResource AppBorderBrush}"
+                BorderThickness="{StaticResource BorderThinTop}">
+            <StackPanel Margin="{StaticResource CardMargin}">
+                <controls:MonoText x:Name="FingerprintText" Compact="True" />
+                <controls:RandomArtView x:Name="ArtView" Margin="{StaticResource GapSmTop}" />
+                <Button x:Uid="KnownHostsPage_Button1" Click="OnDeleteClick" Margin="{StaticResource GapSmTop}"
+                        Style="{StaticResource DangerButtonStyle}"
+                        MinHeight="{StaticResource TouchTargetMin}" />
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>

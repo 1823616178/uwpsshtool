@@ -164,7 +164,8 @@ namespace SshTool.App.Views.Sync
         {
             bool busy = ViewModel != null && ViewModel.IsBusy;
             BusyOverlay.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
-            SubmitButton.IsEnabled = ViewModel != null && ViewModel.SubmitCommand.CanExecute(null);
+            SubmitBar.IsPrimaryEnabled = ViewModel != null && ViewModel.SubmitCommand.CanExecute(null);
+            SubmitBar.PrimaryText = Localized.Get("SecurityRotate_Submit/Content", "执行");
             if (busy)
             {
                 BusyText.Text = ViewModel.BusyMessage;

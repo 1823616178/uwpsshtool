@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.Keys.KeyDetailPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -18,16 +18,28 @@
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
         <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
-            <StackPanel Padding="{StaticResource PagePadding}">
+            <StackPanel Padding="{StaticResource CardListPadding}"
+                        MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
+                <!-- opt/full-pass：详情按「名称 / 属性 / 指纹与公钥 / 使用它的主机 / 危险操作」分段收进卡片，
+                     原先是一长条平铺文本，360 宽下几乎无从扫读。 -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Padding="{StaticResource PadCard}">
                 <TextBox x:Name="NameBox" x:Uid="KeyDetail_NameBox" TextChanged="OnNameChanged" />
                 <Button x:Name="RenameButton" x:Uid="KeyDetail_Rename" Click="OnRenameClick"
                         Style="{StaticResource PrimaryButtonStyle}"
                         IsEnabled="False" Margin="{StaticResource GapXsTop}" />
+                </StackPanel>
+                </Border>
+
+                <TextBlock x:Uid="KeyDetail_AttributesHeader" Style="{StaticResource GroupHeaderTextStyle}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
+                <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Padding="{StaticResource PadCard}">
 
                 <TextBlock x:Uid="KeyDetail_TypeLabel" Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapSmTop}" />
@@ -44,46 +56,83 @@
                 <TextBlock x:Uid="KeyDetail_CreatedLabel" Style="{StaticResource CaptionTextStyle}"
                            Margin="{StaticResource GapXsTop}" />
                 <TextBlock x:Name="CreatedText" Style="{StaticResource BodyTextStyle}" />
-
-                <TextBlock x:Uid="KeyDetail_FingerprintLabel" Style="{StaticResource CaptionTextStyle}"
-                           Margin="{StaticResource GapSmTop}" />
-                <controls:MonoText x:Name="FingerprintText" Compact="True" />
-
-                <TextBlock x:Uid="KeyDetail_PublicKeyLabel" Style="{StaticResource CaptionTextStyle}"
-                           Margin="{StaticResource GapSmTop}" />
-                <controls:MonoText x:Name="PublicKeyText" Compact="True" />
-                <StackPanel Orientation="Horizontal" Margin="{StaticResource GapXsTop}">
-                    <Button x:Uid="KeyDetail_Copy" Click="OnCopyClick"
-                            Style="{StaticResource SecondaryButtonStyle}" />
-                    <Button x:Uid="KeyDetail_Share" Click="OnShareClick" Margin="{StaticResource GapSmLeft}"
-                            Style="{StaticResource SecondaryButtonStyle}" />
                 </StackPanel>
+                </Border>
 
-                <TextBlock x:Uid="KeyDetail_UsedByLabel" Style="{StaticResource CaptionTextStyle}"
-                           Margin="{StaticResource GapSmTop}" />
+                <TextBlock x:Uid="KeyDetail_FingerprintLabel" Style="{StaticResource GroupHeaderTextStyle}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
+                <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Padding="{StaticResource PadCard}">
+                    <controls:MonoText x:Name="FingerprintText" Compact="True" />
+                </StackPanel>
+                </Border>
+
+                <TextBlock x:Uid="KeyDetail_PublicKeyLabel" Style="{StaticResource GroupHeaderTextStyle}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
+                <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Padding="{StaticResource PadCard}">
+                    <controls:MonoText x:Name="PublicKeyText" Compact="True" />
+                    <Grid Margin="{StaticResource GapSmTop}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Button x:Uid="KeyDetail_Copy" Click="OnCopyClick"
+                                HorizontalAlignment="Stretch"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button x:Uid="KeyDetail_Share" Click="OnShareClick"
+                                Grid.Column="1" HorizontalAlignment="Stretch"
+                                Margin="{StaticResource GapSmLeft}"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+                    </Grid>
+                </StackPanel>
+                </Border>
+
+                <TextBlock x:Uid="KeyDetail_UsedByLabel" Style="{StaticResource GroupHeaderTextStyle}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
                 <TextBlock x:Name="NoHostsText" x:Uid="KeyDetail_NoHosts"
-                           Style="{StaticResource BodyTextStyle}" />
+                           Style="{StaticResource CaptionTextStyle}"
+                           Margin="{StaticResource CardMargin}" />
                 <ListView x:Name="HostList" SelectionMode="None"
-                  ItemContainerStyle="{StaticResource StretchListViewItemStyle}"
+                          ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                          Padding="{StaticResource CardListPadding}"
                           IsItemClickEnabled="True" ItemClick="OnHostClick">
+                    <ListView.Resources>
+                        <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent" />
+                        <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent" />
+                    </ListView.Resources>
+                    <ListView.ItemContainerTransitions>
+                        <TransitionCollection>
+                            <EntranceThemeTransition IsStaggeringEnabled="True" />
+                        </TransitionCollection>
+                    </ListView.ItemContainerTransitions>
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <!-- W06：统一 V2 列表行。 -->
+                            <!-- W06：统一 V2 列表行；opt/full-pass 起改卡片（与主机列表同材质）。 -->
                             <controls:AppListRow Title="{Binding Name}" Subtitle="{Binding Subtitle}"
                                                  IconGlyph="{StaticResource IconTerminal}"
-                                                 IsCompact="True" ShowChevron="True" />
+                                                 IsCard="True" ShowChevron="True" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
 
-                <Button x:Uid="KeyDetail_Export" Click="OnExportClick"
-                        Style="{StaticResource SecondaryButtonStyle}"
-                        Margin="{StaticResource GapSmTop}" />
-                <Button x:Uid="KeyDetail_Delete" Click="OnDeleteClick"
-                        Style="{StaticResource DangerButtonStyle}"
-                        Margin="{StaticResource GapXsTop}" />
+                <TextBlock x:Uid="KeyDetail_DangerHeader" Style="{StaticResource GroupHeaderTextStyle}"
+                           Foreground="{ThemeResource AppDangerBrush}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
+                <Border Style="{StaticResource CardBorderStyle}"
+                        BorderBrush="{ThemeResource AppDangerBrush}">
+                    <StackPanel Padding="{StaticResource PadCard}">
+                        <Button x:Uid="KeyDetail_Export" Click="OnExportClick"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                HorizontalAlignment="Stretch" />
+                        <Button x:Uid="KeyDetail_Delete" Click="OnDeleteClick"
+                                Style="{StaticResource DangerButtonStyle}"
+                                HorizontalAlignment="Stretch"
+                                Margin="{StaticResource GapSmTop}" />
+                    </StackPanel>
+                </Border>
                 <TextBlock x:Name="StatusText" Style="{StaticResource CaptionTextStyle}"
-                           TextWrapping="Wrap" Margin="{StaticResource GapXsTop}" />
+                           TextWrapping="Wrap" Margin="{StaticResource CardMargin}" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

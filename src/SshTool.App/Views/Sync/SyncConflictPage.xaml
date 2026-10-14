@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.Sync.SyncConflictPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -19,7 +19,9 @@
                                 BackRequested="OnBackRequested" />
 
         <ScrollViewer Grid.Row="1">
-            <StackPanel Padding="{StaticResource PagePadding}">
+            <StackPanel Padding="{StaticResource CardListPadding}"
+                        MaxWidth="{StaticResource FormMaxWidth}"
+                        HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
@@ -27,13 +29,10 @@
                 </StackPanel.ChildrenTransitions>
                 <controls:EmptyState x:Name="NoConflictEmpty" Visibility="Collapsed" />
 
-                <Border x:Name="SummaryCard"
-                        Background="{ThemeResource AppSurfaceBrush}"
-                        BorderBrush="{ThemeResource AppBorderBrush}"
-                        BorderThickness="{StaticResource BorderThin}"
-                        CornerRadius="{StaticResource RadiusMd}"
-                        Padding="{StaticResource PadMd}">
-                    <StackPanel>
+                <!-- opt/full-pass：摘要卡与项目列表统一到卡片材质（原先是一块 RadiusMd 的小面板，
+                     与「账号与同步」页的卡片语言不一致）。 -->
+                <Border x:Name="SummaryCard" Style="{StaticResource CardBorderStyle}">
+                    <StackPanel Padding="{StaticResource PadCard}">
                         <TextBlock x:Name="TitleText" Style="{StaticResource SectionTitleTextStyle}"
                                    TextWrapping="Wrap" />
                         <TextBlock x:Name="DescriptionText" Style="{StaticResource BodyTextStyle}"
@@ -45,16 +44,29 @@
                     </StackPanel>
                 </Border>
 
-                <TextBlock x:Name="FieldsHeader" x:Uid="Conflict_FieldsHeader" Style="{StaticResource CaptionTextStyle}"
-                           Margin="{StaticResource GapMdTop}" />
+                <TextBlock x:Name="FieldsHeader" x:Uid="Conflict_FieldsHeader"
+                           Style="{StaticResource GroupHeaderTextStyle}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
                 <ListView x:Name="FieldsList"
                           SelectionMode="None"
-                          IsItemClickEnabled="False">
+                          IsItemClickEnabled="False"
+                          ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                          Padding="{StaticResource CardListPadding}">
+                    <ListView.Resources>
+                        <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent" />
+                        <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent" />
+                    </ListView.Resources>
+                    <ListView.ItemContainerTransitions>
+                        <TransitionCollection>
+                            <EntranceThemeTransition IsStaggeringEnabled="True" />
+                        </TransitionCollection>
+                    </ListView.ItemContainerTransitions>
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <controls:AppListRow Title="{Binding EntityName}"
                                                  Subtitle="{Binding FieldLabel}"
-                                                 ShowChevron="False" />
+                                                 ShowChevron="False"
+                                                 IsCard="True" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
@@ -68,16 +80,24 @@
             </StackPanel>
         </ScrollViewer>
 
-        <Border Grid.Row="2" Background="{ThemeResource AppBgBrush}"
-                Padding="{StaticResource PagePadding}">
-            <StackPanel>
+        <!-- opt/full-pass：底部操作区补顶部细线（与 BottomActionBar 同层级语言），
+             两个选择并排：屏幕窄时改纵排由 WrapPanel 兜底不现实，保持纵排但收进限宽。 -->
+        <Border Grid.Row="2" Background="{ThemeResource AppSurfaceBrush}"
+                BorderBrush="{ThemeResource AppBorderBrush}"
+                BorderThickness="{StaticResource BorderThinTop}">
+            <StackPanel Padding="{StaticResource PadActionBar}"
+                        MaxWidth="{StaticResource FormMaxWidth}"
+                        HorizontalAlignment="Stretch">
                 <Button x:Name="PrimaryButton"
                         Style="{StaticResource PrimaryButtonStyle}"
                         HorizontalAlignment="Stretch"
+                        MinHeight="{StaticResource BottomBarHeight}"
                         Click="OnPrimaryClick" />
                 <Button x:Name="SecondaryButton"
                         Margin="{StaticResource GapSmTop}"
                         HorizontalAlignment="Stretch"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        MinHeight="{StaticResource BottomBarHeight}"
                         Click="OnSecondaryClick" />
                 <ProgressRing x:Name="Progress" Width="{StaticResource SpaceLg}" Height="{StaticResource SpaceLg}"
                               Margin="{StaticResource GapSmTop}"

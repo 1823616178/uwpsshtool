@@ -7,15 +7,23 @@
 
     <!-- V04b（§6.4 + C-06）：密钥管理。行用 AppListRow（图标/标题/副标题/尾操作），
          底部 BottomActionBar（生成/导入），全量文案走 resw 双语。 -->
+    <!-- opt/full-pass 列表页收口：密钥列表与主页主机列表同一套卡片语言——页头 + 数量摘要行 +
+         卡片列表（AppListRow.IsCard）+ 统一空态/失败态。行结构、菜单动作与命令契约不变。 -->
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock x:Uid="Keys_Title" Style="{StaticResource PageTitleTextStyle}"
-                   Margin="{StaticResource PagePadding}" />
-        <Grid Grid.Row="1">
+        <controls:AppPageHeader x:Name="PageHeader" x:Uid="Keys_Header"
+                                Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnHeaderBackRequested" />
+        <!-- 列表摘要行：数量 + 一句说明，与主机页的搜索行同一刻度（ListTopRowMargin）。 -->
+        <TextBlock x:Name="CountText" Style="{StaticResource CaptionTextStyle}"
+                   TextWrapping="Wrap"
+                   Margin="{StaticResource ListTopRowMargin}" />
+        <Grid Grid.Row="2">
             <Grid.ChildrenTransitions>
                 <TransitionCollection>
                     <EntranceThemeTransition />
@@ -28,13 +36,29 @@
                                  Kind="Offline"
                                  Visibility="Collapsed" />
             <ListView x:Name="KeyList" SelectionMode="None"
-                      IsItemClickEnabled="True" ItemClick="OnItemClick">
+                      IsItemClickEnabled="True" ItemClick="OnItemClick"
+                      ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                      Padding="{StaticResource CardListPadding}">
+                <ListView.Resources>
+                    <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent" />
+                </ListView.Resources>
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition IsStaggeringEnabled="True" />
+                        <AddDeleteThemeTransition />
+                        <RepositionThemeTransition />
+                    </TransitionCollection>
+                </ListView.ItemContainerTransitions>
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <controls:AppListRow IconGlyph="{StaticResource IconKey}"
                                              Title="{Binding Name}"
                                              Subtitle="{Binding Subtitle}"
-                                             ShowChevron="True">
+                                             ShowChevron="True"
+                                             IsCard="True"
+                                             RightTapped="OnRowRightTapped"
+                                             Holding="OnRowHolding">
                             <controls:AppListRow.TrailingContent>
                                 <Button x:Uid="Keys_MoreButton"
                                         Style="{StaticResource IconButtonStyle}"
@@ -55,7 +79,7 @@
                 </ListView.ItemTemplate>
             </ListView>
         </Grid>
-        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"
+        <controls:BottomActionBar x:Name="BottomBar" Grid.Row="3"
                                   ShowOverflow="True"
                                   PrimaryClick="OnGenerateClick"
                                   OverflowClick="OnImportClick" />

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -757,6 +757,55 @@ namespace SshTool.Core.Tests.Sessions
             Assert.Same(second, info.NativeSession);
             Assert.False(info.ShellOpened);
             Assert.DoesNotContain(second.Calls, c => c == "OpenShell");
+        }
+
+        // code-review-pass：Sessions 返回快照——后台线程遍历时即使 UI 线程在增删会话，
+        // 也不得出现「集合已修改」。这里开多路并发，反复取 Sessions/ActiveSessionCount。
+        [Fact]
+        public async Task Sessions_ReturnsSnapshot_SafeUnderConcurrentOpenAndClose()
+        {
+            var fx = new Fixture();
+            Host host = await fx.AddHostAsync();
+
+            var infos = new List<SessionInfo>();
+            for (int i = 0; i < 8; i++)
+            {
+                fx.Enqueue(ReadySession());
+                infos.Add(await fx.Manager.OpenAsync(new SessionOpenRequest { HostId = host.Id }));
+            }
+
+            var stop = false;
+            var reader = Task.Run(() =>
+            {
+                while (!stop)
+                {
+                    // 遍历 + 计数：若返回的是活 List，会与下面的 Close 撞出异常。
+                    int n = 0;
+                    foreach (SessionInfo s in fx.Manager.Sessions)
+                    {
+                        if (s != null)
+                        {
+                            n++;
+                        }
+                    }
+                    Assert.True(fx.Manager.ActiveSessionCount >= 0);
+                }
+            });
+
+            try
+            {
+                foreach (SessionInfo info in infos)
+                {
+                    fx.Manager.Close(info.SessionId);
+                }
+            }
+            finally
+            {
+                stop = true;
+                await reader;
+            }
+
+            Assert.Empty(fx.Manager.Sessions);
         }
     }
 }

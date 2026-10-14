@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.Sync.VaultSetupPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -19,12 +19,14 @@
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
         <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
-            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+            <StackPanel Padding="{StaticResource CardListPadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
+                <!-- opt/full-pass：表单收进卡片（与账号与同步页同材质）。 -->
+                <Border Style="{StaticResource CardBorderStyle}">
                 <controls:FormSection x:Uid="VaultSetup_Section_Setup">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
@@ -53,6 +55,7 @@
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
+                </Border>
             </StackPanel>
         </ScrollViewer>
         <controls:BottomActionBar x:Name="BottomBar" Grid.Row="2"

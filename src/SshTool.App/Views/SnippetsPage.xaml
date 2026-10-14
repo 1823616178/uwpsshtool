@@ -7,35 +7,33 @@
 
     <!-- V04b（§6.4 + C-06）：命令片段管理。行 ▶ 发送改 TerminalIconButtonStyle + resw 标签；
          分组行用 GroupHeader；新建走 BottomActionBar；全量文案走 resw 双语。 -->
+    <!-- opt/full-pass 列表页收口：与主页主机列表同一套卡片语言——页头 + 搜索胶囊行 +
+         卡片行 + 分组头 + 三种空态。行结构、发送语义与命令契约不变。 -->
     <Page.Resources>
         <CollectionViewSource x:Key="GroupedSnippets" x:Name="GroupedSnippets"
                               IsSourceGrouped="True" ItemsPath="Rows" />
         <DataTemplate x:Key="SnippetItemTemplate">
-            <Grid Padding="{StaticResource PagePadding}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Name}" Style="{StaticResource BodyTextStyle}" />
-                    <TextBlock Text="{Binding Preview}" Style="{StaticResource CaptionTextStyle}"
-                               TextTrimming="CharacterEllipsis" />
-                </StackPanel>
-                <Button x:Uid="Snippets_SendButton" Grid.Column="1" Click="OnSendClick"
-                        IsEnabled="{Binding SendEnabled}"
-                        MinWidth="{StaticResource TouchTargetMin}"
-                        MinHeight="{StaticResource TouchTargetMin}"
-                        Margin="{StaticResource GapSmLeft}"
-                        Background="{ThemeResource AppSurfaceAltBrush}">
-                    <FontIcon Glyph="{StaticResource IconForward}" FontSize="{StaticResource FontBody}" />
-                </Button>
-            </Grid>
+            <controls:AppListRow IconGlyph="{StaticResource IconSnippet}"
+                                 Title="{Binding Name}"
+                                 Subtitle="{Binding Preview}"
+                                 ShowChevron="True"
+                                 IsCard="True">
+                <controls:AppListRow.TrailingContent>
+                    <Button x:Uid="Snippets_SendButton" Click="OnSendClick"
+                            IsEnabled="{Binding SendEnabled}"
+                            MinWidth="{StaticResource TouchTargetMin}"
+                            MinHeight="{StaticResource TouchTargetMin}"
+                            Style="{StaticResource IconButtonStyle}">
+                        <FontIcon Glyph="{StaticResource IconForward}" FontSize="{StaticResource FontBody}" />
+                    </Button>
+                </controls:AppListRow.TrailingContent>
+            </controls:AppListRow>
         </DataTemplate>
         <!-- V04b：分组行标题。GroupHeader 组件绑定 HostListGroup，片段分组仍为 SnippetGroupVm，
              保留分组标题文本样式（Caption + PagePadding），后续若通用化 GroupHeader 再切回。 -->
         <DataTemplate x:Key="SnippetGroupHeaderTemplate">
-            <TextBlock Text="{Binding Title}" Style="{StaticResource CaptionTextStyle}"
-                       Padding="{StaticResource PagePadding}" />
+            <TextBlock Text="{Binding Title}" Style="{StaticResource GroupHeaderTextStyle}"
+                       Margin="{StaticResource GroupHeaderPadding}" />
         </DataTemplate>
     </Page.Resources>
 
@@ -49,9 +47,14 @@
         <controls:AppPageHeader x:Uid="Snippets_Title"
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
-        <AutoSuggestBox x:Name="SearchBox" x:Uid="Snippets_SearchBox" Grid.Row="1"
-                        QueryIcon="Find" TextChanged="OnSearchChanged"
-                        Margin="{StaticResource PagePadding}" />
+        <!-- 搜索框收进卡片胶囊（与主机页同款 PillFieldBorderStyle + 内部透明文本框）。 -->
+        <Grid Margin="{StaticResource ListTopRowMargin}">
+            <Border Style="{StaticResource PillFieldBorderStyle}">
+                <AutoSuggestBox x:Name="SearchBox" x:Uid="Snippets_SearchBox"
+                                TextBoxStyle="{StaticResource PillAutoSuggestTextBoxStyle}"
+                                QueryIcon="Find" TextChanged="OnSearchChanged" />
+            </Border>
+        </Grid>
         <Grid Grid.Row="2">
             <Grid.ChildrenTransitions>
                 <TransitionCollection>
@@ -71,7 +74,20 @@
                       ItemTemplate="{StaticResource SnippetItemTemplate}"
                       SelectionMode="None"
                       IsItemClickEnabled="True"
-                      ItemClick="OnItemClick">
+                      ItemClick="OnItemClick"
+                      ItemContainerStyle="{StaticResource CardListViewItemStyle}"
+                      Padding="{StaticResource CardListPadding}">
+                <ListView.Resources>
+                    <SolidColorBrush x:Key="SystemControlHighlightListLowBrush" Color="Transparent" />
+                    <SolidColorBrush x:Key="SystemControlHighlightListMediumBrush" Color="Transparent" />
+                </ListView.Resources>
+                <ListView.ItemContainerTransitions>
+                    <TransitionCollection>
+                        <EntranceThemeTransition IsStaggeringEnabled="True" />
+                        <AddDeleteThemeTransition />
+                        <RepositionThemeTransition />
+                    </TransitionCollection>
+                </ListView.ItemContainerTransitions>
                 <ListView.GroupStyle>
                     <GroupStyle HidesIfEmpty="False" HeaderTemplate="{StaticResource SnippetGroupHeaderTemplate}" />
                 </ListView.GroupStyle>

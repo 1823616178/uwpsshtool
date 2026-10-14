@@ -1,4 +1,4 @@
-using SshTool.App.Infrastructure;
+﻿using SshTool.App.Infrastructure;
 using SshTool.Core.Common;
 using Windows.ApplicationModel.Resources;
 using Windows.UI.Xaml;
@@ -36,6 +36,7 @@ namespace SshTool.App.Views
             string title = args != null && !string.IsNullOrEmpty(args.Title)
                 ? args.Title : Loader.GetString("Placeholder_Title");
             string milestone = args != null ? args.Milestone : "later";
+            PageHeader.Title = title;
             Empty.Title = title;
             Empty.Description = Loader.GetString("Placeholder_ComingSoon/Description");
             // 里程碑代号只进日志，供开发排查；页面不显示 M3/M5/M7 这类内部代号。
@@ -43,6 +44,21 @@ namespace SshTool.App.Views
             if (ServiceRegistry.TryGet(out log))
             {
                 log.Log(LogLevel.Info, "Placeholder", title + " 未实现，计划里程碑 " + milestone);
+            }
+        }
+
+        // opt/full-pass：页头返回与硬件返回键同一条处理链。
+        private void OnBackRequested(object sender, System.EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+                return;
+            }
+            if (Frame != null && Frame.CanGoBack)
+            {
+                Frame.GoBack();
             }
         }
 

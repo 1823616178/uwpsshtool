@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Keys;
 using SshTool.Core.Common;
@@ -28,6 +28,53 @@ namespace SshTool.App.Views.Keys
             Empty.PrimaryText = _loader.GetString("Keys_Empty_Primary");
             Empty.SecondaryText = _loader.GetString("Keys_Empty_Secondary");
             BottomBar.PrimaryText = _loader.GetString("Keys_Generate/Label");
+            UpdateCountText();
+        }
+
+        // opt/full-pass：页头标题 + 摘要行（数量）。文案走 resw，两处都允许资源缺失时为空闲值。
+        private void UpdateCountText()
+        {
+            int count = ViewModel.Rows == null ? 0 : ViewModel.Rows.Count;
+            CountText.Text = count == 0
+                ? _loader.GetString("Keys_CountFormatNone")
+                : Localized.Format("Keys_CountFormat", "{0} 个密钥 · 长按可查看详情或删除", count);
+        }
+
+        // opt/full-pass：整行长期按住/右键与尾槽「⋯」共用同一组动作（详情 / 删除）。
+        private void OnRowHolding(object sender, HoldingRoutedEventArgs e)
+        {
+            if (e.HoldingState == Windows.UI.Input.HoldingState.Started)
+            {
+                ShowRowMenu((FrameworkElement)sender, e.GetPosition((UIElement)sender));
+            }
+        }
+
+        private void OnRowRightTapped(object sender, RightTappedRoutedEventArgs e)
+        {
+            ShowRowMenu((FrameworkElement)sender, e.GetPosition((UIElement)sender));
+        }
+
+        private void ShowRowMenu(FrameworkElement element, Windows.Foundation.Point position)
+        {
+            var row = element.DataContext as KeyRow;
+            if (row == null)
+            {
+                return;
+            }
+
+            var menu = new MenuFlyout();
+            var detail = new MenuFlyoutItem { Text = _loader.GetString("Keys_MenuDetail/Text"), DataContext = row };
+            detail.Click += OnDetailClick;
+            var delete = new MenuFlyoutItem
+            {
+                Text = _loader.GetString("Keys_MenuDelete/Text"),
+                DataContext = row,
+                Style = (Style)Application.Current.Resources["DangerMenuItemStyle"]
+            };
+            delete.Click += OnDeleteClick;
+            menu.Items.Add(detail);
+            menu.Items.Add(delete);
+            menu.ShowAt(element, position);
         }
 
         public KeysViewModel ViewModel { get; private set; }
@@ -96,6 +143,16 @@ namespace SshTool.App.Views.Keys
         {
             Empty.Visibility = ViewModel.IsEmpty ? Visibility.Visible : Visibility.Collapsed;
             KeyList.Visibility = ViewModel.IsEmpty ? Visibility.Collapsed : Visibility.Visible;
+            UpdateCountText();
+        }
+
+        private void OnHeaderBackRequested(object sender, EventArgs e)
+        {
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
+            {
+                nav.RequestBack();
+            }
         }
 
         private void OnItemClick(object sender, ItemClickEventArgs e)

@@ -6,6 +6,8 @@
     Background="{ThemeResource AppBgBrush}">
 
     <!-- G05 设置首页：AppListRow 列出分组并实时显示关键值摘要，点按进入二级页。 -->
+    <!-- opt/full-pass 列表页收口：分组行改卡片（与主页主机列表同材质），并补上「关于」段的分组头，
+         让「本机偏好 / 账号 / 应用」三段可一眼扫开；二级页归属与摘要逻辑不变。 -->
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -17,29 +19,49 @@
                                 BackRequested="OnHeaderBackRequested" />
 
         <ScrollViewer Grid.Row="1">
-            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+            <StackPanel Padding="{StaticResource CardListPadding}"
+                        MaxWidth="{StaticResource FormMaxWidth}"
+                        HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
-                        <EntranceThemeTransition />
+                        <EntranceThemeTransition IsStaggeringEnabled="True" />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
+
+                <TextBlock x:Uid="Settings_GroupDevice"
+                           Style="{StaticResource GroupHeaderTextStyle}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
                 <controls:AppListRow x:Name="GeneralRow" x:Uid="Settings_Row_General"
                                      IconGlyph="{StaticResource IconSettings}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnGeneralClick" />
                 <controls:AppListRow x:Name="TerminalRow" x:Uid="Settings_Row_Terminal"
                                      IconGlyph="{StaticResource IconTerminal}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnTerminalClick" />
                 <controls:AppListRow x:Name="KeyboardRow" x:Uid="Settings_Row_Keyboard"
                                      IconGlyph="{StaticResource IconKeyboard}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnKeyboardClick" />
+
+                <TextBlock x:Uid="Settings_GroupConnection"
+                           Style="{StaticResource GroupHeaderTextStyle}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
                 <controls:AppListRow x:Name="ConnectionRow" x:Uid="Settings_Row_Connection"
                                      IconGlyph="{StaticResource IconConnect}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnConnectionClick" />
                 <controls:AppListRow x:Name="SyncRow" x:Uid="Settings_Row_Sync"
                                      IconGlyph="{StaticResource IconSync}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnSyncClick" />
+
+                <TextBlock x:Uid="Settings_GroupApp"
+                           Style="{StaticResource GroupHeaderTextStyle}"
+                           Margin="{StaticResource GroupHeaderPadding}" />
                 <controls:AppListRow x:Name="AboutRow" x:Uid="Settings_Row_About"
                                      IconGlyph="{StaticResource IconInfo}"
+                                     IsCard="True"
                                      ShowChevron="True" Click="OnAboutClick" />
             </StackPanel>
         </ScrollViewer>

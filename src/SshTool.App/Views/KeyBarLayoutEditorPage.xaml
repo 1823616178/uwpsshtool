@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.KeyBarLayoutEditorPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -43,21 +43,27 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition x:Name="EditorSideColumn" Width="Auto" />
             </Grid.ColumnDefinitions>
-            <controls:FormSection x:Uid="KeyBarEditor_Section_Available" Margin="{StaticResource PagePadding}">
+            <!-- opt/full-pass：分组收进卡片（卡片自带外边距）。 -->
+            <Border Style="{StaticResource CardBorderStyle}">
+            <controls:FormSection x:Uid="KeyBarEditor_Section_Available" Margin="{StaticResource PadCard}">
                 <controls:FormSection.SectionContent>
                     <ListView x:Name="AvailableList"
                               ItemTemplate="{StaticResource KeyItemTemplate}"
                               SelectionMode="Single" />
                 </controls:FormSection.SectionContent>
             </controls:FormSection>
+            </Border>
+            <!-- opt/full-pass：分组收进卡片（卡片自带外边距）。 -->
+            <Border Style="{StaticResource CardBorderStyle}">
             <controls:FormSection x:Name="SelectedSection" x:Uid="KeyBarEditor_Section_Selected"
-                                  Grid.Row="1" Grid.Column="0" Margin="{StaticResource PagePadding}">
+                                  Grid.Row="1" Grid.Column="0" Margin="{StaticResource PadCard}">
                 <controls:FormSection.SectionContent>
                     <ListView x:Name="SelectedList"
                               ItemTemplate="{StaticResource KeyItemTemplate}"
                               SelectionMode="Single" />
                 </controls:FormSection.SectionContent>
             </controls:FormSection>
+            </Border>
         </Grid>
         <StackPanel Grid.Row="3" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
             <StackPanel Orientation="Horizontal" Margin="{StaticResource PagePadding}">

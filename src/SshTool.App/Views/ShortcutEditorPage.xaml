@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.ShortcutEditorPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -8,7 +8,7 @@
     <!-- U14 快捷键表编辑（02-UI-DESIGN.md §5.16）：列出动作 ↔ 组合键，点击录制新组合。 -->
     <Page.Resources>
         <DataTemplate x:Key="ShortcutItemTemplate">
-            <Grid Padding="{StaticResource PagePadding}">
+            <Grid Padding="{StaticResource CardListPadding}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -37,6 +37,8 @@
                                 BackRequested="OnHeaderBackRequested" />
         <TextBlock x:Uid="Shortcut_Subtitle" Style="{StaticResource CaptionTextStyle}" Grid.Row="1"
                    Margin="{StaticResource PagePadding}" TextWrapping="Wrap" />
+        <!-- opt/full-pass：分组收进卡片（卡片自带外边距）。 -->
+        <Border Style="{StaticResource CardBorderStyle}">
         <controls:FormSection x:Uid="Shortcut_Section_List" Grid.Row="2"
                               MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch"
                               Margin="{StaticResource PagePadding}">
@@ -62,6 +64,7 @@
                 </Grid>
             </controls:FormSection.SectionContent>
         </controls:FormSection>
+        </Border>
         <!-- 底部固定操作条：主操作=恢复默认 -->
         <controls:BottomActionBar x:Name="BottomBar" Grid.Row="3"
                                   PrimaryClick="OnResetClick"

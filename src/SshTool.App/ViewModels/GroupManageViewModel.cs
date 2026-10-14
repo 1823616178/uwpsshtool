@@ -21,6 +21,31 @@ namespace SshTool.App.ViewModels
         public int Order { get; set; }
         public int HostCount { get; set; }
         public int TunnelCount { get; set; }
+
+        // opt/full-pass：卡片行用的副标题与分组色圆点（本地化在 VM 里拼，XAML 只绑值）。
+        public string Subtitle
+        {
+            get
+            {
+                return Localized.Format(
+                    "GroupManage_CountFormat", "{0} 台主机 · {1} 条隧道", HostCount, TunnelCount);
+            }
+        }
+
+        public Windows.UI.Xaml.Media.SolidColorBrush ColorBrush
+        {
+            get
+            {
+                return string.IsNullOrEmpty(Color)
+                    ? ThemeService.ResolveBrush("AppTextFaintBrush") as Windows.UI.Xaml.Media.SolidColorBrush
+                    : AppearanceListViewModel.FromHex(Color);
+            }
+        }
+
+        public Windows.UI.Xaml.Visibility ColorVisibility
+        {
+            get { return Windows.UI.Xaml.Visibility.Visible; }
+        }
     }
 
     public sealed class GroupManageViewModel : ViewModelBase

@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.Sync.VaultUnlockPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -19,7 +19,7 @@
                                 Level="Secondary" ShowBackButton="True"
                                 BackRequested="OnHeaderBackRequested" />
         <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
-            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+            <StackPanel Padding="{StaticResource CardListPadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
@@ -32,18 +32,21 @@
                            TextWrapping="Wrap"
                            Margin="{StaticResource GapSmTop}"
                            Visibility="Collapsed" />
-                <Grid Margin="{StaticResource GapSmTop}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
+                <!-- opt/full-pass：分段切换换 SegmentTabs；两个旧按钮保留为隐藏载体（IsEnabled 语义不变）。 -->
+                <controls:SegmentTabs x:Name="ModeTabs"
+                                      Margin="{StaticResource GapSmTop}"
+                                      HorizontalAlignment="Stretch"
+                                      SelectionChanged="OnModeTabsSelectionChanged" />
+                <!-- 兼容旧路径的两个按钮收进零尺寸容器（Click 处理器与 IsEnabled 语义保留）。 -->
+                <Grid Height="0" Visibility="Collapsed">
                     <Button x:Name="PasswordTabButton" x:Uid="VaultUnlock_PasswordTab"
-                            HorizontalAlignment="Stretch" Click="OnPasswordTabClick" />
+                            Click="OnPasswordTabClick" />
                     <Button x:Name="RecoveryTabButton" x:Uid="VaultUnlock_RecoveryTab"
-                            Grid.Column="1" HorizontalAlignment="Stretch"
-                            Margin="{StaticResource GapSmLeft}" Click="OnRecoveryTabClick" />
+                            Click="OnRecoveryTabClick" />
                 </Grid>
-                <controls:FormSection x:Uid="VaultUnlock_Section_Unlock" Margin="{StaticResource GapSmTop}">
+                <!-- opt/full-pass：解锁表单收进卡片。 -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                <controls:FormSection x:Uid="VaultUnlock_Section_Unlock">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
                             <PasswordBox x:Name="SyncPasswordBox" x:Uid="VaultUnlock_PasswordBox"
@@ -67,6 +70,7 @@
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
+                </Border>
                 <TextBlock x:Uid="VaultUnlock_Hint"
                            Style="{StaticResource CaptionTextStyle}"
                            TextWrapping="Wrap"

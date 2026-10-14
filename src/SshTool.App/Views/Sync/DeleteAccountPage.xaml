@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.Sync.DeleteAccountPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -46,7 +46,7 @@
         </Border>
 
         <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="2">
-            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+            <StackPanel Padding="{StaticResource CardListPadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
@@ -62,7 +62,9 @@
                                Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
                 </Border>
 
-                <controls:FormSection x:Uid="DeleteAccount_Section_Confirm" Margin="{StaticResource GapMdTop}">
+                <!-- opt/full-pass：表单收进卡片。 -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                <controls:FormSection x:Uid="DeleteAccount_Section_Confirm">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
                             <TextBlock x:Uid="DeleteAccount_PasswordLabel"
@@ -85,6 +87,7 @@
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
+                </Border>
             </StackPanel>
         </ScrollViewer>
 

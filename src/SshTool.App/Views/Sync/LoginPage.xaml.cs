@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
@@ -298,6 +298,12 @@ namespace SshTool.App.Views.Sync
             return SyncNavigation.GoAfterAuth(Frame, 1);
         }
 
+        // opt/full-pass：分段切换的入口（SegmentTabs 只在用户点击时抛事件，程序化同步不抛）。
+        private void OnModeTabsSelectionChanged(object sender, System.EventArgs e)
+        {
+            ViewModel.SetRegisterMode(ModeTabs.SelectedIndex == 1);
+        }
+
         private void RefreshAll()
         {
             RefreshMode();
@@ -312,6 +318,16 @@ namespace SshTool.App.Views.Sync
             PasswordHint.Visibility = register ? Visibility.Visible : Visibility.Collapsed;
             LoginTabButton.IsEnabled = !register;
             RegisterTabButton.IsEnabled = register;
+            if (ModeTabs.ItemsSource == null)
+            {
+                ModeTabs.ItemsSource = new[]
+                {
+                    GetString("Login_LoginTab/Content", "Sign in"),
+                    GetString("Login_RegisterTab/Content", "Register")
+                };
+            }
+            ModeTabs.SelectedIndex = register ? 1 : 0;
+            ModeTabs.IsEnabled = !ViewModel.IsBusy;
             BottomBar.PrimaryText = GetString(register ? "Login_SubmitRegister" : "Login_SubmitLogin",
                 register ? "Register" : "Sign in");
             RefreshError();

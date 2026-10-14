@@ -1,4 +1,4 @@
-using SshTool.App.Dialogs;
+﻿using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
 using SshTool.Core.Appearance;
@@ -32,11 +32,27 @@ namespace SshTool.App.Views
         // R01 (C-02)：导航世代，离开后加载链不再触碰 UI。
         private readonly NavigationLifetime _lifetime = new NavigationLifetime();
 
+        // opt/full-pass：底栏主操作=新建主题，溢出菜单=导入（原先两个平级图标按钮换成
+        // 与密钥/片段页同一套「主操作 + 溢出」结构）。
+        private void ApplyBottomBarText()
+        {
+            BottomBar.PrimaryText = Localized.Get("AppearanceList_NewButton/Label", "新建");
+            var import = new MenuFlyoutItem
+            {
+                Text = Localized.Get("AppearanceList_ImportButton/Label", "导入")
+            };
+            import.Click += OnImportClick;
+            var flyout = new MenuFlyout();
+            flyout.Items.Add(import);
+            BottomBar.OverflowFlyout = flyout;
+        }
+
         public AppearanceListPage()
         {
             ViewModel = new AppearanceListViewModel(AppServices.Current);
             this.InitializeComponent();
             AppearanceList.ItemsSource = ViewModel.Items;
+            ApplyBottomBarText();
         }
 
         public AppearanceListViewModel ViewModel { get; private set; }

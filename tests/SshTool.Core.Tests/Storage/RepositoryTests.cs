@@ -285,6 +285,44 @@ namespace SshTool.Core.Tests.Storage
             Assert.Equal("第一个", (await repo.GetByIdAsync("dup")).Name);
         }
 
+        // code-review-pass：并发读（GetByIdAsync / GetAllAsync）不得与整体替换（ReplaceAllAsync）
+        // 撞出越界或「按 id 取到错对象」——快照成对发布前，读者可能拿到新列表 + 旧索引。
+        [Fact]
+        public async Task GetById_ConcurrentWithReplace_StaysConsistent()
+        {
+            var repo = new HostRepo(new InMemoryFileSystem());
+            await repo.ReplaceAllAsync(
+                new List<Host> { NewHost("a"), NewHost("b"), NewHost("c") }, ChangeOrigin.Sync);
+
+            var stop = false;
+            var writer = Task.Run(async () =>
+            {
+                var shortSet = new List<Host> { NewHost("a") };
+                var longSet = new List<Host> { NewHost("a"), NewHost("b"), NewHost("c"), NewHost("d") };
+                int i = 0;
+                while (!stop)
+                {
+                    await repo.ReplaceAllAsync((i++ % 2 == 0) ? shortSet : longSet, ChangeOrigin.Sync);
+                }
+            });
+
+            try
+            {
+                for (int i = 0; i < 4000; i++)
+                {
+                    Host hit = await repo.GetByIdAsync("a");
+                    Assert.NotNull(hit);
+                    Assert.Equal("a", hit.Id);
+                    Assert.Equal("主机 a", hit.Name);
+                }
+            }
+            finally
+            {
+                stop = true;
+                await writer;
+            }
+        }
+
         // code-review-pass：启动时读失败且备份不了 → 挂起时的 Flush 不得把占位空集合写回盘上。
         [Fact]
         public async Task Flush_AfterUnreadableLoad_DoesNotOverwriteOriginal()

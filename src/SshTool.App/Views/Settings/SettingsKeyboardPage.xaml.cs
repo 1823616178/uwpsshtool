@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
@@ -47,9 +47,8 @@ namespace SshTool.App.Views.Settings
             try
             {
                 KeyBarVisibleSwitch.IsOn = ViewModel.KeyBarVisible;
-                KeyBarLayoutSection.Header = Load("Settings_Keyboard_KeyBarLayout_Header");
+                // 行标题由 XAML 里 TextBlock 的 x:Uid 提供（这两行原本误把 Grid 当 FormSection 设 Header）。
                 KeyBarSummary.Text = FormatKeyBarSummary();
-                ShortcutsSection.Header = Load("Settings_Keyboard_Shortcuts_Header");
                 ShortcutSummary.Text = FormatShortcutSummary();
             }
             finally

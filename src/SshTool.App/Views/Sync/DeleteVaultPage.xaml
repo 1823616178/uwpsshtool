@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.Sync.DeleteVaultPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -18,7 +18,7 @@
                                 BackRequested="OnBackRequested" />
 
         <ScrollViewer infra:InputPaneScroll.IsEnabled="True" Grid.Row="1">
-            <StackPanel Padding="{StaticResource PagePadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
+            <StackPanel Padding="{StaticResource CardListPadding}" MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <EntranceThemeTransition />
@@ -28,7 +28,9 @@
                            Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
                            Margin="{StaticResource GapSmTop}" />
 
-                <controls:FormSection x:Uid="DeleteVault_Section_Confirm" Margin="{StaticResource GapMdTop}">
+                <!-- opt/full-pass：表单收进卡片。 -->
+                <Border Style="{StaticResource CardBorderStyle}">
+                <controls:FormSection x:Uid="DeleteVault_Section_Confirm">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
                             <TextBlock x:Uid="DeleteVault_PasswordLabel"
@@ -46,6 +48,7 @@
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
+                </Border>
             </StackPanel>
         </ScrollViewer>
 

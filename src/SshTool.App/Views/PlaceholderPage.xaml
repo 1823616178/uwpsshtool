@@ -5,18 +5,15 @@
     xmlns:controls="using:SshTool.App.Controls"
     Background="{ThemeResource AppBgBrush}">
 
-    <Grid Padding="{StaticResource PagePadding}">
-        <Grid.ChildrenTransitions>
-            <TransitionCollection>
-                <EntranceThemeTransition />
-            </TransitionCollection>
-        </Grid.ChildrenTransitions>
+    <!-- opt/full-pass：占位页也走与其余页面一致的骨架——页头返回按钮 + 居中空态，
+         不再是一个孤零零的次级按钮加一个字形（原先按钮 Margin=GapSmTop 贴在状态栏下方）。 -->
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <Button x:Uid="Placeholder_BackButton" Click="OnBackClick" Margin="{StaticResource GapSmTop}"
-                Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Left" />
+        <controls:AppPageHeader x:Name="PageHeader" Level="Secondary" ShowBackButton="True"
+                                BackRequested="OnBackRequested" />
         <controls:EmptyState x:Name="Empty"
                              Grid.Row="1"
                              Glyph="{StaticResource IconInfo}"

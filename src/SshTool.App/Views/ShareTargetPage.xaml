@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.ShareTargetPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -12,18 +12,25 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
         <controls:AppPageHeader x:Uid="Share_PageHeader" Level="Secondary" />
-        <StackPanel Grid.Row="1" Padding="{StaticResource PagePadding}">
+        <StackPanel Grid.Row="1" Padding="{StaticResource CardListPadding}"
+                    MaxWidth="{StaticResource FormMaxWidth}" HorizontalAlignment="Stretch">
             <StackPanel.ChildrenTransitions>
                 <TransitionCollection>
                     <EntranceThemeTransition />
                 </TransitionCollection>
             </StackPanel.ChildrenTransitions>
-            <TextBlock x:Name="StatusText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
-            <ProgressRing x:Name="Busy" IsActive="True" Margin="{StaticResource GapMdTop}"
-                          HorizontalAlignment="Left" />
-            <Button x:Name="DoneButton" x:Uid="Share_DoneButton" Visibility="Collapsed"
-                    Style="{StaticResource PrimaryButtonStyle}" Margin="{StaticResource GapMdTop}"
-                    Click="OnDoneClick" />
+            <!-- opt/full-pass：分享进度收进卡片，与其余页面的收件箱/状态卡同一材质。 -->
+            <Border Style="{StaticResource CardBorderStyle}">
+                <StackPanel Padding="{StaticResource PadHero}">
+                    <TextBlock x:Name="StatusText" Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                    <ProgressRing x:Name="Busy" IsActive="True" Margin="{StaticResource GapMdTop}"
+                                  HorizontalAlignment="Left" />
+                    <Button x:Name="DoneButton" x:Uid="Share_DoneButton" Visibility="Collapsed"
+                            Style="{StaticResource PrimaryButtonStyle}" Margin="{StaticResource GapLgTop}"
+                            HorizontalAlignment="Stretch"
+                            Click="OnDoneClick" />
+                </StackPanel>
+            </Border>
         </StackPanel>
     </Grid>
 </Page>

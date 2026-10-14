@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.ComponentModel;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels.Sync;
@@ -99,6 +99,14 @@ namespace SshTool.App.Views.Sync
             }
         }
 
+        // opt/full-pass：分段切换入口（SegmentTabs 只在用户点击时抛事件）。
+        private void OnModeTabsSelectionChanged(object sender, System.EventArgs e)
+        {
+            ViewModel.SetMode(ModeTabs.SelectedIndex == 1
+                ? VaultUnlockMethod.Recovery
+                : VaultUnlockMethod.Password);
+        }
+
         private void OnPasswordTabClick(object sender, RoutedEventArgs e)
         {
             ViewModel.SetMode(VaultUnlockMethod.Password);
@@ -175,6 +183,16 @@ namespace SshTool.App.Views.Sync
             RecoveryPanel.Visibility = recovery ? Visibility.Visible : Visibility.Collapsed;
             PasswordTabButton.IsEnabled = !recovery;
             RecoveryTabButton.IsEnabled = recovery;
+            if (ModeTabs.ItemsSource == null)
+            {
+                ModeTabs.ItemsSource = new[]
+                {
+                    Localized.Get("VaultUnlock_PasswordTab/Content", "同步密码"),
+                    Localized.Get("VaultUnlock_RecoveryTab/Content", "恢复密钥")
+                };
+            }
+            ModeTabs.SelectedIndex = recovery ? 1 : 0;
+            ModeTabs.IsEnabled = !ViewModel.IsBusy;
             RefreshError();
             RefreshBusy();
         }

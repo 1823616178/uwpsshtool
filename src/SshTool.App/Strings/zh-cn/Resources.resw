@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -381,6 +381,8 @@
   <data name="KeyDetail_NameBox.Header" xml:space="preserve"><value>名称</value></data>
   <data name="KeyDetail_Rename.Content" xml:space="preserve"><value>保存名称</value></data>
   <data name="KeyDetail_TypeLabel.Text" xml:space="preserve"><value>类型</value></data>
+  <data name="KeyDetail_AttributesHeader.Text" xml:space="preserve"><value>属性</value></data>
+  <data name="KeyDetail_DangerHeader.Text" xml:space="preserve"><value>危险操作</value></data>
   <data name="KeyDetail_BitsLabel.Text" xml:space="preserve"><value>位数</value></data>
   <data name="KeyDetail_FormatLabel.Text" xml:space="preserve"><value>格式</value></data>
   <data name="KeyDetail_EncryptedLabel.Text" xml:space="preserve"><value>已加密</value></data>
@@ -540,6 +542,9 @@
   <data name="Settings_Pivot_Connection.Header" xml:space="preserve"><value>连接</value></data>
   <data name="Settings_Pivot_About.Header" xml:space="preserve"><value>关于</value></data>
   <data name="Settings_PageHeader.Title" xml:space="preserve"><value>设置</value></data>
+  <data name="Settings_GroupDevice.Text" xml:space="preserve"><value>本机偏好</value></data>
+  <data name="Settings_GroupConnection.Text" xml:space="preserve"><value>连接与同步</value></data>
+  <data name="Settings_GroupApp.Text" xml:space="preserve"><value>应用</value></data>
   <data name="Settings_Row_General.Title" xml:space="preserve"><value>通用</value></data>
   <data name="Settings_Row_Terminal.Title" xml:space="preserve"><value>终端</value></data>
   <data name="Settings_Row_Keyboard.Title" xml:space="preserve"><value>键盘</value></data>
@@ -564,7 +569,6 @@
   <data name="Settings_Connection_Section_Display.Header" xml:space="preserve"><value>屏幕</value></data>
   <data name="Settings_Connection_Section_KeepAlive.Header" xml:space="preserve"><value>后台与断线</value></data>
   <data name="Settings_Connection_Section_Security.Header" xml:space="preserve"><value>安全</value></data>
-  <data name="Settings_Connection_Section_Network.Header" xml:space="preserve"><value>重连与超时</value></data>
   <data name="Settings_Sync_Section_Poll.Header" xml:space="preserve"><value>前台轮询</value></data>
   <data name="Settings_Sync_Section_Account.Header" xml:space="preserve"><value>账号与云端同步</value></data>
   <data name="Settings_Sync_Account_Desc.Text" xml:space="preserve"><value>将主机、密钥、外观和代码片段加密同步到云端保险库，在多台设备间保持一致。</value></data>
@@ -630,18 +634,20 @@
   <data name="Settings_Terminal_AltScroll.Header" xml:space="preserve"><value>Alt-screen 滚动</value></data>
   <data name="Settings_Terminal_AltScroll_Arrows" xml:space="preserve"><value>方向键</value></data>
   <data name="Settings_Terminal_AltScroll_Wheel" xml:space="preserve"><value>滚轮</value></data>
-  <data name="Settings_Terminal_PasteConfirm.Header" xml:space="preserve"><value>多行粘贴前确认</value></data>
-  <data name="Settings_Terminal_CursorBlink_Header" xml:space="preserve"><value>光标闪烁跟随外观</value></data>
+  <data name="Settings_Terminal_PasteConfirm.Text" xml:space="preserve"><value>多行粘贴前确认</value></data>
+  <data name="Settings_Terminal_PasteConfirmSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>多行粘贴前确认</value></data>
+  <data name="Settings_Terminal_CursorBlink_Header.Text" xml:space="preserve"><value>光标闪烁跟随外观</value></data>
   <data name="Settings_Terminal_CursorBlink_Note.Text" xml:space="preserve"><value>在外观页中修改</value></data>
   <data name="Settings_Terminal_CursorBlink_Link.Content" xml:space="preserve"><value>去外观</value></data>
 
   <!-- V04a：键盘 Pivot -->
-  <data name="Settings_Keyboard_KeyBar.Header" xml:space="preserve"><value>显示键条</value></data>
-  <data name="Settings_Keyboard_KeyBarLayout_Header" xml:space="preserve"><value>键条布局</value></data>
+  <data name="Settings_Keyboard_KeyBar.Text" xml:space="preserve"><value>显示键条</value></data>
+  <data name="Settings_Keyboard_KeyBarSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>显示键条</value></data>
+  <data name="Settings_Keyboard_KeyBarLayout_Header.Text" xml:space="preserve"><value>键条布局</value></data>
   <data name="Settings_Keyboard_KeyBarLayout_Edit.Content" xml:space="preserve"><value>编辑键条布局</value></data>
-  <data name="Settings_Keyboard_Backspace_Header" xml:space="preserve"><value>退格默认发送</value></data>
+  <data name="Settings_Keyboard_Backspace_Header.Text" xml:space="preserve"><value>退格默认发送</value></data>
   <data name="Settings_Keyboard_Backspace_Note.Text" xml:space="preserve"><value>退格发送为每台主机单独设置（主机编辑页 → 终端 → 退格发送 Ctrl+H）</value></data>
-  <data name="Settings_Keyboard_Shortcuts_Header" xml:space="preserve"><value>快捷键表</value></data>
+  <data name="Settings_Keyboard_Shortcuts_Header.Text" xml:space="preserve"><value>快捷键表</value></data>
   <data name="Settings_Keyboard_Shortcuts_Edit.Content" xml:space="preserve"><value>编辑快捷键</value></data>
 
   <!-- V04a：连接 Pivot -->
@@ -649,7 +655,10 @@
   <data name="Settings_Connection_KeepScreen_Never" xml:space="preserve"><value>从不</value></data>
   <data name="Settings_Connection_KeepScreen_Session" xml:space="preserve"><value>会话中有连接时</value></data>
   <data name="Settings_Connection_KeepScreen_Always" xml:space="preserve"><value>总是</value></data>
-  <data name="Settings_Connection_KeepAlive.Header" xml:space="preserve"><value>后台保持连接</value></data>
+  <data name="Settings_Connection_KeepAlive.Text" xml:space="preserve"><value>后台保持连接</value></data>
+  <data name="Settings_Connection_KeepAliveSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>后台保持连接</value></data>
+  <data name="Settings_Connection_NotifySwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>后台断线时通知</value></data>
+  <data name="Settings_Security_AppLockSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>应用锁</value></data>
   <data name="Settings_Connection_KeepAlive_Note.Text" xml:space="preserve"><value>关闭后进入后台立即断开，回到应用后自动重连</value></data>
   <data name="Settings_Connection_BgDisc.Header" xml:space="preserve"><value>后台 N 分钟后断开</value></data>
   <data name="Settings_Connection_BgDisc_Off" xml:space="preserve"><value>关</value></data>
@@ -751,6 +760,9 @@
 
   <!-- V04b（C-06 + §6.4）：KeysPage 行模板 + 底部动作 + 全量文案走 resw -->
   <data name="Keys_Title.Text" xml:space="preserve"><value>密钥</value></data>
+  <data name="Keys_Header.Title" xml:space="preserve"><value>密钥</value></data>
+  <data name="Keys_CountFormat" xml:space="preserve"><value>{0} 个密钥 · 长按可查看详情或删除</value></data>
+  <data name="Keys_CountFormatNone" xml:space="preserve"><value>还没有密钥</value></data>
   <data name="Keys_Empty_Title" xml:space="preserve"><value>还没有密钥</value></data>
   <data name="Keys_Empty_Description" xml:space="preserve"><value>生成一个新密钥，或导入已有的私钥。</value></data>
   <data name="Keys_Empty_Primary" xml:space="preserve"><value>生成密钥</value></data>
@@ -1262,6 +1274,8 @@
   <data name="Main_PlaceholderNewHost" xml:space="preserve"><value>新建主机</value></data>
   <data name="Main_PlaceholderSync" xml:space="preserve"><value>同步</value></data>
   <data name="Tools_PageHeader.Title" xml:space="preserve"><value>工具与设置</value></data>
+  <data name="Tools_GroupLocal.Text" xml:space="preserve"><value>本机与终端</value></data>
+  <data name="Tools_GroupHosts.Text" xml:space="preserve"><value>主机数据</value></data>
   <data name="Tools_RowSettings.Title" xml:space="preserve"><value>设置</value></data>
   <data name="Tools_RowSettings.Subtitle" xml:space="preserve"><value>外观、终端、键盘、连接与诊断</value></data>
   <data name="Tools_RowKeys.Title" xml:space="preserve"><value>密钥</value></data>
@@ -1295,8 +1309,8 @@
   <data name="Settings_Terminal_Bell_Vibrate" xml:space="preserve"><value>振动</value></data>
   <data name="Settings_Terminal_Bell_Visual" xml:space="preserve"><value>闪屏</value></data>
   <data name="Settings_Terminal_Bell_None" xml:space="preserve"><value>无</value></data>
-  <data name="Settings_Connection_NotifyDisconnect.Header" xml:space="preserve"><value>后台断线时通知</value></data>
-  <data name="Settings_Security_AppLock.Header" xml:space="preserve"><value>应用锁</value></data>
+  <data name="Settings_Connection_NotifyDisconnect.Text" xml:space="preserve"><value>后台断线时通知</value></data>
+  <data name="Settings_Security_AppLock.Text" xml:space="preserve"><value>应用锁</value></data>
   <data name="Settings_Security_AppLock_Note.Text" xml:space="preserve"><value>启动或离开应用超过 1 分钟后，需通过 Windows Hello 或 PIN 验证</value></data>
   <data name="Settings_Security_AppLock_Unavailable" xml:space="preserve"><value>此设备未设置 PIN 或 Windows Hello，无法启用应用锁</value></data>
   <data name="Settings_Security_AppLock_Confirm" xml:space="preserve"><value>验证身份以启用应用锁</value></data>
@@ -1348,6 +1362,7 @@
   <data name="AppearanceList_EmptyDescription" xml:space="preserve"><value>创建自定义配色方案，打造专属终端风格。</value></data>
   <data name="AppearanceList_EmptyPrimary" xml:space="preserve"><value>新建配色</value></data>
   <data name="GroupManage_EmptyTitle" xml:space="preserve"><value>暂无分组</value></data>
+  <data name="GroupManage_CountFormat" xml:space="preserve"><value>{0} 台主机 · {1} 条隧道</value></data>
   <data name="GroupManage_EmptyDescription" xml:space="preserve"><value>创建分组整理主机，支持自定义名称和强调色。</value></data>
   <data name="ChangeLogin_CurrentBox.PlaceholderText" xml:space="preserve"><value>请输入当前密码</value></data>
   <data name="ChangeLogin_NewBox.PlaceholderText" xml:space="preserve"><value>设置新密码（至少 10 位）</value></data>

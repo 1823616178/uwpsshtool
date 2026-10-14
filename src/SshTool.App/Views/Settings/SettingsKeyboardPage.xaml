@@ -1,4 +1,4 @@
-<Page
+﻿<Page
     x:Class="SshTool.App.Views.Settings.SettingsKeyboardPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -27,16 +27,40 @@
                 <controls:FormSection x:Uid="Settings_Keyboard_Section_KeyBar">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
-                            <ToggleSwitch x:Name="KeyBarVisibleSwitch" x:Uid="Settings_Keyboard_KeyBar"
-                                          Toggled="OnKeyBarVisibleToggled" />
-                            <controls:FormSection x:Name="KeyBarLayoutSection" Margin="{StaticResource GapSmTop}">
-                                <controls:FormSection.SectionContent>
-                                    <StackPanel>
-                                        <TextBlock x:Name="KeyBarSummary" Style="{StaticResource CaptionTextStyle}" />
-                                        <HyperlinkButton x:Uid="Settings_Keyboard_KeyBarLayout_Edit" Click="OnEditKeyBarClick" />
-                                    </StackPanel>
-                                </controls:FormSection.SectionContent>
-                            </controls:FormSection>
+                            <!-- opt/full-pass：开关改行式；下面两项「值 + 去编辑」也改成同一行的行式。 -->
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Uid="Settings_Keyboard_KeyBar"
+                                           Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
+                                           VerticalAlignment="Center" />
+                                <ToggleSwitch x:Name="KeyBarVisibleSwitch"
+                                              x:Uid="Settings_Keyboard_KeyBarSwitch"
+                                              Grid.Column="1"
+                                              Style="{StaticResource CompactToggleSwitchStyle}"
+                                              Margin="{StaticResource GapSmLeft}"
+                                              Toggled="OnKeyBarVisibleToggled" />
+                            </Grid>
+                            <Border Height="{StaticResource StrokeThin}" Background="{ThemeResource AppBorderBrush}" />
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Uid="Settings_Keyboard_KeyBarLayout_Header"
+                                               Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                                    <TextBlock x:Name="KeyBarSummary" Style="{StaticResource CaptionTextStyle}"
+                                               TextWrapping="Wrap"
+                                               Margin="{StaticResource GapXsTop}" />
+                                </StackPanel>
+                                <HyperlinkButton x:Uid="Settings_Keyboard_KeyBarLayout_Edit" Grid.Column="1"
+                                                 VerticalAlignment="Center"
+                                                 Margin="{StaticResource GapSmLeft}"
+                                                 Click="OnEditKeyBarClick" />
+                            </Grid>
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
@@ -45,16 +69,31 @@
                 <controls:FormSection x:Uid="Settings_Keyboard_Section_Physical" Margin="{StaticResource GapMdTop}">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
-                            <TextBlock x:Uid="Settings_Keyboard_Backspace_Note"
-                                       Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
-                            <controls:FormSection x:Name="ShortcutsSection" Margin="{StaticResource GapSmTop}">
-                                <controls:FormSection.SectionContent>
-                                    <StackPanel>
-                                        <TextBlock x:Name="ShortcutSummary" Style="{StaticResource CaptionTextStyle}" />
-                                        <HyperlinkButton x:Uid="Settings_Keyboard_Shortcuts_Edit" Click="OnEditShortcutsClick" />
-                                    </StackPanel>
-                                </controls:FormSection.SectionContent>
-                            </controls:FormSection>
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Uid="Settings_Keyboard_Shortcuts_Header"
+                                               Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                                    <TextBlock x:Name="ShortcutSummary" Style="{StaticResource CaptionTextStyle}"
+                                               TextWrapping="Wrap"
+                                               Margin="{StaticResource GapXsTop}" />
+                                </StackPanel>
+                                <HyperlinkButton x:Uid="Settings_Keyboard_Shortcuts_Edit" Grid.Column="1"
+                                                 VerticalAlignment="Center"
+                                                 Margin="{StaticResource GapSmLeft}"
+                                                 Click="OnEditShortcutsClick" />
+                            </Grid>
+                            <Border Height="{StaticResource StrokeThin}" Background="{ThemeResource AppBorderBrush}" />
+                            <StackPanel Margin="{StaticResource GapSmTop}">
+                                <TextBlock x:Uid="Settings_Keyboard_Backspace_Header"
+                                           Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                                <TextBlock x:Uid="Settings_Keyboard_Backspace_Note"
+                                           Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap"
+                                           Margin="{StaticResource GapXsTop}" />
+                            </StackPanel>
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
