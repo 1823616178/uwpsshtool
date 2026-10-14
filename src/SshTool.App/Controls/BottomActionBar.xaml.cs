@@ -9,6 +9,10 @@ namespace SshTool.App.Controls
 {
     public sealed partial class BottomActionBar : UserControl
     {
+        // 自定义操作槽：非空时整条底栏交给它，PrimaryText / 溢出按钮都不再显示。
+        public static readonly DependencyProperty ActionsProperty = DependencyProperty.Register(
+            nameof(Actions), typeof(object), typeof(BottomActionBar),
+            new PropertyMetadata(null, OnChanged));
         public static readonly DependencyProperty PrimaryTextProperty = DependencyProperty.Register(
             nameof(PrimaryText), typeof(string), typeof(BottomActionBar),
             new PropertyMetadata(string.Empty, OnChanged));
@@ -41,6 +45,12 @@ namespace SshTool.App.Controls
             this.InitializeComponent();
             this.Loaded += OnLoaded;
             this.Unloaded += OnUnloaded;
+        }
+
+        public object Actions
+        {
+            get { return GetValue(ActionsProperty); }
+            set { SetValue(ActionsProperty, value); }
         }
 
         public string PrimaryText
@@ -152,7 +162,11 @@ namespace SshTool.App.Controls
 
         private void UpdateVisual()
         {
-            bool hasPrimary = !string.IsNullOrEmpty(PrimaryText);
+            bool hasActions = Actions != null;
+            ActionsSlot.Content = Actions;
+            ActionsSlot.Visibility = hasActions ? Visibility.Visible : Visibility.Collapsed;
+
+            bool hasPrimary = !hasActions && !string.IsNullOrEmpty(PrimaryText);
             PrimaryButton.Content = PrimaryText ?? string.Empty;
             PrimaryButton.Visibility = hasPrimary ? Visibility.Visible : Visibility.Collapsed;
             PrimaryButton.IsEnabled = IsPrimaryEnabled;
@@ -161,7 +175,7 @@ namespace SshTool.App.Controls
                 PrimaryButton.Style = PrimaryButtonStyle;
             }
 
-            OverflowButton.Visibility = ShowOverflow ? Visibility.Visible : Visibility.Collapsed;
+            OverflowButton.Visibility = (!hasActions && ShowOverflow) ? Visibility.Visible : Visibility.Collapsed;
             OverflowButton.Flyout = OverflowFlyout;
 
             // 收起只动内部 Root，不碰控件自身 Visibility（页面隐藏语义不受键盘状态干扰）。

@@ -379,13 +379,13 @@
   <data name="KeyDetail_Title.Title" xml:space="preserve"><value>Key Details</value></data>
   <data name="KeyDetail_NameBox.Header" xml:space="preserve"><value>Name</value></data>
   <data name="KeyDetail_Rename.Content" xml:space="preserve"><value>Save Name</value></data>
-  <data name="KeyDetail_TypeLabel.Text" xml:space="preserve"><value>Type</value></data>
+  <data name="KeyDetail_TypeRow.Title" xml:space="preserve"><value>Type</value></data>
   <data name="KeyDetail_AttributesHeader.Text" xml:space="preserve"><value>Details</value></data>
   <data name="KeyDetail_DangerHeader.Text" xml:space="preserve"><value>Danger zone</value></data>
-  <data name="KeyDetail_BitsLabel.Text" xml:space="preserve"><value>Bits</value></data>
-  <data name="KeyDetail_FormatLabel.Text" xml:space="preserve"><value>Format</value></data>
-  <data name="KeyDetail_EncryptedLabel.Text" xml:space="preserve"><value>Encrypted</value></data>
-  <data name="KeyDetail_CreatedLabel.Text" xml:space="preserve"><value>Created</value></data>
+  <data name="KeyDetail_BitsRow.Title" xml:space="preserve"><value>Bits</value></data>
+  <data name="KeyDetail_FormatRow.Title" xml:space="preserve"><value>Format</value></data>
+  <data name="KeyDetail_EncryptedRow.Title" xml:space="preserve"><value>Encrypted</value></data>
+  <data name="KeyDetail_CreatedRow.Title" xml:space="preserve"><value>Created</value></data>
   <data name="KeyDetail_FingerprintLabel.Text" xml:space="preserve"><value>Fingerprint</value></data>
   <data name="KeyDetail_PublicKeyLabel.Text" xml:space="preserve"><value>Public Key</value></data>
   <data name="KeyDetail_Copy.Content" xml:space="preserve"><value>Copy</value></data>
@@ -623,6 +623,18 @@
   <data name="Settings_General_Language_Zh" xml:space="preserve"><value>Simplified Chinese</value></data>
   <data name="Settings_General_Language_En" xml:space="preserve"><value>English</value></data>
   <data name="Settings_General_Language_Note.Text" xml:space="preserve"><value>Restart the app to apply the new language</value></data>
+  <data name="Settings_General_Theme.Text" xml:space="preserve"><value>Theme</value></data>
+  <data name="Settings_General_Accent.Text" xml:space="preserve"><value>Use system accent color</value></data>
+  <data name="Settings_General_UseSystemAccentSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Use system accent color</value></data>
+  <data name="Settings_General_Sort.Text" xml:space="preserve"><value>Host sorting</value></data>
+  <data name="Settings_General_SortPicker.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Host sorting</value></data>
+  <data name="Settings_General_QuickConnect.Text" xml:space="preserve"><value>Show quick connect card</value></data>
+  <data name="Settings_General_QuickConnectSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Show quick connect card</value></data>
+  <data name="Settings_General_Haptics.Text" xml:space="preserve"><value>Haptic feedback</value></data>
+  <data name="Settings_General_HapticsSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Haptic feedback</value></data>
+  <data name="Settings_General_Language.Text" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_General_LanguagePicker.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_General_ThemePicker.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Theme</value></data>
 
   <!-- V04a: Terminal Pivot -->
   <data name="Settings_Terminal_Appearance_Header" xml:space="preserve"><value>Default appearance</value></data>
@@ -677,6 +689,10 @@
   <data name="Settings_Connection_Poll_5" xml:space="preserve"><value>5 min</value></data>
   <data name="Settings_Connection_Poll_15" xml:space="preserve"><value>15 min</value></data>
   <data name="Settings_Connection_Poll_Note.Text" xml:space="preserve"><value>Poll in foreground, not in background</value></data>
+  <data name="Settings_Connection_Poll.Text" xml:space="preserve"><value>Sync poll interval</value></data>
+  <data name="Settings_Connection_PollPicker.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>Sync poll interval</value></data>
+  <data name="Settings_Sync_AccountRow.Title" xml:space="preserve"><value>Manage Account &amp; Sync</value></data>
+  <data name="Settings_Sync_AccountRow.Subtitle" xml:space="preserve"><value>Encrypt and sync hosts, keys, appearance and snippets to your cloud vault, keeping them consistent across devices.</value></data>
 
   <!-- V04a: About Pivot -->
   <data name="Settings_About_Version_Header" xml:space="preserve"><value>Version</value></data>

@@ -41,21 +41,17 @@
                 <Border Style="{StaticResource CardBorderStyle}">
                 <StackPanel Padding="{StaticResource PadCard}">
 
-                <TextBlock x:Uid="KeyDetail_TypeLabel" Style="{StaticResource CaptionTextStyle}"
-                           Margin="{StaticResource GapSmTop}" />
-                <TextBlock x:Name="TypeText" Style="{StaticResource BodyTextStyle}" />
-                <TextBlock x:Uid="KeyDetail_BitsLabel" Style="{StaticResource CaptionTextStyle}"
-                           Margin="{StaticResource GapXsTop}" />
-                <TextBlock x:Name="BitsText" Style="{StaticResource BodyTextStyle}" />
-                <TextBlock x:Uid="KeyDetail_FormatLabel" Style="{StaticResource CaptionTextStyle}"
-                           Margin="{StaticResource GapXsTop}" />
-                <TextBlock x:Name="FormatText" Style="{StaticResource BodyTextStyle}" />
-                <TextBlock x:Uid="KeyDetail_EncryptedLabel" Style="{StaticResource CaptionTextStyle}"
-                           Margin="{StaticResource GapXsTop}" />
-                <TextBlock x:Name="EncryptedText" Style="{StaticResource BodyTextStyle}" />
-                <TextBlock x:Uid="KeyDetail_CreatedLabel" Style="{StaticResource CaptionTextStyle}"
-                           Margin="{StaticResource GapXsTop}" />
-                <TextBlock x:Name="CreatedText" Style="{StaticResource BodyTextStyle}" />
+                <!-- 类型/位数/格式/加密/创建时间：五行「标题 + 值」，属性名走 x:Uid（.Title），
+                     当前值由 code-behind 写进 Subtitle；值仍是纯展示，无交互。 -->
+                <controls:AppListRow x:Name="TypeRow" x:Uid="KeyDetail_TypeRow" IsCompact="True" />
+                <controls:AppListRow x:Name="BitsRow" x:Uid="KeyDetail_BitsRow" IsCompact="True"
+                                     Margin="{StaticResource GapXsTop}" />
+                <controls:AppListRow x:Name="FormatRow" x:Uid="KeyDetail_FormatRow" IsCompact="True"
+                                     Margin="{StaticResource GapXsTop}" />
+                <controls:AppListRow x:Name="EncryptedRow" x:Uid="KeyDetail_EncryptedRow" IsCompact="True"
+                                     Margin="{StaticResource GapXsTop}" />
+                <controls:AppListRow x:Name="CreatedRow" x:Uid="KeyDetail_CreatedRow" IsCompact="True"
+                                     Margin="{StaticResource GapXsTop}" />
                 </StackPanel>
                 </Border>
 

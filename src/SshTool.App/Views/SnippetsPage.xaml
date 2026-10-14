@@ -29,11 +29,10 @@
                 </controls:AppListRow.TrailingContent>
             </controls:AppListRow>
         </DataTemplate>
-        <!-- V04b：分组行标题。GroupHeader 组件绑定 HostListGroup，片段分组仍为 SnippetGroupVm，
-             保留分组标题文本样式（Caption + PagePadding），后续若通用化 GroupHeader 再切回。 -->
+        <!-- 分组行标题改用通用 GroupHeader（未分组走中性圆点、真实分组走强调色图标），
+             与主机列表分组头同一视觉语言；GroupHeader 内部按数据源类型分派。 -->
         <DataTemplate x:Key="SnippetGroupHeaderTemplate">
-            <TextBlock Text="{Binding Title}" Style="{StaticResource GroupHeaderTextStyle}"
-                       Margin="{StaticResource GroupHeaderPadding}" />
+            <controls:GroupHeader />
         </DataTemplate>
     </Page.Resources>
 

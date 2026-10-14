@@ -27,15 +27,38 @@
                 <controls:FormSection x:Uid="Settings_General_Section_Appearance">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
-                            <ComboBox x:Name="ThemeBox" x:Uid="Settings_General_Theme"
-                                      HorizontalAlignment="Stretch"
-                                      SelectionChanged="OnThemeChanged" />
-                            <TextBlock x:Uid="Settings_General_Theme_Note"
-                                       Style="{StaticResource CaptionTextStyle}"
-                                       Margin="{StaticResource GapXsTop}" />
-                            <ToggleSwitch x:Name="AccentSwitch" x:Uid="Settings_General_Accent"
-                                          Margin="{StaticResource GapSmTop}"
-                                          Toggled="OnAccentToggled" />
+                            <!-- 与连接/终端/键盘页同款行式：标题 + 说明在左，控件在右列。 -->
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Uid="Settings_General_Theme"
+                                               Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                                    <TextBlock x:Uid="Settings_General_Theme_Note"
+                                               Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap"
+                                               Margin="{StaticResource GapXsTop}" />
+                                </StackPanel>
+                                <ComboBox x:Name="ThemeBox" x:Uid="Settings_General_ThemePicker" Grid.Column="1"
+                                          VerticalAlignment="Center"
+                                          Margin="{StaticResource GapSmLeft}"
+                                          SelectionChanged="OnThemeChanged" />
+                            </Grid>
+                            <Border Height="{StaticResource StrokeThin}" Background="{ThemeResource AppBorderBrush}" />
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Uid="Settings_General_Accent"
+                                           Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
+                                           VerticalAlignment="Center" />
+                                <ToggleSwitch x:Name="AccentSwitch" x:Uid="Settings_General_UseSystemAccentSwitch" Grid.Column="1"
+                                              Style="{StaticResource CompactToggleSwitchStyle}"
+                                              Margin="{StaticResource GapSmLeft}"
+                                              Toggled="OnAccentToggled" />
+                            </Grid>
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
@@ -44,15 +67,47 @@
                 <controls:FormSection x:Uid="Settings_General_Section_Behavior" Margin="{StaticResource GapMdTop}">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
-                            <ComboBox x:Name="SortBox" x:Uid="Settings_General_Sort"
-                                      HorizontalAlignment="Stretch"
-                                      SelectionChanged="OnSortChanged" />
-                            <ToggleSwitch x:Name="QuickConnectSwitch" x:Uid="Settings_General_QuickConnect"
-                                          Margin="{StaticResource GapSmTop}"
-                                          Toggled="OnQuickConnectToggled" />
-                            <ToggleSwitch x:Name="HapticsSwitch" x:Uid="Settings_General_Haptics"
-                                          Margin="{StaticResource GapSmTop}"
-                                          Toggled="OnHapticsToggled" />
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Uid="Settings_General_Sort"
+                                           Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
+                                           VerticalAlignment="Center" />
+                                <ComboBox x:Name="SortBox" x:Uid="Settings_General_SortPicker" Grid.Column="1"
+                                          VerticalAlignment="Center"
+                                          Margin="{StaticResource GapSmLeft}"
+                                          SelectionChanged="OnSortChanged" />
+                            </Grid>
+                            <Border Height="{StaticResource StrokeThin}" Background="{ThemeResource AppBorderBrush}" />
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Uid="Settings_General_QuickConnect"
+                                           Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
+                                           VerticalAlignment="Center" />
+                                <ToggleSwitch x:Name="QuickConnectSwitch" x:Uid="Settings_General_QuickConnectSwitch" Grid.Column="1"
+                                              Style="{StaticResource CompactToggleSwitchStyle}"
+                                              Margin="{StaticResource GapSmLeft}"
+                                              Toggled="OnQuickConnectToggled" />
+                            </Grid>
+                            <Border Height="{StaticResource StrokeThin}" Background="{ThemeResource AppBorderBrush}" />
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Uid="Settings_General_Haptics"
+                                           Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap"
+                                           VerticalAlignment="Center" />
+                                <ToggleSwitch x:Name="HapticsSwitch" x:Uid="Settings_General_HapticsSwitch" Grid.Column="1"
+                                              Style="{StaticResource CompactToggleSwitchStyle}"
+                                              Margin="{StaticResource GapSmLeft}"
+                                              Toggled="OnHapticsToggled" />
+                            </Grid>
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
@@ -61,12 +116,23 @@
                 <controls:FormSection x:Uid="Settings_General_Section_Language" Margin="{StaticResource GapMdTop}">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
-                            <ComboBox x:Name="LanguageBox" x:Uid="Settings_General_Language"
-                                      HorizontalAlignment="Stretch"
-                                      SelectionChanged="OnLanguageChanged" />
-                            <TextBlock x:Uid="Settings_General_Language_Note"
-                                       Style="{StaticResource CaptionTextStyle}"
-                                       Margin="{StaticResource GapXsTop}" />
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock x:Uid="Settings_General_Language"
+                                               Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                                    <TextBlock x:Uid="Settings_General_Language_Note"
+                                               Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap"
+                                               Margin="{StaticResource GapXsTop}" />
+                                </StackPanel>
+                                <ComboBox x:Name="LanguageBox" x:Uid="Settings_General_LanguagePicker" Grid.Column="1"
+                                          VerticalAlignment="Center"
+                                          Margin="{StaticResource GapSmLeft}"
+                                          SelectionChanged="OnLanguageChanged" />
+                            </Grid>
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>

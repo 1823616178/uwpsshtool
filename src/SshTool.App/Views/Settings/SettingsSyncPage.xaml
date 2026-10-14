@@ -23,32 +23,37 @@
                         <EntranceThemeTransition />
                     </TransitionCollection>
                 </StackPanel.ChildrenTransitions>
-                <!-- 前台轮询 -->
+                <!-- 前台轮询：标题 + 说明在左，下拉在右列（同连接/终端页行式）。 -->
                 <controls:FormSection x:Uid="Settings_Sync_Section_Poll">
                     <controls:FormSection.SectionContent>
-                        <StackPanel>
-                            <ComboBox x:Name="PollBox" x:Uid="Settings_Connection_Poll"
-                                      HorizontalAlignment="Stretch"
+                        <Grid MinHeight="{StaticResource ListRowHeight}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Uid="Settings_Connection_Poll"
+                                           Style="{StaticResource BodyTextStyle}" TextWrapping="Wrap" />
+                                <TextBlock x:Uid="Settings_Connection_Poll_Note"
+                                           Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap"
+                                           Margin="{StaticResource GapXsTop}" />
+                            </StackPanel>
+                            <ComboBox x:Name="PollBox" x:Uid="Settings_Connection_PollPicker" Grid.Column="1"
+                                      VerticalAlignment="Center"
+                                      Margin="{StaticResource GapSmLeft}"
                                       SelectionChanged="OnPollChanged" />
-                            <TextBlock x:Uid="Settings_Connection_Poll_Note"
-                                       Style="{StaticResource CaptionTextStyle}"
-                                       Margin="{StaticResource GapXsTop}" />
-                        </StackPanel>
+                        </Grid>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
 
-                <!-- 账号与云端同步 -->
+                <!-- 账号与云端同步：入口收成整行可点行，说明作为副标题。 -->
                 <controls:FormSection x:Uid="Settings_Sync_Section_Account" Margin="{StaticResource GapMdTop}">
                     <controls:FormSection.SectionContent>
-                        <StackPanel>
-                            <TextBlock x:Uid="Settings_Sync_Account_Desc"
-                                       Style="{StaticResource BodyTextStyle}"
-                                       TextWrapping="Wrap" />
-                            <Button x:Name="OpenAccountSyncButton" x:Uid="Settings_Sync_OpenAccountSync"
-                                    Margin="{StaticResource GapMdTop}"
-                                    HorizontalAlignment="Stretch"
-                                    Click="OnOpenAccountSyncClick" />
-                        </StackPanel>
+                        <controls:AppListRow x:Name="OpenAccountSyncButton" x:Uid="Settings_Sync_AccountRow"
+                                             IconGlyph="{StaticResource IconCloud}"
+                                             ShowChevron="True"
+                                             IsCard="True"
+                                             Click="OnOpenAccountSyncClick" />
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>
             </StackPanel>

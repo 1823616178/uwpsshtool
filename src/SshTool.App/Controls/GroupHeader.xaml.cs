@@ -4,6 +4,7 @@ using SshTool.App.Infrastructure;
 using SshTool.App.Platform;
 using SshTool.Core.Common;
 using SshTool.Core.Hosts;
+using SshTool.App.ViewModels.Snippets;
 using Windows.UI;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
@@ -32,59 +33,106 @@ namespace SshTool.App.Controls
 
         private static HostListGroup Resolve(object value)
         {
-            var group = value as HostListGroup;
-            if (group != null)
-            {
-                return group;
-            }
+            object source = Unwrap(value);
+            return source as HostListGroup;
+        }
+
+        // 分组头的两种数据源都是 CollectionViewGroup：主机分组是 HostListGroup
+        // （带分组色与折叠态），片段分组是 SnippetGroupVm（分组名 + 行数）。
+        private static object Unwrap(object value)
+        {
             var cvg = value as ICollectionViewGroup;
-            return cvg != null ? cvg.Group as HostListGroup : null;
+            return cvg != null ? cvg.Group : value;
         }
 
         private void BindGroup()
         {
-            HostListGroup group = Group;
-            if (group == null)
+            object source = Unwrap(DataContext);
+            var hostGroup = source as HostListGroup;
+            if (hostGroup != null)
             {
+                BindHostGroup(hostGroup);
                 return;
             }
+
+            var snippetGroup = source as SnippetGroupVm;
+            if (snippetGroup != null)
+            {
+                BindSnippetGroup(snippetGroup);
+            }
+        }
+
+        private void BindHostGroup(HostListGroup group)
+        {
             // V01a：▸/▾ 文本换 MDL2 尖括号（右=E76C 与既有 E70D 下同族）。
             Chevron.Glyph = (string)Application.Current.Resources[group.IsCollapsed ? "IconChevronRight" : "IconChevronDown"];
-            TitleText.Text = (group.Name ?? string.Empty) + " (" + group.HostCount.ToString() + ")";
+            TitleText.Text = Format(group.Name, group.HostCount);
 
             if (string.Equals(group.GroupId, HostListGroup.FavoritesId, StringComparison.Ordinal))
             {
-                ColorDot.Visibility = Visibility.Collapsed;
-                SectionIcon.Glyph = (string)Application.Current.Resources["IconFavoriteStarFill"];
-                SectionIcon.Foreground = ThemeService.ResolveBrush("AppWarningBrush");
-                SectionIcon.Visibility = Visibility.Visible;
+                ShowSectionIcon("IconFavoriteStarFill", "AppWarningBrush");
             }
             else if (string.Equals(group.GroupId, HostListGroup.RecentId, StringComparison.Ordinal))
             {
-                ColorDot.Visibility = Visibility.Collapsed;
-                SectionIcon.Glyph = (string)Application.Current.Resources["IconHistory"];
-                SectionIcon.Foreground = ThemeService.ResolveBrush("AppAccentBrush");
-                SectionIcon.Visibility = Visibility.Visible;
+                ShowSectionIcon("IconHistory", "AppAccentBrush");
             }
             else
             {
-                SectionIcon.Visibility = Visibility.Collapsed;
-                Brush brush = TryParseColor(group.Color);
-                if (brush != null)
-                {
-                    ColorDot.Background = brush;
-                    ColorDot.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    ColorDot.Visibility = Visibility.Collapsed;
-                }
+                ShowColorDot(group.Color);
+            }
+        }
+
+        private void BindSnippetGroup(SnippetGroupVm group)
+        {
+            Chevron.Glyph = (string)Application.Current.Resources["IconChevronDown"];
+            TitleText.Text = Format(group.Title, group.Rows.Count);
+            // 未分组用中性底，真实分组用与主机分组头一致的强调色图标：只区分「是不是分组」，
+            // 不假装它有分组色（片段分组暂时没有颜色属性）。
+            if (string.IsNullOrWhiteSpace(group.GroupName))
+            {
+                ShowColorDot(null);
+            }
+            else
+            {
+                ShowSectionIcon("IconFolder", "AppAccentBrush");
+            }
+        }
+
+        private static string Format(string name, int count)
+        {
+            return string.Format(CultureInfo.InvariantCulture, "{0} ({1})", name ?? string.Empty, count);
+        }
+
+        private void ShowSectionIcon(string glyphKey, string brushKey)
+        {
+            ColorDot.Visibility = Visibility.Collapsed;
+            SectionIcon.Glyph = (string)Application.Current.Resources[glyphKey];
+            SectionIcon.Foreground = ThemeService.ResolveBrush(brushKey);
+            SectionIcon.Visibility = Visibility.Visible;
+        }
+
+        private void ShowColorDot(string hex)
+        {
+            SectionIcon.Visibility = Visibility.Collapsed;
+            Brush brush = TryParseColor(hex);
+            if (brush != null)
+            {
+                ColorDot.Background = brush;
+                ColorDot.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ColorDot.Visibility = Visibility.Collapsed;
             }
         }
 
         // O14：解析收口到 Core 的 ColorHex（此前三处逐字重复）。
         private static Brush TryParseColor(string hex)
         {
+            if (string.IsNullOrEmpty(hex))
+            {
+                return null;
+            }
             byte r;
             byte g;
             byte b;

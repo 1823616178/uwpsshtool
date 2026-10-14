@@ -88,11 +88,13 @@ namespace SshTool.App.Views.Keys
         {
             NameBox.Text = ViewModel.Name;
             RenameButton.IsEnabled = false;
-            TypeText.Text = ViewModel.KeyTypeText;
-            BitsText.Text = ViewModel.BitsText;
-            FormatText.Text = ViewModel.FormatText;
-            EncryptedText.Text = ViewModel.EncryptedText;
-            CreatedText.Text = ViewModel.CreatedAt;
+            // 属性行改用 AppListRow——行标题（x:Uid 提供「类型/位数/…」）由资源决定，
+            // 值写进副标题，读屏顺序与原先一致。
+            TypeRow.Subtitle = ViewModel.KeyTypeText;
+            BitsRow.Subtitle = ViewModel.BitsText;
+            FormatRow.Subtitle = ViewModel.FormatText;
+            EncryptedRow.Subtitle = ViewModel.EncryptedText;
+            CreatedRow.Subtitle = ViewModel.CreatedAt;
             FingerprintText.Text = ViewModel.Fingerprint;
             PublicKeyText.Text = ViewModel.PublicKey;
             NoHostsText.Visibility = ViewModel.HasHosts ? Visibility.Collapsed : Visibility.Visible;

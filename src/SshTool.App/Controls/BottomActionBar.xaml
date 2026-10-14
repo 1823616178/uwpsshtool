@@ -19,6 +19,10 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
+            <!-- 自定义操作槽：非空时整条底栏交给它（如同步冲突页的双按钮 + 进度环），
+                 主操作与溢出按钮都不再显示。默认空，此时 PrimaryButton 照旧横跨整行。 -->
+            <ContentPresenter x:Name="ActionsSlot" Grid.ColumnSpan="2" Visibility="Collapsed" />
+
             <Button x:Name="PrimaryButton"
                     Style="{StaticResource PrimaryButtonStyle}"
                     HorizontalAlignment="Stretch"
