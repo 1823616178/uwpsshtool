@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="SshTool.App.Views.HostEditPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -92,8 +92,18 @@
                                            Foreground="{ThemeResource AppDangerBrush}"
                                            Text="{x:Bind ViewModel.PasswordCredentialStateText, Mode=OneWay}"
                                            Visibility="{x:Bind ViewModel.IsPasswordCredentialCleared, Mode=OneWay}" />
-                                <ToggleSwitch x:Name="RememberPasswordSwitch" x:Uid="HostEdit_RememberPasswordSwitch"
-                                              Toggled="OnRememberPasswordToggled" />
+                                <Grid MinHeight="{StaticResource ListRowHeight}">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+    <TextBlock x:Uid="HostEdit_RememberPasswordSwitch_Title" Style="{StaticResource BodyTextStyle}"
+               TextWrapping="Wrap" VerticalAlignment="Center" />
+    <ToggleSwitch x:Name="RememberPasswordSwitch" x:Uid="HostEdit_RememberPasswordSwitch" Grid.Column="1"
+                  Style="{StaticResource CompactToggleSwitchStyle}"
+                  Margin="{StaticResource GapSmLeft}"
+                  VerticalAlignment="Center" Toggled="OnRememberPasswordToggled" />
+</Grid>
                                 <TextBlock x:Uid="HostEdit_SyncPasswordNote" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
                             </StackPanel>
 
@@ -122,8 +132,18 @@
                                            Foreground="{ThemeResource AppDangerBrush}"
                                            Text="{x:Bind ViewModel.PassphraseCredentialStateText, Mode=OneWay}"
                                            Visibility="{x:Bind ViewModel.IsPassphraseCredentialCleared, Mode=OneWay}" />
-                                <ToggleSwitch x:Name="RememberPassphraseSwitch" x:Uid="HostEdit_RememberPassphraseSwitch"
-                                              Toggled="OnRememberPassphraseToggled" />
+                                <Grid MinHeight="{StaticResource ListRowHeight}">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+    <TextBlock x:Uid="HostEdit_RememberPassphraseSwitch_Title" Style="{StaticResource BodyTextStyle}"
+               TextWrapping="Wrap" VerticalAlignment="Center" />
+    <ToggleSwitch x:Name="RememberPassphraseSwitch" x:Uid="HostEdit_RememberPassphraseSwitch" Grid.Column="1"
+                  Style="{StaticResource CompactToggleSwitchStyle}"
+                  Margin="{StaticResource GapSmLeft}"
+                  VerticalAlignment="Center" Toggled="OnRememberPassphraseToggled" />
+</Grid>
                             </StackPanel>
                         </StackPanel>
                     </controls:FormSection.SectionContent>
@@ -144,8 +164,18 @@
                                       DisplayMemberPath="Name" Margin="{StaticResource GapSmTop}"
                                       SelectionChanged="OnTermTypeChanged" />
                             <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
-                            <ToggleSwitch x:Name="BackspaceSwitch" x:Uid="HostEdit_BackspaceSwitch"
-                                          Margin="{StaticResource GapSmTop}" Toggled="OnBackspaceToggled" />
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+    <TextBlock x:Uid="HostEdit_BackspaceSwitch_Title" Style="{StaticResource BodyTextStyle}"
+               TextWrapping="Wrap" VerticalAlignment="Center" />
+    <ToggleSwitch x:Name="BackspaceSwitch" x:Uid="HostEdit_BackspaceSwitch" Grid.Column="1"
+                  Style="{StaticResource CompactToggleSwitchStyle}"
+                  Margin="{StaticResource GapSmLeft}"
+                  VerticalAlignment="Center" Toggled="OnBackspaceToggled" />
+</Grid>
                             <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
                             <TextBlock x:Uid="HostEdit_EnvVars" Style="{StaticResource BodyTextStyle}" Margin="{StaticResource GapSmTop}" />
                             <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
@@ -218,7 +248,18 @@
                         </Grid>
                     </Button>
                     <StackPanel x:Name="AdvancedContent" Grid.Row="1" Visibility="Collapsed">
-                        <ToggleSwitch x:Name="TmuxSwitch" x:Uid="HostEdit_TmuxSwitch" Toggled="OnTmuxToggled" />
+                        <Grid MinHeight="{StaticResource ListRowHeight}">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+    <TextBlock x:Uid="HostEdit_TmuxSwitch_Title" Style="{StaticResource BodyTextStyle}"
+               TextWrapping="Wrap" VerticalAlignment="Center" />
+    <ToggleSwitch x:Name="TmuxSwitch" x:Uid="HostEdit_TmuxSwitch" Grid.Column="1"
+                  Style="{StaticResource CompactToggleSwitchStyle}"
+                  Margin="{StaticResource GapSmLeft}"
+                  VerticalAlignment="Center" Toggled="OnTmuxToggled" />
+</Grid>
                         <TextBlock x:Uid="HostEdit_TmuxNote" Style="{StaticResource CaptionTextStyle}" TextWrapping="Wrap" />
                         <TextBlock x:Uid="HostEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}" />
                         <TextBox x:Name="TmuxNameBox" x:Uid="HostEdit_TmuxNameBox" Margin="{StaticResource GapSmTop}"
