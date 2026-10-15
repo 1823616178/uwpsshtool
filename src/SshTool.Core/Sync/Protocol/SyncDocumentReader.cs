@@ -294,7 +294,12 @@ namespace SshTool.Core.Sync.Protocol
             {
                 throw new SyncDocumentInvalidException(path, "应为整数，实际 " + (t == null ? "<缺>" : t.Type.ToString()));
             }
-            return checked((int)(long)t);
+            long v = (long)t;
+            if (v < int.MinValue || v > int.MaxValue)
+            {
+                throw new SyncDocumentInvalidException(path, "整数超出 Int32 范围：" + v);
+            }
+            return (int)v;
         }
 
         private static bool Bool(JObject parent, string key, string path)

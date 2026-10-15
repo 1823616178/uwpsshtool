@@ -174,8 +174,10 @@ void FakeJumpChannel::close()
 // DirectTcpipJumpChannel
 // ============================================================================
 
-DirectTcpipJumpChannel::DirectTcpipJumpChannel(struct _LIBSSH2_CHANNEL* channel)
+DirectTcpipJumpChannel::DirectTcpipJumpChannel(struct _LIBSSH2_CHANNEL* channel,
+                                                 std::shared_ptr<void> lifetimeAnchor)
     : channel_(channel)
+    , lifetimeAnchor_(std::move(lifetimeAnchor))
 {
 }
 
