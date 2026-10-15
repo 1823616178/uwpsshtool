@@ -70,7 +70,7 @@ pwsh scripts/phone-portal.ps1 -Get app.log -Path "\LocalState\logs"
 
 ## 4. 待真机/人工验证项
 
-- [ ] 📱 空白应用（X02 的 MainPage 即可充当）在 Lumia 950 启动成功
+- [x] 📱 空白应用（X02 的 MainPage 即可充当）在 Lumia 950 启动成功（2026-09-18 已超额满足，见 `04-TASKS.md` 进度日志；此前漏勾）
 - [ ] VS2026 能否直接部署/调试到 W10M：未测（部署默认走 WinAppDeployCmd）
 - [ ] 📱 ARM Release（.NET Native）包真机启动
 
