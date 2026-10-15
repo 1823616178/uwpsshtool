@@ -10,6 +10,7 @@
 #include <condition_variable>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <mutex>
 #include <utility>
 
@@ -258,6 +259,46 @@ void SshChannel::close()
         pump();
         session_.updateSocketInterest();
     });
+}
+
+// C2: emergency detach for the execCommand timeout path (see header).
+void SshChannel::emergencyDetach()
+{
+    // Shared sync state: if the loop task ever runs after the wait below
+    // times out, it touches this (still alive via the lambda capture),
+    // never destroyed stack locals.
+    struct DetachSync {
+        std::mutex mutex;
+        std::condition_variable cv;
+        bool done = false;
+    };
+    auto sync = std::make_shared<DetachSync>();
+    // Capture the raw channel pointer by value: unregisterChannel only
+    // compares pointers (no dereference), so a late run after *this* is gone
+    // cannot UAF through it. The libssh2 free below is the only dereference,
+    // and it runs on the loop thread while *this* is still alive (we wait).
+    SshChannel* self = this;
+    session_.thread_.post([self, sync] {
+        // Loop thread: unregister first so driveChannels/sessionLost can never
+        // touch this again, then free the handle best-effort (EAGAIN just
+        // leaks; far better than a UAF).
+        self->session_.unregisterChannel(self);
+        if (self->channel_ != nullptr) {
+            ::libssh2_channel_free(self->channel_);
+            self->channel_ = nullptr;
+        }
+        self->transitionTo(ChannelState::Closed);
+        {
+            std::lock_guard<std::mutex> lock(sync->mutex);
+            sync->done = true;
+        }
+        sync->cv.notify_one();
+    });
+    std::unique_lock<std::mutex> lock(sync->mutex);
+    // Brief wait only: if the loop is dead, the session is tearing down and
+    // driveChannels() will never run again — safe to return. (A live loop
+    // processes the task in milliseconds; the timeout is a dead-loop valve.)
+    sync->cv.wait_for(lock, std::chrono::milliseconds(2000), [&] { return sync->done; });
 }
 
 // ---------------------------------------------------------------- state machine (static pure)
@@ -838,7 +879,15 @@ ExecResult execCommand(SshSession& session, const std::string& command, std::uin
     channel.close();
     lock.lock();
     cv.wait_for(lock, std::chrono::milliseconds(2000), [&] { return done; });
-    if (!result.message.empty() && result.message != "timeout") {
+    if (!done) {
+        // C2: the close handshake didn't complete (peer dead — the common
+        // timeout cause). The channel is still registered; destroying it now
+        // would leave a dangling pointer in the session registry
+        // (driveChannels UAF). Detach via the loop thread first.
+        lock.unlock();
+        channel.emergencyDetach();
+        lock.lock();
+    } else if (!result.message.empty() && result.message != "timeout") {
         // The close landed during the grace window and overwrote nothing: the
         // timeout verdict stands.
     }

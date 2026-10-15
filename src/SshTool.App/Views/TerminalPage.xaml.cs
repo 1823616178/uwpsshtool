@@ -511,6 +511,8 @@ namespace SshTool.App.Views
             }));
             // F03：本会话的 SFTP（复用该会话已认证连接挂 SFTP 子系统）。
             flyout.Items.Add(Item(resw.GetString("Terminal_MenuSftp"), OpenSftp));
+            // H-2（02 §4 导航图/§5.5）：终端「⋯」菜单补「本会话隧道」入口。
+            flyout.Items.Add(Item(resw.GetString("Terminal_MenuTunnel"), OpenSessionTunnel));
             flyout.Items.Add(Item(resw.GetString("Terminal_MenuAppearance"), () => Frame.Navigate(typeof(AppearanceListPage))));
             // UI 走查：断开/关闭会话为破坏性项，套红字 DangerMenuItemStyle。
             flyout.Items.Add(DangerItem(resw.GetString("Terminal_MenuDisconnect"), () => ViewModel.DisconnectCommand.Execute(null)));
@@ -535,6 +537,13 @@ namespace SshTool.App.Views
                     SessionId = ViewModel.Session.SessionId
                 });
             }
+        }
+
+        // H-2：本会话隧道——以当前会话的主机预填，新建一条隧道。
+        private void OpenSessionTunnel()
+        {
+            string hostId = ViewModel == null ? null : ViewModel.HostId;
+            Frame.Navigate(typeof(TunnelEditPage), TunnelEditArgs.New(hostId));
         }
 
         // U13：片段选择器统一入口（终端菜单 / 键条 snippets 键 / 右键菜单）。
@@ -866,12 +875,29 @@ namespace SshTool.App.Views
 
         public bool HandleBack()
         {
-            if (!_findOpen)
+            // H-1（02 §4 硬件返回键优先级，终端页）：查找条 → 选择模式 →
+            // 会话侧栏 → 软键盘。ContentDialog/Flyout 由系统先行处理。
+            if (_findOpen)
             {
-                return false;
+                CloseFind(true);
+                return true;
             }
-            CloseFind(true);
-            return true;
+            if (Term.IsSelectionActive)
+            {
+                Term.CancelSelection();
+                return true;
+            }
+            if (SessionsSplit.IsPaneOpen)
+            {
+                SessionsSplit.IsPaneOpen = false;
+                return true;
+            }
+            if (Term.IsSoftKeyboardVisible)
+            {
+                Term.HideSoftKeyboard();
+                return true;
+            }
+            return false;
         }
 
         // 250 ms 去抖：全文读取在 5 万行回滚上不便宜，不在每次击键都跑。
