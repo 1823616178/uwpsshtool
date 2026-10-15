@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SshTool.App.Dialogs;
@@ -29,15 +29,15 @@ namespace SshTool.App.Views
             }
         }
 
+        // L-3（02 §4 W06）：页头返回走 NavigationService 统一链（与硬件返回一致）。
         private void OnBackRequested(object sender, EventArgs e)
         {
             NavigationService nav = Nav;
-            if (nav != null && nav.CanGoBack)
+            if (nav != null)
             {
-                nav.GoBack();
-                return;
+                nav.RequestBack();
             }
-            if (Frame != null && Frame.CanGoBack)
+            else if (Frame != null && Frame.CanGoBack)
             {
                 Frame.GoBack();
             }

@@ -29,7 +29,9 @@ namespace SshTool.App.Views.Main
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             Empty.PrimaryCommand = _viewModel.AddCommand;
-            TunnelList.ItemsSource = _viewModel.Tunnels;
+            // M-2：分组显示（CollectionViewSource 绑定 ViewModel.GroupedTunnels）。
+            GroupedTunnels.Source = _viewModel.GroupedTunnels;
+            TunnelList.ItemsSource = GroupedTunnels.View;
             _viewModel.LoadAsync().Forget("TunnelsPivot.Load", AppLog.Logger);
         }
 

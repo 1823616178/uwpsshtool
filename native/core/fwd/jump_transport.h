@@ -107,7 +107,12 @@ private:
 // ----------------------------------------------------------------------------
 class DirectTcpipJumpChannel final : public IJumpChannel {
 public:
-    explicit DirectTcpipJumpChannel(struct _LIBSSH2_CHANNEL* channel);
+    // C3: the wrapped channel lives on the *jump* session; the target session
+    // using this channel must keep the jump session alive. The caller passes a
+    // type-erased lifetime anchor (e.g. a shared_ptr holding the jump session
+    // handle); it is held for the channel's lifetime and released on destroy.
+    explicit DirectTcpipJumpChannel(struct _LIBSSH2_CHANNEL* channel,
+                                    std::shared_ptr<void> lifetimeAnchor = nullptr);
     ~DirectTcpipJumpChannel() override;
 
     ssize_t read(void* buffer, size_t length) override;
@@ -119,6 +124,7 @@ public:
 
 private:
     struct _LIBSSH2_CHANNEL* channel_ = nullptr;
+    std::shared_ptr<void> lifetimeAnchor_; // C3: keeps the jump session alive
     bool eof_ = false;
     bool closed_ = false;
 };
