@@ -132,9 +132,9 @@
   <data name="Sftp_EmptyDescription.Text" xml:space="preserve"><value>此目录没有内容</value></data>
   <data name="Sftp_LoadFailed.Text" xml:space="preserve"><value>加载失败</value></data>
   <data name="Sftp_Retry.Text" xml:space="preserve"><value>重试</value></data>
-  <data name="Sftp_UploadButton.Label" xml:space="preserve"><value>上传</value></data>
-  <data name="Sftp_NewFolderButton.Label" xml:space="preserve"><value>新建文件夹</value></data>
-  <data name="Sftp_RefreshButton.Label" xml:space="preserve"><value>刷新</value></data>
+  <data name="Sftp_BottomBar.PrimaryText" xml:space="preserve"><value>上传</value></data>
+  <data name="Sftp_NewFolderItem.Text" xml:space="preserve"><value>新建文件夹</value></data>
+  <data name="Sftp_RefreshItem.Text" xml:space="preserve"><value>刷新</value></data>
   <data name="Sftp_SortHeader" xml:space="preserve"><value>排序方式</value></data>
   <data name="Sftp_SortName" xml:space="preserve"><value>按名称</value></data>
   <data name="Sftp_SortSize" xml:space="preserve"><value>按大小</value></data>
@@ -198,6 +198,7 @@
   <data name="Terminal_MenuKeyBar" xml:space="preserve"><value>键条</value></data>
   <data name="Terminal_MenuSnippets" xml:space="preserve"><value>片段</value></data>
   <data name="Terminal_MenuSftp" xml:space="preserve"><value>SFTP</value></data>
+  <data name="Terminal_MenuTunnel" xml:space="preserve"><value>本会话隧道</value></data>
   <data name="Terminal_MenuAppearance" xml:space="preserve"><value>外观</value></data>
   <data name="Terminal_MenuDisconnect" xml:space="preserve"><value>断开</value></data>
   <data name="Terminal_MenuCloseSession" xml:space="preserve"><value>关闭会话</value></data>
@@ -423,8 +424,10 @@
   <data name="AppearanceEdit_Section_Cursor.Header" xml:space="preserve"><value>光标外观</value></data>
   <data name="AppearanceEdit_PivotFont.Header" xml:space="preserve"><value>字体</value></data>
   <data name="AppearanceEdit_NameBox.Header" xml:space="preserve"><value>名称</value></data>
-  <data name="AppearanceEdit_BoldWeight.Header" xml:space="preserve"><value>粗体用粗字重</value></data>
-  <data name="AppearanceEdit_BoldBright.Header" xml:space="preserve"><value>粗体用亮色</value></data>
+  <data name="AppearanceEdit_BoldWeight_Title.Text" xml:space="preserve"><value>粗体用粗字重</value></data>
+  <data name="AppearanceEdit_BoldWeight.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>粗体用粗字重</value></data>
+  <data name="AppearanceEdit_BoldBright_Title.Text" xml:space="preserve"><value>粗体用亮色</value></data>
+  <data name="AppearanceEdit_BoldBright.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>粗体用亮色</value></data>
   <data name="AppearanceEdit_PivotColor.Header" xml:space="preserve"><value>颜色</value></data>
   <data name="AppearanceEdit_FgLabel.Text" xml:space="preserve"><value>前景</value></data>
   <data name="AppearanceEdit_BgLabel.Text" xml:space="preserve"><value>背景</value></data>
@@ -436,7 +439,8 @@
   <data name="AppearanceEdit_CursorBlock.Content" xml:space="preserve"><value>方块</value></data>
   <data name="AppearanceEdit_CursorBar.Content" xml:space="preserve"><value>竖线</value></data>
   <data name="AppearanceEdit_CursorUnderline.Content" xml:space="preserve"><value>下划线</value></data>
-  <data name="AppearanceEdit_CursorBlink.Header" xml:space="preserve"><value>光标闪烁</value></data>
+  <data name="AppearanceEdit_CursorBlink_Title.Text" xml:space="preserve"><value>光标闪烁</value></data>
+  <data name="AppearanceEdit_CursorBlink.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>光标闪烁</value></data>
 
   <!-- V06（C-06）：AppearanceListPage 硬编码中文清理 -->
   <data name="AppearanceList_NewButton.Label" xml:space="preserve"><value>新建</value></data>
@@ -486,13 +490,13 @@
   <data name="Main_PivotTunnels.Header" xml:space="preserve"><value>隧道</value></data>
   <data name="Main_TunnelsEmpty.Title" xml:space="preserve"><value>暂无隧道</value></data>
   <data name="Main_TunnelsEmpty.Description" xml:space="preserve"><value>转发在会话后台运行。</value></data>
-  <data name="Main_QuickConnectButton.Label" xml:space="preserve"><value>快速连接</value></data>
-  <data name="Main_NewButton.Label" xml:space="preserve"><value>新建</value></data>
-  <data name="Main_AboutItem.Label" xml:space="preserve"><value>关于</value></data>
-  <data name="Main_SignInItem.Label" xml:space="preserve"><value>登录</value></data>
+  <data name="Main_BottomBar.PrimaryText" xml:space="preserve"><value>新建</value></data>
+  <data name="Main_QuickConnectItem.Text" xml:space="preserve"><value>快速连接</value></data>
+  <data name="Main_AboutItem.Text" xml:space="preserve"><value>关于</value></data>
+  <data name="Main_SignInItem.Text" xml:space="preserve"><value>登录</value></data>
   <data name="Main_SignInItemText" xml:space="preserve"><value>登录</value></data>
   <data name="Main_AccountItemText" xml:space="preserve"><value>账号与同步</value></data>
-  <data name="Main_DevToolsItem.Label" xml:space="preserve"><value>开发工具</value></data>
+  <data name="Main_DevToolsItem.Text" xml:space="preserve"><value>开发工具</value></data>
   <data name="Main_LoadWarningTitle" xml:space="preserve"><value>数据文件有告警</value></data>
   <data name="Main_SecretsIssue_ContentCorruptQuarantined" xml:space="preserve"><value>已保存的凭据文件已损坏，已隔离旧文件；请重新输入密码与密码短语</value></data>
   <data name="Main_SecretsIssue_ContentCorruptNotQuarantined" xml:space="preserve"><value>已保存的凭据文件已损坏且无法隔离，下次保存将覆盖；请重新输入密码与密码短语</value></data>
@@ -723,10 +727,14 @@
   <data name="HostEdit_JumpBox.Header" xml:space="preserve"><value>跳板主机</value></data>
   <data name="HostEdit_TmuxNameBox.Header" xml:space="preserve"><value>tmux 会话名</value></data>
   <data name="HostEdit_InitBox.Header" xml:space="preserve"><value>连接后执行命令（每行一条）</value></data>
-  <data name="HostEdit_RememberPasswordSwitch.Header" xml:space="preserve"><value>保存在本机</value></data>
-  <data name="HostEdit_RememberPassphraseSwitch.Header" xml:space="preserve"><value>保存短语</value></data>
-  <data name="HostEdit_BackspaceSwitch.Header" xml:space="preserve"><value>退格发送 Ctrl+H</value></data>
-  <data name="HostEdit_TmuxSwitch.Header" xml:space="preserve"><value>tmux 自动附着</value></data>
+  <data name="HostEdit_RememberPasswordSwitch_Title.Text" xml:space="preserve"><value>保存在本机</value></data>
+  <data name="HostEdit_RememberPasswordSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>保存在本机</value></data>
+  <data name="HostEdit_RememberPassphraseSwitch_Title.Text" xml:space="preserve"><value>保存短语</value></data>
+  <data name="HostEdit_RememberPassphraseSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>保存短语</value></data>
+  <data name="HostEdit_BackspaceSwitch_Title.Text" xml:space="preserve"><value>退格发送 Ctrl+H</value></data>
+  <data name="HostEdit_BackspaceSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>退格发送 Ctrl+H</value></data>
+  <data name="HostEdit_TmuxSwitch_Title.Text" xml:space="preserve"><value>tmux 自动附着</value></data>
+  <data name="HostEdit_TmuxSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>tmux 自动附着</value></data>
   <data name="HostEdit_AuthPasswordRadio.Content" xml:space="preserve"><value>密码</value></data>
   <data name="HostEdit_AuthKeyRadio.Content" xml:space="preserve"><value>私钥</value></data>
   <data name="HostEdit_AuthAgentRadio.Content" xml:space="preserve"><value>应用内 Agent</value></data>
@@ -760,6 +768,11 @@
   <data name="HostEdit_SwitchAuthCancel" xml:space="preserve"><value>取消</value></data>
   <data name="HostEdit_SwitchAuthDropPassword" xml:space="preserve"><value>切换认证方式将清除已填写或已保存的密码。</value></data>
   <data name="HostEdit_SwitchAuthDropKey" xml:space="preserve"><value>切换认证方式将清除已选私钥与密码短语。</value></data>
+  <data name="HostEdit_TestStageResolve" xml:space="preserve"><value>正在解析主机…</value></data>
+  <data name="HostEdit_TestStageHandshake" xml:space="preserve"><value>正在握手…</value></data>
+  <data name="HostEdit_TestStageHostKey" xml:space="preserve"><value>正在验证主机密钥…</value></data>
+  <data name="HostEdit_TestStageAuth" xml:space="preserve"><value>正在认证…</value></data>
+  <data name="HostEdit_TestStageComplete" xml:space="preserve"><value>连接成功</value></data>
   <data name="HostEdit_TestMessage" xml:space="preserve"><value>测试连接…</value></data>
   <data name="HostEdit_TestTitle" xml:space="preserve"><value>测试连接</value></data>
   <data name="HostEdit_TestFailedTitle" xml:space="preserve"><value>测试失败</value></data>
@@ -937,6 +950,7 @@
   <data name="DeleteVault_Failed" xml:space="preserve"><value>删除保险库失败，请稍后重试</value></data>
 
   <!-- F06：隧道与端口转发 (Tunnels) -->
+  <data name="Tunnels_Ungrouped" xml:space="preserve"><value>未分组</value></data>
   <data name="Tunnels_Title.Text" xml:space="preserve"><value>端口转发</value></data>
   <data name="Tunnels_StopAllButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>全部停止</value></data>
   <data name="Tunnels_AddTunnelButton.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>添加隧道</value></data>
@@ -995,9 +1009,12 @@
   <data name="TunnelEdit_DestServerBox.Header" xml:space="preserve"><value>目标服务器 *</value></data>
   <data name="TunnelEdit_RoutePreviewTitle.Text" xml:space="preserve"><value>路径预览</value></data>
   <data name="TunnelEdit_Section_Options.Header" xml:space="preserve"><value>运行选项</value></data>
-  <data name="TunnelEdit_AutoReconnectSwitch.Header" xml:space="preserve"><value>自动重连</value></data>
-  <data name="TunnelEdit_AutoStartSwitch.Header" xml:space="preserve"><value>随应用启动</value></data>
-  <data name="TunnelEdit_EnabledSwitch.Header" xml:space="preserve"><value>已启用</value></data>
+  <data name="TunnelEdit_AutoReconnectSwitch_Title.Text" xml:space="preserve"><value>自动重连</value></data>
+  <data name="TunnelEdit_AutoReconnectSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>自动重连</value></data>
+  <data name="TunnelEdit_AutoStartSwitch_Title.Text" xml:space="preserve"><value>随应用启动</value></data>
+  <data name="TunnelEdit_AutoStartSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>随应用启动</value></data>
+  <data name="TunnelEdit_EnabledSwitch_Title.Text" xml:space="preserve"><value>已启用</value></data>
+  <data name="TunnelEdit_EnabledSwitch.[using:Windows.UI.Xaml.Automation]AutomationProperties.Name" xml:space="preserve"><value>已启用</value></data>
   <data name="TunnelEdit_LocalOnly.Text" xml:space="preserve"><value>（仅本机）</value></data>
   <data name="TunnelEdit_Save" xml:space="preserve"><value>保存</value></data>
   <data name="TunnelEdit_Delete" xml:space="preserve"><value>删除隧道</value></data>
@@ -1279,7 +1296,7 @@
   <data name="KeyGenerate_Err_UnsupportedBits" xml:space="preserve"><value>RSA 只支持 3072 / 4096 位</value></data>
   <data name="KeyGenerate_Err_VerifyFailed" xml:space="preserve"><value>生成后校验失败，请重试</value></data>
   <data name="KeyGenerate_Err_DuplicateFingerprint" xml:space="preserve"><value>生成的密钥与已有密钥指纹相同，请重试</value></data>
-  <data name="Main_ToolsItem.Label" xml:space="preserve"><value>工具与设置</value></data>
+  <data name="Main_ToolsItem.Text" xml:space="preserve"><value>工具与设置</value></data>
   <data name="Main_PlaceholderNewHost" xml:space="preserve"><value>新建主机</value></data>
   <data name="Main_PlaceholderSync" xml:space="preserve"><value>同步</value></data>
   <data name="Tools_PageHeader.Title" xml:space="preserve"><value>工具与设置</value></data>
@@ -1350,7 +1367,7 @@
   <data name="Tools_ImportConfirm" xml:space="preserve"><value>导入</value></data>
   <data name="Terminal_MenuImeOn" xml:space="preserve"><value>切换为中文输入（输入法）</value></data>
   <data name="Terminal_MenuImeOff" xml:space="preserve"><value>切换为英文直通输入</value></data>
-  <data name="Sftp_ViewOptionsButton.Label" xml:space="preserve"><value>排序与视图</value></data>
+  <data name="Sftp_ViewOptionsItem.Text" xml:space="preserve"><value>排序与视图</value></data>
 
   <!-- G09: 空状态、加载与操作动效统一 -->
   <data name="Common_LoadFailed" xml:space="preserve"><value>加载失败</value></data>
