@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SshTool.App.Dialogs;
 using SshTool.App.Infrastructure;
 using SshTool.App.ViewModels;
@@ -208,7 +208,18 @@ namespace SshTool.App.Views
             TestOverlay.IsActive = true;
             try
             {
-                SshTool.Core.Sessions.TestConnectResult result = await ViewModel.TestAsync();
+                // M-1（02 §5.4）：测试连接分阶段反馈（解析→握手→主机密钥→认证→完成）。
+                SshTool.Core.Sessions.TestConnectResult result = await ViewModel.TestAsync(stage =>
+                {
+                    string text = TestStageText(stage);
+                    DispatcherHelper.Post(() =>
+                    {
+                        if (TestOverlay.IsActive)
+                        {
+                            TestOverlay.Message = text;
+                        }
+                    });
+                });
                 string text = _loader.GetString(result.MessageKey ?? "Error_500");
                 TestOverlay.IsActive = false;
                 await ConfirmDialog.ShowAsync(result.Success
@@ -226,6 +237,26 @@ namespace SshTool.App.Views
             finally
             {
                 TestOverlay.IsActive = false;
+            }
+        }
+
+        // M-1：测试阶段文案（02 §5.4：连接中→握手→认证→成功/失败）。
+        private string TestStageText(SshTool.Core.Sessions.TestConnectStage stage)
+        {
+            switch (stage)
+            {
+                case SshTool.Core.Sessions.TestConnectStage.Resolve:
+                    return _loader.GetString("HostEdit_TestStageResolve");
+                case SshTool.Core.Sessions.TestConnectStage.Handshake:
+                    return _loader.GetString("HostEdit_TestStageHandshake");
+                case SshTool.Core.Sessions.TestConnectStage.HostKey:
+                    return _loader.GetString("HostEdit_TestStageHostKey");
+                case SshTool.Core.Sessions.TestConnectStage.Auth:
+                    return _loader.GetString("HostEdit_TestStageAuth");
+                case SshTool.Core.Sessions.TestConnectStage.Complete:
+                    return _loader.GetString("HostEdit_TestStageComplete");
+                default:
+                    return _loader.GetString("HostEdit_TestMessage");
             }
         }
 

@@ -396,8 +396,11 @@ namespace SshTool.Core.Tests.Sync
             var inspector = new KeyToolPrivateKeyInspector(f.Tool);
             var secrets = Triple(PemRsaKeyText, "pem", FingerprintA);
 
-            string text = await inspector.DecodeAndVerifyAsync(secrets, "srv-1");
-            Assert.Equal(PemRsaKeyText, text);
+            DecodedPrivateKey decoded = await inspector.DecodeAndVerifyAsync(secrets, "srv-1");
+            Assert.Equal(PemRsaKeyText, decoded.Text);
+            // L-1：部分成功路径下 Info 仍带回（KeyType 来自文件头解析）。
+            Assert.NotNull(decoded.Info);
+            Assert.Equal("ssh-rsa", decoded.Info.KeyType);
         }
 
         // 短语缺失的加密钥（检查器直接失败 + ENCRYPTED 标记）→ 容忍分支接受。
@@ -409,8 +412,10 @@ namespace SshTool.Core.Tests.Sync
             var inspector = new KeyToolPrivateKeyInspector(f.Tool);
             var secrets = Triple(EncMarkerGarbageText, "pem", FingerprintA);
 
-            string text = await inspector.DecodeAndVerifyAsync(secrets, "srv-1");
-            Assert.Equal(EncMarkerGarbageText, text);
+            DecodedPrivateKey decoded = await inspector.DecodeAndVerifyAsync(secrets, "srv-1");
+            Assert.Equal(EncMarkerGarbageText, decoded.Text);
+            // 容忍分支：无解析信息。
+            Assert.Null(decoded.Info);
         }
 
         // 桌面端 decodes and restores into another device：Apply 落库 KeyEntry 并绑定主机。
@@ -435,6 +440,10 @@ namespace SshTool.Core.Tests.Sync
             Assert.Equal("h1 (synced)", entry.Name);
             Assert.Equal("openssh", entry.Format);
             Assert.Equal(FingerprintA, entry.FingerprintSha256);
+            // L-1：入站解码的密钥信息 best-effort 落库（不再恒为空）。
+            Assert.Equal("ssh-ed25519", entry.KeyType);
+            Assert.Equal(256, entry.Bits);
+            Assert.Equal("ssh-ed25519 AAAAC3Fake comment", entry.PublicKeyOpenSsh);
             var host = await f.Hosts.GetByIdAsync("h1");
             Assert.Equal(AuthType.Key, host.AuthType);
             Assert.Equal(entry.Id, host.KeyId);

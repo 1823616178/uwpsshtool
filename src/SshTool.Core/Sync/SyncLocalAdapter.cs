@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SshTool.Core.Common;
+using SshTool.Core.Keys;
 using SshTool.Core.Models;
 using SshTool.Core.Storage;
 using SshTool.Core.Storage.Repositories;
@@ -369,11 +370,12 @@ namespace SshTool.Core.Sync
                 // 并绑定主机（见 AssignSyncedKeyAsync）。
                 if (s.Secrets != null && s.Secrets.PrivateKey != null)
                 {
-                    string decoded = await _inspector.DecodeAndVerifyAsync(
+                    DecodedPrivateKey decoded = await _inspector.DecodeAndVerifyAsync(
                         s.Secrets, s.Profile.Id).ConfigureAwait(false);
                     if (decoded != null)
                     {
-                        await AssignSyncedKeyAsync(newHosts[newHosts.Count - 1], s.Secrets, decoded).ConfigureAwait(false);
+                        await AssignSyncedKeyAsync(
+                            newHosts[newHosts.Count - 1], s.Secrets, decoded).ConfigureAwait(false);
                     }
                 }
             }
@@ -471,6 +473,26 @@ namespace SshTool.Core.Sync
                 if (!remoteById.ContainsKey(h.Id))
                 {
                     await _secrets.RemoveByPrefixAsync(SecretKeys.HostPrefix(h.Id), ChangeOrigin.Sync).ConfigureAwait(false);
+                    // L-2：主机曾绑定密钥（出站时短语优先存 key: 键）时，若其 KeyId 在下行后的
+                    // 主机列表中已无人引用，一并清除 key: 短语残留；KeyEntry 本体是本地密钥库
+                    // 独立实体（可能被用户手动复用），保留不删。
+                    if (!string.IsNullOrEmpty(h.KeyId))
+                    {
+                        bool stillUsed = false;
+                        foreach (var nh in newHosts)
+                        {
+                            if (string.Equals(nh.KeyId, h.KeyId, StringComparison.Ordinal))
+                            {
+                                stillUsed = true;
+                                break;
+                            }
+                        }
+                        if (!stillUsed)
+                        {
+                            await _secrets.RemoveAsync(
+                                SecretKeys.KeyPassphrase(h.KeyId), ChangeOrigin.Sync).ConfigureAwait(false);
+                        }
+                    }
                 }
             }
 
@@ -514,7 +536,7 @@ namespace SshTool.Core.Sync
         // 否则新建 KeyEntry（名称 "<host.name> (synced)"）并存私钥原文；短语随
         // secrets.passphrase 走 host: 凭据（下行凭据段已有“出现即覆盖”处理），
         // 出站时按 key: 优先、host: 其次找回，可往返。ChangeOrigin.Sync。
-        private async Task AssignSyncedKeyAsync(Host host, ServerSecrets secrets, string privateText)
+        private async Task AssignSyncedKeyAsync(Host host, ServerSecrets secrets, DecodedPrivateKey decoded)
         {
             var keys = await _keys.GetAllAsync().ConfigureAwait(false);
             foreach (var k in keys)
@@ -525,21 +547,25 @@ namespace SshTool.Core.Sync
                     return;
                 }
             }
+            // L-1：入站解码时已由 IKeyTool 解析出密钥信息（DecodeAndVerifyAsync 顺带返回），
+            // 此处 best-effort 填入元数据；解析不出（如加密无短语的部分成功路径）则保留空值，
+            // 密钥详情页按“未知类型”降级显示（此前 KeyType/PublicKeyOpenSsh 恒为空）。
+            InspectedKeyInfo info = decoded.Info;
             var entry = new KeyEntry
             {
                 Id = IdGenerator.NewId(),
                 Name = (host.Name ?? "") + " (synced)",
-                KeyType = "",
-                Bits = 0,
+                KeyType = info != null && !string.IsNullOrEmpty(info.KeyType) ? info.KeyType : "",
+                Bits = info != null ? info.Bits : 0,
                 Format = secrets.PrivateKeyFormat,
                 Encrypted = secrets.Passphrase != null,
-                PublicKeyOpenSsh = null,
+                PublicKeyOpenSsh = info != null ? info.PublicKeyOpenSsh : null,
                 FingerprintSha256 = secrets.PrivateKeyFingerprint,
                 CreatedAt = _utcNow().ToUniversalTime().ToString(UpdatedAtFormat, CultureInfo.InvariantCulture),
-                Comment = null
+                Comment = info != null ? info.Comment : null
             };
             await _keys.AddAsync(entry, ChangeOrigin.Sync).ConfigureAwait(false);
-            await _secrets.SetAsync(SecretKeys.KeyPrivate(entry.Id), privateText, ChangeOrigin.Sync).ConfigureAwait(false);
+            await _secrets.SetAsync(SecretKeys.KeyPrivate(entry.Id), decoded.Text, ChangeOrigin.Sync).ConfigureAwait(false);
             host.KeyId = entry.Id;
         }
     }

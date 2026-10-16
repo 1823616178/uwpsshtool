@@ -16,36 +16,16 @@
         </Storyboard>
     </Page.Resources>
 
-    <!-- V02（05 §6.1）：底栏重排——主命令=快速连接（切 HostsPivot 展开区）+ 新建主机；
-         溢出=工具与设置组 + 开发工具（仅 DEBUG_PAGES 显示）。搜索按钮移除：搜索行在
-         HostsPivot 常驻。OverflowButtonVisibility 需 16299，15063 上会 XamlParseException，
-         省略即可（有 SecondaryCommands 时系统会显示 …）。 -->
-    <Page.BottomAppBar>
-        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton x:Name="QuickConnectButton" x:Uid="Main_QuickConnectButton" Click="OnQuickConnectClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconConnect}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton x:Name="NewButton" x:Uid="Main_NewButton" Click="OnNewClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconAdd}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <CommandBar.SecondaryCommands>
-                <AppBarButton x:Uid="Main_ToolsItem" Click="OnToolsClick" />
-                <AppBarButton x:Uid="Main_AboutItem" Click="OnAboutClick" />
-                <AppBarButton x:Name="SignInItem" x:Uid="Main_SignInItem" Click="OnSignInClick" />
-                <AppBarButton x:Name="DevToolsItem" x:Uid="Main_DevToolsItem" Click="OnDevToolsClick" Visibility="Collapsed" />
-            </CommandBar.SecondaryCommands>
-        </CommandBar>
-    </Page.BottomAppBar>
+    <!-- H-3（02 §4.5 规则 5）：底部操作只有一种语言 BottomActionBar，不用 Page.BottomAppBar。
+         主操作=新建主机；溢出=快速连接 / 工具与设置 / 关于 / 登录 / 开发工具（仅 DEBUG_PAGES 显示）。
+         快速连接的 in-content 入口仍在 HostsPivot 展开区，底栏溢出项为快捷方式。 -->
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <controls:Banner x:Name="LoadWarningBanner" Visibility="Collapsed" />
@@ -133,6 +113,22 @@
                 </SplitView.Content>
             </SplitView>
         </Grid>
+
+        <!-- H-3：底栏换成自研 BottomActionBar（与全站统一）。PrimaryText 走 x:Uid 映射。 -->
+        <controls:BottomActionBar x:Name="BottomBar" x:Uid="Main_BottomBar" Grid.Row="3"
+                                  ShowOverflow="True"
+                                  PrimaryClick="OnNewClick">
+            <controls:BottomActionBar.OverflowFlyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem x:Uid="Main_QuickConnectItem" Click="OnQuickConnectClick" />
+                    <MenuFlyoutSeparator />
+                    <MenuFlyoutItem x:Uid="Main_ToolsItem" Click="OnToolsClick" />
+                    <MenuFlyoutItem x:Uid="Main_AboutItem" Click="OnAboutClick" />
+                    <MenuFlyoutItem x:Name="SignInItem" x:Uid="Main_SignInItem" Click="OnSignInClick" />
+                    <MenuFlyoutItem x:Name="DevToolsItem" x:Uid="Main_DevToolsItem" Click="OnDevToolsClick" Visibility="Collapsed" />
+                </MenuFlyout>
+            </controls:BottomActionBar.OverflowFlyout>
+        </controls:BottomActionBar>
 
         <VisualStateManager.VisualStateGroups>
             <!-- U12：默认即窄屏单页；窗宽 ≥720（WideBreakpoint）时切主从。 -->

@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using SshTool.Core.Keys;
 using SshTool.Core.Sync.Protocol;
 
 namespace SshTool.Core.Sync
@@ -16,6 +17,14 @@ namespace SshTool.Core.Sync
         public string Fingerprint { get; set; } // SHA256:<43 位标准 base64 无填充>
     }
 
+    // 入站解码结果：私钥原文 + 解析出的密钥信息（best-effort：加密无短语等
+    // 部分成功路径下 Info 可能为 null 或字段不全，调用方保留空元数据即可）。
+    public sealed class DecodedPrivateKey
+    {
+        public string Text { get; set; }
+        public InspectedKeyInfo Info { get; set; }
+    }
+
     public interface IPrivateKeyInspector
     {
         // 出站：私钥原文（UTF-8 文本）+ 短语（可为 null）→ 可同步元数据；
@@ -23,8 +32,8 @@ namespace SshTool.Core.Sync
         Task<InspectedPrivateKey> InspectAsync(string privateKeyText, string passphrase);
 
         // 入站：校验远端 secrets 私钥段（含 §4.1 结构之外的指纹复算）；
-        // 失败抛 SyncApplyException（整份不应用）；返回私钥原文；无私钥段返回 null。
-        Task<string> DecodeAndVerifyAsync(ServerSecrets secrets, string serverId);
+        // 失败抛 SyncApplyException（整份不应用）；返回解码结果；无私钥段返回 null。
+        Task<DecodedPrivateKey> DecodeAndVerifyAsync(ServerSecrets secrets, string serverId);
     }
 
     public sealed class NullPrivateKeyInspector : IPrivateKeyInspector
@@ -40,9 +49,9 @@ namespace SshTool.Core.Sync
             return Task.FromResult<InspectedPrivateKey>(null);
         }
 
-        public Task<string> DecodeAndVerifyAsync(ServerSecrets secrets, string serverId)
+        public Task<DecodedPrivateKey> DecodeAndVerifyAsync(ServerSecrets secrets, string serverId)
         {
-            return Task.FromResult<string>(null);
+            return Task.FromResult<DecodedPrivateKey>(null);
         }
     }
 }

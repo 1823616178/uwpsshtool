@@ -326,12 +326,17 @@ void ForwardedConnection::close()
         }
         if (state == ForwardState::Pumping) {
             enterClosing(ForwardCloseReason::LocalClose, "local close requested");
+            drainReclaim(); // enterClosing 可能经 finishClose 置位回收
             return;
         }
         // Opening/Closing: the flag is honored when the open completes (or
         // the close handshake finishes); nothing to drive right now beyond a
         // pump nudge.
         pump();
+        // C1：pump() 可能已置位回收；若已回收则直接返回，不再触碰成员。
+        if (drainReclaim()) {
+            return;
+        }
         session_.updateSocketInterest();
     });
 }
@@ -389,6 +394,11 @@ void ForwardedConnection::begin()
     } else {
         beginTargetConnect();
     }
+    // C1：pump()/beginTargetConnect() 可能已触发 failOpen（回收已置位）。
+    // 若已置位则在此回收并直接返回，不再触碰成员（含 session_）。
+    if (drainReclaim()) {
+        return;
+    }
     session_.updateSocketInterest();
 }
 
@@ -445,23 +455,29 @@ void ForwardedConnection::onTcpEvent(SOCKET socket, short events)
     const ForwardState state = state_.load(std::memory_order_acquire);
     if (state == ForwardState::Opening && half_ == Half::Local && socksMode_) {
         pump(); // SOCKS 握手与回复写回（Readable/Writable 都可能推进）
-        if (state_.load(std::memory_order_acquire) != ForwardState::Closed) {
-            session_.updateSocketInterest();
+        // C1：pump() 可能已置位回收（failOpen/enterClosing 路径）；注意原先的
+        // `state_ != Closed` 检查是坏的——回收若同步发生，读 state_ 本身即 UAF。
+        if (drainReclaim()) {
+            return; // 已回收（this 可能已析构），不得再触碰成员
         }
+        session_.updateSocketInterest();
         return;
     }
     if (state == ForwardState::Opening && half_ == Half::Remote) {
         driveTargetConnectEvent();
+        drainReclaim(); // 可能置位回收；本函数随后即返回
         return;
     }
     if (state == ForwardState::Pumping || state == ForwardState::Closing) {
         // Any event (Readable/Writable/ERR/HUP) is a reason to drive: ERR/HUP
         // surfaces as EOF/error through recv on the next pull.
         pump();
-        if (state_.load(std::memory_order_acquire) != ForwardState::Closed) {
-            session_.updateSocketInterest();
+        if (drainReclaim()) {
+            return; // 已回收（this 可能已析构），不得再触碰成员
         }
+        session_.updateSocketInterest();
     }
+    drainReclaim(); // 幂等收尾：未置位时无操作
 }
 
 bool ForwardedConnection::driveChannelOpen()
@@ -665,6 +681,7 @@ void ForwardedConnection::beginTargetConnect()
             half_ == Half::Remote) {
             failOpen(ForwardOpenError::TargetConnectFailed, "target connect timed out");
         }
+        drainReclaim(); // failOpen 可能置位回收；回调随后即返回
     });
     tryConnectNext();
 }
@@ -914,12 +931,16 @@ void ForwardedConnection::finishClose()
         }
     }
     transitionTo(ForwardState::Closed);
-    if (!openFailed_ && callbacks_.onClose) {
-        ForwardCloseInfo info;
-        info.reason = closeReason_;
-        info.message = closeMessage_;
-        callbacks_.onClose(info);
+    if (!reclaimArmed_ && !openFailed_ && callbacks_.onClose) {
+        // C1：onClose 会触发监听器 erase 从而析构本对象；调用方可能还在
+        // enterClosing()/driveClose()/pump() 调用栈内。延迟到顶层入口的
+        // drainReclaim()，调用栈安全返回后再触发。
+        pendingCloseInfo_.reason = closeReason_;
+        pendingCloseInfo_.message = closeMessage_;
+        reclaimArmed_ = true;
+        reclaimIsClose_ = true;
     }
+    // openFailed_ 路径：failOpen() 已置位回收，此处不再重复。
 }
 
 void ForwardedConnection::failOpen(ForwardOpenError error, const std::string& message)
@@ -951,13 +972,36 @@ void ForwardedConnection::failOpen(ForwardOpenError error, const std::string& me
     socketEndpoint_.reset();
     channelEndpoint_.reset();
     transitionTo(ForwardState::Closed);
-    // 回收钩子最后触发：erase 会析构本对象，返回后不得再触碰任何成员
-    //（与 finishClose 里 onClose 的「destroys post-onClose」同款纪律）。
-    std::function<void()> reclaim = std::move(openFailureCallback_);
-    openFailureCallback_ = nullptr;
-    if (reclaim) {
-        reclaim();
+    // C1：永不同步触发回收钩子。erase 会析构本对象，而调用方可能还在
+    // begin()/pump()/onTcpEvent() 调用栈内继续访问成员（堆 UAF）。
+    // 只置位，由顶层入口的 drainReclaim() 在安全点触发。
+    reclaimArmed_ = true;
+    reclaimIsClose_ = false;
+}
+
+// C1：触发延迟的回收（见头文件注释）。必须作为顶层入口的最后一个动作调用。
+bool ForwardedConnection::drainReclaim()
+{
+    if (!reclaimArmed_) {
+        return false;
     }
+    reclaimArmed_ = false;
+    if (reclaimIsClose_) {
+        reclaimIsClose_ = false;
+        // onClose：监听器据此 erase（可能析构本对象）。
+        if (callbacks_.onClose) {
+            callbacks_.onClose(pendingCloseInfo_);
+        }
+    } else {
+        // 打开失败回收钩子：监听器据此 erase（可能析构本对象）。
+        std::function<void()> reclaim = std::move(openFailureCallback_);
+        openFailureCallback_ = nullptr;
+        if (reclaim) {
+            reclaim();
+        }
+    }
+    // 本对象可能已析构；调用方必须立即返回，不得再触碰任何成员。
+    return true;
 }
 
 void ForwardedConnection::onSessionLost()

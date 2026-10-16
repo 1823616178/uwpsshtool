@@ -180,6 +180,13 @@ private:
     void enterClosing(ForwardCloseReason reason, std::string message);
     void failOpen(ForwardOpenError error, const std::string& message);
     void finishClose();
+    // C1 回收纪律：failOpen()/finishClose() 永不同步析构 this（调用方可能还在
+    // begin()/pump()/onTcpEvent() 调用栈内，同步 erase 会导致 UAF）。它们只置位
+    // reclaimArmed_ 并暂存回调负载；顶层入口（begin/onTcpEvent/close 定时器/
+    // driveForwarded）在返回前调用 drainReclaim() 触发真正的回收。
+    // 返回 true 表示已触发回收（this 可能已析构），调用方必须立即返回、
+    // 不得再触碰任何成员。未置位时返回 false（无操作）。
+    bool drainReclaim();
     void onSessionLost(); // forced cleanup when the session drops/closes
     bool wantsOutboundBlocked() const { return blockedOutbound_; }
     void noteBlocked(); // record the EAGAIN direction per libssh2's declaration
@@ -192,6 +199,10 @@ private:
     ssh::SshSession& session_;
     ForwardedCallbacks callbacks_;
     std::function<void()> openFailureCallback_; // 打开失败回收钩子（可空）
+    // C1：延迟回收状态（loop 线程）。failOpen()/finishClose() 只置位，不同步触发。
+    bool reclaimArmed_ = false;       // 有待触发的回收
+    bool reclaimIsClose_ = false;     // true=触发 onClose(pendingCloseInfo_)，false=触发 openFailureCallback_
+    ForwardCloseInfo pendingCloseInfo_; // 延迟的 onClose 负载
     std::shared_ptr<TunnelStats> stats_; // never null (admission copies the share)
 
     // ---- cross-thread visible state ----

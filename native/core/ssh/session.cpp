@@ -961,6 +961,9 @@ void SshSession::driveForwarded()
     for (fwd::ForwardedConnection* stream : streamSnapshot) {
         if (std::find(fwdStreams_.begin(), fwdStreams_.end(), stream) != fwdStreams_.end()) {
             stream->pump();
+            // C1：pump() 可能置位回收（failOpen/enterClosing 路径）；在此触发
+            // （可能析构 stream），随后不得再触碰它。快照只存裸指针值，不解引用。
+            stream->drainReclaim();
         }
     }
     // Re-arm per the fresh block directions (a stall may have moved between

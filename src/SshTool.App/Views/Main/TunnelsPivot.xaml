@@ -6,6 +6,15 @@
 
     <!-- F06：MainPage 隧道 Pivot（02-UI §5.3；05-CODE-AUDIT §6.1）。
          展示全部端口转发规则、运行状态与速率；启停开关；全部停止与新建操作。 -->
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="GroupedTunnels" x:Name="GroupedTunnels"
+                              IsSourceGrouped="True" ItemsPath="Rows" />
+        <!-- M-2（02 §5.3）：分组头（与主机/片段列表同一视觉语言）。 -->
+        <DataTemplate x:Key="TunnelGroupHeaderTemplate">
+            <TextBlock Text="{Binding Name}" Style="{StaticResource GroupHeaderTextStyle}" />
+        </DataTemplate>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -61,6 +70,9 @@
                                             DeleteRequested="OnRowDelete" />
                     </DataTemplate>
                 </ListView.ItemTemplate>
+                <ListView.GroupStyle>
+                    <GroupStyle HidesIfEmpty="True" HeaderTemplate="{StaticResource TunnelGroupHeaderTemplate}" />
+                </ListView.GroupStyle>
             </ListView>
 
             <controls:EmptyState x:Name="Empty"

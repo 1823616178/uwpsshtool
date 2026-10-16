@@ -14,11 +14,20 @@ using SshTool.Core.Storage;
 
 namespace SshTool.App.ViewModels
 {
+    // M-2（02 §5.3）：隧道分组（按 Tunnel.GroupId，分组名取自 HostGroup）。
+    public sealed class TunnelGroupViewModel
+    {
+        public string Name { get; set; }
+        public ObservableCollection<TunnelItemViewModel> Rows { get; } =
+            new ObservableCollection<TunnelItemViewModel>();
+    }
+
     // F06：隧道 Pivot 视图模型（01-DESIGN §11.2；02-UI §5.3；05-CODE-AUDIT §6.1）。
     public sealed class TunnelsViewModel : ViewModelBase
     {
         private readonly AppServices _services;
         private readonly ObservableCollection<TunnelItemViewModel> _tunnels = new ObservableCollection<TunnelItemViewModel>();
+        private readonly ObservableCollection<TunnelGroupViewModel> _groupedTunnels = new ObservableCollection<TunnelGroupViewModel>();
         private bool _isLoading;
         private bool _isEmpty;
 
@@ -42,6 +51,9 @@ namespace SshTool.App.ViewModels
         }
 
         public ReadOnlyObservableCollection<TunnelItemViewModel> Tunnels { get; }
+
+        // M-2：分组后的隧道（供 CollectionViewSource 分组显示）。
+        public ObservableCollection<TunnelGroupViewModel> GroupedTunnels => _groupedTunnels;
 
         public bool IsLoading
         {
@@ -112,6 +124,7 @@ namespace SshTool.App.ViewModels
                     _tunnels.Add(item);
                 }
 
+                RebuildGroups();
                 IsEmpty = _tunnels.Count == 0;
                 HasError = false;
                 ErrorMessage = string.Empty;
@@ -126,6 +139,32 @@ namespace SshTool.App.ViewModels
             finally
             {
                 IsLoading = false;
+            }
+        }
+
+        // M-2：按 GroupName 分组；未分组的归入「未分组」组（02 §5.3 线框的分组头）。
+        private void RebuildGroups()
+        {
+            _groupedTunnels.Clear();
+            string ungroupedName = Localized.Get("Tunnels_Ungrouped", "未分组");
+            var map = new Dictionary<string, TunnelGroupViewModel>(StringComparer.Ordinal);
+            var order = new List<TunnelGroupViewModel>();
+            foreach (var item in _tunnels)
+            {
+                string name = string.IsNullOrEmpty(item.GroupName) ? ungroupedName : item.GroupName;
+                TunnelGroupViewModel group;
+                if (!map.TryGetValue(name, out group))
+                {
+                    group = new TunnelGroupViewModel { Name = name };
+                    map[name] = group;
+                    order.Add(group);
+                }
+                group.Rows.Add(item);
+            }
+            // 未分组沉底，其余按名称排序（与主机列表分组排序习惯一致）。
+            foreach (var group in order.OrderBy(g => g.Name == ungroupedName ? 1 : 0).ThenBy(g => g.Name, StringComparer.Ordinal))
+            {
+                _groupedTunnels.Add(group);
             }
         }
 

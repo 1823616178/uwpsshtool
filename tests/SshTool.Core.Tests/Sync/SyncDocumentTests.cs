@@ -121,6 +121,10 @@ namespace SshTool.Core.Tests.Sync
             yield return Case("secrets-整个 null", j => Server(j, 0)["secrets"] = JValue.CreateNull(), "secrets");
             yield return Case("port-浮点", j => Profile(j)["port"] = 22.5, "port");
             yield return Case("port-字符串", j => Profile(j)["port"] = "22", "port");
+            // M-1：超 Int32 范围的整数必须走 SyncDocumentInvalidException（Reader 严格契约），
+            // 而非裸 OverflowException。
+            yield return Case("port-超Int32上溢", j => Profile(j)["port"] = 99999999999L, "port");
+            yield return Case("port-超Int32下溢", j => Profile(j)["port"] = -99999999999L, "port");
             yield return Case("enabled-数字", j => Tunnel(j, 0)["enabled"] = 1, "enabled");
             yield return Case("groupId-数字", j => Tunnel(j, 1)["groupId"] = 5, "groupId");
 

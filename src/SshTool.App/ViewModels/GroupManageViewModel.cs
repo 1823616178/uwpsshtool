@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
@@ -27,8 +27,8 @@ namespace SshTool.App.ViewModels
         {
             get
             {
-                return Localized.Format(
-                    "GroupManage_CountFormat", "{0} 台主机 · {1} 条隧道", HostCount, TunnelCount);
+                // O16：单行写法——门禁按行扫描，续行含中文兜底会被误判为参数文案。
+                return Localized.Format("GroupManage_CountFormat", "{0} 台主机 · {1} 条隧道", HostCount, TunnelCount);
             }
         }
 

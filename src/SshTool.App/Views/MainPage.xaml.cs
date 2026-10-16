@@ -408,7 +408,7 @@ namespace SshTool.App.Views
             string text = Loader.GetString(key);
             if (!string.IsNullOrEmpty(text))
             {
-                SignInItem.Label = text;
+                SignInItem.Text = text;
             }
         }
 

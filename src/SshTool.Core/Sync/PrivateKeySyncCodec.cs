@@ -210,7 +210,7 @@ namespace SshTool.Core.Sync
         // 桌面端 ssh2 报缺短语错误即跳过指纹复算，而原生 KeyTool 可直接从文件头
         // 取公钥（§9），此处仍复算。损坏/伪造的指纹在桌面端会被接受、在此处被拒；
         // 合法文档两端都接受（桌面端出站恒写正确指纹），故不影响互通。
-        public async Task<string> DecodeAndVerifyAsync(ServerSecrets secrets, string serverId)
+        public async Task<DecodedPrivateKey> DecodeAndVerifyAsync(ServerSecrets secrets, string serverId)
         {
             string text = PrivateKeySyncCodec.DecodeStructure(secrets, serverId);
             if (text == null)
@@ -227,17 +227,18 @@ namespace SshTool.Core.Sync
                     throw new SyncApplyException(SyncApplyFailure.PrivateKeyInvalid,
                         "服务器 " + (serverId ?? "") + " 的私钥公钥指纹不匹配");
                 }
-                return text;
+                return new DecodedPrivateKey { Text = text, Info = info };
             }
             if (info != null && info.Encrypted)
             {
                 // 加密 PEM 无短语时的部分成功：无指纹可复算，接受（§4.1）。
-                return text;
+                // Info 仍带回（KeyType/公钥等可能已从文件头解析出）。
+                return new DecodedPrivateKey { Text = text, Info = info };
             }
             if (info == null && secrets.Passphrase == null && PrivateKeySyncCodec.LooksEncrypted(text))
             {
                 // 短语缺失的加密钥：对应桌面端 missingPassphrase 容忍分支，接受。
-                return text;
+                return new DecodedPrivateKey { Text = text, Info = null };
             }
             throw new SyncApplyException(SyncApplyFailure.PrivateKeyInvalid,
                 "服务器 " + (serverId ?? "") + " 的私钥无法使用同步的密码短语解析");

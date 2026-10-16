@@ -521,7 +521,7 @@ namespace SshTool
                 return concurrency::create_task(*channelTce).then(
                     [self, host = std::move(host), port, username = std::move(username),
                      connectTimeoutMs, keepaliveSeconds, termType = std::move(termType),
-                     envVars = std::move(envVars)]
+                     envVars = std::move(envVars), jumpSession]
                     (struct _LIBSSH2_CHANNEL* channel) mutable -> task<int> {
 
                     if (channel == nullptr)
@@ -535,7 +535,14 @@ namespace SshTool
                     }
 
                     // Step 2: wrap channel in JumpTransport.
-                    auto jumpCh = std::make_shared<sshclient::fwd::DirectTcpipJumpChannel>(channel);
+                    // C3: the direct-tcpip channel lives on the JUMP session; the target
+                    // session must keep the jump session alive as long as the channel.
+                    // Type-erased anchor: the lambda capture holds the SshSession^
+                    // (CX refcount) until the last shared_ptr copy is destroyed.
+                    std::shared_ptr<void> jumpAnchor(static_cast<void*>(nullptr),
+                        [jumpSession](void*) {});
+                    auto jumpCh = std::make_shared<sshclient::fwd::DirectTcpipJumpChannel>(
+                        channel, std::move(jumpAnchor));
                     auto transport = std::make_shared<sshclient::fwd::JumpTransport>(std::move(jumpCh));
 
                     // Step 3: set up the target core session routed through the transport.

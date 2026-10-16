@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="SshTool.App.Views.SftpPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -105,6 +105,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -241,33 +242,22 @@
             </StackPanel>
         </Border>
 
-        <controls:LoadingOverlay x:Name="BusyOverlay" Grid.RowSpan="4" IsActive="False" />
-        <controls:TransientToast x:Name="Toast" Grid.RowSpan="4" VerticalAlignment="Bottom" />
+        <!-- H-3（02 §4.5 规则 5）：底栏换成自研 BottomActionBar（与全站统一）。
+             主操作=上传；溢出=新建文件夹 / 刷新 / 排序与视图。PrimaryText 走 x:Uid 映射。 -->
+        <controls:BottomActionBar x:Name="BottomBar" x:Uid="Sftp_BottomBar" Grid.Row="4"
+                                  ShowOverflow="True"
+                                  PrimaryClick="OnUploadClick">
+            <controls:BottomActionBar.OverflowFlyout>
+                <MenuFlyout>
+                    <MenuFlyoutItem x:Uid="Sftp_NewFolderItem" Click="OnNewFolderClick" />
+                    <MenuFlyoutItem x:Uid="Sftp_RefreshItem" Click="OnRefreshClick" />
+                    <MenuFlyoutItem x:Uid="Sftp_ViewOptionsItem" Click="OnMoreClick" />
+                </MenuFlyout>
+            </controls:BottomActionBar.OverflowFlyout>
+        </controls:BottomActionBar>
+
+        <controls:LoadingOverlay x:Name="BusyOverlay" Grid.RowSpan="5" IsActive="False" />
+        <controls:TransientToast x:Name="Toast" Grid.Row="4" />
     </Grid>
 
-    <Page.BottomAppBar>
-        <CommandBar Background="{ThemeResource AppSurfaceBrush}">
-            <AppBarButton x:Uid="Sftp_UploadButton" Click="OnUploadClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconUpload}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton x:Uid="Sftp_NewFolderButton" Click="OnNewFolderClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconFolder}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton x:Uid="Sftp_RefreshButton" Click="OnRefreshClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconSync}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <!-- SFTP 重设计：排序/隐藏文件/书签直接一个主按钮弹出，不再「溢出菜单里只有一个『更多』」。 -->
-            <AppBarButton x:Uid="Sftp_ViewOptionsButton" Click="OnMoreClick">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="{StaticResource IconSort}" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-        </CommandBar>
-    </Page.BottomAppBar>
 </Page>

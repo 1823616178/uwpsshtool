@@ -416,6 +416,35 @@ namespace SshTool.Core.Tests.Sync
             Assert.Null(await f.Tunnels.GetByIdAsync("t1"));
         }
 
+        // L-2：远端删除主机时，若其 KeyId 已无人引用，一并清除 key: 短语残留；
+        // 仍被其他主机引用时保留（KeyEntry 本体始终保留）。
+        [Fact]
+        public async Task Apply_DeletesMissingHost_CleansOrphanedKeyPassphrase()
+        {
+            var f = new Fixture();
+            var h1 = NewHost("h1", "gone");
+            h1.AuthType = AuthType.Key;
+            h1.KeyId = "k1";
+            await f.Hosts.AddAsync(h1);
+            var h2 = NewHost("h2", "stay");
+            h2.AuthType = AuthType.Key;
+            h2.KeyId = "k1";
+            await f.Hosts.AddAsync(h2);
+            await f.Secrets.SetAsync(SecretKeys.KeyPassphrase("k1"), "key-phrase");
+
+            var doc = await f.Adapter.BuildLocalDocumentAsync(Prefs(true, false));
+            doc.Servers.RemoveAll(s => s.Profile.Id == "h1");
+            await f.Adapter.ApplyDocumentAsync(doc);
+
+            // h2 仍引用 k1 → 短语保留。
+            Assert.Equal("key-phrase", await f.Secrets.GetAsync(SecretKeys.KeyPassphrase("k1")));
+
+            // 再删 h2 → k1 无人引用 → 短语清除。
+            doc.Servers.RemoveAll(s => s.Profile.Id == "h2");
+            await f.Adapter.ApplyDocumentAsync(doc);
+            Assert.Null(await f.Secrets.GetAsync(SecretKeys.KeyPassphrase("k1")));
+        }
+
         // §5.2：远端新主机 → 🏠 字段取默认值。
         [Fact]
         public async Task Apply_NewHost_GetsLocalDefaults()

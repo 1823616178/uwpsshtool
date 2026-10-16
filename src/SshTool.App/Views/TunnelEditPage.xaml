@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="SshTool.App.Views.TunnelEditPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -115,14 +115,44 @@
                 <controls:FormSection x:Uid="TunnelEdit_Section_Options">
                     <controls:FormSection.SectionContent>
                         <StackPanel>
-                            <ToggleSwitch x:Name="AutoReconnectSwitch" x:Uid="TunnelEdit_AutoReconnectSwitch"
-                                          Toggled="OnAutoReconnectToggled" />
-                            <ToggleSwitch x:Name="AutoStartSwitch" x:Uid="TunnelEdit_AutoStartSwitch"
-                                          Toggled="OnAutoStartToggled" />
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+    <TextBlock x:Uid="TunnelEdit_AutoReconnectSwitch_Title" Style="{StaticResource BodyTextStyle}"
+               TextWrapping="Wrap" VerticalAlignment="Center" />
+    <ToggleSwitch x:Name="AutoReconnectSwitch" x:Uid="TunnelEdit_AutoReconnectSwitch" Grid.Column="1"
+                  Style="{StaticResource CompactToggleSwitchStyle}"
+                  Margin="{StaticResource GapSmLeft}"
+                  VerticalAlignment="Center" Toggled="OnAutoReconnectToggled" />
+</Grid>
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+    <TextBlock x:Uid="TunnelEdit_AutoStartSwitch_Title" Style="{StaticResource BodyTextStyle}"
+               TextWrapping="Wrap" VerticalAlignment="Center" />
+    <ToggleSwitch x:Name="AutoStartSwitch" x:Uid="TunnelEdit_AutoStartSwitch" Grid.Column="1"
+                  Style="{StaticResource CompactToggleSwitchStyle}"
+                  Margin="{StaticResource GapSmLeft}"
+                  VerticalAlignment="Center" Toggled="OnAutoStartToggled" />
+</Grid>
                             <TextBlock x:Uid="TunnelEdit_LocalOnly" Style="{StaticResource CaptionTextStyle}"
                                        Foreground="{ThemeResource AppTextFaintBrush}" />
-                            <ToggleSwitch x:Name="EnabledSwitch" x:Uid="TunnelEdit_EnabledSwitch"
-                                          Margin="{StaticResource GapSmTop}" Toggled="OnEnabledToggled" />
+                            <Grid MinHeight="{StaticResource ListRowHeight}">
+    <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+    </Grid.ColumnDefinitions>
+    <TextBlock x:Uid="TunnelEdit_EnabledSwitch_Title" Style="{StaticResource BodyTextStyle}"
+               TextWrapping="Wrap" VerticalAlignment="Center" />
+    <ToggleSwitch x:Name="EnabledSwitch" x:Uid="TunnelEdit_EnabledSwitch" Grid.Column="1"
+                  Style="{StaticResource CompactToggleSwitchStyle}"
+                  Margin="{StaticResource GapSmLeft}"
+                  VerticalAlignment="Center" Toggled="OnEnabledToggled" />
+</Grid>
                         </StackPanel>
                     </controls:FormSection.SectionContent>
                 </controls:FormSection>

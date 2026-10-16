@@ -203,6 +203,16 @@ public:
     // handshake. The result arrives via onClose.
     void close();
 
+    // C2 emergency detach (NOT on the loop thread; for blocking one-shot users
+    // like execCommand whose timeout expired without onClose). Unregisters the
+    // channel from the session via the loop thread and frees the libssh2 handle
+    // best-effort, so the session never touches this object after return.
+    // Without this, destroying a still-registered channel leaves a dangling
+    // pointer in the session registry (driveChannels UAF). Waits briefly for
+    // the loop task; if the loop is dead the session is tearing down and
+    // driveChannels won't run, so returning is safe.
+    void emergencyDetach();
+
     ChannelState state() const { return state_.load(std::memory_order_acquire); }
     // Backpressure observation: currently queued bytes (any thread).
     size_t pendingWriteBytes() const { return pendingBytes_.load(std::memory_order_acquire); }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Graphics.Canvas;
@@ -274,6 +274,37 @@ namespace SshTool.App.Terminal
         public void PasteFromClipboard()
         {
             PasteClipboard();
+        }
+
+        // H-1（02 §4）：硬件返回键需要查询/退出选择模式。
+        public bool IsSelectionActive
+        {
+            get { return _selection.IsActive; }
+        }
+
+        public void CancelSelection()
+        {
+            if (!DispatcherHelper.HasThreadAccess)
+            {
+                DispatcherHelper.Post(CancelSelection);
+                return;
+            }
+            if (_selection.IsActive)
+            {
+                _selection.Cancel();
+                RefreshSelectionOverlay();
+            }
+        }
+
+        // H-1（02 §4）：硬件返回键需要查询/收起软键盘。
+        public bool IsSoftKeyboardVisible
+        {
+            get { return _softKeyboard.IsInputPaneVisible; }
+        }
+
+        public void HideSoftKeyboard()
+        {
+            _softKeyboard.HidePane();
         }
 
         // U12：宽屏复制快捷键（Ctrl+Shift+C）入口；复用选择工具条同一份拷贝逻辑。

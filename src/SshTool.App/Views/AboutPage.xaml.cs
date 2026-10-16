@@ -4,6 +4,7 @@ using Windows.ApplicationModel;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
+using SshTool.App.Infrastructure;
 
 namespace SshTool.App.Views
 {
@@ -45,12 +46,17 @@ namespace SshTool.App.Views
             return string.Join(Environment.NewLine, core, native_, openssl, argon2, libssh2);
         }
 
+        // L-3（02 §4 W06）：页头返回走 NavigationService 统一链（与硬件返回一致）。
         private void OnBackRequested(object sender, EventArgs e)
         {
-            Frame root = Window.Current.Content as Frame;
-            if (root != null && root.CanGoBack)
+            NavigationService nav;
+            if (ServiceRegistry.TryGet(out nav))
             {
-                root.GoBack();
+                nav.RequestBack();
+            }
+            else if (Frame != null && Frame.CanGoBack)
+            {
+                Frame.GoBack();
             }
         }
 

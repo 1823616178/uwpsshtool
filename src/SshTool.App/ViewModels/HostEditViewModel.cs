@@ -211,7 +211,9 @@ namespace SshTool.App.ViewModels
 
         public bool LastSaveHadErrors { get; private set; }
 
-        public async Task<TestConnectResult> TestAsync()
+        // M-1（02 §5.4）：测试连接分阶段反馈。onStage 在阶段切换时被调用
+        // （可能在后台线程，调用方负责封送回 UI 线程）。
+        public async Task<TestConnectResult> TestAsync(Action<TestConnectStage> onStage = null)
         {
             SyncEnvToState();
             Host draft = _state.ToHost();
@@ -231,6 +233,10 @@ namespace SshTool.App.ViewModels
                 factory,
                 new DialogHostKeyPrompter(),
                 new DispatcherUiDispatcher());
+            if (onStage != null)
+            {
+                tester.StageChanged += (s, stage) => onStage(stage);
+            }
             return await tester.RunAsync(draft, Credentials, System.Threading.CancellationToken.None)
                 .ConfigureAwait(true);
         }
